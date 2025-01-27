@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "dr_copilot",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "dr_copilot (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "dr_copilot (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        // for web chrome on port 3000
+        {
+            "name": "dr_copilot (web)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "web_port=3000"
+            ],
+        }
+    ]
+}
