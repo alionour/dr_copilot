@@ -63,6 +63,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
             // Handle refresh failure
             await Supabase.instance.client.auth.signOut();
             emit( state.copyWith(user:null));
+            
           }
         } else {
           // Handle other auth errors

@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dr_copilot/navigation/bloc/navigation_bloc.dart';
-import 'package:dr_copilot/pages/home/ui/calender_ui.dart';
+import 'package:dr_copilot/calender/ui/calender_ui.dart';
 import 'package:dr_copilot/pages/home/ui/home._ui.dart';
 import 'package:dr_copilot/pages/home/ui/notifications_ui.dart';
 import 'package:dr_copilot/pages/home/ui/settings_ui.dart';
+import 'package:dr_copilot/routing/routing_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
@@ -71,8 +72,9 @@ class NavigationSide extends StatelessWidget {
                           trailing: IconButton(
                               onPressed: () {
                                 Supabase.instance.client.auth.signOut();
+                                router.go('/');
                               },
-                              icon: Icon(Icons.logout_outlined)),
+                              icon: const Icon(Icons.logout_outlined)),
                           leading: profileImageUrl.isNotEmpty
                               ? Container(
                                   decoration: const BoxDecoration(
@@ -90,7 +92,7 @@ class NavigationSide extends StatelessWidget {
                                 )
                               : const Icon(Icons.person_3_outlined),
                         );
-                      }):SizedBox(),
+                      }):const SizedBox(),
                     );
                   },
                 );

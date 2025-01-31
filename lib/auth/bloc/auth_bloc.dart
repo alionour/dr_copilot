@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:bloc/bloc.dart';
+import 'package:dr_copilot/auth/helpers/google_signin_helper.dart';
 import 'package:dr_copilot/routing/routing_config.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -15,38 +16,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInWithGoogle>(_signInWithGoogle);
   }
 
+  final supabase = Supabase.instance.client;
+
   void _signInWithGoogle(
       SignInWithGoogle event, Emitter<AuthState> emit) async {
     try {
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        _nativeGoogleSignIn();
+        await _nativeGoogleSignIn();
       } else {
-        _webGoogleSignIn();
+        await _webGoogleSignIn();
       }
-      
-      emit(AuthInitial());
-      router.go('/home');
 
+      // Check if the user is already signed in before navigating
+      if (googleSignIn.currentUser != null) {
+        emit(AuthInitial());
+        router.go('/home');
+      }
+      // add(GetCalendarEvents());
     } catch (error) {
       debugPrint(error.toString());
     }
   }
 
-  void _nativeGoogleSignIn() async {
-    final supabase = Supabase.instance.client;
-
-    /// Web Client ID that you registered with Google Cloud.
-    const webClientId =
-        '991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com';
-
-    /// iOS Client ID that you registered with Google Cloud.
-    const iosClientId =
-        '991809114105-gjmdi9v4bjvhbh11a3khbb3ah1606fqb.apps.googleusercontent.com';
-
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId: iosClientId,
-      serverClientId: webClientId,
-    );
+  final googleSignIn = GoogleSignInHelper();
+  Future<void> _nativeGoogleSignIn() async {
     final googleUser = await googleSignIn.signIn();
     final googleAuth = await googleUser!.authentication;
     final accessToken = googleAuth.accessToken;
@@ -66,10 +59,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  void _webGoogleSignIn() async {
-    final supabase = Supabase.instance.client;
-    await supabase.auth.signInWithOAuth(
-      OAuthProvider.google,
-    );
+  Future<void> _webGoogleSignIn() async {
+    final googleUser = await googleSignIn.signIn();
+
+    if (googleUser == null) {
+      throw 'Google sign-in aborted';
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final accessToken = googleAuth.accessToken;
+    print('accessToken is $accessToken');
+
+    if (accessToken == null) {
+      throw 'No Access Token found.';
+    }
+
+    // await supabase.auth.signInWithOAuth(
+    //   OAuthProvider.google,
+    // );
   }
 }

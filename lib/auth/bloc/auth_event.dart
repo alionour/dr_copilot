@@ -13,3 +13,4 @@ class SignInWithGoogle extends AuthEvent {
   @override
   List<Object> get props => [];
 }
+
