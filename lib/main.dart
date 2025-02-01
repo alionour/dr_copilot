@@ -1,10 +1,11 @@
 import 'package:dr_copilot/auth/bloc/auth_bloc.dart';
 import 'package:dr_copilot/navigation/bloc/navigation_bloc.dart';
+import 'package:dr_copilot/src/core/injections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'routing/routing_config.dart';
+import 'src/core/router/routing_config.dart';
 
 // void main() {
 //   runApp(
@@ -17,6 +18,8 @@ import 'routing/routing_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initInjections();
+
   await Supabase.initialize(
     url: 'https://towoeiooghmluwgtmnej.supabase.co',
     anonKey:

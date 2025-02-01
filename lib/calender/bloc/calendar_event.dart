@@ -40,3 +40,32 @@ class GetCalendars extends CalendarEvent {
   @override
   List<Object> get props => [];
 }
+
+/// Event to get calendar events for a specific date range.
+/// 
+/// This event can be dispatched to trigger the fetching of calendar events for the specified date range.
+class GetCalendarEventsForRange extends CalendarEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const GetCalendarEventsForRange(this.startDate, this.endDate);
+
+  /// Provides a list of properties for comparison.
+  /// 
+  /// This is used by Equatable to determine if two instances are equal.
+  /// 
+  /// @return A list of properties to compare.
+  @override
+  List<Object> get props => [startDate, endDate];
+}
+
+/// Event to add a new calendar event.
+class AddCalendarEvent extends CalendarEvent {
+  final Event newEvent;
+  final String calendarId;
+
+  const AddCalendarEvent(this.newEvent, this.calendarId);
+
+  @override
+  List<Object> get props => [newEvent, calendarId];
+}

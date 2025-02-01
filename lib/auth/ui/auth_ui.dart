@@ -119,7 +119,7 @@ class SignUp extends StatelessWidget {
             //       ),
             //     )),
             // spacer,
-            IconButton(
+            Center(child:IconButton(
                 onPressed: () {
                   context.read<AuthBloc>().add(SignInWithGoogle());
                 },
@@ -134,7 +134,7 @@ class SignUp extends StatelessWidget {
                     ),
                     const Text('Sign in with Google'),
                   ],
-                )),
+                )),),
             // SupaSocialsAuth(
             //   colored: true,
             //   nativeGoogleAuthConfig: const NativeGoogleAuthConfig(

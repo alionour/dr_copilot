@@ -4,7 +4,7 @@ import 'package:dr_copilot/calender/ui/calender_ui.dart';
 import 'package:dr_copilot/pages/home/ui/home._ui.dart';
 import 'package:dr_copilot/pages/home/ui/notifications_ui.dart';
 import 'package:dr_copilot/pages/home/ui/settings_ui.dart';
-import 'package:dr_copilot/routing/routing_config.dart';
+import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';

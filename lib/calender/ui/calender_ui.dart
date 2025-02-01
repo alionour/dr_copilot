@@ -1,9 +1,11 @@
 import 'package:dr_copilot/calender/bloc/calendar_bloc.dart';
+import 'package:dr_copilot/calender/ui/add_calendar_event_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
+/// UI for displaying and managing calendar events.
 class CalenderUI extends StatefulWidget {
   const CalenderUI({super.key});
 
@@ -12,27 +14,83 @@ class CalenderUI extends StatefulWidget {
 }
 
 class _CalenderUIState extends State<CalenderUI> {
+  List<DateTime> _visibleDates = [];
+  CalendarView _calendarView = CalendarView.month; // Default view
+
   @override
   void initState() {
     super.initState();
   }
 
+  /// Refreshes the calendar events for the visible date range.
+  Future<void> _refreshCalendarEvents(BuildContext context) async {
+    if (_visibleDates.isNotEmpty) {
+      final startDate = _visibleDates.first;
+      final endDate = _visibleDates.last;
+      BlocProvider.of<CalendarBloc>(context)
+          .add(GetCalendarEventsForRange(startDate, endDate));
+    }
+  }
+
+  /// Navigates to the AddCalendarEventUI to add a new event.
+  Future<void> _navigateToAddEvent(BuildContext context) async {
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        builder: (context) => const AddCalendarEventUI(),
+      ),
+    );
+    if (result != null) {
+      final newEvent = result['event'] as google_calendar.Event;
+      final calendarId = result['calendar'] as String;
+      BlocProvider.of<CalendarBloc>(context)
+          .add(AddCalendarEvent(newEvent, calendarId));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CalendarBloc()..add(GetCalendarEvents()),
+      create: (context) => CalendarBloc(),
       child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Calendar'),
+          centerTitle: true,
+          actions: [
+            DropdownButton<CalendarView>(
+              value: _calendarView,
+              icon: const Icon(Icons.arrow_downward),
+              onChanged: (CalendarView? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _calendarView = newValue;
+                  });
+                }
+              },
+              items: <CalendarView>[
+                CalendarView.day,
+                CalendarView.week,
+                CalendarView.workWeek,
+                CalendarView.month,
+                CalendarView.timelineDay,
+                CalendarView.timelineWeek,
+                CalendarView.timelineWorkWeek,
+                CalendarView.timelineMonth,
+              ].map<DropdownMenuItem<CalendarView>>((CalendarView value) {
+                return DropdownMenuItem<CalendarView>(
+                  value: value,
+                  child: Text(value.toString().split('.').last),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
         floatingActionButton: BlocBuilder<CalendarBloc, CalendarState>(
           builder: (context, state) {
             return FloatingActionButton(
               onPressed: () {
-                BlocProvider.of<CalendarBloc>(context).add(GetCalendarEvents());
-                // print state
-                print((state is CalendarEventsLoaded)
-                    ? (state).events.first.summary
-                    : null);
+                _navigateToAddEvent(context);
               },
-              child: const Icon(Icons.refresh),
+              child: const Icon(Icons.add),
             );
           },
         ),
@@ -47,14 +105,26 @@ class _CalenderUIState extends State<CalenderUI> {
                 print(element.toJson());
               }
             }
-            return SfCalendar(
-              view: CalendarView.month,
-              dataSource: GoogleCalendarDataSource(events, calendarColors),
-              allowAppointmentResize: true,
-              allowDragAndDrop: true,
-              monthViewSettings: const MonthViewSettings(
-                  appointmentDisplayMode:
-                      MonthAppointmentDisplayMode.appointment),
+            print('object $_calendarView');
+
+            return RefreshIndicator(
+              onRefresh: () => _refreshCalendarEvents(context),
+              child: SfCalendar(
+                view: _calendarView,
+                dataSource: GoogleCalendarDataSource(events, calendarColors),
+                allowAppointmentResize: true,
+                allowDragAndDrop: true,
+                onViewChanged: (ViewChangedDetails details) {
+                  _visibleDates = details.visibleDates;
+                  final startDate = details.visibleDates.first;
+                  final endDate = details.visibleDates.last;
+                  BlocProvider.of<CalendarBloc>(context)
+                      .add(GetCalendarEventsForRange(startDate, endDate));
+                },
+                monthViewSettings: const MonthViewSettings(
+                    appointmentDisplayMode:
+                        MonthAppointmentDisplayMode.appointment),
+              ),
             );
           },
         ),
@@ -63,10 +133,16 @@ class _CalenderUIState extends State<CalenderUI> {
   }
 }
 
+/// Data source for Google Calendar events.
 class GoogleCalendarDataSource extends CalendarDataSource {
   final Map<String, Color> calendarColors;
 
-  GoogleCalendarDataSource(List<google_calendar.Event> source, this.calendarColors) {
+  /// Constructor for GoogleCalendarDataSource.
+  ///
+  /// @param source The list of events.
+  /// @param calendarColors The map of calendar IDs to their colors.
+  GoogleCalendarDataSource(
+      List<google_calendar.Event> source, this.calendarColors) {
     appointments = source;
   }
 
@@ -113,6 +189,10 @@ class GoogleCalendarDataSource extends CalendarDataSource {
     return Colors.blue;
   }
 
+  /// Converts Google Calendar color ID to actual color value.
+  ///
+  /// @param colorId The color ID from Google Calendar.
+  /// @return The corresponding color value.
   Color _getGoogleCalendarColor(String colorId) {
     // Map of Google Calendar color IDs to actual color values
     const colorMap = {

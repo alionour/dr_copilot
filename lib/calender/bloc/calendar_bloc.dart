@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:dr_copilot/auth/helpers/google_signin_helper.dart';
+import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart';
@@ -14,9 +14,13 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
   CalendarBloc() : super(CalendarInitial()) {
     on<GetCalendarEvents>(_fetchGoogleCalendarEvents);
     on<GetCalendars>(_fetchGoogleCalendars);
+    on<GetCalendarEventsForRange>(_fetchGoogleCalendarEventsForRange);
+    on<AddCalendarEvent>(_addCalendarEvent); // Add this line
   }
 
   final googleSignIn = GoogleSignInHelper();
+  final Map<String, Event> _cachedEvents = {};
+  final List<DateTimeRange> _fetchedRanges = [];
 
   /// Fetches Google Calendar events from all calendars and emits the appropriate state.
   ///
@@ -37,19 +41,89 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
 
       for (var calendar in calendarList.items!) {
         print('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
-        final events = await calendarApi.events.list(calendar.id!);
+        final events = await calendarApi.events.list(
+          calendar.id!,
+          maxResults: 2500,
+        );
         allEvents.addAll(events.items!);
         // Add calendar color to the map
         if (calendar.backgroundColor != null) {
-          calendarColors[calendar.id!] = Color(int.parse(calendar.backgroundColor!.replaceFirst('#', '0xFF')));
+          calendarColors[calendar.id!] = Color(
+              int.parse(calendar.backgroundColor!.replaceFirst('#', '0xFF')));
         }
         // Log event details
         for (var event in events.items!) {
-          print('Event: ${event.summary}, Calendar ID: ${calendar.id}');
+          print('Event: ${event.summary}, Calendar: ${calendar.summary}');
         }
       }
 
-      emit(CalendarEventsLoaded(allEvents, calendarColors));
+      // Cache the fetched events
+      for (var event in allEvents) {
+        _cachedEvents[event.id!] = event;
+      }
+
+      emit(CalendarEventsLoaded(_cachedEvents.values.toList(), calendarColors));
+    } catch (e) {
+      print('Error fetching calendar events: $e');
+      emit(CalendarInitial()); // Emit initial state on error
+    }
+  }
+
+  /// Fetches Google Calendar events for a specific date range and emits the appropriate state.
+  ///
+  /// @param event The event to fetch calendar events for the specified date range.
+  /// @param emit The function to emit states.
+  Future<void> _fetchGoogleCalendarEventsForRange(
+      GetCalendarEventsForRange event, Emitter<CalendarState> emit) async {
+    try {
+      // Check if the date range has already been fetched
+      final range = DateTimeRange(start: event.startDate, end: event.endDate);
+      if (_fetchedRanges.any((r) =>
+          r.start.isAtSameMomentAs(range.start) &&
+          r.end.isAtSameMomentAs(range.end))) {
+        print('Date range already fetched: $range');
+        emit(CalendarEventsLoaded(_cachedEvents.values.toList(), const {}));
+        return;
+      }
+
+      // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
+      final AuthClient? client = googleSignIn.client;
+
+      assert(client != null, 'Authenticated client missing!');
+
+      final calendarApi = CalendarApi(client!);
+      final calendarList = await calendarApi.calendarList.list();
+      List<Event> allEvents = [];
+      Map<String, Color> calendarColors = {};
+
+      for (var calendar in calendarList.items!) {
+        print('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
+        final events = await calendarApi.events.list(
+          calendar.id!,
+          timeMin: event.startDate.toUtc(),
+          timeMax: event.endDate.toUtc(),
+        );
+        allEvents.addAll(events.items!);
+        // Add calendar color to the map
+        if (calendar.backgroundColor != null) {
+          calendarColors[calendar.id!] = Color(
+              int.parse(calendar.backgroundColor!.replaceFirst('#', '0xFF')));
+        }
+        // Log event details
+        for (var event in events.items!) {
+          print('Event: ${event.summary}, Calendar: ${calendar.summary}');
+        }
+      }
+
+      // Cache the fetched events
+      for (var event in allEvents) {
+        _cachedEvents[event.id!] = event;
+      }
+
+      // Add the fetched range to the list
+      _fetchedRanges.add(range);
+
+      emit(CalendarEventsLoaded(_cachedEvents.values.toList(), calendarColors));
     } catch (e) {
       print('Error fetching calendar events: $e');
       emit(CalendarInitial()); // Emit initial state on error
@@ -73,6 +147,32 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       emit(CalendarsLoaded(calendarList.items!));
     } catch (e) {
       print('Error fetching calendars: $e');
+      emit(CalendarInitial()); // Emit initial state on error
+    }
+  }
+
+  /// Adds a new calendar event and emits the appropriate state.
+  ///
+  /// @param event The event to add a new calendar event.
+  /// @param emit The function to emit states.
+  Future<void> _addCalendarEvent(
+      AddCalendarEvent event, Emitter<CalendarState> emit) async {
+    try {
+      // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
+      final AuthClient? client = googleSignIn.client;
+
+      assert(client != null, 'Authenticated client missing!');
+
+      final calendarApi = CalendarApi(client!);
+      await calendarApi.events.insert(event.newEvent, event.calendarId);
+
+      // Refresh the events after adding the new event
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0);
+      add(GetCalendarEventsForRange(startOfMonth, endOfMonth));
+    } catch (e) {
+      print('Error adding calendar event: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
