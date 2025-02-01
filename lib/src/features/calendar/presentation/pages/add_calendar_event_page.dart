@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:intl/intl.dart';
 
-/// UI for adding a new calendar event.
-class AddCalendarEventUI extends StatefulWidget {
-  const AddCalendarEventUI({super.key});
+class AddCalendarEventPage extends StatefulWidget {
+  const AddCalendarEventPage({super.key});
 
   @override
-  State<AddCalendarEventUI> createState() => _AddCalendarEventUIState();
+  _AddCalendarEventPageState createState() => _AddCalendarEventPageState();
 }
 
-class _AddCalendarEventUIState extends State<AddCalendarEventUI> {
+class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   final _formKey = GlobalKey<FormState>();
   final _patientNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -26,10 +25,6 @@ class _AddCalendarEventUIState extends State<AddCalendarEventUI> {
     'primary': Colors.blue,
   };
 
-  /// Selects the date and time for the event.
-  ///
-  /// @param context The build context.
-  /// @param isStart Whether the selected date-time is for the start of the event.
   Future<void> _selectDateTime(BuildContext context, bool isStart) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -63,9 +58,6 @@ class _AddCalendarEventUIState extends State<AddCalendarEventUI> {
     }
   }
 
-  /// Saves the event and navigates back.
-  ///
-  /// @param context The build context.
   void _saveEvent(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       final newEvent = google_calendar.Event(

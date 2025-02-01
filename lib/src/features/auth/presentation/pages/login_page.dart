@@ -1,4 +1,4 @@
-import 'package:dr_copilot/auth/bloc/auth_bloc.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -16,8 +16,8 @@ const spacer = SizedBox(
   height: 12,
 );
 
-class SignUp extends StatelessWidget {
-  const SignUp({super.key});
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
   @override
   Widget build(BuildContext context) {
     final darkModeThemeData = ThemeData.dark().copyWith(
@@ -119,22 +119,24 @@ class SignUp extends StatelessWidget {
             //       ),
             //     )),
             // spacer,
-            Center(child:IconButton(
-                onPressed: () {
-                  context.read<AuthBloc>().add(SignInWithGoogle());
-                },
-                icon: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
-                      semanticsLabel: 'Google Logo',
-                      width: 24,
-                      height: 24,
-                    ),
-                    const Text('Sign in with Google'),
-                  ],
-                )),),
+            Center(
+              child: IconButton(
+                  onPressed: () {
+                    context.read<AuthBloc>().add(SignInWithGoogle());
+                  },
+                  icon: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
+                        semanticsLabel: 'Google Logo',
+                        width: 24,
+                        height: 24,
+                      ),
+                      const Text('Sign in with Google'),
+                    ],
+                  )),
+            ),
             // SupaSocialsAuth(
             //   colored: true,
             //   nativeGoogleAuthConfig: const NativeGoogleAuthConfig(

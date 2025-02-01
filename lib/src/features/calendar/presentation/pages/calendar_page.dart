@@ -5,15 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-/// UI for displaying and managing calendar events.
-class CalenderUI extends StatefulWidget {
-  const CalenderUI({super.key});
+class CalendarPage extends StatefulWidget {
+  const CalendarPage({super.key});
 
   @override
-  State<CalenderUI> createState() => _CalenderUIState();
+  _CalendarPageState createState() => _CalendarPageState();
 }
 
-class _CalenderUIState extends State<CalenderUI> {
+class _CalendarPageState extends State<CalendarPage> {
   List<DateTime> _visibleDates = [];
   CalendarView _calendarView = CalendarView.month; // Default view
 
@@ -22,7 +21,6 @@ class _CalenderUIState extends State<CalenderUI> {
     super.initState();
   }
 
-  /// Refreshes the calendar events for the visible date range.
   Future<void> _refreshCalendarEvents(BuildContext context) async {
     if (_visibleDates.isNotEmpty) {
       final startDate = _visibleDates.first;
@@ -32,11 +30,10 @@ class _CalenderUIState extends State<CalenderUI> {
     }
   }
 
-  /// Navigates to the AddCalendarEventUI to add a new event.
   Future<void> _navigateToAddEvent(BuildContext context) async {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
-        builder: (context) => const AddCalendarEventUI(),
+        builder: (context) => const AddCalendarEventPage(),
       ),
     );
     if (result != null) {
@@ -133,14 +130,9 @@ class _CalenderUIState extends State<CalenderUI> {
   }
 }
 
-/// Data source for Google Calendar events.
 class GoogleCalendarDataSource extends CalendarDataSource {
   final Map<String, Color> calendarColors;
 
-  /// Constructor for GoogleCalendarDataSource.
-  ///
-  /// @param source The list of events.
-  /// @param calendarColors The map of calendar IDs to their colors.
   GoogleCalendarDataSource(
       List<google_calendar.Event> source, this.calendarColors) {
     appointments = source;
@@ -189,12 +181,7 @@ class GoogleCalendarDataSource extends CalendarDataSource {
     return Colors.blue;
   }
 
-  /// Converts Google Calendar color ID to actual color value.
-  ///
-  /// @param colorId The color ID from Google Calendar.
-  /// @return The corresponding color value.
   Color _getGoogleCalendarColor(String colorId) {
-    // Map of Google Calendar color IDs to actual color values
     const colorMap = {
       '1': Color(0xFF7986CB),
       '2': Color(0xFF33B679),

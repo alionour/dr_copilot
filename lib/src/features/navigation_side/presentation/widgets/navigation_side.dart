@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
-import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
-import 'package:dr_copilot/pages/home/ui/home._ui.dart';
-import 'package:dr_copilot/pages/home/ui/notifications_ui.dart';
-import 'package:dr_copilot/pages/home/ui/settings_ui.dart';
 import 'package:dr_copilot/src/core/router/routing_config.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
+import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
+import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class NavigationSide extends StatelessWidget {
   final Widget child;
@@ -61,38 +61,41 @@ class NavigationSide extends StatelessWidget {
                           ),
                         ),
                       ],
-                      footer:data.isOpen? BlocBuilder<NavigationBloc, NavigationState>(
-                          builder: (context, NavigationState state) {
-                        final String profileImageUrl =
-                            state.user?.userMetadata?['picture'] ?? '';
-                        return ListTile(
-                          title:
-                              Text(state.user?.userMetadata?['full_name'] ?? '')
-                                  .showOrNull(data.isOpen),
-                          trailing: IconButton(
-                              onPressed: () {
-                                Supabase.instance.client.auth.signOut();
-                                router.go('/');
-                              },
-                              icon: const Icon(Icons.logout_outlined)),
-                          leading: profileImageUrl.isNotEmpty
-                              ? Container(
-                                  decoration: const BoxDecoration(
-                                      shape: BoxShape.circle),
-                                  child: CachedNetworkImage(
-                                    imageUrl: profileImageUrl,
-                                    placeholder: (ctx, url) =>
-                                        const Icon(Icons.person_pin),
-                                    errorWidget: (context, url, error) {
-                                      debugPrint(
-                                          'Failed to load image: $error');
-                                      return const SizedBox();
+                      footer: data.isOpen
+                          ? BlocBuilder<NavigationBloc, NavigationState>(
+                              builder: (context, NavigationState state) {
+                              final String profileImageUrl =
+                                  state.user?.userMetadata?['picture'] ?? '';
+                              return ListTile(
+                                title: Text(state
+                                            .user?.userMetadata?['full_name'] ??
+                                        '')
+                                    .showOrNull(data.isOpen),
+                                trailing: IconButton(
+                                    onPressed: () {
+                                      Supabase.instance.client.auth.signOut();
+                                      router.go('/');
                                     },
-                                  ),
-                                )
-                              : const Icon(Icons.person_3_outlined),
-                        );
-                      }):const SizedBox(),
+                                    icon: const Icon(Icons.logout_outlined)),
+                                leading: profileImageUrl.isNotEmpty
+                                    ? Container(
+                                        decoration: const BoxDecoration(
+                                            shape: BoxShape.circle),
+                                        child: CachedNetworkImage(
+                                          imageUrl: profileImageUrl,
+                                          placeholder: (ctx, url) =>
+                                              const Icon(Icons.person_pin),
+                                          errorWidget: (context, url, error) {
+                                            debugPrint(
+                                                'Failed to load image: $error');
+                                            return const SizedBox();
+                                          },
+                                        ),
+                                      )
+                                    : const Icon(Icons.person_3_outlined),
+                              );
+                            })
+                          : const SizedBox(),
                     );
                   },
                 );
@@ -103,18 +106,18 @@ class NavigationSide extends StatelessWidget {
             child: BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, state) {
                 if (state.destination == Destination.home) {
-                  return const Center(child: HomeUI(title: 'Dr Copilot'));
+                  return const Center(child: HomePage());
                 } else if (state.destination == Destination.calendar) {
                   return const Center(
-                    child: CalenderUI(),
+                    child: CalendarPage(),
                   );
                 } else if (state.destination == Destination.settings) {
                   return const Center(
-                    child: SettingsUI(),
+                    child: SettingsPage(),
                   );
                 } else if (state.destination == Destination.notifications) {
                   return const Center(
-                    child: NotificationsUI(),
+                    child: NotificationsPage(),
                   );
                 } else {
                   return const SizedBox();

@@ -1,10 +1,9 @@
-import 'package:dr_copilot/auth/bloc/auth_bloc.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'src/core/router/routing_config.dart';
 
 // void main() {
