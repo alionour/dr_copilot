@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dr_copilot/navigation/bloc/navigation_bloc.dart';
-import 'package:dr_copilot/calender/ui/calender_ui.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/pages/home/ui/home._ui.dart';
 import 'package:dr_copilot/pages/home/ui/notifications_ui.dart';
 import 'package:dr_copilot/pages/home/ui/settings_ui.dart';

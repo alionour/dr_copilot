@@ -1,4 +1,4 @@
-import 'package:dr_copilot/navigation/ui/navigation_side.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/navigation_side.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatelessWidget {
