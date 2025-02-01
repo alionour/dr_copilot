@@ -7,7 +7,7 @@ part 'navigation_event.dart';
 part 'navigation_state.dart';
 
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
-  NavigationBloc() : super(const NavigationState(null,Destination.home)) {
+  NavigationBloc() : super(const NavigationState(null,Destination.copilot)) {
     on<NavigateToEvent>(navigateTo);
 
     on<GetUserData>(getUserData);
@@ -17,8 +17,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
   void navigateTo(NavigateToEvent event, Emitter emit) {
     switch (event.destination) {
-      case Destination.home:
-        emit(state.copyWith(destination:Destination.home));
+      case Destination.copilot:
+        emit(state.copyWith(destination:Destination.copilot));
         break;
       case Destination.calendar:
                 emit(state.copyWith(destination:Destination.calendar));

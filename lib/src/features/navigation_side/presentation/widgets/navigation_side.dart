@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
-import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
+import 'package:dr_copilot/src/features/copilot/presentation/pages/copilot_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NavigationSide extends StatelessWidget {
   final Widget child;
@@ -74,7 +74,7 @@ class NavigationSide extends StatelessWidget {
                                 trailing: IconButton(
                                     onPressed: () {
                                       Supabase.instance.client.auth.signOut();
-                                      router.go('/');
+                                      context.go('/');
                                     },
                                     icon: const Icon(Icons.logout_outlined)),
                                 leading: profileImageUrl.isNotEmpty
@@ -105,8 +105,8 @@ class NavigationSide extends StatelessWidget {
           Expanded(
             child: BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, state) {
-                if (state.destination == Destination.home) {
-                  return const Center(child: HomePage());
+                if (state.destination == Destination.copilot) {
+                  return const Center(child: CopilotPage(title: 'Dr Copilot'));
                 } else if (state.destination == Destination.calendar) {
                   return const Center(
                     child: CalendarPage(),

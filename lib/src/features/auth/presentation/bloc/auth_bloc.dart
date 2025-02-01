@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
-import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -35,11 +34,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Check if the user is already signed in before navigating
       if (googleSignIn.currentUser != null) {
-        emit(AuthInitial());
-        router.go('/home');
+        emit(AuthSignedIn());
       }
       // add(GetCalendarEvents());
     } catch (error) {
+      emit(AuthError(message: error.toString()));
       debugPrint(error.toString());
     }
   }

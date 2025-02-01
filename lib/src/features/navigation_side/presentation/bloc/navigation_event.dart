@@ -19,7 +19,7 @@ class NavItemModel {
 }
 
 enum Destination {
-  home(NavItemModel('Dashboard', Icons.dashboard_outlined)),
+  copilot(NavItemModel('Copilot', Icons.dashboard_outlined)),
   calendar(NavItemModel('Calendar', Icons.calendar_month_outlined)),
   settings(NavItemModel('Settings', Icons.settings_suggest_outlined)),
   notifications(NavItemModel('Notifications', Icons.notifications_on_outlined)),

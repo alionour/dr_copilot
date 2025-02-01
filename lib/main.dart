@@ -1,9 +1,10 @@
+import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
-import 'package:dr_copilot/src/core/injections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+
 import 'src/core/router/routing_config.dart';
 
 // void main() {
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
       ],
       child: MaterialApp.router(
-        routerConfig: router,
+        routerConfig: RoutingConfig.router,
         title: 'Dr Copilot',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
