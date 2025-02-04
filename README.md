@@ -1,6 +1,6 @@
 # Dr Copilot
 
-Dr Copilot is a comprehensive application designed to assist users with various features including authentication, navigation, calendar management, notifications, settings, and a unique Copilot feature.
+Dr Copilot is a comprehensive application designed to assist doctors in managing their clinics, appointments, and providing AI chat support to discuss patient cases.
 
 ## Features
 
@@ -16,7 +16,7 @@ Dr Copilot is a comprehensive application designed to assist users with various 
 
 ### Calendar
 
-- **Calendar Page**: View and manage calendar events.
+- **Calendar Page**: View and manage clinic appointments.
 
 ### Notifications
 
@@ -28,17 +28,10 @@ Dr Copilot is a comprehensive application designed to assist users with various 
 
 ### Copilot
 
-- **Copilot Page**: A unique feature where users can interact with Dr Copilot, a digital entity that tells stories and assists with various tasks.
+- **Copilot Page**: A unique feature where doctors can interact with Dr Copilot, a digital entity that assists with various tasks and provides AI chat support to discuss patient cases.
 
-## Getting Started
+### Patients
 
-This project is a starting point for a Flutter application.
+- **Patients Page**: View and manage patient information.
+- **Patient Search**: Search for patients using a search bar with suggestions.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

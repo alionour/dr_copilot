@@ -9,7 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
 
+/// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatelessWidget {
   final Widget child;
   const NavigationSide({super.key, required this.child});
@@ -119,6 +121,10 @@ class NavigationSide extends StatelessWidget {
                   return const Center(
                     child: NotificationsPage(),
                   );
+                } else if (state.destination == Destination.patients) {
+                  return const Center(
+                    child: PatientsPage(),
+                  );
                 } else {
                   return const SizedBox();
                 }
@@ -131,6 +137,7 @@ class NavigationSide extends StatelessWidget {
   }
 }
 
+/// Extension method to conditionally show a widget.
 extension on Widget {
   Widget? showOrNull(bool isShow) => isShow ? this : null;
 }

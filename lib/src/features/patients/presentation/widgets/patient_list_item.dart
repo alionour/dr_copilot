@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// A widget that displays a patient's information in a list item.
 class PatientListItem extends StatelessWidget {
   final String name;
   final String details;
