@@ -21,37 +21,6 @@ class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
   @override
   Widget build(BuildContext context) {
-    final darkModeThemeData = ThemeData.dark().copyWith(
-      colorScheme: const ColorScheme.dark(
-        primary: Color.fromARGB(248, 183, 183, 183), // text below main button
-      ),
-      textSelectionTheme: TextSelectionThemeData(
-        cursorColor: Colors.blueGrey[300], // cursor when typing
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        fillColor: Colors.grey[800], // background of text entry
-        filled: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        labelStyle: const TextStyle(
-            color:
-                Color.fromARGB(179, 255, 255, 255)), // text labeling text entry
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor:
-              const Color.fromARGB(255, 22, 135, 188), // main button
-          foregroundColor:
-              const Color.fromARGB(255, 255, 255, 255), // main button text
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-    );
-
     return BlocProvider(
       create: (context) => context.read<AuthBloc>(),
       child: BlocListener<AuthBloc, AuthState>(

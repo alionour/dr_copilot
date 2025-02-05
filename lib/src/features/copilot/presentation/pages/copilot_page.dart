@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 class CopilotPage extends StatefulWidget {
+
   const CopilotPage({super.key, required this.title});
 
   final String title;

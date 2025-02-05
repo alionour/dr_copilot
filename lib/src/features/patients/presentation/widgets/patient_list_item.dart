@@ -27,15 +27,7 @@ class PatientListItem extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.0),
-            image: DecorationImage(
-              image: const AssetImage(
-                  'assets/images/patient_background.jpg'), // Replace with your image asset
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.2),
-                BlendMode.dstATop,
-              ),
-            ),
+            color: Colors.white, // Use a solid color background
           ),
           child: ListTile(
             leading: CircleAvatar(

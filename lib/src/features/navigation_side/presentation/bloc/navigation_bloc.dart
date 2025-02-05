@@ -7,11 +7,12 @@ part 'navigation_event.dart';
 part 'navigation_state.dart';
 
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
-  NavigationBloc() : super(const NavigationState(null, Destination.copilot)) {
+  NavigationBloc() : super(NavigationState(null, Destination.copilot,true)) {
     on<NavigateToEvent>(navigateTo);
-
     on<GetUserData>(getUserData);
-
+    on<NavigateUpEvent>(navigateUp);
+    on<NavigateDownEvent>(navigateDown);
+    on<ChangeFocusEvent>(changeFocus);
     add(GetUserData());
   }
 
@@ -38,6 +39,23 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
         break;
     }
+  }
+
+  void navigateUp(NavigateUpEvent event, Emitter emit) {
+    final newIndex = (state.selectedIndex - 1 + Destination.values.length) %
+        Destination.values.length;
+    emit(state.copyWith(
+        selectedIndex: newIndex, destination: Destination.values[newIndex]));
+  }
+
+  void navigateDown(NavigateDownEvent event, Emitter emit) {
+    final newIndex = (state.selectedIndex + 1) % Destination.values.length;
+    emit(state.copyWith(
+        selectedIndex: newIndex, destination: Destination.values[newIndex]));
+  }
+
+  void changeFocus(ChangeFocusEvent event, Emitter emit) {
+    emit(state.copyWith(isNavigationFocused: event.isFocused));
   }
 
   /// fetch user data

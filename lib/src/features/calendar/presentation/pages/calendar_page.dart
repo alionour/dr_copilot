@@ -6,10 +6,13 @@ import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+
+  const CalendarPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _CalendarPageState createState() => _CalendarPageState();
+  State<CalendarPage> createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {

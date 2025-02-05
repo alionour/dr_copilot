@@ -8,7 +8,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const NavigationSide(
-      child: CopilotPage(title: 'Dr Copilot'),
+      child: CopilotPage(
+        title: 'Dr Copilot'),
     );
   }
 }

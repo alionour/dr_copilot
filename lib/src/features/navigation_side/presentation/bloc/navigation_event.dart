@@ -1,15 +1,33 @@
 part of 'navigation_bloc.dart';
 
 // Events
-abstract class NavigationEvent {}
+abstract class NavigationEvent extends Equatable {
+  const NavigationEvent();
 
-/// Event to fetch user data.
-class GetUserData extends NavigationEvent {}
+  @override
+  List<Object?> get props => [];
+}
 
-/// Event to navigate to a specific destination.
 class NavigateToEvent extends NavigationEvent {
   final Destination destination;
-  NavigateToEvent(this.destination);
+  const NavigateToEvent(this.destination);
+
+  @override
+  List<Object?> get props => [destination];
+}
+
+class NavigateUpEvent extends NavigationEvent {}
+
+class NavigateDownEvent extends NavigationEvent {}
+
+class GetUserData extends NavigationEvent {}
+
+class ChangeFocusEvent extends NavigationEvent {
+  final bool isFocused;
+  const ChangeFocusEvent(this.isFocused);
+
+  @override
+  List<Object?> get props => [isFocused];
 }
 
 /// Model for navigation items.
