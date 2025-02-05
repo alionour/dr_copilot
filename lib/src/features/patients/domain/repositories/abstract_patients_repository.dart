@@ -8,11 +8,11 @@ abstract class AbstractPatientsRepository {
   Future<Either<Failure, List<PatientModel>>> getPatients();
 
   /// Adds a new patient.
-  Future<Either<Failure, PatientModel>> addPatient(PatientModel patient);
+  Future<Either<Failure, void>> addPatient(PatientModel patientModel);
 
   /// Updates an existing patient.
-  Future<Either<Failure, PatientModel>> updatePatient(PatientModel patient);
+  Future<Either<Failure, void>> updatePatient(PatientModel patientModel);
 
   /// Deletes a patient by their ID.
-  Future<Either<Failure, void>> deletePatient(String patientId);
+  Future<Either<Failure, void>> deletePatient(String id);
 }

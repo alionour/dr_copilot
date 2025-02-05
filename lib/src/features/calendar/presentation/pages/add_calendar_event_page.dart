@@ -13,6 +13,8 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   final _formKey = GlobalKey<FormState>();
   final _patientNameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _patientNameFocusNode = FocusNode();
+  final _descriptionFocusNode = FocusNode();
   DateTime? _startDate = DateTime.now(); // Initialize with the current date
   DateTime? _endDate = DateTime.now().add(
       const Duration(hours: 1)); // Initialize with the current date + 1 hour
@@ -24,6 +26,14 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
     'Evaluation': Colors.yellow,
     'primary': Colors.blue,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_patientNameFocusNode);
+    });
+  }
 
   Future<void> _selectDateTime(BuildContext context, bool isStart) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -72,6 +82,13 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   }
 
   @override
+  void dispose() {
+    _patientNameFocusNode.dispose();
+    _descriptionFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
@@ -93,6 +110,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                   children: <Widget>[
                     TextFormField(
                       controller: _patientNameController,
+                      focusNode: _patientNameFocusNode,
                       decoration:
                           const InputDecoration(labelText: 'Patient Name'),
                       validator: (value) {
@@ -101,12 +119,19 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_descriptionFocusNode);
+                      },
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _descriptionController,
+                      focusNode: _descriptionFocusNode,
                       decoration:
                           const InputDecoration(labelText: 'Description'),
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).unfocus();
+                      },
                     ),
                     const SizedBox(height: 16.0),
                     Row(

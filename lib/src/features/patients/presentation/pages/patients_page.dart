@@ -3,6 +3,7 @@ import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_li
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'add_patient_page.dart'; // Import the AddPatientPage
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -79,7 +80,8 @@ class _PatientsPageState extends State<PatientsPage> {
               focusNode: _listFocusNode,
               autofocus: true,
               onKeyEvent: (FocusNode node, KeyEvent event) {
-                print('Key event detected: ${event.logicalKey.keyLabel}'); // Debug print statement
+                print(
+                    'Key event detected: ${event.logicalKey.keyLabel}'); // Debug print statement
                 if (!state.isNavigationFocused) {
                   if (event is KeyDownEvent) {
                     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
@@ -90,7 +92,8 @@ class _PatientsPageState extends State<PatientsPage> {
                       print('Arrow Up pressed');
                       moveSelectionUp();
                       return KeyEventResult.handled;
-                    } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                    } else if (event.logicalKey ==
+                        LogicalKeyboardKey.arrowLeft) {
                       _searchFocusNode.requestFocus();
                       return KeyEventResult.handled;
                     }
@@ -107,8 +110,10 @@ class _PatientsPageState extends State<PatientsPage> {
                         ? Colors.blue.withAlpha((0.2 * 255).toInt())
                         : Colors.transparent,
                     child: PatientListItem(
-                      name: filteredPatients[index], // Use filtered patient names
-                      details: 'Details for ${filteredPatients[index]}', // Replace with actual patient data
+                      name:
+                          filteredPatients[index], // Use filtered patient names
+                      details:
+                          'Details for ${filteredPatients[index]}', // Replace with actual patient data
                       onTap: () {
                         setState(() {
                           _selectedIndex = index;
@@ -121,6 +126,15 @@ class _PatientsPageState extends State<PatientsPage> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddPatientPage()),
+          );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
