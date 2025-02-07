@@ -5,12 +5,12 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/naviga
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
 import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
@@ -120,8 +120,8 @@ class _NavigationSideState extends State<NavigationSide> {
                                               '')
                                           .showOrNull(data.isOpen),
                                       trailing: IconButton(
-                                          onPressed: () {
-                                            Supabase.instance.client.auth
+                                          onPressed: () async {
+                                            await FirebaseAuth.instance
                                                 .signOut();
                                             context.go('/');
                                           },

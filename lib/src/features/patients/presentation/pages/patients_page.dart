@@ -1,9 +1,11 @@
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
+import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'add_patient_page.dart'; // Import the AddPatientPage
+import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -14,19 +16,6 @@ class PatientsPage extends StatefulWidget {
 }
 
 class _PatientsPageState extends State<PatientsPage> {
-  final List<String> patients = [
-    'أحمد',
-    'محمد',
-    'علي',
-    'يوسف',
-    'إبراهيم',
-    'خالد',
-    'سعيد',
-    'عبدالله',
-    'حسن',
-    'عمر'
-  ]; // Example list of Arabic names
-
   String query = '';
   final ScrollController _scrollController = ScrollController();
   final FocusNode _listFocusNode = FocusNode();
@@ -39,14 +28,13 @@ class _PatientsPageState extends State<PatientsPage> {
     _listFocusNode.addListener(() {
       print('List focus node has focus: ${_listFocusNode.hasFocus}');
     });
+    context
+        .read<PatientsBloc>()
+        .add(GetPatients(query)); // Fetch patients on init
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredPatients = patients
-        .where((patient) => _normalize(patient).contains(_normalize(query)))
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         title: Focus(
@@ -62,6 +50,9 @@ class _PatientsPageState extends State<PatientsPage> {
                 query = newQuery;
                 _selectedIndex = 0; // Reset selection on new query
               });
+              context
+                  .read<PatientsBloc>()
+                  .add(SearchPatients(query)); // Trigger search event
             },
             onSubmitted: (_) {
               _listFocusNode.requestFocus();
@@ -70,79 +61,98 @@ class _PatientsPageState extends State<PatientsPage> {
         ),
       ),
       body: BlocBuilder<NavigationBloc, NavigationState>(
-        builder: (context, state) {
-          if (!state.isNavigationFocused) {
+        builder: (context, navState) {
+          if (!navState.isNavigationFocused) {
             _listFocusNode.requestFocus();
           }
-          return Container(
-            color: Colors.white, // Use a solid color background
-            child: Focus(
-              focusNode: _listFocusNode,
-              autofocus: true,
-              onKeyEvent: (FocusNode node, KeyEvent event) {
-                print(
-                    'Key event detected: ${event.logicalKey.keyLabel}'); // Debug print statement
-                if (!state.isNavigationFocused) {
-                  if (event is KeyDownEvent) {
-                    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                      print('Arrow Down pressed');
-                      moveSelectionDown();
-                      return KeyEventResult.handled;
-                    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                      print('Arrow Up pressed');
-                      moveSelectionUp();
-                      return KeyEventResult.handled;
-                    } else if (event.logicalKey ==
-                        LogicalKeyboardKey.arrowLeft) {
-                      _searchFocusNode.requestFocus();
-                      return KeyEventResult.handled;
-                    }
-                  }
-                }
-                return KeyEventResult.ignored;
-              },
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: filteredPatients.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    color: !state.isNavigationFocused && _selectedIndex == index
-                        ? Colors.blue.withAlpha((0.2 * 255).toInt())
-                        : Colors.transparent,
-                    child: PatientListItem(
-                      name:
-                          filteredPatients[index], // Use filtered patient names
-                      details:
-                          'Details for ${filteredPatients[index]}', // Replace with actual patient data
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
+          return BlocBuilder<PatientsBloc, PatientsState>(
+            builder: (context, state) {
+              if (state is PatientsLoading) {
+                return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Container(
+                        height: 50.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                );
+              } else if (state is PatientsLoaded) {
+                final filteredPatients = state.patients;
+                return Container(
+                  color: Colors.white, // Use a solid color background
+                  child: Focus(
+                    focusNode: _listFocusNode,
+                    autofocus: true,
+                    onKeyEvent: (FocusNode node, KeyEvent event) {
+                      if (!navState.isNavigationFocused) {
+                        if (event is KeyDownEvent) {
+                          if (event.logicalKey ==
+                              LogicalKeyboardKey.arrowDown) {
+                            moveSelectionDown(filteredPatients.length);
+                            return KeyEventResult.handled;
+                          } else if (event.logicalKey ==
+                              LogicalKeyboardKey.arrowUp) {
+                            moveSelectionUp(filteredPatients.length);
+                            return KeyEventResult.handled;
+                          } else if (event.logicalKey ==
+                              LogicalKeyboardKey.arrowLeft) {
+                            _searchFocusNode.requestFocus();
+                            return KeyEventResult.handled;
+                          }
+                        }
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: filteredPatients.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          color: !navState.isNavigationFocused &&
+                                  _selectedIndex == index
+                              ? Colors.blue.withAlpha((0.2 * 255).toInt())
+                              : Colors.transparent,
+                          child: PatientListItem(
+                            name: filteredPatients[index].name,
+                            details:
+                                'Details for ${filteredPatients[index].name}',
+                            onTap: () {
+                              setState(() {
+                                _selectedIndex = index;
+                              });
+                            },
+                          ),
+                        );
                       },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
+                );
+              } else if (state is PatientsError) {
+                return Center(child: Text('Error: ${state.message}'));
+              }
+              return const Center(child: Text('No patients found.'));
+            },
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddPatientPage()),
-          );
+          context.push('/patients/new');
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  void moveSelectionDown() {
+  void moveSelectionDown(int length) {
     setState(() {
-      _selectedIndex = (_selectedIndex + 1) % patients.length;
-      print('Selected index: $_selectedIndex');
+      _selectedIndex = (_selectedIndex + 1) % length;
     });
     _scrollController.animateTo(
       _selectedIndex * 50.0,
@@ -151,10 +161,9 @@ class _PatientsPageState extends State<PatientsPage> {
     );
   }
 
-  void moveSelectionUp() {
+  void moveSelectionUp(int length) {
     setState(() {
-      _selectedIndex = (_selectedIndex - 1 + patients.length) % patients.length;
-      print('Selected index: $_selectedIndex');
+      _selectedIndex = (_selectedIndex - 1 + length) % length;
     });
     _scrollController.animateTo(
       _selectedIndex * 50.0,

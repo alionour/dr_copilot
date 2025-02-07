@@ -1,15 +1,14 @@
 abstract class Failure {
   final String message;
+  final int code;
 
-  Failure(this.message);
+  Failure(this.message, this.code);
 }
 
 class ServerFailure extends Failure {
-  final int statusCode;
-
-  ServerFailure(super.message, this.statusCode);
+  ServerFailure(super.message, super.code);
 }
 
 class CacheFailure extends Failure {
-  CacheFailure(super.message);
+  CacheFailure(super.message, super.code);
 }

@@ -3,9 +3,9 @@ import 'dart:io' show Platform;
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -17,7 +17,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInWithGoogle>(_signInWithGoogle);
   }
 
-  final supabase = Supabase.instance.client;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  /// Sets the authentication persistence.
+  Future<void> _setAuthPersistence() async {
+    try {
+      await _firebaseAuth.setPersistence(Persistence.LOCAL);
+    } catch (e) {
+      debugPrint('Failed to set auth persistence: $e');
+    }
+  }
 
   /// Handles the SignInWithGoogle event.
   ///
@@ -35,6 +44,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Check if the user is already signed in before navigating
       if (googleSignIn.currentUser != null) {
         emit(AuthSignedIn());
+        _setAuthPersistence();
       }
       // add(GetCalendarEvents());
     } catch (error) {
@@ -49,21 +59,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _nativeGoogleSignIn() async {
     final googleUser = await googleSignIn.signIn();
     final googleAuth = await googleUser!.authentication;
-    final accessToken = googleAuth.accessToken;
-    final idToken = googleAuth.idToken;
-
-    if (accessToken == null) {
-      throw 'No Access Token found.';
-    }
-    if (idToken == null) {
-      throw 'No ID Token found.';
-    }
-
-    await supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: accessToken,
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
+
+    await _firebaseAuth.signInWithCredential(credential);
   }
 
   /// Handles web Google sign-in.
@@ -75,15 +76,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     final googleAuth = await googleUser.authentication;
-    final accessToken = googleAuth.accessToken;
-    print('accessToken is $accessToken');
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
 
-    if (accessToken == null) {
-      throw 'No Access Token found.';
-    }
-
-    // await supabase.auth.signInWithOAuth(
-    //   OAuthProvider.google,
-    // );
+    await _firebaseAuth.signInWithCredential(credential);
   }
 }

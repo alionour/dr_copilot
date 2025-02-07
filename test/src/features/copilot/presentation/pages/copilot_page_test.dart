@@ -24,7 +24,6 @@ void main() {
   testWidgets('CopilotPage displays not focused status', (WidgetTester tester) async {
     // Arrange
     const title = 'Dr Copilot';
-    const isNavigationFocused = false;
 
     // Act
     await tester.pumpWidget(

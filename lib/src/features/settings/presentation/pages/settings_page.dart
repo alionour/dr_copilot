@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 class SettingsPage extends StatefulWidget {
 
   const SettingsPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
         },
         child: Column(
           children: <Widget>[
-            Center(
+            const Center(
               child: Text('Navigation is '),
             ),
             Expanded(

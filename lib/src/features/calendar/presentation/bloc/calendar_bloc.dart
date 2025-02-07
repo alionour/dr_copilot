@@ -40,7 +40,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       Map<String, Color> calendarColors = {};
 
       for (var calendar in calendarList.items!) {
-        print('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
+      debugPrint('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
         final events = await calendarApi.events.list(
           calendar.id!,
           maxResults: 2500,
@@ -53,7 +53,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
         }
         // Log event details
         for (var event in events.items!) {
-          print('Event: ${event.summary}, Calendar: ${calendar.summary}');
+        debugPrint('Event: ${event.summary}, Calendar: ${calendar.summary}');
         }
       }
 
@@ -64,7 +64,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
 
       emit(CalendarEventsLoaded(_cachedEvents.values.toList(), calendarColors));
     } catch (e) {
-      print('Error fetching calendar events: $e');
+    debugPrint('Error fetching calendar events: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
@@ -81,7 +81,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       if (_fetchedRanges.any((r) =>
           r.start.isAtSameMomentAs(range.start) &&
           r.end.isAtSameMomentAs(range.end))) {
-        print('Date range already fetched: $range');
+      debugPrint('Date range already fetched: $range');
         emit(CalendarEventsLoaded(_cachedEvents.values.toList(), const {}));
         return;
       }
@@ -97,7 +97,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       Map<String, Color> calendarColors = {};
 
       for (var calendar in calendarList.items!) {
-        print('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
+      debugPrint('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
         final events = await calendarApi.events.list(
           calendar.id!,
           timeMin: event.startDate.toUtc(),
@@ -111,7 +111,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
         }
         // Log event details
         for (var event in events.items!) {
-          print('Event: ${event.summary}, Calendar: ${calendar.summary}');
+        debugPrint('Event: ${event.summary}, Calendar: ${calendar.summary}');
         }
       }
 
@@ -125,7 +125,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
 
       emit(CalendarEventsLoaded(_cachedEvents.values.toList(), calendarColors));
     } catch (e) {
-      print('Error fetching calendar events: $e');
+    debugPrint('Error fetching calendar events: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
@@ -146,7 +146,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       final calendarList = await calendarApi.calendarList.list();
       emit(CalendarsLoaded(calendarList.items!));
     } catch (e) {
-      print('Error fetching calendars: $e');
+    debugPrint('Error fetching calendars: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
@@ -172,7 +172,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
       add(GetCalendarEventsForRange(startOfMonth, endOfMonth));
     } catch (e) {
-      print('Error adding calendar event: $e');
+    debugPrint('Error adding calendar event: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }

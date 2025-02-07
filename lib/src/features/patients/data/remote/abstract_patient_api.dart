@@ -13,4 +13,7 @@ abstract class AbstractPatientApi {
 
   /// Deletes a patient by their ID.
   Future<void> deletePatient(String patientId);
+
+  /// Searches patients based on criteria.
+  Future<List<PatientModel>> searchPatients(String query);
 }

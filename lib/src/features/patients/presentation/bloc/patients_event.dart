@@ -7,7 +7,14 @@ abstract class PatientsEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class GetPatients extends PatientsEvent {}
+class GetPatients extends PatientsEvent {
+  final String query;
+
+  const GetPatients(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
 
 class AddPatient extends PatientsEvent {
   final PatientModel patient;
@@ -34,4 +41,13 @@ class DeletePatient extends PatientsEvent {
 
   @override
   List<Object> get props => [patientId];
+}
+
+class SearchPatients extends PatientsEvent {
+  final String query;
+
+  const SearchPatients(this.query);
+
+  @override
+  List<Object> get props => [query];
 }

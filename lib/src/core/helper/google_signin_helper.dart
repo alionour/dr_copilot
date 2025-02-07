@@ -1,4 +1,5 @@
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
@@ -14,6 +15,7 @@ class GoogleSignInHelper {
   GoogleSignInHelper._internal() {
     _googleSignIn.onCurrentUserChanged.listen((account) async {
       _client = await _googleSignIn.authenticatedClient();
+      debugPrint('User signed in: $account'); // Add this line for debugging
     });
   }
 
@@ -38,6 +40,7 @@ class GoogleSignInHelper {
   /// Signs out the current user.
   Future<void> signOut() async {
     await _googleSignIn.signOut();
+    debugPrint('User signed out'); // Add this line for debugging
   }
 
   /// Getter for the current signed-in user.
@@ -51,9 +54,10 @@ class GoogleSignInHelper {
   Future<GoogleSignInAccount?> signIn() async {
     try {
       final account = await _googleSignIn.signIn();
+      debugPrint('User signed in: $account'); // Add this line for debugging
       return account;
     } catch (error) {
-      print('Sign in error: $error');
+      debugPrint('Sign in error: $error');
       return null;
     }
   }

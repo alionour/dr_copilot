@@ -6,7 +6,7 @@ class AddCalendarEventPage extends StatefulWidget {
   const AddCalendarEventPage({super.key});
 
   @override
-  _AddCalendarEventPageState createState() => _AddCalendarEventPageState();
+  State<AddCalendarEventPage> createState() => _AddCalendarEventPageState();
 }
 
 class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
@@ -55,20 +55,22 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
           pickedTime.hour,
           pickedTime.minute,
         );
-        setState(() {
-          if (isStart) {
-            _startDate = pickedDateTime;
-            _endDate = pickedDateTime.add(const Duration(
-                hours: 1)); // Set end date-time 1 hour after start date-time
-          } else {
-            _endDate = pickedDateTime;
-          }
-        });
+        if (mounted) {
+          setState(() {
+            if (isStart) {
+              _startDate = pickedDateTime;
+              _endDate = pickedDateTime.add(const Duration(
+                  hours: 1)); // Set end date-time 1 hour after start date-time
+            } else {
+              _endDate = pickedDateTime;
+            }
+          });
+        }
       }
     }
   }
 
-  void _saveEvent(BuildContext context) {
+  void _saveEvent() {
     if (_formKey.currentState!.validate()) {
       final newEvent = google_calendar.Event(
         summary: _patientNameController.text,
@@ -76,8 +78,10 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
         start: google_calendar.EventDateTime(dateTime: _startDate),
         end: google_calendar.EventDateTime(dateTime: _endDate),
       );
-      Navigator.of(context)
-          .pop({'event': newEvent, 'calendar': _selectedCalendar});
+      if (mounted) {
+        Navigator.of(context)
+            .pop({'event': newEvent, 'calendar': _selectedCalendar});
+      }
     }
   }
 
@@ -120,7 +124,8 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                         return null;
                       },
                       onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_descriptionFocusNode);
+                        FocusScope.of(context)
+                            .requestFocus(_descriptionFocusNode);
                       },
                     ),
                     const SizedBox(height: 16.0),
@@ -186,7 +191,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => _saveEvent(context),
+                        onPressed: _saveEvent,
                         child: const Text('Save Appointment'),
                       ),
                     ),
