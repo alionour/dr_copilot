@@ -54,8 +54,9 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
   Future<void> _onSearchPatients(
       SearchPatients event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading());
+    final normalizedQuery = event.query.toLowerCase();
     final failureOrPatients =
-        await _patientsUseCase.searchPatients(event.query);
+        await _patientsUseCase.searchPatients(normalizedQuery);
     emit(failureOrPatients.fold(
       (failure) => PatientsError(_mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),

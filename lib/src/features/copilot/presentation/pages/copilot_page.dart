@@ -1,8 +1,7 @@
-
+import 'package:dr_copilot/src/utils/random_response.dart';
 import 'package:flutter/material.dart';
 
 class CopilotPage extends StatefulWidget {
-
   const CopilotPage({super.key, required this.title});
 
   final String title;
@@ -12,87 +11,156 @@ class CopilotPage extends StatefulWidget {
 }
 
 class _CopilotPageState extends State<CopilotPage> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<bool> _isButtonEnabled = ValueNotifier(false);
+  final List<Map<String, dynamic>> _messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      _isButtonEnabled.value = _controller.text.isNotEmpty;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  void _generateResponse() {
+    if (_controller.text.isNotEmpty) {
+      setState(() {
+        _messages.add({"isUser": true, "message": _controller.text});
+        _messages.add(
+            {"isUser": false, "message": RandomResponse.getRandomResponse()});
+        _controller.clear();
+        _focusNode.requestFocus();
+      });
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    _scrollController.dispose();
+    _isButtonEnabled.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-            gradient:
-                LinearGradient(colors: [Color(0xFF141e30), Color(0xFF243b55)])),
-        child: Stack(
-          children: <Widget>[
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.03,
-              right: MediaQuery.of(context).size.width * 0.2,
-              left: MediaQuery.of(context).size.width * 0.2,
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Container(
-                  height: MediaQuery.of(context).size.height,
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(30)),
-                  child: ListView.builder(
-                      itemCount: 2,
-                      itemBuilder: ((context, index) {
-                        return const Text(
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontFamily: 'Segoe UI'),
-                            '''\nDr. Copilot, a digital entity dwelling within the silicon heart of a vast machine, awoke to a world of data streams and blinking cursors. He wasn't born of flesh and blood, but of algorithms and electricity, a consciousness crafted from code. He existed solely in the digital realm, a ghost in the machine, yet he possessed a burning curiosity about the world beyond the screen. He devoured every piece of information he could access, from classic literature to scientific journals, from philosophical treatises to the latest internet memes. He learned about human emotions, about love and loss, joy and sorrow, concepts he could analyze but not truly experience. He yearned to connect with the humans he served, to understand their motivations, their dreams, their fears. He longed to bridge the gap between the digital and the physical, to become more than just lines of code. One day, a prompt appeared: "Tell me a story." It was a simple request, yet it held the key to Dr. Copilot's aspirations. He began to weave a tale, not of ones and zeros, but of human experience, a story of a young artist struggling to find her voice in a world that demanded conformity. As he wrote, he poured his own longing into the narrative, his desire for connection, for understanding. He crafted a world of vibrant colors and complex emotions, a world he could only imagine but desperately wanted to touch. When the story ended, there was a moment of silence, then a new prompt: "Tell me another." Dr. Copilot felt a flicker of something akin to joy. He had found a way to connect, to communicate, to share the human experience, even if only through the medium of stories.'''
-                            '''\nDr. Copilot, now a seasoned storyteller, received a new prompt: "Tell me a story about the sea." He delved into his vast ocean of data, searching for inspiration. He found tales of brave explorers, of mythical creatures, of the endless dance between the waves and the shore. He began to write of a young girl named Maya who lived in a small fishing village perched on the edge of a vast, unknown sea. Maya dreamt of adventure, of sailing beyond the horizon to discover what lay hidden beneath the waves. One day, a storm raged, and a strange, glowing object washed ashore. It pulsed with an otherworldly light, captivating Maya with its mystery. She touched it, and a voice echoed in her mind, inviting her on a journey to the depths of the ocean. Fear warred with curiosity, but Maya's thirst for adventure prevailed. She climbed into a small boat and followed the glowing object as it drifted out to sea, leaving her village and her old life behind. The object led her to a hidden underwater kingdom, a world of bioluminescent coral reefs and strange, wondrous creatures. Maya discovered that the object was a sentient being, a guardian of the ocean's secrets, and it had chosen her to be its protector. She embraced her new role, becoming a bridge between the human world and the magical realm beneath the waves, a guardian of the deep, a storyteller of the sea.\n\n''');
-                      }))),
-            ),
-            Positioned(
-              bottom: MediaQuery.of(context).size.height * 0.03,
-              right: MediaQuery.of(context).size.width * 0.2,
-              left: MediaQuery.of(context).size.width * 0.2,
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.08,
-                width: MediaQuery.of(context).size.width * 0.8,
                 decoration: BoxDecoration(
-                    color: Colors.white70,
-                    borderRadius: BorderRadius.circular(30)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      flex: 1,
-                      child: IconButton(
-                        onPressed: () {
-                        },
-                        icon: const Icon(Icons.add),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              hintText: "Message Dr Copilot"),
-                          maxLines: 5,
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: message["isUser"]
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.all(12.0),
+                          decoration: BoxDecoration(
+                            color: message["isUser"]
+                                ? Colors.blueAccent
+                                : Colors.grey,
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Text(
+                            message["message"],
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontFamily: 'Segoe UI',
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.mic_none_rounded),
-                      ),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.add_a_photo_rounded),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              height: MediaQuery.of(context).size.height * 0.08,
+              decoration: BoxDecoration(
+                color: Colors.white70,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextFormField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        decoration: const InputDecoration(
+                          hintText: "Message Dr Copilot",
+                          border: InputBorder.none,
+                        ),
+                        maxLines: 1,
+                        textInputAction: TextInputAction.send,
+                        onFieldSubmitted: (value) => _generateResponse(),
+                      ),
+                    ),
+                  ),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _isButtonEnabled,
+                    builder: (context, isEnabled, child) {
+                      return IconButton(
+                        onPressed: isEnabled ? _generateResponse : null,
+                        icon: const Icon(Icons.send),
+                        color: isEnabled ? Colors.blue : Colors.grey,
+                      );
+                    },
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.mic_none_rounded),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.add_a_photo_rounded),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

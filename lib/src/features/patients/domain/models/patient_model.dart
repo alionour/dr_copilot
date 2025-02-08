@@ -22,8 +22,8 @@ class PatientModel {
 
   /// A factory constructor to create a Patient instance from a JSON map.
   factory PatientModel.fromJson(Map<String, dynamic> json) =>
-      _$PatientFromJson(json);
+      _$PatientModelFromJson(json);
 
   /// A method to convert a Patient instance to a JSON map.
-  Map<String, dynamic> toJson() => _$PatientToJson(this);
+  Map<String, dynamic> toJson() => _$PatientModelToJson(this);
 }
