@@ -77,10 +77,9 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
-      case ServerFailure:
-        print(failure.message);
+      case ServerFailure _:
         return 'Server Failure: ${failure.message}';
-      case CacheFailure:
+      case CacheFailure _:
         return 'Cache Failure: ${failure.message}';
       default:
         return 'Unexpected Error';

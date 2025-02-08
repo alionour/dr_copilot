@@ -8,7 +8,6 @@ import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 import 'firebase_options.dart';
 import 'src/core/router/routing_config.dart';

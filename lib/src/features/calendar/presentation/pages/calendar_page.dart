@@ -96,11 +96,8 @@ class _CalendarPageState extends State<CalendarPage> {
             if (state is CalendarEventsLoaded) {
               events = state.events;
               calendarColors = state.calendarColors;
-              for (var element in events) {
-                print(element.toJson());
-              }
+              
             }
-            print('object $_calendarView');
             return RefreshIndicator(
               onRefresh: () => _refreshCalendarEvents(context),
               child: SfCalendar(

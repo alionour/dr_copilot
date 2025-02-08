@@ -171,7 +171,6 @@ class _AddPatientPageState extends State<AddPatientPage> {
         gender: _selectedGender,
         address: _addressController.text,
       );
-      print('Adding patient: ${patientModel.toJson()}');
       BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
     }
   }
