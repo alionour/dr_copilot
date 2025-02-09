@@ -66,6 +66,13 @@ class _CopilotPageState extends State<CopilotPage> {
     }
   }
 
+  void _cancelImage() {
+    setState(() {
+      _pickedImage = null;
+      _isButtonEnabled.value = _controller.text.isNotEmpty;
+    });
+  }
+
   void _sendMessage() {
     if (_pickedImage != null) {
       context.read<CopilotBloc>().add(UploadImageEvent(
@@ -87,24 +94,6 @@ class _CopilotPageState extends State<CopilotPage> {
     return Scaffold(
       body: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: DropdownButton<String>(
-              value: _selectedModel,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedModel = newValue!;
-                });
-              },
-              items: <String>['MedPaLM', 'GPT', 'Gemini']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-          ),
           Expanded(
             child: Padding(
               padding:
@@ -148,14 +137,6 @@ class _CopilotPageState extends State<CopilotPage> {
               ),
             ),
           ),
-          if (_pickedImage != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                height: 200,
-                child: Image.memory(_pickedImage!),
-              ),
-            ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -164,11 +145,43 @@ class _CopilotPageState extends State<CopilotPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   height: MediaQuery.of(context).size.height * 0.08,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Colors.grey[200], // Light color for the container
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Row(
                     children: [
+                      if (_pickedImage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                height: 100, // Slightly bigger height
+                                width: 100, // Slightly bigger width
+                                child: Image.memory(_pickedImage!),
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _cancelImage,
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(2.0),
+                                      child: Icon(
+                                        Icons.cancel_presentation_outlined,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
