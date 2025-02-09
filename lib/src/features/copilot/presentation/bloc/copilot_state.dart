@@ -1,31 +1,20 @@
 part of 'copilot_bloc.dart';
 
-abstract class CopilotState extends Equatable {
-  const CopilotState();
-
-  @override
-  List<Object> get props => [];
-}
+@immutable
+abstract class CopilotState {}
 
 class CopilotInitial extends CopilotState {}
 
 class CopilotLoading extends CopilotState {}
 
-class CopilotLoaded extends CopilotState {
-  final List<CopilotModel> copilots;
+class CopilotResponseGenerated extends CopilotState {
+  final String response;
 
-  const CopilotLoaded(this.copilots);
-
-  @override
-  List<Object> get props => [copilots];
+  CopilotResponseGenerated({required this.response});
 }
 
 class CopilotError extends CopilotState {
-  final String message;
+  final String error;
 
-  const CopilotError(this.message);
-
-  @override
-  List<Object> get props => [message];
+  CopilotError({required this.error});
 }
-// ...additional states...

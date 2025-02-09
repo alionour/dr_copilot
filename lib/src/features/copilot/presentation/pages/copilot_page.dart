@@ -1,5 +1,9 @@
-import 'package:dr_copilot/src/utils/random_response.dart';
+import 'dart:typed_data';
+
+import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -16,29 +20,20 @@ class _CopilotPageState extends State<CopilotPage> {
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier(false);
   final List<Map<String, dynamic>> _messages = [];
+  String _selectedModel = 'GPT';
+  final bool _isModelChoiceEnabled = true;
+  Uint8List? _pickedImage;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(() {
-      _isButtonEnabled.value = _controller.text.isNotEmpty;
+      _isButtonEnabled.value =
+          _controller.text.isNotEmpty || _pickedImage != null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
-  }
-
-  void _generateResponse() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        _messages.add({"isUser": true, "message": _controller.text});
-        _messages.add(
-            {"isUser": false, "message": RandomResponse.getRandomResponse()});
-        _controller.clear();
-        _focusNode.requestFocus();
-      });
-      _scrollToBottom();
-    }
   }
 
   void _scrollToBottom() {
@@ -62,18 +57,61 @@ class _CopilotPageState extends State<CopilotPage> {
     super.dispose();
   }
 
+  void _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null) {
+      setState(() {
+        _pickedImage = result.files.first.bytes;
+      });
+    }
+  }
+
+  void _sendMessage() {
+    if (_pickedImage != null) {
+      context.read<CopilotBloc>().add(UploadImageEvent(
+          selectedModel: _selectedModel,
+          imageBytes: _pickedImage!,
+          text: _controller.text));
+      setState(() {
+        _pickedImage = null;
+      });
+    } else {
+      context.read<CopilotBloc>().add(GenerateResponseEvent(
+          query: _controller.text, selectedModel: _selectedModel));
+    }
+    _controller.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: DropdownButton<String>(
+              value: _selectedModel,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedModel = newValue!;
+                });
+              },
+              items: <String>['MedPaLM', 'GPT', 'Gemini']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
           Expanded(
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: ListView.builder(
@@ -91,16 +129,15 @@ class _CopilotPageState extends State<CopilotPage> {
                           padding: const EdgeInsets.all(12.0),
                           decoration: BoxDecoration(
                             color: message["isUser"]
-                                ? Colors.blueAccent
-                                : Colors.grey,
+                                ? Colors.blueAccent // User message color
+                                : Colors.greenAccent, // Bot message color
                             borderRadius: BorderRadius.circular(12.0),
                           ),
                           child: Text(
                             message["message"],
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.white,
-                              fontFamily: 'Segoe UI',
+                              color: Colors.white, // Text color
                             ),
                           ),
                         ),
@@ -111,54 +148,116 @@ class _CopilotPageState extends State<CopilotPage> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              height: MediaQuery.of(context).size.height * 0.08,
-              decoration: BoxDecoration(
-                color: Colors.white70,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextFormField(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        decoration: const InputDecoration(
-                          hintText: "Message Dr Copilot",
-                          border: InputBorder.none,
-                        ),
-                        maxLines: 1,
-                        textInputAction: TextInputAction.send,
-                        onFieldSubmitted: (value) => _generateResponse(),
-                      ),
-                    ),
-                  ),
-                  ValueListenableBuilder<bool>(
-                    valueListenable: _isButtonEnabled,
-                    builder: (context, isEnabled, child) {
-                      return IconButton(
-                        onPressed: isEnabled ? _generateResponse : null,
-                        icon: const Icon(Icons.send),
-                        color: isEnabled ? Colors.blue : Colors.grey,
-                      );
-                    },
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.mic_none_rounded),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add_a_photo_rounded),
-                  ),
-                ],
+          if (_pickedImage != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                height: 200,
+                child: Image.memory(_pickedImage!),
               ),
             ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: TextFormField(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            decoration: InputDecoration(
+                              hintText: "Message Dr Copilot",
+                              border: InputBorder.none,
+                              hintStyle: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                            ),
+                            maxLines: 1,
+                            textInputAction: TextInputAction.send,
+                            onFieldSubmitted: (value) {
+                              _sendMessage();
+                            },
+                          ),
+                        ),
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _isButtonEnabled,
+                        builder: (context, isEnabled, child) {
+                          return IconButton(
+                            onPressed: isEnabled ? _sendMessage : null,
+                            icon: const Icon(Icons.send),
+                            color: isEnabled
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          );
+                        },
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          context.read<CopilotBloc>().add(StartNewChatEvent());
+                        },
+                        icon: const Icon(Icons.add),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      IconButton(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.add_a_photo_outlined),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      DropdownButton<String>(
+                        value: _selectedModel,
+                        onChanged: _isModelChoiceEnabled
+                            ? (String? newValue) {
+                                setState(() {
+                                  _selectedModel = newValue!;
+                                });
+                              }
+                            : null,
+                        items: <String>['MedPaLM', 'GPT', 'Gemini']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          BlocBuilder<CopilotBloc, CopilotState>(
+            builder: (context, state) {
+              if (state is CopilotLoading) {
+                return const CircularProgressIndicator();
+              } else if (state is CopilotResponseGenerated) {
+                _messages.add({"isUser": false, "message": state.response});
+                _scrollToBottom();
+                return Container();
+              } else if (state is CopilotError) {
+                return Text(
+                  'Error: ${state.error}',
+                  style: const TextStyle(color: Colors.red),
+                );
+              } else {
+                return Container();
+              }
+            },
           ),
         ],
       ),

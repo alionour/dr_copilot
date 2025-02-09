@@ -1,11 +1,24 @@
 part of 'copilot_bloc.dart';
 
-abstract class CopilotEvent extends Equatable {
-  const CopilotEvent();
+@immutable
+abstract class CopilotEvent {}
 
-  @override
-  List<Object> get props => [];
+class GenerateResponseEvent extends CopilotEvent {
+  final String query;
+  final String selectedModel;
+
+  GenerateResponseEvent({required this.query, required this.selectedModel});
 }
 
-class GetCopilots extends CopilotEvent {}
-// ...additional events...
+class UploadImageEvent extends CopilotEvent {
+  final String selectedModel;
+  final Uint8List imageBytes;
+  final String text;
+
+  UploadImageEvent(
+      {required this.selectedModel,
+      required this.imageBytes,
+      required this.text});
+}
+
+class StartNewChatEvent extends CopilotEvent {}
