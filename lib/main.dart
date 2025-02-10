@@ -12,9 +12,11 @@ import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_ap
 import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo_impl.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'src/core/helper/api_key_helper.dart';
@@ -26,7 +28,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initInjections();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -34,38 +41,39 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<NavigationBloc>(
-            create: (context) => NavigationBloc()..add(GetUserData())),
-        BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
-        BlocProvider<PatientsBloc>(
-            create: (context) => PatientsBloc(
-                  PatientsUseCase(
-                    PatientsRepositoryImpl(
-                      PatientFirebaseApi(),
-                    ),
-                  ),
-                )),
-        BlocProvider<CopilotBloc>(
-          create: (context) => CopilotBloc(
-            vertexAIService: VertexAIService(ApiKeyHelper.vertexAIKey),
-            gptService: GPTService(ApiKeyHelper.gptKey),
-            geminiService: GeminiService(ApiKeyHelper.geminiKey),
-            deepSeekService: DeepSeekService(ApiKeyHelper.deepSeekKey),
-            qwenService: QwenService(ApiKeyHelper.qwenKey),
-            claudeService: ClaudeService(ApiKeyHelper.claudeKey),
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<NavigationBloc>(
+                create: (context) => NavigationBloc()..add(GetUserData())),
+            BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+            BlocProvider<PatientsBloc>(
+                create: (context) => PatientsBloc(
+                      PatientsUseCase(
+                        PatientsRepositoryImpl(
+                          PatientFirebaseApi(),
+                        ),
+                      ),
+                    )),
+            BlocProvider<CopilotBloc>(
+              create: (context) => CopilotBloc(
+                vertexAIService: VertexAIService(ApiKeyHelper.vertexAIKey),
+                gptService: GPTService(ApiKeyHelper.gptKey),
+                geminiService: GeminiService(ApiKeyHelper.geminiKey),
+                deepSeekService: DeepSeekService(ApiKeyHelper.deepSeekKey),
+                qwenService: QwenService(ApiKeyHelper.qwenKey),
+                claudeService: ClaudeService(ApiKeyHelper.claudeKey),
+              ),
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: RoutingConfig.router,
+            title: 'Dr Copilot',
+            theme: themeNotifier.currentTheme,
           ),
-        ),
-      ],
-      child: MaterialApp.router(
-        routerConfig: RoutingConfig.router,
-        title: 'Dr Copilot',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.accents.first),
-          useMaterial3: true,
-        ),
-      ),
+        );
+      },
     );
   }
 }

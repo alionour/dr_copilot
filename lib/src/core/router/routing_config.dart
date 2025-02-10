@@ -2,6 +2,9 @@ import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart'
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
 import 'package:go_router/go_router.dart';
 
 class RoutingConfig {
@@ -26,6 +29,21 @@ class RoutingConfig {
         path: '/events/new',
         name: '/events/new',
         builder: (context, state) => const AddCalendarEventPage(),
+      ),
+      GoRoute(
+        path: '/about',
+        name: 'about',
+        builder: (context, state) => const AboutPage(),
+      ),
+      GoRoute(
+        path: '/help_support',
+        name: 'help_support',
+        builder: (context, state) => const HelpSupportPage(),
+      ),
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy',
+        builder: (context, state) => const PrivacyPage(),
       ),
     ],
   );
