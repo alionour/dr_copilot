@@ -121,24 +121,7 @@ class _CopilotPageState extends State<CopilotPage> {
     return Scaffold(
       body: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: DropdownButton<String>(
-              value: _selectedModel,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedModel = newValue!;
-                });
-              },
-              items: _availableModels
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-          ),
+        
           Expanded(
             child: Padding(
               padding:
