@@ -1,9 +1,13 @@
 import 'dart:typed_data';
 
+import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.dart';
+import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart'
+    as custom;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -20,9 +24,11 @@ class _CopilotPageState extends State<CopilotPage> {
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier(false);
   final List<Map<String, dynamic>> _messages = [];
-  String _selectedModel = 'GPT';
+  String _selectedModel = 'Gemini';
   final bool _isModelChoiceEnabled = true;
   Uint8List? _pickedImage;
+
+  final List<String> _availableModels = [];
 
   @override
   void initState() {
@@ -34,6 +40,16 @@ class _CopilotPageState extends State<CopilotPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
+    _initializeAvailableModels();
+  }
+
+  void _initializeAvailableModels() {
+    if (ApiKeyHelper.vertexAIKey.isNotEmpty) _availableModels.add('MedPaLM');
+    if (ApiKeyHelper.gptKey.isNotEmpty) _availableModels.add('GPT');
+    if (ApiKeyHelper.geminiKey.isNotEmpty) _availableModels.add('Gemini');
+    if (ApiKeyHelper.deepSeekKey.isNotEmpty) _availableModels.add('DeepSeek');
+    if (ApiKeyHelper.qwenKey.isNotEmpty) _availableModels.add('Qwen');
+    if (ApiKeyHelper.claudeKey.isNotEmpty) _availableModels.add('Claude');
   }
 
   void _scrollToBottom() {
@@ -74,7 +90,14 @@ class _CopilotPageState extends State<CopilotPage> {
   }
 
   void _sendMessage() {
-    if (_pickedImage != null) {
+    if (_pickedImage != null && _controller.text.isNotEmpty) {
+      setState(() {
+        _messages.add({
+          "isUser": true,
+          "message": _controller.text,
+          "image": _pickedImage
+        });
+      });
       context.read<CopilotBloc>().add(UploadImageEvent(
           selectedModel: _selectedModel,
           imageBytes: _pickedImage!,
@@ -82,11 +105,15 @@ class _CopilotPageState extends State<CopilotPage> {
       setState(() {
         _pickedImage = null;
       });
-    } else {
+    } else if (_controller.text.isNotEmpty) {
+      setState(() {
+        _messages.add({"isUser": true, "message": _controller.text});
+      });
       context.read<CopilotBloc>().add(GenerateResponseEvent(
           query: _controller.text, selectedModel: _selectedModel));
     }
     _controller.clear();
+    _scrollToBottom();
   }
 
   @override
@@ -94,6 +121,24 @@ class _CopilotPageState extends State<CopilotPage> {
     return Scaffold(
       body: Column(
         children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: DropdownButton<String>(
+              value: _selectedModel,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedModel = newValue!;
+                });
+              },
+              items: _availableModels
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
           Expanded(
             child: Padding(
               padding:
@@ -103,36 +148,103 @@ class _CopilotPageState extends State<CopilotPage> {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(30),
                 ),
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: message["isUser"]
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          padding: const EdgeInsets.all(12.0),
-                          decoration: BoxDecoration(
-                            color: message["isUser"]
-                                ? Colors.blueAccent // User message color
-                                : Colors.greenAccent, // Bot message color
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: Text(
-                            message["message"],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white, // Text color
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                child: BlocListener<CopilotBloc, CopilotState>(
+                  listener: (context, state) {
+                    if (state is CopilotResponseGenerated) {
+                      if (state.response is custom.GeminiResponse) {
+                        final geminiResponse =
+                            state.response as custom.GeminiResponse;
+                        setState(() {
+                          _messages.add({
+                            "isUser": false,
+                            "message": geminiResponse.parts.last is TextPart
+                                ? (geminiResponse.parts.last as TextPart).text
+                                : geminiResponse.parts.last.toString()
+                          });
+                        });
+                      } else {
+                        setState(() {
+                          _messages.add({
+                            "isUser": false,
+                            "message": state.response.toString()
+                          });
+                        });
+                      }
+                      _scrollToBottom();
+                    } else if (state is CopilotError) {
+                      setState(() {
+                        _messages.add({
+                          "isUser": false,
+                          "message": 'Error: ${state.error}'
+                        });
+                      });
+                      _scrollToBottom();
+                    }
                   },
+                  child: BlocBuilder<CopilotBloc, CopilotState>(
+                    builder: (context, state) {
+                      return Stack(
+                        children: [
+                          ListView.builder(
+                            controller: _scrollController,
+                            itemCount: _messages.length,
+                            itemBuilder: (context, index) {
+                              final message = _messages[index];
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Align(
+                                  alignment: message["isUser"]
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                                  child: Column(
+                                    crossAxisAlignment: message["isUser"]
+                                        ? CrossAxisAlignment.end
+                                        : CrossAxisAlignment.start,
+                                    children: [
+                                      if (message["image"] != null)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 8.0),
+                                          child: SizedBox(
+                                            height: 100, // Smaller height
+                                            width: 100, // Smaller width
+                                            child:
+                                                Image.memory(message["image"]),
+                                          ),
+                                        ),
+                                      Container(
+                                        padding: const EdgeInsets.all(12.0),
+                                        decoration: BoxDecoration(
+                                          color: message["isUser"]
+                                              ? Colors
+                                                  .lightBlueAccent // User message color
+                                              : Colors
+                                                  .lightGreenAccent, // Bot message color
+                                          borderRadius:
+                                              BorderRadius.circular(12.0),
+                                        ),
+                                        child: Text(
+                                          message["message"],
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black, // Text color
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          if (state is CopilotLoading)
+                            const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -156,8 +268,8 @@ class _CopilotPageState extends State<CopilotPage> {
                           child: Stack(
                             children: [
                               SizedBox(
-                                height: 100, // Slightly bigger height
-                                width: 100, // Slightly bigger width
+                                height: 60, // Slightly bigger height
+                                width: 60, // Slightly bigger width
                                 child: Image.memory(_pickedImage!),
                               ),
                               Positioned(
@@ -171,7 +283,7 @@ class _CopilotPageState extends State<CopilotPage> {
                                     child: const Padding(
                                       padding: EdgeInsets.all(2.0),
                                       child: Icon(
-                                        Icons.cancel_presentation_outlined,
+                                        Icons.cancel,
                                         color: Colors.red,
                                         size: 20,
                                       ),
@@ -240,7 +352,7 @@ class _CopilotPageState extends State<CopilotPage> {
                                 });
                               }
                             : null,
-                        items: <String>['MedPaLM', 'GPT', 'Gemini']
+                        items: _availableModels
                             .map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
@@ -253,24 +365,6 @@ class _CopilotPageState extends State<CopilotPage> {
                 ),
               ],
             ),
-          ),
-          BlocBuilder<CopilotBloc, CopilotState>(
-            builder: (context, state) {
-              if (state is CopilotLoading) {
-                return const CircularProgressIndicator();
-              } else if (state is CopilotResponseGenerated) {
-                _messages.add({"isUser": false, "message": state.response});
-                _scrollToBottom();
-                return Container();
-              } else if (state is CopilotError) {
-                return Text(
-                  'Error: ${state.error}',
-                  style: const TextStyle(color: Colors.red),
-                );
-              } else {
-                return Container();
-              }
-            },
           ),
         ],
       ),

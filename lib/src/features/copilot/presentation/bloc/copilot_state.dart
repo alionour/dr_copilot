@@ -8,7 +8,7 @@ class CopilotInitial extends CopilotState {}
 class CopilotLoading extends CopilotState {}
 
 class CopilotResponseGenerated extends CopilotState {
-  final String response;
+  final Object response;
 
   CopilotResponseGenerated({required this.response});
 }

@@ -1,43 +1,54 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+
+class GeminiResponse {
+  final List<Part> parts;
+
+  GeminiResponse(this.parts);
+}
 
 class GeminiService {
   final String apiKey;
-  late final GenerativeModel _model;
-  late final ChatSession _chat;
+  late final Gemini _gemini;
 
   GeminiService(this.apiKey) {
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash-latest',
-      apiKey: apiKey,
-    );
-    _chat = _model.startChat();
+    _gemini = Gemini.init(apiKey: apiKey);
   }
 
-  Future<String> getGeminiResponse(String query) async {
+  Future<GeminiResponse> getGeminiResponse(String query) async {
     try {
-      final response = await _chat.sendMessage(Content.text(query));
-      final text = response.text;
-      if (text == null) {
+      final response = await _gemini.prompt(
+        parts: [Part.text(query)],
+      );
+      if (response == null ||
+          response.content == null ||
+          response.content!.parts == null ||
+          response.content!.parts!.isEmpty) {
         throw Exception('Empty response from Gemini');
       }
-      return text;
+      return GeminiResponse(response.content!.parts!);
     } catch (e) {
       throw Exception('Failed to get response from Gemini: $e');
     }
   }
 
-  Future<String> getGeminiResponseFromBytes(Uint8List fileBytes) async {
+  Future<GeminiResponse> getGeminiResponseFromBytes(
+      Uint8List fileBytes, String text) async {
     try {
-      final base64String = base64Encode(fileBytes);
-      final response = await _chat.sendMessage(Content.text(base64String));
-      final text = response.text;
-      if (text == null) {
+      final response = await _gemini.prompt(
+        parts: [
+          Part.text(text),
+          Part.bytes(fileBytes),
+        ],
+      );
+      if (response == null ||
+          response.content == null ||
+          response.content!.parts == null ||
+          response.content!.parts!.isEmpty) {
         throw Exception('Empty response from Gemini');
       }
-      return text;
+      return GeminiResponse(response.content!.parts!);
     } catch (e) {
       throw Exception('Failed to get response from Gemini: $e');
     }

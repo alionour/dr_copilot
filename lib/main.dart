@@ -1,8 +1,11 @@
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.dart';
+import 'package:dr_copilot/src/features/copilot/services/claude_service.dart';
+import 'package:dr_copilot/src/features/copilot/services/deepseek_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/gpt_service.dart';
+import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
@@ -14,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'firebase_options.dart';
+import 'src/core/helper/api_key_helper.dart';
 import 'src/core/router/routing_config.dart';
 
 void main() async {
@@ -45,11 +49,12 @@ class MyApp extends StatelessWidget {
                 )),
         BlocProvider<CopilotBloc>(
           create: (context) => CopilotBloc(
-            vertexAIService: VertexAIService('YOUR_VERTEX_AI_API_KEY'),
-            gptService: GPTService(
-                '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'),
-            geminiService:
-                GeminiService('AIzaSyDgfy1uZ7DdP0DJK69XnLZnZ_kncV_U2ms'),
+            vertexAIService: VertexAIService(ApiKeyHelper.vertexAIKey),
+            gptService: GPTService(ApiKeyHelper.gptKey),
+            geminiService: GeminiService(ApiKeyHelper.geminiKey),
+            deepSeekService: DeepSeekService(ApiKeyHelper.deepSeekKey),
+            qwenService: QwenService(ApiKeyHelper.qwenKey),
+            claudeService: ClaudeService(ApiKeyHelper.claudeKey),
           ),
         ),
       ],

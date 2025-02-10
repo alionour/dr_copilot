@@ -66,6 +66,7 @@ dependencies:
 
   cross_file: ^0.3.4+2
   file_picker: ^8.3.3
+  flutter_gemini: ^3.0.0
 
 dev_dependencies:
   flutter_test:
