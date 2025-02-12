@@ -8,13 +8,14 @@ abstract class AbstractPatientsRepository {
   Future<Either<Failure, List<PatientModel>>> getPatients(String query);
 
   /// Adds a new patient.
-  Future<Either<Failure, void>> addPatient(PatientModel patientModel);
+  Future<Either<Failure, PatientModel>> addPatient(PatientModel patientModel);
 
   /// Updates an existing patient.
-  Future<Either<Failure, void>> updatePatient(PatientModel patientModel);
+  Future<Either<Failure, PatientModel>> updatePatient(
+      PatientModel patientModel);
 
   /// Deletes a patient by their ID.
-  Future<Either<Failure, void>> deletePatient(String id);
+  Future<Either<Failure, PatientModel>> deletePatient(String id);
 
   /// Searches patients based on criteria.
   Future<Either<Failure, List<PatientModel>>> searchPatients(String query);

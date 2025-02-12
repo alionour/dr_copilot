@@ -14,17 +14,18 @@ class PatientsUseCase {
   }
 
   /// Adds a new patient.
-  Future<Either<Failure, void>> addPatient(PatientModel patient) async {
+  Future<Either<Failure, PatientModel>> addPatient(PatientModel patient) async {
     return await repository.addPatient(patient);
   }
 
   /// Updates an existing patient.
-  Future<Either<Failure, void>> updatePatient(PatientModel patient) async {
+  Future<Either<Failure, PatientModel>> updatePatient(
+      PatientModel patient) async {
     return await repository.updatePatient(patient);
   }
 
   /// Deletes a patient by their ID.
-  Future<Either<Failure, void>> deletePatient(String patientId) async {
+  Future<Either<Failure, PatientModel>> deletePatient(String patientId) async {
     return await repository.deletePatient(patientId);
   }
 

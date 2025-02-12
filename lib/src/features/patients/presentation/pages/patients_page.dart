@@ -68,6 +68,7 @@ class _PatientsPageState extends State<PatientsPage> {
           return BlocBuilder<PatientsBloc, PatientsState>(
             builder: (context, state) {
               if (state is PatientsLoading) {
+                print('PatientsLoading state');
                 return Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
@@ -83,7 +84,13 @@ class _PatientsPageState extends State<PatientsPage> {
                   ),
                 );
               } else if (state is PatientsLoaded) {
-                final filteredPatients = state.patients;
+                print(
+                    'PatientsLoaded state with ${state.patients.length} patients');
+                final filteredPatients = state.patients.where((patient) {
+                  return patient.name
+                      .toLowerCase()
+                      .contains(query.toLowerCase());
+                }).toList();
                 return Container(
                   color: Colors.white, // Use a solid color background
                   child: Focus(
@@ -134,8 +141,10 @@ class _PatientsPageState extends State<PatientsPage> {
                   ),
                 );
               } else if (state is PatientsError) {
+                print('PatientsError state: ${state.message}');
                 return Center(child: Text('Error: ${state.message}'));
               }
+              print('No patients found state');
               return const Center(child: Text('No patients found.'));
             },
           );

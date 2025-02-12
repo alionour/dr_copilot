@@ -6,13 +6,15 @@ part of 'patient_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PatientModel _$PatientModelFromJson(Map<String, dynamic> json) => PatientModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      age: (json['age'] as num).toInt(),
-      gender: json['gender'] as String,
-      address: json['address'] as String,
-    );
+PatientModel _$PatientModelFromJson(Map<String, dynamic> json) {
+  return PatientModel(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    age: json['age'] as int?,
+    gender: json['gender'] as String?,
+    address: json['address'] as String?,
+  );
+}
 
 Map<String, dynamic> _$PatientModelToJson(PatientModel instance) =>
     <String, dynamic>{

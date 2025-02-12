@@ -33,7 +33,13 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       AddPatient event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading());
     final failureOrPatient = await _patientsUseCase.addPatient(event.patient);
-    emit(_eitherLoadedOrErrorState(failureOrPatient));
+    emit(failureOrPatient.fold(
+      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (patient) {
+        emit(PatientsSuccess());
+        return PatientsLoaded([patient]);
+      },
+    ));
   }
 
   Future<void> _onUpdatePatient(
@@ -41,22 +47,34 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     emit(PatientsLoading());
     final failureOrPatient =
         await _patientsUseCase.updatePatient(event.patient);
-    emit(_eitherLoadedOrErrorState(failureOrPatient));
+    emit(failureOrPatient.fold(
+      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (patient) {
+        emit(PatientsSuccess());
+        return PatientsLoaded([patient]);
+      },
+    ));
   }
 
   Future<void> _onDeletePatient(
       DeletePatient event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading());
-    final failureOrVoid = await _patientsUseCase.deletePatient(event.patientId);
-    emit(_eitherLoadedOrErrorState(failureOrVoid));
+    final failureOrPatient =
+        await _patientsUseCase.deletePatient(event.patientId);
+    emit(failureOrPatient.fold(
+      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (patient) {
+        emit(PatientsSuccess());
+        return PatientsLoaded([patient]);
+      },
+    ));
   }
 
   Future<void> _onSearchPatients(
       SearchPatients event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading());
-    final normalizedQuery = event.query.toLowerCase();
     final failureOrPatients =
-        await _patientsUseCase.searchPatients(normalizedQuery);
+        await _patientsUseCase.searchPatients(event.query);
     emit(failureOrPatients.fold(
       (failure) => PatientsError(_mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),

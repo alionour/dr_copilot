@@ -2,6 +2,7 @@ import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dar
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 class AddPatientPage extends StatefulWidget {
@@ -13,10 +14,10 @@ class AddPatientPage extends StatefulWidget {
 
 class _AddPatientPageState extends State<AddPatientPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'John Doe');
-  final _ageController = TextEditingController(text: '30');
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
   final _genderController = TextEditingController();
-  final _addressController = TextEditingController(text: '123 Main St');
+  final _addressController = TextEditingController();
 
   final _nameFocusNode = FocusNode();
   final _ageFocusNode = FocusNode();
@@ -38,6 +39,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Patient'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/home'); // Navigate back to home
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.check),

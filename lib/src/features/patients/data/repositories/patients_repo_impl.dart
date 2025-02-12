@@ -17,19 +17,20 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Adds a new patient.
   @override
-  Future<Either<Failure, void>> addPatient(PatientModel patientModel) {
+  Future<Either<Failure, PatientModel>> addPatient(PatientModel patientModel) {
     return api.addPatient(patientModel);
   }
 
   /// Updates an existing patient.
   @override
-  Future<Either<Failure, void>> updatePatient(PatientModel patientModel) {
+  Future<Either<Failure, PatientModel>> updatePatient(
+      PatientModel patientModel) {
     return api.updatePatient(patientModel);
   }
 
   /// Deletes a patient by their ID.
   @override
-  Future<Either<Failure, void>> deletePatient(String id) {
+  Future<Either<Failure, PatientModel>> deletePatient(String id) {
     return api.deletePatient(id);
   }
 

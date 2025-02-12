@@ -52,7 +52,8 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> addPatient(PatientModel patientModel) async {
+  Future<Either<Failure, PatientModel>> addPatient(
+      PatientModel patientModel) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -64,7 +65,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           ...patientModel.toJson(),
           'createdBy': user.uid,
         });
-        return const Right(null);
+        return Right(patientModel);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -74,7 +75,8 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> updatePatient(PatientModel patientModel) async {
+  Future<Either<Failure, PatientModel>> updatePatient(
+      PatientModel patientModel) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -89,7 +91,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
               .collection('patients')
               .doc(patientModel.id)
               .update(patientModel.toJson());
-          return const Right(null);
+          return Right(patientModel);
         } else {
           return Left(ServerFailure('Unauthorized', 403));
         }
@@ -102,7 +104,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deletePatient(String id) async {
+  Future<Either<Failure, PatientModel>> deletePatient(String id) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -113,7 +115,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         final doc = await _firestore.collection('patients').doc(id).get();
         if (doc.exists && doc.data()?['createdBy'] == user.uid) {
           await _firestore.collection('patients').doc(id).delete();
-          return const Right(null);
+          return Right(PatientModel(
+              id: id,
+              name: '')); // Return a dummy patient model with the deleted ID
         } else {
           return Left(ServerFailure('Unauthorized', 403));
         }
