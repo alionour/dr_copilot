@@ -40,8 +40,9 @@ class LoginPage extends StatelessWidget {
           // appBar: appBar('Sign In'),
           body: Center(
             child: Container(
-              width: MediaQuery.of(context).size.width *
-                  0.85, // Make box smaller in width
+              width: MediaQuery.of(context).size.width < 600
+                  ? MediaQuery.of(context).size.width * 0.85
+                  : 500, // Adjust width for large screens
               margin: const EdgeInsets.all(24.0),
               padding: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
