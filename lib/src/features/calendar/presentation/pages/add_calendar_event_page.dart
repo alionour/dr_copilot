@@ -113,7 +113,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/'); // Navigate back to home
+            context.go('/home'); // Navigate back to home
           },
         ),
       ),
