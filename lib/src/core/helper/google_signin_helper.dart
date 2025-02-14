@@ -43,8 +43,6 @@ class GoogleSignInHelper {
     debugPrint('User signed out'); // Add this line for debugging
   }
 
-  /// Getter for the current signed-in user.
-  GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
 
   /// Stream to listen for authentication state changes.
   Stream<GoogleSignInAccount?> get onAuthStateChanged =>

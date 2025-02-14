@@ -9,12 +9,12 @@ import 'package:flutter/foundation.dart'; // Add this import for debugPrint
 
 class PatientFirebaseApi extends AbstractPatientsRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignInHelper _googleSignInHelper =
-      GoogleSignInHelper(); // Add this line
+  
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<bool> _isAuthenticated() async {
-    return _googleSignInHelper.currentUser != null;
+    final currentUser = await FirebaseAuth.instance.authStateChanges().first;
+    return currentUser != null;
   }
 
   @override
