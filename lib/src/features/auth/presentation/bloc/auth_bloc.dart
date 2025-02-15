@@ -4,7 +4,6 @@ import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 part 'auth_event.dart';
@@ -12,9 +11,12 @@ part 'auth_state.dart';
 
 /// Bloc for handling authentication events and states.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final GoogleSignInHelper _googleSignInHelper = GoogleSignInHelper();
+
   /// Constructor for AuthBloc, initializing with the initial state.
   AuthBloc() : super(AuthInitial()) {
     on<SignInWithGoogle>(_signInWithGoogle);
+    on<SignInWithGoogleAllPlatforms>(_signInWithGoogleAllPlatforms);
   }
 
   final supabase = Supabase.instance.client;
@@ -33,7 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       // Check if the user is already signed in before navigating
-      if (googleSignIn.currentUser != null) {
+      if (_googleSignInHelper.currentUser != null) {
         emit(AuthSignedIn());
       }
       // add(GetCalendarEvents());
@@ -43,11 +45,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  final googleSignIn = GoogleSignInHelper();
-
   /// Handles native Google sign-in for Android and iOS.
   Future<void> _nativeGoogleSignIn() async {
-    final googleUser = await googleSignIn.signIn();
+    final googleUser = await _googleSignInHelper.signIn();
     final googleAuth = await googleUser!.authentication;
     final accessToken = googleAuth.accessToken;
     final idToken = googleAuth.idToken;
@@ -68,7 +68,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   /// Handles web Google sign-in.
   Future<void> _webGoogleSignIn() async {
-    final googleUser = await googleSignIn.signIn();
+    final googleUser = await _googleSignInHelper.signIn();
 
     if (googleUser == null) {
       throw 'Google sign-in aborted';
@@ -85,5 +85,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // await supabase.auth.signInWithOAuth(
     //   OAuthProvider.google,
     // );
+  }
+
+  /// Handles the SignInWithGoogleAllPlatforms event.
+  ///
+  /// @param event The event to sign in with Google on all platforms.
+  /// @param emit The function to emit states.
+  void _signInWithGoogleAllPlatforms(
+      SignInWithGoogleAllPlatforms event, Emitter<AuthState> emit) async {
+    try {
+      final account = await _googleSignInHelper.signInAllPlatforms();
+      if (account != null) {
+        emit(AuthSignedIn());
+      } else {
+        emit(const AuthError(message: 'Google sign-in aborted'));
+      }
+    } catch (error) {
+      emit(AuthError(message: error.toString()));
+    }
   }
 }

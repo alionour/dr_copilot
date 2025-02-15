@@ -131,10 +131,10 @@ class _PatientsPageState extends State<PatientsPage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddPatientPage()),
+            MaterialPageRoute(builder: (context) => const AddPatientPage()),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

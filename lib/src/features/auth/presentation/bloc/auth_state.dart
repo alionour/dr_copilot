@@ -12,12 +12,11 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
-  final GoogleSignInAccount user;
 
-  const AuthAuthenticated({required this.user});
+  const AuthAuthenticated();
 
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [];
 }
 
 class AuthError extends AuthState {

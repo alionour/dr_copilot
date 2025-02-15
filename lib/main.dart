@@ -1,6 +1,8 @@
+import 'package:dr_copilot/firebase_options.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
@@ -18,6 +20,13 @@ import 'src/core/router/routing_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+
   await initInjections();
 
   await Supabase.initialize(

@@ -1,5 +1,7 @@
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
+    as google_sign_in_all_platforms;
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 
@@ -16,6 +18,15 @@ class GoogleSignInHelper {
       _client = await _googleSignIn.authenticatedClient();
     });
   }
+  google_sign_in_all_platforms.GoogleSignIn googleSignIn =
+      google_sign_in_all_platforms.GoogleSignIn(
+    params: const google_sign_in_all_platforms.GoogleSignInParams(
+      clientId:
+          '991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com',
+      clientSecret: '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',
+      redirectPort: 5000, // Ensure this matches the registered redirect URI
+    ),
+  );
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
       clientId:
@@ -52,6 +63,17 @@ class GoogleSignInHelper {
     try {
       final account = await _googleSignIn.signIn();
       return account;
+    } catch (error) {
+      print('Sign in error: $error');
+      return null;
+    }
+  }
+
+  /// Signs in the user on all platforms and returns the account.
+  Future<google_sign_in_all_platforms.GoogleSignInCredentials?>
+      signInAllPlatforms() async {
+    try {
+      return await googleSignIn.signInOnline();
     } catch (error) {
       print('Sign in error: $error');
       return null;

@@ -6,7 +6,7 @@ class NavigationState extends Equatable {
   final int selectedIndex;
   final bool isNavigationFocused;
 
-  NavigationState(
+  const NavigationState(
     this.user,
     this.destination,
     this.isNavigationFocused,

@@ -3,19 +3,7 @@ import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-const optionText = Text(
-  'Or',
-  style: TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-  ),
-  textAlign: TextAlign.center,
-);
-
-const spacer = SizedBox(
-  height: 12,
-);
+import 'package:universal_io/io.dart' as io;
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -38,110 +26,115 @@ class LoginPage extends StatelessWidget {
         },
         child: Scaffold(
           // appBar: appBar('Sign In'),
-          body: ListView(
-            padding: const EdgeInsets.all(24.0),
-            children: [
-              // Dark theme example
-              // Card(
-              //     elevation: 10,
-              //     color: const Color.fromARGB(255, 24, 24, 24),
-              //     child: Padding(
-              //       padding: const EdgeInsets.all(30),
-              //       child: Theme(
-              //         data: darkModeThemeData,
-              //         child: SupaEmailAuth(
-              //             redirectTo: kIsWeb ? null : 'io.supabase.flutter://',
-              //             onSignInComplete: navigateHome,
-              //             onSignUpComplete: navigateHome,
-              //             prefixIconEmail: null,
-              //             prefixIconPassword: null,
-              //             localization: const SupaEmailAuthLocalization(
-              //                 enterEmail: "email",
-              //                 enterPassword: "password",
-              //                 dontHaveAccount: "sign up",
-              //                 forgotPassword: "forgot password"),
-              //             metadataFields: [
-              //               MetaDataField(
-              //                 prefixIcon: const Icon(Icons.person),
-              //                 label: 'Username',
-              //                 key: 'username',
-              //                 validator: (val) {
-              //                   if (val == null || val.isEmpty) {
-              //                     return 'Please enter something';
-              //                   }
-              //                   return null;
-              //                 },
-              //               ),
-              //               BooleanMetaDataField(
-              //                 label:
-              //                     'Keep me up to date with the latest news and updates.',
-              //                 key: 'marketing_consent',
-              //                 checkboxPosition: ListTileControlAffinity.leading,
-              //               ),
-              //               BooleanMetaDataField(
-              //                 key: 'terms_agreement',
-              //                 isRequired: true,
-              //                 checkboxPosition: ListTileControlAffinity.leading,
-              //                 richLabelSpans: [
-              //                   const TextSpan(
-              //                       text: 'I have read and agree to the '),
-              //                   TextSpan(
-              //                     text: 'Terms and Conditions.',
-              //                     style: const TextStyle(
-              //                       color: Colors.blue,
-              //                     ),
-              //                     recognizer: TapGestureRecognizer()
-              //                       ..onTap = () {
-              //                         //ignore: avoid_print
-              //                         print('Terms and Conditions');
-              //                       },
-              //                   ),
-              //                 ],
-              //               ),
-              //             ]),
-              //       ),
-              //     )),
-              // spacer,
-              Center(
-                child: IconButton(
-                    onPressed: () {
-                      context.read<AuthBloc>().add(SignInWithGoogle());
-                    },
-                    icon: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
-                          semanticsLabel: 'Google Logo',
-                          width: 24,
-                          height: 24,
-                        ),
-                        const Text('Sign in with Google'),
-                      ],
-                    )),
+          body: Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width *
+                  0.85, // Make box smaller in width
+              margin: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 15, // Increase blur radius for more shadow
+                    offset: Offset(0, 10), // Increase offset for more shadow
+                  ),
+                ],
               ),
-              // SupaSocialsAuth(
-              //   colored: true,
-              //   nativeGoogleAuthConfig: const NativeGoogleAuthConfig(
-              //     webClientId:
-              //         '991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com',
-              //     iosClientId:
-              //         '991809114105-gjmdi9v4bjvhbh11a3khbb3ah1606fqb.apps.googleusercontent.com',
-              //   ),
-              //   enableNativeAppleAuth: false,
-              //   socialProviders: const [
-              //     // OAuthProvider.apple,
-              //     OAuthProvider.google,
-              //     // OAuthProvider.facebook
-              //   ],
-              //   onSuccess: (session) {
-              //     context.go('/home');
-              //   },
-              //   onError: (error) {
-              //     debugPrint('Auth Error: $error');
-              //   },
-              // ),
-            ],
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const SizedBox(height: 60),
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/svg/logo.svg',
+                          semanticsLabel: 'App Logo',
+                          width: 100,
+                          height: 100,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Welcome Back!',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 15),
+                  const Text(
+                    'Please sign in to continue',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 50),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (io.Platform.isWindows || io.Platform.isLinux) {
+                          // Use google_sign_in_all_platforms for Windows and Linux
+                          context
+                              .read<AuthBloc>()
+                              .add(SignInWithGoogleAllPlatforms());
+                        } else {
+                          // Use google_sign_in for other platforms
+                          context.read<AuthBloc>().add(SignInWithGoogle());
+                        }
+                      },
+                      icon: SvgPicture.asset(
+                        'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
+                        semanticsLabel: 'Google Logo',
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.blue,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      label: const Text(
+                        'Sign in with Google',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: const BorderSide(color: Colors.grey),
+                        ),
+                        elevation: 6,
+                        shadowColor: Colors.black45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
