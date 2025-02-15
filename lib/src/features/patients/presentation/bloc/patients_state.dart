@@ -20,6 +20,8 @@ class PatientsLoaded extends PatientsState {
   List<Object> get props => [patients];
 }
 
+class PatientsSuccess extends PatientsState {}
+
 class PatientsError extends PatientsState {
   final String message;
 

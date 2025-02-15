@@ -3,6 +3,8 @@ import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dar
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
@@ -29,8 +31,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
   final _genderFocusNode = FocusNode();
   final _addressFocusNode = FocusNode();
 
-  // Selected gender
-  String _selectedGender = '';
+  String _selectedGender = 'Male';
 
   @override
   void initState() {
@@ -49,6 +50,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
       // App bar with title and submit button
       appBar: AppBar(
         title: const Text('Add Patient'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/home'); // Navigate back to home
+          },
+        ),
         actions: [
           // Submit button
           IconButton(
@@ -57,122 +64,118 @@ class _AddPatientPageState extends State<AddPatientPage> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Determine if it is a small screen
-          final isSmallScreen = constraints.maxWidth < 600;
-          // Center the content
-          return Center(
-            child: Container(
-              // Limit the width on large screens
-              width: isSmallScreen ? double.infinity : 600,
-              padding: const EdgeInsets.all(16.0),
-              // Make the content scrollable
-              child: SingleChildScrollView(
-                // Form for input fields
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      // Name Form Field
-                      TextFormField(
-                        controller: _nameController,
-                        focusNode: _nameFocusNode,
-                        decoration: const InputDecoration(labelText: 'Name'),
-                        // Validator for name field
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a name';
-                          }
-                          return null;
-                        },
-                        // Move focus to the age field on submit
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(_ageFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      // Age Form Field
-                      TextFormField(
-                        controller: _ageController,
-                        focusNode: _ageFocusNode,
-                        decoration: const InputDecoration(labelText: 'Age'),
-                        keyboardType: TextInputType.number,
-                        // Validator for age field
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter an age';
-                          }
-                          return null;
-                        },
-                        // Move focus to the address field on submit
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(_addressFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      // Gender Choice Chips
-                      Wrap(
-                        spacing: 8.0,
-                        children: [
-                          // Male Choice Chip
-                          ChoiceChip(
-                            label: const Text('Male'),
-                            selected: _selectedGender == 'Male',
-                            // Update selected gender on selection
-                            onSelected: (bool selected) {
-                              setState(() {
-                                _selectedGender = selected ? 'Male' : '';
-                              });
-                            },
-                          ),
-                          // Female Choice Chip
-                          ChoiceChip(
-                            label: const Text('Female'),
-                            selected: _selectedGender == 'Female',
-                            // Update selected gender on selection
-                            onSelected: (bool selected) {
-                              setState(() {
-                                _selectedGender = selected ? 'Female' : '';
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16.0),
-                      // Address Form Field
-                      TextFormField(
-                        controller: _addressController,
-                        focusNode: _addressFocusNode,
-                        decoration: const InputDecoration(labelText: 'Address'),
-                        // Validator for address field
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter an address';
-                          }
-                          return null;
-                        },
-                        // Unfocus on submit
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).unfocus();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      // Add Patient Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _submitForm,
-                          child: const Text('Add Patient'),
+      body: BlocListener<PatientsBloc, PatientsState>(
+        listener: (context, state) {
+          if (state is PatientsSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Patient added successfully')),
+            );
+            Navigator.pop(context);
+          } else if (state is PatientsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = constraints.maxWidth < 600;
+            return Center(
+              child: Container(
+                width: isSmallScreen ? double.infinity : 600,
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          focusNode: _nameFocusNode,
+                          decoration: const InputDecoration(labelText: 'Name'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a name';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context).requestFocus(_ageFocusNode);
+                          },
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _ageController,
+                          focusNode: _ageFocusNode,
+                          decoration: const InputDecoration(labelText: 'Age'),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter an age';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context)
+                                .requestFocus(_addressFocusNode);
+                          },
+                        ),
+                        const SizedBox(height: 16.0),
+                        Wrap(
+                          spacing: 8.0,
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Male'),
+                              selected: _selectedGender == 'Male',
+                              onSelected: (bool selected) {
+                                setState(() {
+                                  _selectedGender = selected ? 'Male' : '';
+                                });
+                              },
+                            ),
+                            ChoiceChip(
+                              label: const Text('Female'),
+                              selected: _selectedGender == 'Female',
+                              onSelected: (bool selected) {
+                                setState(() {
+                                  _selectedGender = selected ? 'Female' : '';
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _addressController,
+                          focusNode: _addressFocusNode,
+                          decoration:
+                              const InputDecoration(labelText: 'Address'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter an address';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context).unfocus();
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _submitForm,
+                            child: const Text('Add Patient'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -181,17 +184,15 @@ class _AddPatientPageState extends State<AddPatientPage> {
   void _submitForm() {
     // Validate the form
     if (_formKey.currentState!.validate()) {
-      // Create a new patient model
-      final patient = PatientModel(
-        id: '', // ID will be generated by Firestore
+      const uuid = Uuid();
+      final patientModel = PatientModel(
+        id: uuid.v4(), // Generate a unique ID
         name: _nameController.text,
         age: int.parse(_ageController.text),
         gender: _selectedGender,
         address: _addressController.text,
       );
-      // Add the patient to the bloc
       BlocProvider.of<PatientsBloc>(context).add(AddPatient(patient));
-      // Pop the current page
       Navigator.pop(context);
     }
   }

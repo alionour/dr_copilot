@@ -1,12 +1,17 @@
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 class AddCalendarEventPage extends StatefulWidget {
   const AddCalendarEventPage({super.key});
 
   @override
-  _AddCalendarEventPageState createState() => _AddCalendarEventPageState();
+  State<AddCalendarEventPage> createState() => _AddCalendarEventPageState();
 }
 
 class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
@@ -19,6 +24,9 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   DateTime? _endDate = DateTime.now().add(
       const Duration(hours: 1)); // Initialize with the current date + 1 hour
   String _selectedCalendar = 'primary'; // Default calendar
+  String query = '';
+  final FocusNode _searchFocusNode = FocusNode();
+  List<PatientModel> _filteredPatients = [];
 
   final List<String> _calendars = ['Sessions', 'Evaluation', 'primary'];
   final Map<String, Color> _calendarColors = {
@@ -33,6 +41,9 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
     });
+    context
+        .read<PatientsBloc>()
+        .add(GetPatients(query)); // Fetch patients on init
   }
 
   Future<void> _selectDateTime(BuildContext context, bool isStart) async {
@@ -55,20 +66,22 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
           pickedTime.hour,
           pickedTime.minute,
         );
-        setState(() {
-          if (isStart) {
-            _startDate = pickedDateTime;
-            _endDate = pickedDateTime.add(const Duration(
-                hours: 1)); // Set end date-time 1 hour after start date-time
-          } else {
-            _endDate = pickedDateTime;
-          }
-        });
+        if (mounted) {
+          setState(() {
+            if (isStart) {
+              _startDate = pickedDateTime;
+              _endDate = pickedDateTime.add(const Duration(
+                  hours: 1)); // Set end date-time 1 hour after start date-time
+            } else {
+              _endDate = pickedDateTime;
+            }
+          });
+        }
       }
     }
   }
 
-  void _saveEvent(BuildContext context) {
+  void _saveEvent() {
     if (_formKey.currentState!.validate()) {
       final newEvent = google_calendar.Event(
         summary: _patientNameController.text,
@@ -76,8 +89,10 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
         start: google_calendar.EventDateTime(dateTime: _startDate),
         end: google_calendar.EventDateTime(dateTime: _endDate),
       );
-      Navigator.of(context)
-          .pop({'event': newEvent, 'calendar': _selectedCalendar});
+      if (mounted) {
+        Navigator.of(context)
+            .pop({'event': newEvent, 'calendar': _selectedCalendar});
+      }
     }
   }
 
@@ -95,107 +110,233 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add New Appointment'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/home'); // Navigate back to home
+          },
+        ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isSmallScreen = constraints.maxWidth < 600;
-          return Center(
-            child: Container(
-              width: isSmallScreen ? double.infinity : 600,
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    TextFormField(
-                      controller: _patientNameController,
-                      focusNode: _patientNameFocusNode,
-                      decoration:
-                          const InputDecoration(labelText: 'Patient Name'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a patient name';
-                        }
-                        return null;
-                      },
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_descriptionFocusNode);
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      controller: _descriptionController,
-                      focusNode: _descriptionFocusNode,
-                      decoration:
-                          const InputDecoration(labelText: 'Description'),
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).unfocus();
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(dateFormat.format(_startDate!)),
+      body: BlocListener<PatientsBloc, PatientsState>(
+        listener: (context, state) {
+          if (state is PatientsSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Patient added successfully')),
+            );
+          } else if (state is PatientsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = constraints.maxWidth < 600;
+            return Center(
+              child: Container(
+                width: isSmallScreen ? double.infinity : 600,
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Focus(
+                        focusNode: _searchFocusNode,
+                        child: BlocBuilder<PatientsBloc, PatientsState>(
+                          builder: (context, state) {
+                            if (state is PatientsLoaded) {
+                              _filteredPatients =
+                                  state.patients.where((patient) {
+                                return patient.name
+                                    .toLowerCase()
+                                    .contains(query.toLowerCase());
+                              }).toList();
+                            }
+                            return Column(
+                              children: [
+                                TextFormField(
+                                  controller: _patientNameController,
+                                  focusNode: _patientNameFocusNode,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Patient Name',
+                                    hintText: 'Search Patients',
+                                    prefixIcon: Icon(Icons.search),
+                                    border: InputBorder.none,
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter a patient name';
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (newQuery) {
+                                    setState(() {
+                                      query = newQuery;
+                                    });
+                                    context.read<PatientsBloc>().add(
+                                        SearchPatients(
+                                            query)); // Trigger search event
+                                  },
+                                  onFieldSubmitted: (_) {
+                                    FocusScope.of(context)
+                                        .requestFocus(_descriptionFocusNode);
+                                  },
+                                ),
+                                if (_filteredPatients.isNotEmpty)
+                                  Container(
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 200,
+                                    ),
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: _filteredPatients.length,
+                                      itemBuilder: (context, index) {
+                                        return ListTile(
+                                          title: Text(
+                                              _filteredPatients[index].name),
+                                          onTap: () {
+                                            setState(() {
+                                              _patientNameController.text =
+                                                  _filteredPatients[index].name;
+                                              _filteredPatients = [];
+                                            });
+                                            FocusScope.of(context).requestFocus(
+                                                _descriptionFocusNode);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                if (_filteredPatients.isEmpty &&
+                                    query.isNotEmpty)
+                                  Column(
+                                    children: [
+                                      const Text(
+                                          'No patients with provided query.'),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Tooltip(
+                                            message: 'Add Patient',
+                                            child: IconButton(
+                                              icon: const Icon(Icons.add),
+                                              onPressed: () {
+                                                // Add patient directly
+                                                final newPatient = PatientModel(
+                                                    id: const Uuid().v4(),
+                                                    name: query);
+                                                context
+                                                    .read<PatientsBloc>()
+                                                    .add(
+                                                        AddPatient(newPatient));
+                                                setState(() {
+                                                  _patientNameController.text =
+                                                      query;
+                                                  _filteredPatients = [];
+                                                });
+                                                FocusScope.of(context)
+                                                    .requestFocus(
+                                                        _descriptionFocusNode);
+                                              },
+                                            ),
+                                          ),
+                                          Tooltip(
+                                            message: 'Go to Add Patient',
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                  Icons.arrow_forward),
+                                              onPressed: () {
+                                                // Navigate to add patient page
+                                                context.go('/patients/new');
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            );
+                          },
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          onPressed: () => _selectDateTime(context, true),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(dateFormat.format(_endDate!)),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          onPressed: () => _selectDateTime(context, false),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    DropdownButtonFormField<String>(
-                      value: _selectedCalendar,
-                      decoration: const InputDecoration(labelText: 'Calendar'),
-                      items: _calendars.map((String calendar) {
-                        return DropdownMenuItem<String>(
-                          value: calendar,
-                          child: Row(
-                            children: <Widget>[
-                              CircleAvatar(
-                                backgroundColor: _calendarColors[calendar],
-                                radius: 5,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(calendar),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedCalendar = newValue!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => _saveEvent(context),
-                        child: const Text('Save Appointment'),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _descriptionController,
+                        focusNode: _descriptionFocusNode,
+                        decoration:
+                            const InputDecoration(labelText: 'Description'),
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).unfocus();
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(dateFormat.format(_startDate!)),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.calendar_month_outlined),
+                            onPressed: () => _selectDateTime(context, true),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(dateFormat.format(_endDate!)),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.calendar_month_outlined),
+                            onPressed: () => _selectDateTime(context, false),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16.0),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCalendar,
+                        decoration:
+                            const InputDecoration(labelText: 'Calendar'),
+                        items: _calendars.map((String calendar) {
+                          return DropdownMenuItem<String>(
+                            value: calendar,
+                            child: Row(
+                              children: <Widget>[
+                                CircleAvatar(
+                                  backgroundColor: _calendarColors[calendar],
+                                  radius: 5,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(calendar),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCalendar = newValue!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _saveEvent,
+                          child: const Text('Save Appointment'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
     as google_sign_in_all_platforms;
@@ -16,6 +17,7 @@ class GoogleSignInHelper {
   GoogleSignInHelper._internal() {
     _googleSignIn.onCurrentUserChanged.listen((account) async {
       _client = await _googleSignIn.authenticatedClient();
+      debugPrint('User signed in: $account'); // Add this line for debugging
     });
   }
   google_sign_in_all_platforms.GoogleSignIn googleSignIn =
@@ -49,10 +51,9 @@ class GoogleSignInHelper {
   /// Signs out the current user.
   Future<void> signOut() async {
     await _googleSignIn.signOut();
+    debugPrint('User signed out'); // Add this line for debugging
   }
 
-  /// Getter for the current signed-in user.
-  GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
 
   /// Stream to listen for authentication state changes.
   Stream<GoogleSignInAccount?> get onAuthStateChanged =>
@@ -62,9 +63,10 @@ class GoogleSignInHelper {
   Future<GoogleSignInAccount?> signIn() async {
     try {
       final account = await _googleSignIn.signIn();
+      debugPrint('User signed in: $account'); // Add this line for debugging
       return account;
     } catch (error) {
-      print('Sign in error: $error');
+      debugPrint('Sign in error: $error');
       return null;
     }
   }

@@ -1,6 +1,6 @@
 part of 'auth_bloc.dart';
 
-sealed class AuthEvent extends Equatable {
+abstract class AuthEvent extends Equatable {
   const AuthEvent();
 
   @override
@@ -16,3 +16,9 @@ class SignInWithGoogleAllPlatforms extends AuthEvent {
   @override
   List<Object> get props => [];
 }
+
+class SignInWithGoogle extends AuthEvent {}
+
+class AuthSignedInEvent extends AuthEvent {}
+
+class AuthInitialEvent extends AuthEvent {}

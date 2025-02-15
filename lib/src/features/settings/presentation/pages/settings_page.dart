@@ -1,8 +1,10 @@
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
-
   const SettingsPage({
     super.key,
   });
@@ -28,12 +30,14 @@ class _SettingsPageState extends State<SettingsPage> {
           if (event is KeyDownEvent) {
             if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
               setState(() {
-                _selectedIndex = (_selectedIndex + 1) % 5; // 5 items in the list
+                _selectedIndex =
+                    (_selectedIndex + 1) % 6; // 6 items in the list
               });
               return KeyEventResult.handled;
             } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
               setState(() {
-                _selectedIndex = (_selectedIndex - 1 + 5) % 5; // 5 items in the list
+                _selectedIndex =
+                    (_selectedIndex - 1 + 6) % 6; // 6 items in the list
               });
               return KeyEventResult.handled;
             }
@@ -78,7 +82,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       setState(() {
                         _selectedIndex = 2;
                       });
-                      // Handle privacy settings tap
+                      context.go('/privacy');
                     },
                   ),
                   ListTile(
@@ -89,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       setState(() {
                         _selectedIndex = 3;
                       });
-                      // Handle help & support tap
+                      context.go('/help_support');
                     },
                   ),
                   ListTile(
@@ -100,7 +104,19 @@ class _SettingsPageState extends State<SettingsPage> {
                       setState(() {
                         _selectedIndex = 4;
                       });
-                      // Handle about tap
+                      context.go('/about');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.color_lens),
+                    title: const Text('Change Theme'),
+                    selected: _selectedIndex == 5,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 5;
+                      });
+                      Provider.of<ThemeNotifier>(context, listen: false)
+                          .toggleTheme();
                     },
                   ),
                 ],
@@ -110,5 +126,20 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+}
+
+class ThemeNotifier extends ChangeNotifier {
+  bool _isDarkMode = false;
+
+  ThemeData get currentTheme {
+    return _isDarkMode
+        ? FlexColorScheme.dark(scheme: FlexScheme.mandyRed).toTheme
+        : FlexColorScheme.light(scheme: FlexScheme.mandyRed).toTheme;
+  }
+
+  void toggleTheme() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
   }
 }

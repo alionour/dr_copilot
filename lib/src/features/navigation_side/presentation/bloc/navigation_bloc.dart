@@ -7,7 +7,8 @@ part 'navigation_event.dart';
 part 'navigation_state.dart';
 
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
-  NavigationBloc() : super(const NavigationState(null, Destination.copilot,true)) {
+  NavigationBloc()
+      : super(const NavigationState(null, Destination.copilot, true)) {
     on<NavigateToEvent>(navigateTo);
     on<GetUserData>(getUserData);
     on<NavigateUpEvent>(navigateUp);

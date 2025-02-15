@@ -1,12 +1,11 @@
 import 'package:dr_copilot/src/features/calendar/presentation/bloc/calendar_bloc.dart';
-import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class CalendarPage extends StatefulWidget {
-
   const CalendarPage({
     super.key,
   });
@@ -34,11 +33,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Future<void> _navigateToAddEvent(BuildContext context) async {
-    final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(
-        builder: (context) => const AddCalendarEventPage(),
-      ),
-    );
+    final result = await context.push<Map<String, dynamic>>('/events/new');
     if (result != null) {
       final newEvent = result['event'] as google_calendar.Event;
       final calendarId = result['calendar'] as String;
@@ -101,12 +96,8 @@ class _CalendarPageState extends State<CalendarPage> {
             if (state is CalendarEventsLoaded) {
               events = state.events;
               calendarColors = state.calendarColors;
-              for (var element in events) {
-                print(element.toJson());
-              }
+              
             }
-            print('object $_calendarView');
-
             return RefreshIndicator(
               onRefresh: () => _refreshCalendarEvents(context),
               child: SfCalendar(

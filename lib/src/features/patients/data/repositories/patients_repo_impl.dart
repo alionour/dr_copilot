@@ -11,25 +11,32 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Fetches a list of patients.
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatients() {
-    return api.getPatients();
+  Future<Either<Failure, List<PatientModel>>> getPatients(String query) {
+    return api.getPatients(query);
   }
 
   /// Adds a new patient.
   @override
-  Future<Either<Failure, void>> addPatient(PatientModel patientModel) {
+  Future<Either<Failure, PatientModel>> addPatient(PatientModel patientModel) {
     return api.addPatient(patientModel);
   }
 
   /// Updates an existing patient.
   @override
-  Future<Either<Failure, void>> updatePatient(PatientModel patientModel) {
+  Future<Either<Failure, PatientModel>> updatePatient(
+      PatientModel patientModel) {
     return api.updatePatient(patientModel);
   }
 
   /// Deletes a patient by their ID.
   @override
-  Future<Either<Failure, void>> deletePatient(String id) {
+  Future<Either<Failure, PatientModel>> deletePatient(String id) {
     return api.deletePatient(id);
+  }
+
+  /// Searches patients based on criteria.
+  @override
+  Future<Either<Failure, List<PatientModel>>> searchPatients(String query) {
+    return api.searchPatients(query);
   }
 }

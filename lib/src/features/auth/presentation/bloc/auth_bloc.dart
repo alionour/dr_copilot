@@ -3,23 +3,54 @@ import 'dart:io' show Platform;
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
 
 /// Bloc for handling authentication events and states.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final GoogleSignInHelper _googleSignInHelper = GoogleSignInHelper();
 
   /// Constructor for AuthBloc, initializing with the initial state.
   AuthBloc() : super(AuthInitial()) {
     on<SignInWithGoogle>(_signInWithGoogle);
     on<SignInWithGoogleAllPlatforms>(_signInWithGoogleAllPlatforms);
+    _setAuthPersistence(); // Set auth persistence on initialization
+    _listenToAuthStateChanges(); // Listen to auth state changes
   }
 
-  final supabase = Supabase.instance.client;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignInHelper _googleSignInHelper = GoogleSignInHelper();
+
+  /// Sets the authentication persistence.
+  Future<void> _setAuthPersistence() async {
+    try {
+      if (kIsWeb) {
+        await _firebaseAuth.setPersistence(Persistence.SESSION);
+        debugPrint('Auth persistence set to SESSION for web');
+      } else {
+        await _firebaseAuth.setPersistence(Persistence.LOCAL);
+        debugPrint('Auth persistence set to LOCAL');
+      }
+    } catch (e) {
+      debugPrint('Failed to set auth persistence: $e');
+    }
+  }
+
+  /// Listens to authentication state changes.
+  void _listenToAuthStateChanges() {
+    _firebaseAuth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        debugPrint('User is already signed in: ${user.email}');
+        add(AuthSignedInEvent());
+      } else {
+        debugPrint('No user is currently signed in');
+        add(AuthInitialEvent());
+      }
+    });
+  }
 
   /// Handles the SignInWithGoogle event.
   ///
@@ -34,36 +65,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await _webGoogleSignIn();
       }
 
+
+      final currentUser = await FirebaseAuth.instance.authStateChanges().first;
       // Check if the user is already signed in before navigating
-      if (_googleSignInHelper.currentUser != null) {
+      if ( currentUser!= null) {
+        debugPrint(
+            'Google sign-in successful: ${currentUser.email}');
         emit(AuthSignedIn());
+      } else {
+        debugPrint('Google sign-in failed: No current user');
+        emit(
+            const AuthError(message: 'Google sign-in failed: No current user'));
       }
       // add(GetCalendarEvents());
     } catch (error) {
       emit(AuthError(message: error.toString()));
-      debugPrint(error.toString());
+      debugPrint('Google sign-in error: $error');
     }
   }
 
   /// Handles native Google sign-in for Android and iOS.
   Future<void> _nativeGoogleSignIn() async {
+    
     final googleUser = await _googleSignInHelper.signIn();
-    final googleAuth = await googleUser!.authentication;
-    final accessToken = googleAuth.accessToken;
-    final idToken = googleAuth.idToken;
-
-    if (accessToken == null) {
-      throw 'No Access Token found.';
+    if (googleUser == null) {
+      throw 'Google sign-in aborted';
     }
-    if (idToken == null) {
-      throw 'No ID Token found.';
-    }
-
-    await supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: accessToken,
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
+
+    await _firebaseAuth.signInWithCredential(credential);
+    debugPrint('Native Google sign-in successful');
   }
 
   /// Handles web Google sign-in.
@@ -75,22 +110,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     final googleAuth = await googleUser.authentication;
-    final accessToken = googleAuth.accessToken;
-    print('accessToken is $accessToken');
-
-    if (accessToken == null) {
-      throw 'No Access Token found.';
-    }
-
-    // await supabase.auth.signInWithOAuth(
-    //   OAuthProvider.google,
-    // );
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    await _firebaseAuth.signInWithCredential(credential);
+    debugPrint('Web Google sign-in successful');
   }
 
   /// Handles the SignInWithGoogleAllPlatforms event.
   ///
   /// @param event The event to sign in with Google on all platforms.
   /// @param emit The function to emit states.
+
   void _signInWithGoogleAllPlatforms(
       SignInWithGoogleAllPlatforms event, Emitter<AuthState> emit) async {
     try {
@@ -104,4 +136,5 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: error.toString()));
     }
   }
+
 }

@@ -67,4 +67,18 @@ class PatientImplApi implements AbstractPatientApi {
       throw Exception('Failed to delete patient');
     }
   }
+
+  /// Searches patients based on criteria.
+  @override
+  Future<List<PatientModel>> searchPatients(String query) async {
+    final response =
+        await http.get(Uri.parse('$apiUrl/patients?search=$query'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => PatientModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to search patients');
+    }
+  }
 }
