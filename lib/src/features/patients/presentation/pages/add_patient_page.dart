@@ -192,8 +192,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         gender: _selectedGender,
         address: _addressController.text,
       );
-      BlocProvider.of<PatientsBloc>(context).add(AddPatient(patient));
-      Navigator.pop(context);
+      BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -20,7 +22,7 @@ class GoogleSignInHelper {
       debugPrint('User signed in: $account'); // Add this line for debugging
     });
   }
-  google_sign_in_all_platforms.GoogleSignIn googleSignIn =
+  google_sign_in_all_platforms.GoogleSignIn googleSignInAllPlatforms =
       google_sign_in_all_platforms.GoogleSignIn(
     params: const google_sign_in_all_platforms.GoogleSignInParams(
       clientId:
@@ -50,10 +52,17 @@ class GoogleSignInHelper {
 
   /// Signs out the current user.
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    try {
+      if (kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+        await _googleSignIn.signOut();
+      } else {
+        await googleSignInAllPlatforms.signOut();
+      }
+    } catch (error) {
+      print('Google sign-out error: $error');
+    }
     debugPrint('User signed out'); // Add this line for debugging
   }
-
 
   /// Stream to listen for authentication state changes.
   Stream<GoogleSignInAccount?> get onAuthStateChanged =>
@@ -75,7 +84,7 @@ class GoogleSignInHelper {
   Future<google_sign_in_all_platforms.GoogleSignInCredentials?>
       signInAllPlatforms() async {
     try {
-      return await googleSignIn.signInOnline();
+      return await googleSignInAllPlatforms.signInOnline();
     } catch (error) {
       print('Sign in error: $error');
       return null;

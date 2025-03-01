@@ -1,56 +1,23 @@
-import 'dart:io' show Platform;
-
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:universal_io/io.dart' as io;
 
 part 'auth_event.dart';
 part 'auth_state.dart';
 
 /// Bloc for handling authentication events and states.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-
   /// Constructor for AuthBloc, initializing with the initial state.
   AuthBloc() : super(AuthInitial()) {
     on<SignInWithGoogle>(_signInWithGoogle);
-    on<SignInWithGoogleAllPlatforms>(_signInWithGoogleAllPlatforms);
-    _setAuthPersistence(); // Set auth persistence on initialization
-    _listenToAuthStateChanges(); // Listen to auth state changes
+    on<SignOutEvent>(_onSignOut);
   }
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleSignInHelper _googleSignInHelper = GoogleSignInHelper();
-
-  /// Sets the authentication persistence.
-  Future<void> _setAuthPersistence() async {
-    try {
-      if (kIsWeb) {
-        await _firebaseAuth.setPersistence(Persistence.SESSION);
-        debugPrint('Auth persistence set to SESSION for web');
-      } else {
-        await _firebaseAuth.setPersistence(Persistence.LOCAL);
-        debugPrint('Auth persistence set to LOCAL');
-      }
-    } catch (e) {
-      debugPrint('Failed to set auth persistence: $e');
-    }
-  }
-
-  /// Listens to authentication state changes.
-  void _listenToAuthStateChanges() {
-    _firebaseAuth.authStateChanges().listen((User? user) {
-      if (user != null) {
-        debugPrint('User is already signed in: ${user.email}');
-        add(AuthSignedInEvent());
-      } else {
-        debugPrint('No user is currently signed in');
-        add(AuthInitialEvent());
-      }
-    });
-  }
 
   /// Handles the SignInWithGoogle event.
   ///
@@ -59,25 +26,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _signInWithGoogle(
       SignInWithGoogle event, Emitter<AuthState> emit) async {
     try {
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        await _nativeGoogleSignIn();
-      } else {
-        await _webGoogleSignIn();
+      late AuthState authState;
+      if (io.Platform.isAndroid || io.Platform.isIOS) {
+        authState = await _nativeGoogleSignIn();
+      } else if (kIsWeb) {
+        authState = await _webGoogleSignIn();
+      } else if (io.Platform.isWindows || io.Platform.isLinux) {
+        // Use google_sign_in_all_platforms for Windows and Linux
+        authState = await _allPlatformsGoogleSignIn();
       }
-
-
-      final currentUser = await FirebaseAuth.instance.authStateChanges().first;
-      // Check if the user is already signed in before navigating
-      if ( currentUser!= null) {
-        debugPrint(
-            'Google sign-in successful: ${currentUser.email}');
-        emit(AuthSignedIn());
-      } else {
-        debugPrint('Google sign-in failed: No current user');
-        emit(
-            const AuthError(message: 'Google sign-in failed: No current user'));
-      }
-      // add(GetCalendarEvents());
+      emit(authState);
     } catch (error) {
       emit(AuthError(message: error.toString()));
       debugPrint('Google sign-in error: $error');
@@ -85,8 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Handles native Google sign-in for Android and iOS.
-  Future<void> _nativeGoogleSignIn() async {
-    
+  Future<AuthState> _nativeGoogleSignIn() async {
     final googleUser = await _googleSignInHelper.signIn();
     if (googleUser == null) {
       throw 'Google sign-in aborted';
@@ -99,10 +56,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     await _firebaseAuth.signInWithCredential(credential);
     debugPrint('Native Google sign-in successful');
+
+    final currentUser = await FirebaseAuth.instance.authStateChanges().first;
+    // Check if the user is already signed in before navigating
+    if (currentUser != null) {
+      debugPrint('Google sign-in successful: ${currentUser.email}');
+      return AuthSignedIn();
+    } else {
+      debugPrint('Google sign-in failed: No current user');
+      return const AuthError(message: 'Google sign-in failed: No current user');
+    }
   }
 
   /// Handles web Google sign-in.
-  Future<void> _webGoogleSignIn() async {
+  Future<AuthState> _webGoogleSignIn() async {
     final googleUser = await _googleSignInHelper.signIn();
 
     if (googleUser == null) {
@@ -116,25 +83,61 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     await _firebaseAuth.signInWithCredential(credential);
     debugPrint('Web Google sign-in successful');
+
+    final currentUser = await FirebaseAuth.instance.authStateChanges().first;
+    // Check if the user is already signed in before navigating
+    if (currentUser != null) {
+      debugPrint('Google sign-in successful: ${currentUser.email}');
+      return AuthSignedIn();
+    } else {
+      debugPrint('Google sign-in failed: No current user');
+      return const AuthError(message: 'Google sign-in failed: No current user');
+    }
   }
 
   /// Handles the SignInWithGoogleAllPlatforms event.
   ///
   /// @param event The event to sign in with Google on all platforms.
   /// @param emit The function to emit states.
-
-  void _signInWithGoogleAllPlatforms(
-      SignInWithGoogleAllPlatforms event, Emitter<AuthState> emit) async {
+  Future<AuthState> _allPlatformsGoogleSignIn() async {
     try {
-      final account = await _googleSignInHelper.signInAllPlatforms();
-      if (account != null) {
-        emit(AuthSignedIn());
+      final googleAuth = await _googleSignInHelper.signInAllPlatforms();
+      debugPrint('Google sign-in successful: ${googleAuth?.accessToken}');
+      if (googleAuth == null) {
+        return const AuthError(message: 'Google sign-in aborted');
+      }
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await _firebaseAuth.signInWithCredential(credential);
+      debugPrint('All Platforms Google sign-in successful');
+
+      final currentUser = await FirebaseAuth.instance.authStateChanges().first;
+      // Check if the user is already signed in before navigating
+      if (currentUser != null) {
+        debugPrint('Google sign-in successful: ${currentUser.email}');
+        return AuthSignedIn();
       } else {
-        emit(const AuthError(message: 'Google sign-in aborted'));
+        debugPrint('Google sign-in failed: No current user');
+        return const AuthError(
+            message: 'Google sign-in failed: No current user');
       }
     } catch (error) {
-      emit(AuthError(message: error.toString()));
+      return AuthError(message: error.toString());
     }
   }
 
+  /// Handles the SignOutEvent.
+  ///
+  /// @param event The event to sign out.
+  /// @param emit The function to emit states.
+  void _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
+    try {
+      await _googleSignInHelper.signOut();
+      emit(AuthSignedOut());
+    } catch (e) {
+      emit(AuthError(message: e.toString()));
+    }
+  }
 }

@@ -7,18 +7,12 @@ abstract class AuthEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class SignInWithGoogle extends AuthEvent {
-  @override
-  List<Object> get props => [];
-}
-
-class SignInWithGoogleAllPlatforms extends AuthEvent {
-  @override
-  List<Object> get props => [];
-}
-
 class SignInWithGoogle extends AuthEvent {}
 
+
+
+class SignOutEvent extends AuthEvent {}
+
+// Define the AuthSignedInEvent
 class AuthSignedInEvent extends AuthEvent {}
 
-class AuthInitialEvent extends AuthEvent {}

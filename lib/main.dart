@@ -9,7 +9,6 @@ import 'package:dr_copilot/src/features/copilot/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
 import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo_impl.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
@@ -46,9 +45,11 @@ class MyApp extends StatelessWidget {
       builder: (context, themeNotifier, child) {
         return MultiBlocProvider(
           providers: [
+            BlocProvider<AuthBloc>(
+              create: (context) => AuthBloc(),
+            ),
             BlocProvider<NavigationBloc>(
                 create: (context) => NavigationBloc()..add(GetUserData())),
-            BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
             BlocProvider<PatientsBloc>(
                 create: (context) => PatientsBloc(
                       PatientsUseCase(

@@ -101,7 +101,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       case CacheFailure _:
         return 'Cache Failure: ${failure.message}';
       default:
-        return 'Unexpected Error';
+        return 'Unexpected Error: ${failure.message}';
     }
   }
 }
