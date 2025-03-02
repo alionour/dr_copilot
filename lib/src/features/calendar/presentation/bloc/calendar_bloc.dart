@@ -3,7 +3,7 @@ import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:http/http.dart';
 
 part 'calendar_event.dart';
 part 'calendar_state.dart';
@@ -15,7 +15,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     on<GetCalendarEvents>(_fetchGoogleCalendarEvents);
     on<GetCalendars>(_fetchGoogleCalendars);
     on<GetCalendarEventsForRange>(_fetchGoogleCalendarEventsForRange);
-    on<AddCalendarEvent>(_addCalendarEvent); // Add this line
+    on<AddCalendarEvent>(_addCalendarEvent);
   }
 
   final googleSignIn = GoogleSignInHelper();
@@ -30,7 +30,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       GetCalendarEvents event, Emitter<CalendarState> emit) async {
     try {
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final AuthClient? client = googleSignIn.client;
+      final Client? client = googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 
@@ -40,7 +40,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       Map<String, Color> calendarColors = {};
 
       for (var calendar in calendarList.items!) {
-      debugPrint('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
+        debugPrint(
+            'Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
         final events = await calendarApi.events.list(
           calendar.id!,
           maxResults: 2500,
@@ -53,7 +54,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
         }
         // Log event details
         for (var event in events.items!) {
-        debugPrint('Event: ${event.summary}, Calendar: ${calendar.summary}');
+          debugPrint('Event: ${event.summary}, Calendar: ${calendar.summary}');
         }
       }
 
@@ -64,7 +65,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
 
       emit(CalendarEventsLoaded(_cachedEvents.values.toList(), calendarColors));
     } catch (e) {
-    debugPrint('Error fetching calendar events: $e');
+      debugPrint('Error fetching calendar events: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
@@ -81,13 +82,13 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       if (_fetchedRanges.any((r) =>
           r.start.isAtSameMomentAs(range.start) &&
           r.end.isAtSameMomentAs(range.end))) {
-      debugPrint('Date range already fetched: $range');
+        debugPrint('Date range already fetched: $range');
         emit(CalendarEventsLoaded(_cachedEvents.values.toList(), const {}));
         return;
       }
 
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final AuthClient? client = googleSignIn.client;
+      final Client? client = googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 
@@ -97,7 +98,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       Map<String, Color> calendarColors = {};
 
       for (var calendar in calendarList.items!) {
-      debugPrint('Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
+        debugPrint(
+            'Processing calendar: ${calendar.summary} (ID: ${calendar.id})');
         final events = await calendarApi.events.list(
           calendar.id!,
           timeMin: event.startDate.toUtc(),
@@ -111,7 +113,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
         }
         // Log event details
         for (var event in events.items!) {
-        debugPrint('Event: ${event.summary}, Calendar: ${calendar.summary}');
+          debugPrint('Event: ${event.summary}, Calendar: ${calendar.summary}');
         }
       }
 
@@ -125,7 +127,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
 
       emit(CalendarEventsLoaded(_cachedEvents.values.toList(), calendarColors));
     } catch (e) {
-    debugPrint('Error fetching calendar events: $e');
+      debugPrint('Error fetching calendar events: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
@@ -138,7 +140,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       GetCalendars event, Emitter<CalendarState> emit) async {
     try {
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final AuthClient? client = googleSignIn.client;
+      final Client? client = googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 
@@ -146,7 +148,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       final calendarList = await calendarApi.calendarList.list();
       emit(CalendarsLoaded(calendarList.items!));
     } catch (e) {
-    debugPrint('Error fetching calendars: $e');
+      debugPrint('Error fetching calendars: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }
@@ -159,7 +161,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       AddCalendarEvent event, Emitter<CalendarState> emit) async {
     try {
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final AuthClient? client = googleSignIn.client;
+      final Client? client = googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 
@@ -172,7 +174,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
       add(GetCalendarEventsForRange(startOfMonth, endOfMonth));
     } catch (e) {
-    debugPrint('Error adding calendar event: $e');
+      debugPrint('Error adding calendar event: $e');
       emit(CalendarInitial()); // Emit initial state on error
     }
   }

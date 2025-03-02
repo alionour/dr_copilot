@@ -43,6 +43,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Handles native Google sign-in for Android and iOS.
+  ///
+  /// @return The authentication state after sign-in.
   Future<AuthState> _nativeGoogleSignIn() async {
     final googleUser = await _googleSignInHelper.signIn();
     if (googleUser == null) {
@@ -69,6 +71,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Handles web Google sign-in.
+  ///
+  /// @return The authentication state after sign-in.
   Future<AuthState> _webGoogleSignIn() async {
     final googleUser = await _googleSignInHelper.signIn();
 
@@ -95,10 +99,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// Handles the SignInWithGoogleAllPlatforms event.
+  /// Handles Google sign-in for all platforms.
   ///
-  /// @param event The event to sign in with Google on all platforms.
-  /// @param emit The function to emit states.
+  /// @return The authentication state after sign-in.
   Future<AuthState> _allPlatformsGoogleSignIn() async {
     try {
       final googleAuth = await _googleSignInHelper.signInAllPlatforms();

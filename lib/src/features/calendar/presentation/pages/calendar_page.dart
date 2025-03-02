@@ -96,7 +96,6 @@ class _CalendarPageState extends State<CalendarPage> {
             if (state is CalendarEventsLoaded) {
               events = state.events;
               calendarColors = state.calendarColors;
-              
             }
             return RefreshIndicator(
               onRefresh: () => _refreshCalendarEvents(context),

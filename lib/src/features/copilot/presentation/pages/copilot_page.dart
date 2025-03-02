@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
@@ -41,6 +43,7 @@ class _CopilotPageState extends State<CopilotPage> {
       _focusNode.requestFocus();
     });
     _initializeAvailableModels();
+    _loadCachedMessages();
   }
 
   void _initializeAvailableModels() {
@@ -95,7 +98,7 @@ class _CopilotPageState extends State<CopilotPage> {
         _messages.add({
           "isUser": true,
           "message": _controller.text,
-          "image": _pickedImage
+          "image": base64Encode(_pickedImage!)
         });
       });
       context.read<CopilotBloc>().add(UploadImageEvent(
@@ -114,6 +117,11 @@ class _CopilotPageState extends State<CopilotPage> {
     }
     _controller.clear();
     _scrollToBottom();
+    context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
+  }
+
+  void _loadCachedMessages() {
+    context.read<CopilotBloc>().add(LoadCachedMessagesEvent());
   }
 
   @override
@@ -121,7 +129,6 @@ class _CopilotPageState extends State<CopilotPage> {
     return Scaffold(
       body: Column(
         children: <Widget>[
-        
           Expanded(
             child: Padding(
               padding:
@@ -137,23 +144,12 @@ class _CopilotPageState extends State<CopilotPage> {
                       if (state.response is custom.GeminiResponse) {
                         final geminiResponse =
                             state.response as custom.GeminiResponse;
-                        setState(() {
-                          _messages.add({
-                            "isUser": false,
-                            "message": geminiResponse.parts.last is TextPart
-                                ? (geminiResponse.parts.last as TextPart).text
-                                : geminiResponse.parts.last.toString()
-                          });
-                        });
+                        _showTypingEffect(geminiResponse.parts.last is TextPart
+                            ? (geminiResponse.parts.last as TextPart).text
+                            : geminiResponse.parts.last.toString());
                       } else {
-                        setState(() {
-                          _messages.add({
-                            "isUser": false,
-                            "message": state.response.toString()
-                          });
-                        });
+                        _showTypingEffect(state.response.toString());
                       }
-                      _scrollToBottom();
                     } else if (state is CopilotError) {
                       setState(() {
                         _messages.add({
@@ -162,6 +158,18 @@ class _CopilotPageState extends State<CopilotPage> {
                         });
                       });
                       _scrollToBottom();
+                      context
+                          .read<CopilotBloc>()
+                          .add(CacheMessagesEvent(_messages));
+                    } else if (state is CachedMessagesLoaded) {
+                      setState(() {
+                        _messages.addAll(state.messages);
+                      });
+                      _scrollToBottom();
+                    } else if (state is NewChatStarted) {
+                      setState(() {
+                        _messages.clear();
+                      });
                     }
                   },
                   child: BlocBuilder<CopilotBloc, CopilotState>(
@@ -191,8 +199,8 @@ class _CopilotPageState extends State<CopilotPage> {
                                           child: SizedBox(
                                             height: 100, // Smaller height
                                             width: 100, // Smaller width
-                                            child:
-                                                Image.memory(message["image"]),
+                                            child: Image.memory(
+                                                base64Decode(message["image"])),
                                           ),
                                         ),
                                       Container(
@@ -352,5 +360,25 @@ class _CopilotPageState extends State<CopilotPage> {
         ],
       ),
     );
+  }
+
+  void _showTypingEffect(String message) {
+    setState(() {
+      _messages.add({"isUser": false, "message": ""});
+    });
+    int index = _messages.length - 1;
+    int charIndex = 0;
+    Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (charIndex < message.length) {
+        setState(() {
+          _messages[index]["message"] += message[charIndex];
+        });
+        charIndex++;
+        _scrollToBottom();
+      } else {
+        timer.cancel();
+        context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
+      }
+    });
   }
 }

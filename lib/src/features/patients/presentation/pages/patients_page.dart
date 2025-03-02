@@ -159,6 +159,10 @@ class _PatientsPageState extends State<PatientsPage> {
     );
   }
 
+  /// Moves the selection down in the list.
+  ///
+  /// This method updates the selected index and scrolls the list to the new position.
+  /// @param length The length of the list.
   void moveSelectionDown(int length) {
     setState(() {
       _selectedIndex = (_selectedIndex + 1) % length;
@@ -170,6 +174,10 @@ class _PatientsPageState extends State<PatientsPage> {
     );
   }
 
+  /// Moves the selection up in the list.
+  ///
+  /// This method updates the selected index and scrolls the list to the new position.
+  /// @param length The length of the list.
   void moveSelectionUp(int length) {
     setState(() {
       _selectedIndex = (_selectedIndex - 1 + length) % length;
@@ -182,6 +190,10 @@ class _PatientsPageState extends State<PatientsPage> {
   }
 
   /// Normalizes Arabic text for better search matching.
+  ///
+  /// This method replaces certain Arabic characters with their normalized forms.
+  /// @param input The input string to normalize.
+  /// @return The normalized string.
   String _normalize(String input) {
     return input
         .replaceAll('أ', 'ا')

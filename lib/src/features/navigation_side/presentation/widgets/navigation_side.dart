@@ -92,19 +92,74 @@ class _NavigationSideState extends State<NavigationSide> {
                               ],
                             ),
                             items: [
-                              ...Destination.values.map(
-                                (e) => SideMenuItemDataTile(
-                                  isSelected: state.destination == e,
-                                  onTap: () {
-                                    context
-                                        .read<NavigationBloc>()
-                                        .add(NavigateToEvent(e));
-                                  },
-                                  title: e.model.title,
-                                  icon: Icon(
-                                    e.model.icon,
-                                    color: const Color(0xff0055c3),
-                                  ),
+                              SideMenuItemDataTile(
+                                isSelected:
+                                    state.destination == Destination.copilot,
+                                onTap: () {
+                                  context.read<NavigationBloc>().add(
+                                      const NavigateToEvent(
+                                          Destination.copilot));
+                                },
+                                title: Destination.copilot.model.title,
+                                icon: Icon(
+                                  Destination.copilot.model.icon,
+                                  color: const Color(0xff0055c3),
+                                ),
+                              ),
+                              SideMenuItemDataTile(
+                                isSelected:
+                                    state.destination == Destination.calendar,
+                                onTap: () {
+                                  context.read<NavigationBloc>().add(
+                                      const NavigateToEvent(
+                                          Destination.calendar));
+                                },
+                                title: Destination.calendar.model.title,
+                                icon: Icon(
+                                  Destination.calendar.model.icon,
+                                  color: const Color(0xff0055c3),
+                                ),
+                              ),
+                              SideMenuItemDataTile(
+                                isSelected:
+                                    state.destination == Destination.patients,
+                                onTap: () {
+                                  context.read<NavigationBloc>().add(
+                                      const NavigateToEvent(
+                                          Destination.patients));
+                                },
+                                title: Destination.patients.model.title,
+                                icon: Icon(
+                                  Destination.patients.model.icon,
+                                  color: const Color(0xff0055c3),
+                                ),
+                              ),
+                              SideMenuItemDataTile(
+                                isSelected: state.destination ==
+                                    Destination.notifications,
+                                onTap: () {
+                                  context.read<NavigationBloc>().add(
+                                      const NavigateToEvent(
+                                          Destination.notifications));
+                                },
+                                title: Destination.notifications.model.title,
+                                icon: Icon(
+                                  Destination.notifications.model.icon,
+                                  color: const Color(0xff0055c3),
+                                ),
+                              ),
+                              SideMenuItemDataTile(
+                                isSelected:
+                                    state.destination == Destination.settings,
+                                onTap: () {
+                                  context.read<NavigationBloc>().add(
+                                      const NavigateToEvent(
+                                          Destination.settings));
+                                },
+                                title: Destination.settings.model.title,
+                                icon: Icon(
+                                  Destination.settings.model.icon,
+                                  color: const Color(0xff0055c3),
                                 ),
                               ),
                             ],

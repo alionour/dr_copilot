@@ -1,20 +1,41 @@
 part of 'copilot_bloc.dart';
 
-@immutable
-abstract class CopilotState {}
+abstract class CopilotState extends Equatable {
+  const CopilotState();
+
+  @override
+  List<Object> get props => [];
+}
 
 class CopilotInitial extends CopilotState {}
 
 class CopilotLoading extends CopilotState {}
 
 class CopilotResponseGenerated extends CopilotState {
-  final Object response;
+  final dynamic response;
 
-  CopilotResponseGenerated({required this.response});
+  const CopilotResponseGenerated(this.response);
+
+  @override
+  List<Object> get props => [response];
 }
 
 class CopilotError extends CopilotState {
   final String error;
 
-  CopilotError({required this.error});
+  const CopilotError(this.error);
+
+  @override
+  List<Object> get props => [error];
 }
+
+class CachedMessagesLoaded extends CopilotState {
+  final List<Map<String, dynamic>> messages;
+
+  const CachedMessagesLoaded(this.messages);
+
+  @override
+  List<Object> get props => [messages];
+}
+
+class NewChatStarted extends CopilotState {}

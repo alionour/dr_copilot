@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/copilot/services/claude_service.dart';
@@ -6,7 +8,9 @@ import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'copilot_event.dart';
 part 'copilot_state.dart';
@@ -29,10 +33,12 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   }) : super(CopilotInitial()) {
     on<GenerateResponseEvent>(_onGenerateResponse);
     on<UploadImageEvent>(_onUploadImage);
+    on<CacheMessagesEvent>(_onCacheMessages);
+    on<LoadCachedMessagesEvent>(_onLoadCachedMessages);
     on<StartNewChatEvent>(_onStartNewChat);
   }
 
-  void _onGenerateResponse(
+  Future<void> _onGenerateResponse(
       GenerateResponseEvent event, Emitter<CopilotState> emit) async {
     emit(CopilotLoading());
     try {
@@ -50,13 +56,13 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       } else {
         response = await geminiService.getGeminiResponse(event.query);
       }
-      emit(CopilotResponseGenerated(response: response));
+      emit(CopilotResponseGenerated(response));
     } catch (e) {
-      emit(CopilotError(error: e.toString()));
+      emit(CopilotError(e.toString()));
     }
   }
 
-  void _onUploadImage(
+  Future<void> _onUploadImage(
       UploadImageEvent event, Emitter<CopilotState> emit) async {
     emit(CopilotLoading());
     try {
@@ -64,24 +70,45 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       Uint8List fileBytes = event.imageBytes;
       response =
           await geminiService.getGeminiResponseFromBytes(fileBytes, event.text);
-      emit(CopilotResponseGenerated(response: response));
+      emit(CopilotResponseGenerated(response));
     } catch (e) {
-      emit(CopilotError(error: e.toString()));
+      emit(CopilotError(e.toString()));
     }
   }
 
-  void _onStartNewChat(StartNewChatEvent event, Emitter<CopilotState> emit) {
-    emit(CopilotInitial());
+  Future<void> _onCacheMessages(
+      CacheMessagesEvent event, Emitter<CopilotState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    final messagesJson = jsonEncode(event.messages);
+    await prefs.setString('cachedMessages', messagesJson);
+  }
+
+  Future<void> _onLoadCachedMessages(
+      LoadCachedMessagesEvent event, Emitter<CopilotState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    final messagesJson = prefs.getString('cachedMessages') ?? '[]';
+    final List<dynamic> decodedMessages = jsonDecode(messagesJson);
+    final messages = decodedMessages
+        .map((message) => Map<String, dynamic>.from(message))
+        .toList();
+    emit(CachedMessagesLoaded(messages));
+  }
+
+  Future<void> _onStartNewChat(
+      StartNewChatEvent event, Emitter<CopilotState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('cachedMessages');
+    emit(NewChatStarted());
   }
 
   CopilotState _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case ServerFailure _:
-        return CopilotError(error: 'Server Failure: ${failure.message}');
+        return CopilotError('Server Failure: ${failure.message}');
       case CacheFailure _:
-        return CopilotError(error: 'Cache Failure: ${failure.message}');
+        return CopilotError('Cache Failure: ${failure.message}');
       default:
-        return CopilotError(error: 'Unexpected Error');
+        return const CopilotError('Unexpected Error');
     }
   }
 }

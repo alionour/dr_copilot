@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
-import 'package:dr_copilot/src/core/helper/google_signin_helper.dart'; // Add this import
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/repositories/abstract_patients_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
