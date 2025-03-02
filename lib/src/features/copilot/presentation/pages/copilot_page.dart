@@ -207,16 +207,10 @@ class _CopilotPageState extends State<CopilotPage> {
                                         padding: const EdgeInsets.all(12.0),
                                         decoration: BoxDecoration(
                                           color: message["isUser"]
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withOpacity(
-                                                      0.2) // User message color
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary
-                                                  .withOpacity(
-                                                      0.2), // Bot message color
+                                              ? const Color(
+                                                  0xFF0078D4) // User message color
+                                              : const Color(
+                                                  0xFF323130), // Bot message color
                                           borderRadius:
                                               BorderRadius.circular(12.0),
                                         ),
@@ -224,9 +218,11 @@ class _CopilotPageState extends State<CopilotPage> {
                                           message["message"],
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface, // Text color
+                                            color: message["isUser"]
+                                                ? Colors
+                                                    .white // User text color
+                                                : Colors
+                                                    .white, // Bot text color
                                           ),
                                         ),
                                       ),
