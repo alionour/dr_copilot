@@ -46,12 +46,25 @@ class _SettingsPageState extends State<SettingsPage> {
         },
         child: Column(
           children: <Widget>[
-            const Center(
-              child: Text('Navigation is '),
-            ),
             Expanded(
               child: ListView(
                 children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.color_lens),
+                    title: Text(
+                      Provider.of<ThemeNotifier>(context).isDarkMode
+                          ? 'Light Mode'
+                          : 'Dark Mode',
+                    ),
+                    selected: _selectedIndex == 3,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 3;
+                      });
+                      Provider.of<ThemeNotifier>(context, listen: false)
+                          .toggleTheme();
+                    },
+                  ),
                   ListTile(
                     leading: const Icon(Icons.account_circle),
                     title: const Text('Account'),
@@ -64,23 +77,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.notifications),
-                    title: const Text('Notifications'),
+                    leading: const Icon(Icons.lock),
+                    title: const Text('Privacy'),
                     selected: _selectedIndex == 1,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 1;
-                      });
-                      // Handle notifications settings tap
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.lock),
-                    title: const Text('Privacy'),
-                    selected: _selectedIndex == 2,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 2;
                       });
                       context.go('/privacy');
                     },
@@ -88,10 +90,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.help),
                     title: const Text('Help & Support'),
-                    selected: _selectedIndex == 3,
+                    selected: _selectedIndex == 4,
                     onTap: () {
                       setState(() {
-                        _selectedIndex = 3;
+                        _selectedIndex = 4;
                       });
                       context.go('/help_support');
                     },
@@ -99,24 +101,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info),
                     title: const Text('About'),
-                    selected: _selectedIndex == 4,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 4;
-                      });
-                      context.go('/about');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.color_lens),
-                    title: const Text('Change Theme'),
                     selected: _selectedIndex == 5,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
                       });
-                      Provider.of<ThemeNotifier>(context, listen: false)
-                          .toggleTheme();
+                      context.go('/about');
                     },
                   ),
                 ],
@@ -131,6 +121,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
 class ThemeNotifier extends ChangeNotifier {
   bool _isDarkMode = false;
+
+  bool get isDarkMode => _isDarkMode;
 
   ThemeData get currentTheme {
     return _isDarkMode

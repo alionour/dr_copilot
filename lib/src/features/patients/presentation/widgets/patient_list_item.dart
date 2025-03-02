@@ -27,7 +27,9 @@ class PatientListItem extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.0),
-            color: Colors.white, // Use a solid color background
+            color: Theme.of(context)
+                .colorScheme
+                .surface, // Use theme color for background
           ),
           child: ListTile(
             leading: CircleAvatar(
@@ -39,9 +41,15 @@ class PatientListItem extends StatelessWidget {
             ),
             title: Text(
               name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(details),
+            subtitle: Text(
+              details,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
             trailing: const Icon(Icons.arrow_forward_ios),
           ),
         ),

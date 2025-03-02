@@ -40,10 +40,13 @@ class _PatientsPageState extends State<PatientsPage> {
         title: Focus(
           focusNode: _searchFocusNode,
           child: TextField(
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Search Patients',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: Icon(Icons.search,
+                  color: Theme.of(context).colorScheme.onSurface),
               border: InputBorder.none,
+              hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             onChanged: (newQuery) {
               setState(() {
@@ -70,15 +73,16 @@ class _PatientsPageState extends State<PatientsPage> {
               if (state is PatientsLoading) {
                 print('PatientsLoading state');
                 return Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
+                  baseColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  highlightColor: Theme.of(context).colorScheme.surface,
                   child: ListView.builder(
                     itemCount: 10,
                     itemBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Container(
                         height: 50.0,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                     ),
                   ),
@@ -92,7 +96,9 @@ class _PatientsPageState extends State<PatientsPage> {
                       .contains(query.toLowerCase());
                 }).toList();
                 return Container(
-                  color: Colors.white, // Use a solid color background
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surface, // Use a solid color background
                   child: Focus(
                     focusNode: _listFocusNode,
                     autofocus: true,
@@ -123,7 +129,10 @@ class _PatientsPageState extends State<PatientsPage> {
                         return Container(
                           color: !navState.isNavigationFocused &&
                                   _selectedIndex == index
-                              ? Colors.blue.withAlpha((0.2 * 255).toInt())
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.2)
                               : Colors.transparent,
                           child: PatientListItem(
                             name: filteredPatients[index].name,

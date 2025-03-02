@@ -207,18 +207,26 @@ class _CopilotPageState extends State<CopilotPage> {
                                         padding: const EdgeInsets.all(12.0),
                                         decoration: BoxDecoration(
                                           color: message["isUser"]
-                                              ? Colors
-                                                  .lightBlueAccent // User message color
-                                              : Colors
-                                                  .lightGreenAccent, // Bot message color
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(
+                                                      0.2) // User message color
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary
+                                                  .withOpacity(
+                                                      0.2), // Bot message color
                                           borderRadius:
                                               BorderRadius.circular(12.0),
                                         ),
                                         child: Text(
                                           message["message"],
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 16,
-                                            color: Colors.black, // Text color
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface, // Text color
                                           ),
                                         ),
                                       ),
@@ -248,7 +256,9 @@ class _CopilotPageState extends State<CopilotPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   height: MediaQuery.of(context).size.height * 0.08,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200], // Light color for the container
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest, // Light color for the container
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Row(
@@ -299,6 +309,11 @@ class _CopilotPageState extends State<CopilotPage> {
                                     .colorScheme
                                     .onSurfaceVariant,
                               ),
+                            ),
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface, // Text color
                             ),
                             maxLines: 1,
                             textInputAction: TextInputAction.send,
