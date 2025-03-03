@@ -31,13 +31,13 @@ class _SettingsPageState extends State<SettingsPage> {
             if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
               setState(() {
                 _selectedIndex =
-                    (_selectedIndex + 1) % 6; // 6 items in the list
+                    (_selectedIndex + 1) % 8; // 8 items in the list
               });
               return KeyEventResult.handled;
             } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
               setState(() {
                 _selectedIndex =
-                    (_selectedIndex - 1 + 6) % 6; // 6 items in the list
+                    (_selectedIndex - 1 + 8) % 8; // 8 items in the list
               });
               return KeyEventResult.handled;
             }
@@ -56,10 +56,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           ? 'Light Mode'
                           : 'Dark Mode',
                     ),
-                    selected: _selectedIndex == 3,
+                    selected: _selectedIndex == 0,
                     onTap: () {
                       setState(() {
-                        _selectedIndex = 3;
+                        _selectedIndex = 0;
                       });
                       Provider.of<ThemeNotifier>(context, listen: false)
                           .toggleTheme();
@@ -77,12 +77,45 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.help),
-                    title: const Text('Help & Support'),
+                    leading: const Icon(Icons.notifications),
+                    title: const Text('Notifications'),
+                    selected: _selectedIndex == 2,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 2;
+                      });
+                      // Handle notifications settings tap
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: const Text('Language'),
+                    selected: _selectedIndex == 3,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 3;
+                      });
+                      // Handle language settings tap
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.security),
+                    title: const Text('Security'),
                     selected: _selectedIndex == 4,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 4;
+                      });
+                      // Handle security settings tap
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.help),
+                    title: const Text('Help & Support'),
+                    selected: _selectedIndex == 5,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 5;
                       });
                       context.go('/help_support');
                     },
@@ -90,10 +123,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.info),
                     title: const Text('About'),
-                    selected: _selectedIndex == 5,
+                    selected: _selectedIndex == 6,
                     onTap: () {
                       setState(() {
-                        _selectedIndex = 5;
+                        _selectedIndex = 6;
                       });
                       context.go('/about');
                     },
