@@ -1,8 +1,9 @@
-import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:dr_copilot/main.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -16,6 +17,12 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final FocusNode _focusNode = FocusNode();
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<SettingsBloc>().add(LoadSettingsEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,20 +56,24 @@ class _SettingsPageState extends State<SettingsPage> {
             Expanded(
               child: ListView(
                 children: <Widget>[
-                  ListTile(
-                    leading: const Icon(Icons.color_lens),
-                    title: Text(
-                      Provider.of<ThemeNotifier>(context).isDarkMode
-                          ? 'Light Mode'
-                          : 'Dark Mode',
-                    ),
-                    selected: _selectedIndex == 0,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 0;
-                      });
-                      Provider.of<ThemeNotifier>(context, listen: false)
-                          .toggleTheme();
+                  BlocBuilder<SettingsBloc, SettingsState>(
+                    builder: (context, state) {
+                      return ListTile(
+                        leading: const Icon(Icons.color_lens),
+                        title: Text(
+                          state is SettingsDarkMode
+                              ? 'Light Mode'
+                              : 'Dark Mode',
+                        ),
+                        selected: _selectedIndex == 0,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 0;
+                          });
+                          context.read<SettingsBloc>().add(ToggleThemeEvent());
+                          context.read<ThemeNotifier>().toggleTheme();
+                        },
+                      );
                     },
                   ),
                   ListTile(
@@ -138,22 +149,5 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
-  }
-}
-
-class ThemeNotifier extends ChangeNotifier {
-  bool _isDarkMode = false;
-
-  bool get isDarkMode => _isDarkMode;
-
-  ThemeData get currentTheme {
-    return _isDarkMode
-        ? FlexColorScheme.dark(scheme: FlexScheme.mandyRed).toTheme
-        : FlexColorScheme.light(scheme: FlexScheme.mandyRed).toTheme;
-  }
-
-  void toggleTheme() {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
   }
 }

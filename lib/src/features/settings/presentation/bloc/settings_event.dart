@@ -8,3 +8,5 @@ abstract class SettingsEvent extends Equatable {
 }
 
 class ToggleThemeEvent extends SettingsEvent {}
+
+class LoadSettingsEvent extends SettingsEvent {}

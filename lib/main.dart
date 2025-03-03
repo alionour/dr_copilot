@@ -13,11 +13,13 @@ import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_ap
 import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo_impl.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
-import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'src/core/helper/api_key_helper.dart';
 import 'src/core/router/routing_config.dart';
@@ -28,9 +30,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initInjections();
+  final prefs = await SharedPreferences.getInstance();
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ThemeNotifier(),
+      create: (context) => ThemeNotifier(isDarkMode: isDarkMode),
       child: const MyApp(),
     ),
   );
@@ -68,6 +72,9 @@ class MyApp extends StatelessWidget {
                 claudeService: ClaudeService(ApiKeyHelper.claudeKey),
               ),
             ),
+            BlocProvider<SettingsBloc>(
+              create: (context) => SettingsBloc(),
+            ),
           ],
           child: MaterialApp.router(
             routerConfig: RoutingConfig.router,
@@ -77,5 +84,24 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class ThemeNotifier extends ChangeNotifier {
+  bool _isDarkMode;
+
+  ThemeNotifier({required bool isDarkMode}) : _isDarkMode = isDarkMode;
+
+  bool get isDarkMode => _isDarkMode;
+
+  ThemeData get currentTheme {
+    return _isDarkMode
+        ? FlexColorScheme.dark(scheme: FlexScheme.mandyRed).toTheme
+        : FlexColorScheme.light(scheme: FlexScheme.mandyRed).toTheme;
+  }
+
+  void toggleTheme() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
   }
 }

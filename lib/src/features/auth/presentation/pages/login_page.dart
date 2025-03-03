@@ -32,7 +32,7 @@ class LoginPage extends StatelessWidget {
             margin: const EdgeInsets.all(24.0),
             padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(15),
               boxShadow: const [
                 BoxShadow(
@@ -74,30 +74,22 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
-                const Text(
+                Text(
                   'Welcome Back!',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
-                const Text(
+                Text(
                   'Please sign in to continue',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
                 Center(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                  authBloc.add(SignInWithGoogle());
-                    
+                      authBloc.add(SignInWithGoogle());
                     },
                     icon: SvgPicture.asset(
                       'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
@@ -114,15 +106,17 @@ class LoginPage extends StatelessWidget {
                       style: TextStyle(fontSize: 16),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 14,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                        side: const BorderSide(color: Colors.grey),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       elevation: 6,
                       shadowColor: Colors.black45,
