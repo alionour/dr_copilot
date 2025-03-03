@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
@@ -14,6 +15,11 @@ class RoutingConfig {
         path: '/',
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/account',
+        name: 'account',
+        builder: (context, state) => const AccountPage(),
       ),
       GoRoute(
         path: '/home',

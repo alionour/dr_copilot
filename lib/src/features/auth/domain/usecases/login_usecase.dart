@@ -1,6 +1,5 @@
-
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginUseCase {
   final AuthRepository repository;

@@ -5,6 +5,7 @@ import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
     as google_sign_in_all_platforms;
 import 'package:googleapis/calendar/v3.dart';
 import 'package:http/http.dart';
+import 'package:universal_io/io.dart' as io;
 
 final scopes = [
   'profile',
@@ -57,7 +58,11 @@ class GoogleSignInHelper {
   ///
   /// This method signs out the current user from Google Sign-In and prints a debug message.
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    if (io.Platform.isWindows || io.Platform.isLinux) {
+      await _googleSignInAllPlatforms.signOut();
+    } else {
+      await _googleSignIn.signOut();
+    }
     debugPrint('User signed out'); // Add this line for debugging
   }
 

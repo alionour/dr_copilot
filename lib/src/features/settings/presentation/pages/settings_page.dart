@@ -66,17 +66,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.account_circle),
-                    title: const Text('Account'),
-                    selected: _selectedIndex == 0,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 0;
-                      });
-                      // Handle account settings tap
-                    },
-                  ),
-                  ListTile(
                     leading: const Icon(Icons.lock),
                     title: const Text('Privacy'),
                     selected: _selectedIndex == 1,

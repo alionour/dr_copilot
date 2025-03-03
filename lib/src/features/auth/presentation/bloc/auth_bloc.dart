@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
+import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -137,9 +138,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// @param emit The function to emit states.
   void _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
     try {
+      debugPrint('Signing out...');
       await _googleSignInHelper.signOut();
+      await FirebaseAuth.instance.signOut();
+      debugPrint('Sign-out successful');
+      RoutingConfig.router.go('/');
       emit(AuthSignedOut());
     } catch (e) {
+      debugPrint('Sign-out error: $e');
       emit(AuthError(message: e.toString()));
     }
   }

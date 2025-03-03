@@ -5,7 +5,6 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/naviga
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
 import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -167,36 +166,38 @@ class _NavigationSideState extends State<NavigationSide> {
                                 ? BlocBuilder<NavigationBloc, NavigationState>(
                                     builder: (context, NavigationState state) {
                                     final String profileImageUrl =
-                                        state.user?.userMetadata?['picture'] ??
-                                            '';
+                                        state.user?.photoURL ?? '';
                                     return ListTile(
-                                      title: Text(state.user?.userMetadata?[
-                                                  'full_name'] ??
-                                              '')
+                                      title: Text(state.user?.displayName ?? '')
                                           .showOrNull(data.isOpen),
-                                      trailing: IconButton(
-                                          onPressed: () async {
-                                            await FirebaseAuth.instance
-                                                .signOut();
-                                            context.go('/');
-                                          },
-                                          icon: const Icon(
-                                              Icons.logout_outlined)),
+                                      // trailing: IconButton(
+                                      //     onPressed: () async {
+                                      //       context.read<AuthBloc>().add(SignOutEvent());
+                                      //     },
+                                      //     icon: const Icon(
+                                      //         Icons.logout_outlined)),
                                       leading: profileImageUrl.isNotEmpty
-                                          ? Container(
-                                              decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle),
-                                              child: CachedNetworkImage(
-                                                imageUrl: profileImageUrl,
-                                                placeholder: (ctx, url) =>
-                                                    const Icon(
-                                                        Icons.person_pin),
-                                                errorWidget:
-                                                    (context, url, error) {
-                                                  debugPrint(
-                                                      'Failed to load image: $error');
-                                                  return const SizedBox();
-                                                },
+                                          ? InkWell(
+                                              onTap: () {
+                                                context.go('/account');
+                                              },
+                                              child: Container(
+                                                decoration: const BoxDecoration(
+                                                    shape: BoxShape.circle),
+                                                child: ClipOval(
+                                                  child: CachedNetworkImage(
+                                                    imageUrl: profileImageUrl,
+                                                    placeholder: (ctx, url) =>
+                                                        const Icon(
+                                                            Icons.person_pin),
+                                                    errorWidget:
+                                                        (context, url, error) {
+                                                      debugPrint(
+                                                          'Failed to load image: $error');
+                                                      return const SizedBox();
+                                                    },
+                                                  ),
+                                                ),
                                               ),
                                             )
                                           : const Icon(Icons.person_3_outlined),
