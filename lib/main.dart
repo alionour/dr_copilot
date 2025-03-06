@@ -8,11 +8,19 @@ import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
+import 'package:dr_copilot/src/features/evaluations/data/remote/evaluation_firebase_api.dart';
+import 'package:dr_copilot/src/features/evaluations/data/repositories/evaluations_repo_impl.dart';
+import 'package:dr_copilot/src/features/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:dr_copilot/src/features/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
 import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo_impl.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:dr_copilot/src/features/sessions/data/remote/session_firebase_api.dart';
+import 'package:dr_copilot/src/features/sessions/data/repositories/sessions_repo_impl.dart';
+import 'package:dr_copilot/src/features/sessions/domain/usecases/sessions_usecase.dart';
+import 'package:dr_copilot/src/features/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
@@ -74,6 +82,24 @@ class MyApp extends StatelessWidget {
             ),
             BlocProvider<SettingsBloc>(
               create: (context) => SettingsBloc(),
+            ),
+            BlocProvider<SessionsBloc>(
+              create: (context) => SessionsBloc(
+                SessionsUseCase(
+                  SessionsRepositoryImpl(
+                    SessionFirebaseApi(),
+                  ),
+                ),
+              ),
+            ),
+            BlocProvider<EvaluationsBloc>(
+              create: (context) => EvaluationsBloc(
+                EvaluationsUseCase(
+                  EvaluationsRepositoryImpl(
+                    EvaluationFirebaseApi(),
+                  ),
+                ),
+              ),
             ),
           ],
           child: MaterialApp.router(
