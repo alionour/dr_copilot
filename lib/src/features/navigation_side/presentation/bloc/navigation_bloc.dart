@@ -37,6 +37,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.patients:
         emit(state.copyWith(destination: Destination.patients));
         break;
+      case Destination.sessions:
+        emit(state.copyWith(destination: Destination.sessions));
+        break;
+      case Destination.evaluations:
+        emit(state.copyWith(destination: Destination.evaluations));
+        break;
     }
   }
 

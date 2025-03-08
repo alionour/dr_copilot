@@ -1,25 +1,44 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/evaluations/domain/models/evaluation_model.dart';
 
 class EvaluationFirebaseApi {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> addEvaluation(Map<String, dynamic> evaluationData) async {
-    await _firestore.collection('evaluations').add(evaluationData);
+  Future<List<EvaluationModel>> getEvaluations() async {
+    try {
+      final querySnapshot = await _firestore.collection('evaluations').get();
+      return querySnapshot.docs
+          .map((doc) => EvaluationModel.fromJson(doc.data()))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to fetch evaluations: $e');
+    }
   }
 
-  Future<void> updateEvaluation(
-      String evaluationId, Map<String, dynamic> evaluationData) async {
-    await _firestore
-        .collection('evaluations')
-        .doc(evaluationId)
-        .update(evaluationData);
+  Future<void> addEvaluation(EvaluationModel evaluationModel) async {
+    try {
+      await _firestore.collection('evaluations').add(evaluationModel.toJson());
+    } catch (e) {
+      throw Exception('Failed to add evaluation: $e');
+    }
   }
 
-  Future<void> deleteEvaluation(String evaluationId) async {
-    await _firestore.collection('evaluations').doc(evaluationId).delete();
+  Future<void> updateEvaluation(EvaluationModel evaluationModel) async {
+    try {
+      await _firestore
+          .collection('evaluations')
+          .doc(evaluationModel.id)
+          .update(evaluationModel.toJson());
+    } catch (e) {
+      throw Exception('Failed to update evaluation: $e');
+    }
   }
 
-  Stream<QuerySnapshot> getEvaluations() {
-    return _firestore.collection('evaluations').snapshots();
+  Future<void> deleteEvaluation(String id) async {
+    try {
+      await _firestore.collection('evaluations').doc(id).delete();
+    } catch (e) {
+      throw Exception('Failed to delete evaluation: $e');
+    }
   }
 }

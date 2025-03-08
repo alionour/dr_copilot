@@ -45,7 +45,12 @@ enum Destination {
   settings(NavItemModel('Settings', Icons.settings_suggest_outlined)),
   notifications(NavItemModel('Notifications', Icons.notifications_on_outlined)),
   chat(NavItemModel('Chat', Icons.chat_outlined)),
-  patients(NavItemModel('Patients', Icons.people)); // Added Patients destination
+  patients(
+      NavItemModel('Patients', Icons.people)), // Added Patients destination
+  sessions(NavItemModel(
+      'Sessions', Icons.schedule_outlined)), // Added Sessions destination
+  evaluations(NavItemModel('Evaluations',
+      Icons.assessment_outlined)); // Added Evaluation destination
 
   final NavItemModel model;
   const Destination(this.model);

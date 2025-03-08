@@ -1,4 +1,4 @@
-part of evaluations_bloc;
+part of 'evaluations_bloc.dart';
 
 abstract class EvaluationsState extends Equatable {
   const EvaluationsState();
@@ -12,7 +12,7 @@ class EvaluationsInitial extends EvaluationsState {}
 class EvaluationsLoading extends EvaluationsState {}
 
 class EvaluationsLoaded extends EvaluationsState {
-  final List<QueryDocumentSnapshot> evaluations;
+  final List<EvaluationModel> evaluations;
 
   const EvaluationsLoaded(this.evaluations);
 
@@ -20,11 +20,11 @@ class EvaluationsLoaded extends EvaluationsState {
   List<Object> get props => [evaluations];
 }
 
-class EvaluationsError extends EvaluationsState {
-  final String message;
+class EvaluationsLoadFailure extends EvaluationsState {
+  final String error;
 
-  const EvaluationsError(this.message);
+  const EvaluationsLoadFailure(this.error);
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [error];
 }

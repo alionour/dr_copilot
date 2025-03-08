@@ -70,6 +70,7 @@ dependencies:
   flutter_gemini: ^3.0.0
   flex_color_scheme: ^8.1.0
   shared_preferences: ^2.5.2
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:

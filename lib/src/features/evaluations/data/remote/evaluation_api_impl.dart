@@ -1,28 +1,28 @@
 import 'dart:convert';
 
+import 'package:dr_copilot/src/features/evaluations/domain/models/evaluation_model.dart';
 import 'package:http/http.dart' as http;
 
 class EvaluationApiImpl {
   static const String baseUrl =
       'https://api-7hdpiv4e4q-uc.a.run.app/evaluations';
 
-  Future<void> addEvaluation(Map<String, dynamic> evaluationData) async {
+  Future<void> addEvaluation(EvaluationModel evaluationModel) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/add'),
+      Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(evaluationData),
+      body: jsonEncode(evaluationModel.toJson()),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to add evaluation');
     }
   }
 
-  Future<void> updateEvaluation(
-      String evaluationId, Map<String, dynamic> evaluationData) async {
+  Future<void> updateEvaluation(EvaluationModel evaluationModel) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/update/$evaluationId'),
+      Uri.parse('$baseUrl/${evaluationModel.id}'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(evaluationData),
+      body: jsonEncode(evaluationModel.toJson()),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update evaluation');
@@ -31,18 +31,19 @@ class EvaluationApiImpl {
 
   Future<void> deleteEvaluation(String evaluationId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/delete/$evaluationId'),
+      Uri.parse('$baseUrl/$evaluationId'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete evaluation');
     }
   }
 
-  Future<List<Map<String, dynamic>>> getEvaluations() async {
-    final response = await http.get(Uri.parse('$baseUrl/list'));
+  Future<List<EvaluationModel>> getEvaluations() async {
+    final response = await http.get(Uri.parse(baseUrl));
     if (response.statusCode != 200) {
-      throw Exception('Failed to load evaluations');
+      throw Exception('Failed to load sessions');
     }
-    return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    final List<dynamic> data = jsonDecode(response.body);
+    return data.map((json) => EvaluationModel.fromJson(json)).toList();
   }
 }

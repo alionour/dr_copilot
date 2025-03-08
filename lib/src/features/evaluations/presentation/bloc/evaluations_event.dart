@@ -1,4 +1,4 @@
-part of evaluations_bloc;
+part of 'evaluations_bloc.dart';
 
 abstract class EvaluationsEvent extends Equatable {
   const EvaluationsEvent();
@@ -10,29 +10,28 @@ abstract class EvaluationsEvent extends Equatable {
 class LoadEvaluations extends EvaluationsEvent {}
 
 class AddEvaluation extends EvaluationsEvent {
-  final Map<String, dynamic> evaluationData;
+  final EvaluationModel evaluationModel;
 
-  const AddEvaluation(this.evaluationData);
+  const AddEvaluation(this.evaluationModel);
 
   @override
-  List<Object> get props => [evaluationData];
+  List<Object> get props => [evaluationModel];
 }
 
 class UpdateEvaluation extends EvaluationsEvent {
-  final String evaluationId;
-  final Map<String, dynamic> evaluationData;
+  final EvaluationModel evaluationModel;
 
-  const UpdateEvaluation(this.evaluationId, this.evaluationData);
+  const UpdateEvaluation(this.evaluationModel);
 
   @override
-  List<Object> get props => [evaluationId, evaluationData];
+  List<Object> get props => [evaluationModel];
 }
 
 class DeleteEvaluation extends EvaluationsEvent {
-  final String evaluationId;
+  final String id;
 
-  const DeleteEvaluation(this.evaluationId);
+  const DeleteEvaluation(this.id);
 
   @override
-  List<Object> get props => [evaluationId];
+  List<Object> get props => [id];
 }

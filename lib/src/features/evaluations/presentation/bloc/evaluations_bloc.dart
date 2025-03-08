@@ -1,7 +1,7 @@
 library evaluations_bloc;
 
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:equatable/equatable.dart';
 
@@ -9,36 +9,54 @@ part 'evaluations_event.dart';
 part 'evaluations_state.dart';
 
 class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
-  final EvaluationsUseCase _evaluationsUseCase;
+  final EvaluationsUseCase _useCase;
 
-  EvaluationsBloc(this._evaluationsUseCase) : super(EvaluationsInitial()) {
+  EvaluationsBloc(this._useCase) : super(EvaluationsInitial()) {
     on<LoadEvaluations>(_onLoadEvaluations);
     on<AddEvaluation>(_onAddEvaluation);
     on<UpdateEvaluation>(_onUpdateEvaluation);
     on<DeleteEvaluation>(_onDeleteEvaluation);
+    add(LoadEvaluations());
   }
 
-  void _onLoadEvaluations(
-      LoadEvaluations event, Emitter<EvaluationsState> emit) {
+  Future<void> _onLoadEvaluations(
+      LoadEvaluations event, Emitter<EvaluationsState> emit) async {
     emit(EvaluationsLoading());
-    _evaluationsUseCase.getEvaluations().listen((snapshot) {
-      emit(EvaluationsLoaded(snapshot.docs));
-    });
+    try {
+      final evaluations = await _useCase.getEvaluations();
+      emit(EvaluationsLoaded(evaluations));
+    } catch (e) {
+      emit(EvaluationsLoadFailure(e.toString()));
+    }
   }
 
-  void _onAddEvaluation(
+  Future<void> _onAddEvaluation(
       AddEvaluation event, Emitter<EvaluationsState> emit) async {
-    await _evaluationsUseCase.addEvaluation(event.evaluationData);
+    try {
+      await _useCase.addEvaluation(event.evaluationModel);
+      add(LoadEvaluations());
+    } catch (e) {
+      emit(EvaluationsLoadFailure(e.toString()));
+    }
   }
 
-  void _onUpdateEvaluation(
+  Future<void> _onUpdateEvaluation(
       UpdateEvaluation event, Emitter<EvaluationsState> emit) async {
-    await _evaluationsUseCase.updateEvaluation(
-        event.evaluationId, event.evaluationData);
+    try {
+      await _useCase.updateEvaluation(event.evaluationModel);
+      add(LoadEvaluations());
+    } catch (e) {
+      emit(EvaluationsLoadFailure(e.toString()));
+    }
   }
 
-  void _onDeleteEvaluation(
+  Future<void> _onDeleteEvaluation(
       DeleteEvaluation event, Emitter<EvaluationsState> emit) async {
-    await _evaluationsUseCase.deleteEvaluation(event.evaluationId);
+    try {
+      await _useCase.deleteEvaluation(event.id);
+      add(LoadEvaluations());
+    } catch (e) {
+      emit(EvaluationsLoadFailure(e.toString()));
+    }
   }
 }

@@ -12,7 +12,7 @@ class SessionsInitial extends SessionsState {}
 class SessionsLoading extends SessionsState {}
 
 class SessionsLoaded extends SessionsState {
-  final List<QueryDocumentSnapshot> sessions;
+  final List<SessionModel> sessions;
 
   const SessionsLoaded(this.sessions);
 

@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/sessions/domain/models/session_model.dart';
 
 abstract class SessionsRepository {
-  Future<void> addSession(Map<String, dynamic> sessionData);
-  Future<void> updateSession(
-      String sessionId, Map<String, dynamic> sessionData);
+  Future<void> addSession(SessionModel sessionModel);
+  Future<void> updateSession(SessionModel sessionModel);
   Future<void> deleteSession(String sessionId);
-  Stream<QuerySnapshot> getSessions();
+  Future<List<SessionModel>> getSessions();
 }

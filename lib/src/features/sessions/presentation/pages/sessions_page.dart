@@ -1,7 +1,6 @@
+import 'package:dr_copilot/src/features/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../bloc/sessions_bloc.dart';
 
 class SessionsPage extends StatelessWidget {
   const SessionsPage({super.key});
@@ -11,25 +10,37 @@ class SessionsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sessions'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<SessionsBloc>().add(LoadSessions());
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<SessionsBloc, SessionsState>(
         builder: (context, state) {
           if (state is SessionsLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is SessionsLoaded) {
-            // Display session data
-            return const Center(child: Text('Sessions Loaded'));
-          } else if (state is SessionsError) {
-            return Center(child: Text(state.message));
+            if (state.sessions.isEmpty) {
+              return const Center(child: Text('No sessions available'));
+            }
+            return ListView.builder(
+              itemCount: state.sessions.length,
+              itemBuilder: (context, index) {
+                final session = state.sessions[index];
+                return ListTile(
+                  title: Text(session.title),
+                  subtitle: Text(session.description),
+                );
+              },
+            );
+          } else {
+            return const Center(child: Text('Failed to load sessions'));
           }
-          return const Center(child: Text('Press button to load sessions'));
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.read<SessionsBloc>().add(LoadSessions());
-        },
-        child: const Icon(Icons.refresh),
       ),
     );
   }

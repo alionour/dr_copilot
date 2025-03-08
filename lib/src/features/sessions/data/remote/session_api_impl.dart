@@ -1,27 +1,27 @@
 import 'dart:convert';
 
+import 'package:dr_copilot/src/features/sessions/domain/models/session_model.dart';
 import 'package:http/http.dart' as http;
 
 class SessionApiImpl {
   static const String baseUrl = 'https://api-7hdpiv4e4q-uc.a.run.app/sessions';
 
-  Future<void> addSession(Map<String, dynamic> sessionData) async {
+  Future<void> addSession(SessionModel session) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/add'),
+      Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(sessionData),
+      body: jsonEncode(session.toJson()),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to add session');
     }
   }
 
-  Future<void> updateSession(
-      String sessionId, Map<String, dynamic> sessionData) async {
+  Future<void> updateSession(SessionModel session) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/update/$sessionId'),
+      Uri.parse('$baseUrl/${session.id}'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(sessionData),
+      body: jsonEncode(session.toJson()),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update session');
@@ -30,18 +30,19 @@ class SessionApiImpl {
 
   Future<void> deleteSession(String sessionId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/delete/$sessionId'),
+      Uri.parse('$baseUrl/$sessionId'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete session');
     }
   }
 
-  Future<List<Map<String, dynamic>>> getSessions() async {
-    final response = await http.get(Uri.parse('$baseUrl/list'));
+  Future<List<SessionModel>> getSessions() async {
+    final response = await http.get(Uri.parse(baseUrl));
     if (response.statusCode != 200) {
       throw Exception('Failed to load sessions');
     }
-    return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    final List<dynamic> data = jsonDecode(response.body);
+    return data.map((json) => SessionModel.fromJson(json)).toList();
   }
 }

@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/evaluations/domain/models/evaluation_model.dart';
 
 abstract class EvaluationsRepository {
-  Future<void> addEvaluation(Map<String, dynamic> evaluationData);
+  Future<void> addEvaluation(EvaluationModel evaluationModel);
   Future<void> updateEvaluation(
-      String evaluationId, Map<String, dynamic> evaluationData);
+       EvaluationModel evaluationModel);
   Future<void> deleteEvaluation(String evaluationId);
-  Stream<QuerySnapshot> getEvaluations();
+  Future<List<EvaluationModel>> getEvaluations();
 }

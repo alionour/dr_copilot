@@ -10,22 +10,22 @@ abstract class SessionsEvent extends Equatable {
 class LoadSessions extends SessionsEvent {}
 
 class AddSession extends SessionsEvent {
-  final Map<String, dynamic> sessionData;
+  final SessionModel model;
 
-  const AddSession(this.sessionData);
+  const AddSession(this.model);
 
   @override
-  List<Object> get props => [sessionData];
+  List<Object> get props => [model];
 }
 
 class UpdateSession extends SessionsEvent {
   final String sessionId;
-  final Map<String, dynamic> sessionData;
+  final SessionModel model;
 
-  const UpdateSession(this.sessionId, this.sessionData);
+  const UpdateSession(this.sessionId, this.model);
 
   @override
-  List<Object> get props => [sessionId, sessionData];
+  List<Object> get props => [sessionId, model];
 }
 
 class DeleteSession extends SessionsEvent {

@@ -1,26 +1,24 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/evaluations/domain/repositories/evaluations_repository.dart';
 
 class EvaluationsUseCase {
-  final EvaluationsRepository _evaluationsRepository;
+  final EvaluationsRepository _repository;
 
-  EvaluationsUseCase(this._evaluationsRepository);
+  EvaluationsUseCase(this._repository);
 
-  Future<void> addEvaluation(Map<String, dynamic> evaluationData) {
-    return _evaluationsRepository.addEvaluation(evaluationData);
+  Future<List<EvaluationModel>> getEvaluations() async {
+    return _repository.getEvaluations();
   }
 
-  Future<void> updateEvaluation(
-      String evaluationId, Map<String, dynamic> evaluationData) {
-    return _evaluationsRepository.updateEvaluation(
-        evaluationId, evaluationData);
+  Future<void> addEvaluation(EvaluationModel evaluationModel) async {
+    await _repository.addEvaluation(evaluationModel);
   }
 
-  Future<void> deleteEvaluation(String evaluationId) {
-    return _evaluationsRepository.deleteEvaluation(evaluationId);
+  Future<void> updateEvaluation(EvaluationModel evaluationModel) async {
+    await _repository.updateEvaluation(evaluationModel);
   }
 
-  Stream<QuerySnapshot> getEvaluations() {
-    return _evaluationsRepository.getEvaluations();
+  Future<void> deleteEvaluation(String id) async {
+    await _repository.deleteEvaluation(id);
   }
 }
