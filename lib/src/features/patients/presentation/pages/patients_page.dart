@@ -26,7 +26,7 @@ class _PatientsPageState extends State<PatientsPage> {
   void initState() {
     super.initState();
     _listFocusNode.addListener(() {
-      print('List focus node has focus: ${_listFocusNode.hasFocus}');
+      debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
     });
     context
         .read<PatientsBloc>()
@@ -71,7 +71,7 @@ class _PatientsPageState extends State<PatientsPage> {
           return BlocBuilder<PatientsBloc, PatientsState>(
             builder: (context, state) {
               if (state is PatientsLoading) {
-                print('PatientsLoading state');
+                debugPrint('PatientsLoading state');
                 return Shimmer.fromColors(
                   baseColor:
                       Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -88,7 +88,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   ),
                 );
               } else if (state is PatientsLoaded) {
-                print(
+                debugPrint(
                     'PatientsLoaded state with ${state.patients.length} patients');
                 final filteredPatients = state.patients.where((patient) {
                   return patient.name
@@ -150,10 +150,10 @@ class _PatientsPageState extends State<PatientsPage> {
                   ),
                 );
               } else if (state is PatientsError) {
-                print('PatientsError state: ${state.message}');
+                debugPrint('PatientsError state: ${state.message}');
                 return Center(child: Text('Error: ${state.message}'));
               }
-              print('No patients found state');
+              debugPrint('No patients found state');
               return const Center(child: Text('No patients found.'));
             },
           );
