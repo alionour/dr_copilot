@@ -40,18 +40,22 @@ class NavItemModel {
 
 /// Enum representing different navigation destinations.
 enum Destination {
-  copilot(NavItemModel('Copilot', Icons.dashboard_outlined)),
-  calendar(NavItemModel('Calendar', Icons.calendar_month_outlined)),
-  settings(NavItemModel('Settings', Icons.settings_suggest_outlined)),
-  notifications(NavItemModel('Notifications', Icons.notifications_on_outlined)),
-  chat(NavItemModel('Chat', Icons.chat_outlined)),
-  patients(
-      NavItemModel('Patients', Icons.people)), // Added Patients destination
-  sessions(NavItemModel(
-      'Sessions', Icons.schedule_outlined)), // Added Sessions destination
-  evaluations(NavItemModel('Evaluations',
-      Icons.assessment_outlined)); // Added Evaluation destination
+  copilot(
+      NavItemModel('Copilot', Icons.dashboard_outlined), 'Navigate to Copilot'),
+  calendar(NavItemModel('Calendar', Icons.calendar_month_outlined),
+      'View your calendar'),
+  settings(NavItemModel('Settings', Icons.settings_suggest_outlined),
+      'Adjust your settings'),
+  notifications(NavItemModel('Notifications', Icons.notifications_on_outlined),
+      'View notifications'),
+  chat(NavItemModel('Chat', Icons.chat_outlined), 'Open chat'),
+  patients(NavItemModel('Patients', Icons.people), 'Manage your patients'),
+  sessions(
+      NavItemModel('Sessions', Icons.schedule_outlined), 'View your sessions'),
+  evaluations(NavItemModel('Evaluations', Icons.assessment_outlined),
+      'View evaluations');
 
   final NavItemModel model;
-  const Destination(this.model);
+  final String message; // Tooltip or explanation for the destination
+  const Destination(this.model, this.message);
 }

@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:dr_copilot/src/core/router/routing_config.dart';
@@ -187,14 +188,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
     try {
       debugPrint('Signing out...');
+      final user = FirebaseAuth.instance.currentUser;
+
+      // Clear cached images for the current user's profile picture
+      if (user!.photoURL != null) {
+        await CachedNetworkImage.evictFromCache(
+            user.photoURL!); // Clear the specific image cache
+      }
+
+      // Sign out from Google and Firebase
       await _googleSignInHelper.signOut();
       await FirebaseAuth.instance.signOut();
       debugPrint('Sign-out successful');
+
+      // Navigate to the home page after sign-out
       RoutingConfig.router.go('/');
-      emit(AuthSignedOut());
+      emit(AuthSignedOut()); // Emit the signed-out state
     } catch (e) {
-      debugPrint('Sign-out error: $e');
-      emit(AuthError(message: e.toString()));
+      debugPrint('Sign-out error: $e'); // Log any errors during sign-out
+      emit(AuthError(message: e.toString())); // Emit an error state
     }
   }
 }
