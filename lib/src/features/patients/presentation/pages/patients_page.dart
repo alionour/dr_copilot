@@ -37,30 +37,43 @@ class _PatientsPageState extends State<PatientsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Focus(
-          focusNode: _searchFocusNode,
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search Patients',
-              prefixIcon: Icon(Icons.search,
-                  color: Theme.of(context).colorScheme.onSurface),
-              border: InputBorder.none,
-              hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+        title: Row(
+          children: [
+            Expanded(
+              child: Focus(
+                focusNode: _searchFocusNode,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search Patients',
+                    prefixIcon: Icon(Icons.search,
+                        color: Theme.of(context).colorScheme.onSurface),
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  onChanged: (newQuery) {
+                    setState(() {
+                      query = newQuery;
+                      _selectedIndex = 0; // Reset selection on new query
+                    });
+                    context
+                        .read<PatientsBloc>()
+                        .add(SearchPatients(query)); // Trigger search event
+                  },
+                  onSubmitted: (_) {
+                    _listFocusNode.requestFocus();
+                  },
+                ),
+              ),
             ),
-            onChanged: (newQuery) {
-              setState(() {
-                query = newQuery;
-                _selectedIndex = 0; // Reset selection on new query
-              });
-              context
-                  .read<PatientsBloc>()
-                  .add(SearchPatients(query)); // Trigger search event
-            },
-            onSubmitted: (_) {
-              _listFocusNode.requestFocus();
-            },
-          ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh',
+              onPressed: () {
+                context.read<PatientsBloc>().add(GetPatients(query));
+              },
+            ),
+          ],
         ),
       ),
       body: BlocBuilder<NavigationBloc, NavigationState>(
@@ -68,94 +81,109 @@ class _PatientsPageState extends State<PatientsPage> {
           if (!navState.isNavigationFocused) {
             _listFocusNode.requestFocus();
           }
-          return BlocBuilder<PatientsBloc, PatientsState>(
-            builder: (context, state) {
-              if (state is PatientsLoading) {
-                debugPrint('PatientsLoading state');
-                return Shimmer.fromColors(
-                  baseColor:
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
-                  highlightColor: Theme.of(context).colorScheme.surface,
-                  child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Container(
-                        height: 50.0,
-                        color: Theme.of(context).colorScheme.surface,
+          return BlocListener<PatientsBloc, PatientsState>(
+            listener: (context, state) {
+              if (state is PatientsUpdateSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Patient updated successfully'),
+                  ),
+                );
+              }
+            },
+            child: BlocBuilder<PatientsBloc, PatientsState>(
+              builder: (context, state) {
+                if (state is PatientsLoading) {
+                  debugPrint('PatientsLoading state');
+                  return Shimmer.fromColors(
+                    baseColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    highlightColor: Theme.of(context).colorScheme.surface,
+                    child: ListView.builder(
+                      itemCount: 10,
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Container(
+                          height: 50.0,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              } else if (state is PatientsLoaded) {
-                debugPrint(
-                    'PatientsLoaded state with ${state.patients.length} patients');
-                final filteredPatients = state.patients.where((patient) {
-                  return patient.name
-                      .toLowerCase()
-                      .contains(query.toLowerCase());
-                }).toList();
-                return Container(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surface, // Use a solid color background
-                  child: Focus(
-                    focusNode: _listFocusNode,
-                    autofocus: true,
-                    onKeyEvent: (FocusNode node, KeyEvent event) {
-                      if (!navState.isNavigationFocused) {
-                        if (event is KeyDownEvent) {
-                          if (event.logicalKey ==
-                              LogicalKeyboardKey.arrowDown) {
-                            moveSelectionDown(filteredPatients.length);
-                            return KeyEventResult.handled;
-                          } else if (event.logicalKey ==
-                              LogicalKeyboardKey.arrowUp) {
-                            moveSelectionUp(filteredPatients.length);
-                            return KeyEventResult.handled;
-                          } else if (event.logicalKey ==
-                              LogicalKeyboardKey.arrowLeft) {
-                            _searchFocusNode.requestFocus();
-                            return KeyEventResult.handled;
+                  );
+                } else if (state is PatientsLoaded) {
+                  debugPrint(
+                      'PatientsLoaded state with ${state.patients.length} patients');
+                  final filteredPatients = state.patients.where((patient) {
+                    return patient.name
+                        .toLowerCase()
+                        .contains(query.toLowerCase());
+                  }).toList();
+                  return Container(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surface, // Use a solid color background
+                    child: Focus(
+                      focusNode: _listFocusNode,
+                      autofocus: true,
+                      onKeyEvent: (FocusNode node, KeyEvent event) {
+                        if (!navState.isNavigationFocused) {
+                          if (event is KeyDownEvent) {
+                            if (event.logicalKey ==
+                                LogicalKeyboardKey.arrowDown) {
+                              moveSelectionDown(filteredPatients.length);
+                              return KeyEventResult.handled;
+                            } else if (event.logicalKey ==
+                                LogicalKeyboardKey.arrowUp) {
+                              moveSelectionUp(filteredPatients.length);
+                              return KeyEventResult.handled;
+                            } else if (event.logicalKey ==
+                                LogicalKeyboardKey.arrowLeft) {
+                              _searchFocusNode.requestFocus();
+                              return KeyEventResult.handled;
+                            }
                           }
                         }
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: filteredPatients.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          color: !navState.isNavigationFocused &&
-                                  _selectedIndex == index
-                              ? Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.2)
-                              : Colors.transparent,
-                          child: PatientListItem(
-                            name: filteredPatients[index].name,
-                            details:
-                                'Details for ${filteredPatients[index].name}',
-                            onTap: () {
-                              setState(() {
-                                _selectedIndex = index;
-                              });
-                            },
-                          ),
-                        );
+                        return KeyEventResult.ignored;
                       },
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: filteredPatients.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            color: !navState.isNavigationFocused &&
+                                    _selectedIndex == index
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.2)
+                                : Colors.transparent,
+                            child: PatientListItem(
+                              id: filteredPatients[index].id,
+                              name: filteredPatients[index].name,
+                              age: filteredPatients[index].age, // Add age
+                              address: filteredPatients[index]
+                                  .address, // Add address
+                              gender:
+                                  filteredPatients[index].gender, // Add gender
+                              onTap: () {
+                                setState(() {
+                                  _selectedIndex = index;
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                );
-              } else if (state is PatientsError) {
-                debugPrint('PatientsError state: ${state.message}');
-                return Center(child: Text('Error: ${state.message}'));
-              }
-              debugPrint('No patients found state');
-              return const Center(child: Text('No patients found.'));
-            },
+                  );
+                } else if (state is PatientsError) {
+                  debugPrint('PatientsError state: ${state.message}');
+                  return Center(child: Text('Error: ${state.message}'));
+                }
+                debugPrint('No patients found state');
+                return const Center(child: Text('No patients found.'));
+              },
+            ),
           );
         },
       ),

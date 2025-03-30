@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'patients_event.dart';
 part 'patients_state.dart';
@@ -44,16 +45,32 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onUpdatePatient(
       UpdatePatient event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading());
+    debugPrint('Updating patient: ${event.patient}');
     final failureOrPatient =
         await _patientsUseCase.updatePatient(event.patient);
-    emit(failureOrPatient.fold(
-      (failure) => PatientsError(_mapFailureToMessage(failure)),
-      (patient) {
-        emit(PatientsSuccess());
-        return PatientsLoaded([patient]);
+    failureOrPatient.fold(
+      (failure) {
+        final errorMessage = _mapFailureToMessage(failure);
+        debugPrint('Update failed: $errorMessage');
+        emit(PatientsError(errorMessage));
       },
-    ));
+      (updatedPatient) {
+        debugPrint('Update successful: $updatedPatient');
+        if (state is PatientsLoaded) {
+          // Update the list of patients locally
+          final currentPatients = (state as PatientsLoaded).patients;
+          final updatedPatients = currentPatients.map((patient) {
+            return patient.id == updatedPatient.id ? updatedPatient : patient;
+          }).toList();
+
+          // Emit the updated list of patients
+          emit(PatientsLoaded(updatedPatients));
+        } else {
+          // If no patients are loaded, emit success without refreshing
+          emit(PatientsUpdateSuccess());
+        }
+      },
+    );
   }
 
   Future<void> _onDeletePatient(

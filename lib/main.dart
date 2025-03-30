@@ -107,6 +107,7 @@ class MyApp extends StatelessWidget {
             routerConfig: RoutingConfig.router,
             title: 'Dr Copilot',
             theme: themeNotifier.currentTheme,
+            debugShowCheckedModeBanner: false,
           ),
         );
       },

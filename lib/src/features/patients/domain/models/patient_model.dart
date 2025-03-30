@@ -10,6 +10,7 @@ class PatientModel {
   final int? age;
   final String? gender;
   final String? address;
+  final String userId;
 
   /// Constructor for the Patient class.
   PatientModel({
@@ -18,6 +19,7 @@ class PatientModel {
     this.age,
     this.gender,
     this.address,
+    required this.userId,
   });
 
   /// A factory constructor to create a Patient instance from a JSON map.

@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart'; // Add this import for debugPrint
 
 class PatientFirebaseApi extends AbstractPatientsRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<bool> _isAuthenticated() async {
@@ -32,9 +32,17 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
             .where('name', isLessThanOrEqualTo: '$query\uf8ff')
             .get();
 
-        List<PatientModel> patients = snapshot.docs
-            .map((doc) => PatientModel.fromJson(doc.data()))
-            .toList();
+        List<PatientModel> patients = snapshot.docs.map((doc) {
+          final data = doc.data();
+          return PatientModel(
+            id: doc.id, // Use Firestore's document ID
+            name: data['name'],
+            age: data['age'],
+            gender: data['gender'],
+            address: data['address'],
+            userId: data['createdBy'],
+          );
+        }).toList();
         return Right(patients);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -60,11 +68,20 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        await _firestore.collection('patients').add({
-          ...patientModel.toJson(),
+        final data = patientModel.toJson();
+        data.remove('id'); // Exclude the `id` field from the document data
+        final docRef = await _firestore.collection('patients').add({
+          ...data,
           'createdBy': user.uid,
         });
-        return Right(patientModel);
+        return Right(PatientModel(
+          id: docRef.id, // Use Firestore's document ID
+          name: patientModel.name,
+          age: patientModel.age,
+          gender: patientModel.gender,
+          address: patientModel.address,
+          userId: user.uid,
+        ));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -83,16 +100,40 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
+        debugPrint('Fetching document with ID: ${patientModel.id}');
         final doc =
             await _firestore.collection('patients').doc(patientModel.id).get();
-        if (doc.exists && doc.data()?['createdBy'] == user.uid) {
-          await _firestore
-              .collection('patients')
-              .doc(patientModel.id)
-              .update(patientModel.toJson());
-          return Right(patientModel);
+
+        if (doc.exists) {
+          final createdBy = doc.data()?['createdBy'];
+          if (createdBy == null) {
+            debugPrint('Error: createdBy field is missing in the document');
+            return Left(ServerFailure('createdBy field is missing', 400));
+          }
+          if (createdBy == user.uid) {
+            final updatedData = patientModel.toJson();
+            updatedData.remove('id'); // Exclude the `id` field from the update
+            await _firestore
+                .collection('patients')
+                .doc(patientModel.id)
+                .update(updatedData);
+
+            return Right(PatientModel(
+              id: patientModel.id,
+              name: patientModel.name,
+              age: patientModel.age,
+              gender: patientModel.gender,
+              address: patientModel.address,
+              userId: user.uid,
+            ));
+          } else {
+            debugPrint(
+                'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}');
+            return Left(ServerFailure('Unauthorized', 403));
+          }
         } else {
-          return Left(ServerFailure('Unauthorized', 403));
+          debugPrint('Error: Document does not exist');
+          return Left(ServerFailure('Document does not exist', 404));
         }
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -115,8 +156,10 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         if (doc.exists && doc.data()?['createdBy'] == user.uid) {
           await _firestore.collection('patients').doc(id).delete();
           return Right(PatientModel(
-              id: id,
-              name: '')); // Return a dummy patient model with the deleted ID
+            id: id,
+            name: '',
+            userId: user.uid, // Ensure userId is passed here
+          ));
         } else {
           return Left(ServerFailure('Unauthorized', 403));
         }

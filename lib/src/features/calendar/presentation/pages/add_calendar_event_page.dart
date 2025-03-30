@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -223,22 +224,35 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                             child: IconButton(
                                               icon: const Icon(Icons.add),
                                               onPressed: () {
-                                                // Add patient directly
-                                                final newPatient = PatientModel(
-                                                    id: const Uuid().v4(),
-                                                    name: query);
-                                                context
-                                                    .read<PatientsBloc>()
-                                                    .add(
-                                                        AddPatient(newPatient));
-                                                setState(() {
-                                                  _patientNameController.text =
-                                                      query;
-                                                  _filteredPatients = [];
-                                                });
-                                                FocusScope.of(context)
-                                                    .requestFocus(
-                                                        _descriptionFocusNode);
+                                                final userId = FirebaseAuth
+                                                    .instance.currentUser?.uid;
+                                                if (userId != null) {
+// Add patient directly
+                                                  final newPatient =
+                                                      PatientModel(
+                                                          id: const Uuid().v4(),
+                                                          name: query,
+                                                          userId: userId);
+                                                  context
+                                                      .read<PatientsBloc>()
+                                                      .add(AddPatient(
+                                                          newPatient));
+                                                  setState(() {
+                                                    _patientNameController
+                                                        .text = query;
+                                                    _filteredPatients = [];
+                                                  });
+                                                  FocusScope.of(context)
+                                                      .requestFocus(
+                                                          _descriptionFocusNode);
+                                                } else {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            'User can not be null')),
+                                                  );
+                                                }
                                               },
                                             ),
                                           ),

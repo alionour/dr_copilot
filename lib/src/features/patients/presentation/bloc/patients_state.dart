@@ -22,6 +22,8 @@ class PatientsLoaded extends PatientsState {
 
 class PatientsSuccess extends PatientsState {}
 
+class PatientsUpdateSuccess extends PatientsState {}
+
 class PatientsError extends PatientsState {
   final String message;
 

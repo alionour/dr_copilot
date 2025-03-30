@@ -12,6 +12,7 @@ PatientModel _$PatientModelFromJson(Map<String, dynamic> json) => PatientModel(
       age: (json['age'] as num?)?.toInt(),
       gender: json['gender'] as String?,
       address: json['address'] as String?,
+      userId: json['userId'] as String,
     );
 
 Map<String, dynamic> _$PatientModelToJson(PatientModel instance) =>
@@ -21,4 +22,5 @@ Map<String, dynamic> _$PatientModelToJson(PatientModel instance) =>
       'age': instance.age,
       'gender': instance.gender,
       'address': instance.address,
+      'userId': instance.userId,
     };
