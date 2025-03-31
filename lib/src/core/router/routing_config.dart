@@ -1,3 +1,5 @@
+import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/add_evaluation_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/add_session_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
@@ -30,6 +32,16 @@ class RoutingConfig {
         path: '/patients/new',
         name: '/patients/new',
         builder: (context, state) => const AddPatientPage(),
+      ),
+      GoRoute(
+        path: '/sessions/new',
+        name: '/sessions/new',
+        builder: (context, state) => const AddSessionPage(),
+      ),
+      GoRoute(
+        path: '/evaluations/new',
+        name: '/evaluations/new',
+        builder: (context, state) => const AddEvaluationPage(),
       ),
       GoRoute(
         path: '/events/new',
@@ -66,7 +78,16 @@ class RoutingConfig {
             path: '/home',
             name: 'home',
             builder: (context, state) => const HomePage());
-      // Add more routes as needed
+      case '/sessions/new':
+        return GoRoute(
+            path: '/sessions/new',
+            name: '/sessions/new',
+            builder: (context, state) => const AddSessionPage());
+      case '/evaluations/new':
+        return GoRoute(
+            path: '/evaluations/new',
+            name: '/evaluations/new',
+            builder: (context, state) => const AddEvaluationPage());
       default:
         return null;
     }

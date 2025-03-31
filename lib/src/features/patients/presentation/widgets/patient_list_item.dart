@@ -149,22 +149,63 @@ class _PatientListItemState extends State<PatientListItem> {
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  SizedBox(
-                    width: double.infinity, // Make the button take full width
-                    child: ElevatedButton(
-                      onPressed: _isEditing ? _submitChanges : _enableEditing,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0), // Increase vertical padding
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed:
+                              _isEditing ? _submitChanges : _enableEditing,
+                          icon: Icon(
+                            _isEditing ? Icons.save : Icons.edit,
+                            color: Colors.white, // Ensure icon color is visible
+                          ),
+                          label: Text(
+                            _isEditing ? 'Save' : 'Edit',
+                            style: const TextStyle(
+                                color: Colors
+                                    .white), // Ensure text color is visible
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Colors.green, // Set edit button color to green
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        _isEditing ? 'Save Changes' : 'Edit',
-                        style: const TextStyle(fontSize: 16),
+                      const SizedBox(width: 8.0),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            context
+                                .read<PatientsBloc>()
+                                .add(DeletePatient(widget.id));
+                            debugPrint(
+                                'Dispatched DeletePatient event for ID: ${widget.id}');
+                          },
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.white, // Ensure icon color is visible
+                          ),
+                          label: const Text(
+                            'Delete',
+                            style: TextStyle(
+                                color: Colors
+                                    .white), // Ensure text color is visible
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),

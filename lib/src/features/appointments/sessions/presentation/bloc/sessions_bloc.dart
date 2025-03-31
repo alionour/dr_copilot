@@ -40,6 +40,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   void _onAddSession(AddSession event, Emitter<SessionsState> emit) async {
     try {
       await _sessionsUseCase.addSession(event.model);
+      debugPrint('Session added successfully: ${event.model.id}');
+      emit(const SessionsSuccess('Session added successfully'));
+      add(LoadSessions()); // Reload sessions after adding
     } catch (e) {
       debugPrint('Error adding session: $e');
       emit(const SessionsError('Failed to add session'));

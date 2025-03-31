@@ -1,5 +1,7 @@
 import 'package:dr_copilot/firebase_options.dart';
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.dart';
 import 'package:dr_copilot/src/features/copilot/services/claude_service.dart';
@@ -87,8 +89,7 @@ class MyApp extends StatelessWidget {
               create: (context) => SessionsBloc(
                 SessionsUseCase(
                   SessionsRepositoryImpl(
-                    apiImpl: SessionApiImpl(),
-                    // SessionFirebaseApi(),
+                    firebaseApi: SessionFirebaseApi(),
                   ),
                 ),
               ),
@@ -97,7 +98,7 @@ class MyApp extends StatelessWidget {
               create: (context) => EvaluationsBloc(
                 EvaluationsUseCase(
                   EvaluationsRepositoryImpl(
-                    apiImpl: EvaluationApiImpl(),
+                    firebaseApi: EvaluationFirebaseApi(),
                   ),
                 ),
               ),

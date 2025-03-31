@@ -28,3 +28,12 @@ class SessionsError extends SessionsState {
   @override
   List<Object> get props => [message];
 }
+
+class SessionsSuccess extends SessionsState {
+  final String message;
+
+  const SessionsSuccess(this.message);
+
+  @override
+  List<Object> get props => [message];
+}

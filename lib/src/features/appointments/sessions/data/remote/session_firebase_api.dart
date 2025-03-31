@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 
 class SessionFirebaseApi {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  SessionFirebaseApi(this._firestore);
+  SessionFirebaseApi();
 
   Future<void> addSession(SessionModel session) async {
     await _firestore.collection('sessions').add(session.toJson());

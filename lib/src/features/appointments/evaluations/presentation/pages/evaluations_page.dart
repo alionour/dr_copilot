@@ -1,12 +1,17 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class EvaluationsPage extends StatelessWidget {
   const EvaluationsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    Future<void> navigateToAddEvaluation(BuildContext context) async {
+      await context.push<Map<String, dynamic>>('/evaluations/new');
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Evaluations'),
@@ -18,6 +23,12 @@ class EvaluationsPage extends StatelessWidget {
             },
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.push('/evaluations/new');
+        },
+        child: const Icon(Icons.add),
       ),
       body: BlocBuilder<EvaluationsBloc, EvaluationsState>(
         builder: (context, state) {

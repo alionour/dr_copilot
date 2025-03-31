@@ -8,14 +8,14 @@ import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-class AddCalendarEventPage extends StatefulWidget {
-  const AddCalendarEventPage({super.key});
+class AddEvaluationPage extends StatefulWidget {
+  const AddEvaluationPage({super.key});
 
   @override
-  State<AddCalendarEventPage> createState() => _AddCalendarEventPageState();
+  _AddEvaluationPageState createState() => _AddEvaluationPageState();
 }
 
-class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
+class _AddEvaluationPageState extends State<AddEvaluationPage> {
   final _formKey = GlobalKey<FormState>();
   final _patientNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -24,16 +24,14 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   DateTime? _startDate = DateTime.now(); // Initialize with the current date
   DateTime? _endDate = DateTime.now().add(
       const Duration(hours: 1)); // Initialize with the current date + 1 hour
-  String _selectedCalendar = 'primary'; // Default calendar
+  String _selectedCalendar = 'Evaluation'; // Default calendar matches the list
   String query = '';
   final FocusNode _searchFocusNode = FocusNode();
   List<PatientModel> _filteredPatients = [];
 
-  final List<String> _calendars = ['Sessions', 'Evaluation', 'primary'];
+  final List<String> _calendars = ['Evaluation'];
   final Map<String, Color> _calendarColors = {
-    'Sessions': Colors.red,
     'Evaluation': Colors.yellow,
-    'primary': Colors.blue,
   };
 
   @override
@@ -110,7 +108,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Appointment'),
+        title: const Text('Add New Evaluation'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -188,11 +186,15 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                   if (_filteredPatients.isNotEmpty)
                                     Container(
                                       constraints: const BoxConstraints(
-                                        maxHeight: 200,
+                                        maxHeight:
+                                            200, // Limit height for scrolling
                                       ),
                                       child: ListView.builder(
                                         shrinkWrap: true,
-                                        itemCount: _filteredPatients.length,
+                                        itemCount: _filteredPatients.length > 5
+                                            ? 5
+                                            : _filteredPatients
+                                                .length, // Show only 5 items
                                         itemBuilder: (context, index) {
                                           return ListTile(
                                             title: Text(
@@ -294,34 +296,80 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                           },
                         ),
                         const SizedBox(height: 16.0),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Start Time',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
                         Row(
                           children: <Widget>[
                             Expanded(
-                              child: Text(dateFormat.format(_startDate!)),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_month_outlined),
-                              onPressed: () => _selectDateTime(context, true),
+                              child: TextFormField(
+                                readOnly: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Select start time',
+                                  suffixIcon: Icon(Icons.access_time),
+                                  border: OutlineInputBorder(),
+                                ),
+                                controller: TextEditingController(
+                                  text: dateFormat.format(_startDate!),
+                                ),
+                                onTap: () => _selectDateTime(context, true),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16.0),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'End Time',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
                         Row(
                           children: <Widget>[
                             Expanded(
-                              child: Text(dateFormat.format(_endDate!)),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_month_outlined),
-                              onPressed: () => _selectDateTime(context, false),
+                              child: TextFormField(
+                                readOnly: true,
+                                decoration: const InputDecoration(
+                                  hintText:
+                                      'Select end time (must be after start time)',
+                                  suffixIcon: Icon(Icons.access_time),
+                                  border: OutlineInputBorder(),
+                                ),
+                                controller: TextEditingController(
+                                  text: dateFormat.format(_endDate!),
+                                ),
+                                onTap: () => _selectDateTime(context, false),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16.0),
                         DropdownButtonFormField<String>(
                           value: _selectedCalendar,
-                          decoration:
-                              const InputDecoration(labelText: 'Calendar'),
+                          decoration: InputDecoration(
+                            labelText: 'Calendar',
+                            labelStyle: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                           items: _calendars.map((String calendar) {
                             return DropdownMenuItem<String>(
                               value: calendar,
