@@ -180,6 +180,8 @@ class _PatientListItemState extends State<PatientListItem> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
+                            debugPrint(
+                                'Delete button pressed for patient ID: ${widget.id}');
                             context
                                 .read<PatientsBloc>()
                                 .add(DeletePatient(widget.id));
@@ -396,7 +398,7 @@ class _PatientListItemState extends State<PatientListItem> {
       );
 
       try {
-        context.read<PatientsBloc>().add(UpdatePatient(updatedPatient));
+        context.read<PatientsBloc>().add(UpdatePatient(widget.id,updatedPatient));
         debugPrint(
             'Dispatched UpdateEvent with updated patient: $updatedPatient');
         setState(() {

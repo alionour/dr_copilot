@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +13,7 @@ class AddEvaluationPage extends StatefulWidget {
   const AddEvaluationPage({super.key});
 
   @override
-  _AddEvaluationPageState createState() => _AddEvaluationPageState();
+  State<AddEvaluationPage> createState() => _AddEvaluationPageState();
 }
 
 class _AddEvaluationPageState extends State<AddEvaluationPage> {
@@ -116,18 +117,50 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           },
         ),
       ),
-      body: BlocListener<PatientsBloc, PatientsState>(
-        listener: (context, state) {
-          if (state is PatientsSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Patient added successfully')),
-            );
-          } else if (state is PatientsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<PatientsBloc, PatientsState>(
+            listener: (context, state) {
+              if (state is PatientsSuccess) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                    ),
+                  );
+                }
+              } else if (state is PatientsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
+            },
+          ),
+          BlocListener<EvaluationsBloc, EvaluationsState>(
+            listener: (context, state) {
+if (state is EvaluationsSuccess) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                ),
+              );
+            }
+          } else if (state is EvaluationsError) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
+          }            },
+          ),
+        ],
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isSmallScreen = constraints.maxWidth < 600;

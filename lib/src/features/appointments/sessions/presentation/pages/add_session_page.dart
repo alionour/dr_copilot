@@ -150,6 +150,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
         endDateTime: _endDate!,
         sessionType: _selectedSessionType,
         price: double.parse(_actualPriceController.text),
+        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
       );
       context.read<SessionsBloc>().add(AddSession(sessionData));
     }
@@ -158,6 +160,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
   @override
   void dispose() {
     _patientNameFocusNode.dispose();
+    _patientNameController.dispose();
     _actualPriceFocusNode.dispose();
     _actualPriceController.dispose();
     super.dispose();
@@ -165,7 +168,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     return Scaffold(
       appBar: AppBar(
@@ -182,28 +184,43 @@ class _AddSessionPageState extends State<AddSessionPage> {
           BlocListener<PatientsBloc, PatientsState>(
             listener: (context, state) {
               if (state is PatientsSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Patient added successfully')),
-                );
-              } else if (state is PatientsError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
-              }
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                ),
+              );
+            }
+          } else if (state is PatientsError) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
+          }
             },
           ),
           BlocListener<SessionsBloc, SessionsState>(
             listener: (context, state) {
-              if (state is SessionsSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
-                Navigator.of(context).pop(); // Close the page on success
-              } else if (state is SessionsError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
-              }
+            if (state is SessionsSuccess) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                ),
+              );
+            }
+          } else if (state is SessionsError) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
+          }
             },
           ),
         ],

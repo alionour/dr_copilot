@@ -23,9 +23,9 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Updates an existing patient.
   @override
-  Future<Either<Failure, PatientModel>> updatePatient(
+  Future<Either<Failure, PatientModel>> updatePatient(String id,
       PatientModel patientModel) {
-    return api.updatePatient(patientModel);
+    return api.updatePatient(id,patientModel);
   }
 
   /// Deletes a patient by their ID.

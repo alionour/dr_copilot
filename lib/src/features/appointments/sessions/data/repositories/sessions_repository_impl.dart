@@ -1,55 +1,42 @@
-import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_api_impl.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/sessions_repository.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 
-class SessionsRepositoryImpl implements SessionsRepository {
-  final SessionApiImpl? apiImpl;
-  final SessionFirebaseApi? firebaseApi;
+class SessionsRepositoryImpl extends AbstractSessionsRepository {
+  final SessionFirebaseApi firebaseApi;
 
-  SessionsRepositoryImpl({this.apiImpl, this.firebaseApi});
+  SessionsRepositoryImpl({required this.firebaseApi});
 
+  /// Fetches a list of sessions.
   @override
-  Future<void> addSession(SessionModel session) {
-    if (apiImpl != null) {
-      return apiImpl!.addSession(session);
-    } else if (firebaseApi != null) {
-      return firebaseApi!.addSession(session);
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, List<SessionModel>>> getSessions(String query) {
+    return firebaseApi.getSessions(query);
   }
 
+  /// Adds a new session.
   @override
-  Future<void> updateSession( SessionModel sessionModel) {
-    if (apiImpl != null) {
-      return apiImpl!.updateSession(sessionModel);
-    } else if (firebaseApi != null) {
-      return firebaseApi!.updateSession(sessionModel);
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, SessionModel>> addSession(SessionModel sessionModel) {
+    return firebaseApi.addSession(sessionModel);
   }
 
+  /// Updates an existing session.
   @override
-  Future<void> deleteSession(String sessionId) {
-    if (apiImpl != null) {
-      return apiImpl!.deleteSession(sessionId);
-    } else if (firebaseApi != null) {
-      return firebaseApi!.deleteSession(sessionId);
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, SessionModel>> updateSession(String id,
+      SessionModel sessionModel) {
+    return firebaseApi.updateSession(id,sessionModel);
   }
 
+  /// Deletes a session by their ID.
   @override
-  Future<List<SessionModel>> getSessions() {
-    if (apiImpl != null) {
-      return apiImpl!.getSessions();
-    } else if (firebaseApi != null) {
-      return firebaseApi!.getSessions();
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, SessionModel>> deleteSession(String id) {
+    return firebaseApi.deleteSession(id);
+  }
+
+  /// Searches sessions based on criteria.
+  @override
+  Future<Either<Failure, List<SessionModel>>> searchSessions(String query) {
+    return firebaseApi.searchSessions(query);
   }
 }

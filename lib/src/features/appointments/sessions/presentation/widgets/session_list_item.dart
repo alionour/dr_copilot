@@ -6,24 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class SessionListItem extends StatefulWidget {
-  final String id;
-  final String patientName;
-  final SessionType sessionType;
-  final DateTime startDateTime;
-  final DateTime endDateTime;
-  final double price;
   final VoidCallback onTap;
-
-  const SessionListItem({
-    super.key,
-    required this.id,
-    required this.patientName,
-    required this.sessionType,
-    required this.startDateTime,
-    required this.endDateTime,
-    required this.price,
-    required this.onTap,
-  });
+  final SessionModel sessionModel;
+  const SessionListItem(
+      {super.key, required this.onTap, required this.sessionModel});
 
   @override
   State<SessionListItem> createState() => _SessionListItemState();
@@ -46,7 +32,7 @@ class _SessionListItemState extends State<SessionListItem> {
         children: [
           GestureDetector(
             onTap: () {
-              debugPrint('Tile tapped: ${widget.patientName}');
+              debugPrint('Tile tapped: ${widget.sessionModel.patientName}');
               setState(() {
                 _isExpanded = !_isExpanded; // Toggle the expanded state
               });
@@ -61,7 +47,7 @@ class _SessionListItemState extends State<SessionListItem> {
                 leading: CircleAvatar(
                   backgroundColor: Colors.blueAccent,
                   child: Text(
-                    widget.patientName[0],
+                    widget.sessionModel.patientName[0],
                     style: GoogleFonts.robotoSlab(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -69,7 +55,7 @@ class _SessionListItemState extends State<SessionListItem> {
                   ),
                 ),
                 title: Text(
-                  widget.patientName,
+                  widget.sessionModel.patientName,
                   style: GoogleFonts.robotoSlab(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
@@ -114,31 +100,36 @@ class _SessionListItemState extends State<SessionListItem> {
                         _buildEditableTableRow(
                           context,
                           label: 'Name',
-                          value: widget.patientName,
+                          value: widget.sessionModel.patientName,
                           fieldKey: 'patientName',
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'Type',
-                          value: widget.sessionType.text,
+                          value: widget.sessionModel.sessionType.text,
                           fieldKey: 'sessionType',
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'Start Time',
-                          value: widget.startDateTime.toLocal().toString(),
+                          value: widget.sessionModel.startDateTime
+                              .toLocal()
+                              .toString(),
                           fieldKey: 'startDateTime',
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'End Time',
-                          value: widget.endDateTime.toLocal().toString(),
+                          value: widget.sessionModel.endDateTime
+                              .toLocal()
+                              .toString(),
                           fieldKey: 'endDateTime',
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'Price',
-                          value: '\$${widget.price.toStringAsFixed(2)}',
+                          value:
+                              '\$${widget.sessionModel.price.toStringAsFixed(2)}',
                           fieldKey: 'price',
                         ),
                       ],
@@ -178,9 +169,9 @@ class _SessionListItemState extends State<SessionListItem> {
                           onPressed: () {
                             context
                                 .read<SessionsBloc>()
-                                .add(DeleteSession(widget.id));
+                                .add(DeleteSession(widget.sessionModel.id));
                             debugPrint(
-                                'Dispatched DeleteSession event for ID: ${widget.id}');
+                                'Dispatched DeleteSession event for ID: ${widget.sessionModel.id}');
                           },
                           icon: const Icon(
                             Icons.delete,
@@ -284,7 +275,8 @@ class _SessionListItemState extends State<SessionListItem> {
                                   hintText: fieldKey == 'startDateTime'
                                       ? 'Select start date'
                                       : 'Select end date',
-                                  suffixIcon: const Icon(Icons.calendar_today),
+                                  suffixIcon:
+                                      const Icon(Icons.calendar_month_outlined),
                                   border: const OutlineInputBorder(),
                                 ),
                                 controller: TextEditingController(
@@ -336,7 +328,8 @@ class _SessionListItemState extends State<SessionListItem> {
                                   hintText: fieldKey == 'startDateTime'
                                       ? 'Select start time'
                                       : 'Select end time',
-                                  suffixIcon: const Icon(Icons.access_time),
+                                  suffixIcon: const Icon(
+                                      Icons.access_time_filled_outlined),
                                   border: const OutlineInputBorder(),
                                 ),
                                 controller: TextEditingController(
@@ -420,11 +413,47 @@ class _SessionListItemState extends State<SessionListItem> {
 
   void _submitChanges() {
     if (_updatedValues.isNotEmpty) {
-      // Dispatch an event or handle the updated values here
-      debugPrint('Updated values: $_updatedValues');
-      setState(() {
-        _isEditing = false; // Exit editing mode
-      });
+      final updatedSessionModel = widget.sessionModel.copyWith(
+        patientName:
+            _updatedValues['patientName'] ?? widget.sessionModel.patientName,
+        price: double.tryParse(_updatedValues['price'] ?? '') ??
+            widget.sessionModel.price,
+        startDateTime: DateTime.parse(_updatedValues['startDateTime'] ??
+            widget.sessionModel.startDateTime.toIso8601String()),
+        endDateTime: DateTime.parse(_updatedValues['endDateTime'] ??
+            widget.sessionModel.endDateTime.toIso8601String()),
+        sessionType: SessionType.values.firstWhere(
+          (type) =>
+              type.text ==
+              (_updatedValues['sessionType'] ??
+                  widget.sessionModel.sessionType.text),
+          orElse: () => widget.sessionModel.sessionType,
+        ),
+      );
+
+      try {
+        context
+            .read<SessionsBloc>()
+            .add(UpdateSession(widget.sessionModel.id, updatedSessionModel));
+        debugPrint(
+            'Dispatched UpdateSession event with updated session: $updatedSessionModel');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session updated successfully')),
+        );
+        setState(() {
+          _isEditing = false; // Exit editing mode
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().contains('Unauthorized')
+                  ? 'You are not authorized to perform this action'
+                  : 'An unexpected error occurred',
+            ),
+          ),
+        );
+      }
     }
   }
 }

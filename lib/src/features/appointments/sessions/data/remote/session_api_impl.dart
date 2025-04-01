@@ -17,9 +17,9 @@ class SessionApiImpl {
     }
   }
 
-  Future<void> updateSession(SessionModel session) async {
+  Future<void> updateSession(String id, SessionModel session) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/${session.id}'),
+      Uri.parse('$baseUrl/$id'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(session.toJson()),
     );

@@ -11,7 +11,7 @@ abstract class AbstractPatientsRepository {
   Future<Either<Failure, PatientModel>> addPatient(PatientModel patientModel);
 
   /// Updates an existing patient.
-  Future<Either<Failure, PatientModel>> updatePatient(
+  Future<Either<Failure, PatientModel>> updatePatient(String id,
       PatientModel patientModel);
 
   /// Deletes a patient by their ID.

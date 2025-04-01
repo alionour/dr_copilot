@@ -57,7 +57,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       _selectedIndex = 0; // Reset selection on new query
                     });
                     context
-                        .read<PatientsBloc>()
+                        .read<PatientsBloc>() 
                         .add(SearchPatients(query)); // Trigger search event
                   },
                   onSubmitted: (_) {
@@ -83,13 +83,23 @@ class _PatientsPageState extends State<PatientsPage> {
           }
           return BlocListener<PatientsBloc, PatientsState>(
             listener: (context, state) {
-              if (state is PatientsUpdateSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Patient updated successfully'),
-                  ),
-                );
-              }
+            if (state is PatientsSuccess) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                ),
+              );
+            }
+          } else if (state is PatientsError) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
+          }
             },
             child: BlocBuilder<PatientsBloc, PatientsState>(
               builder: (context, state) {

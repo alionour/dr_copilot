@@ -12,7 +12,7 @@ part 'patients_state.dart';
 class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
   final PatientsUseCase _patientsUseCase;
 
-  PatientsBloc(this._patientsUseCase) : super(PatientsInitial()) {
+  PatientsBloc(this._patientsUseCase) : super(const PatientsInitial()) {
     on<GetPatients>(_onGetPatients);
     on<AddPatient>(_onAddPatient);
     on<UpdatePatient>(_onUpdatePatient);
@@ -22,22 +22,22 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onGetPatients(
       GetPatients event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading());
+    emit(const PatientsLoading());
     final failureOrPatients = await _patientsUseCase.getPatients(event.query);
     emit(failureOrPatients.fold(
-      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),
     ));
   }
 
   Future<void> _onAddPatient(
       AddPatient event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading());
+    emit(const PatientsLoading());
     final failureOrPatient = await _patientsUseCase.addPatient(event.patient);
     emit(failureOrPatient.fold(
-      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patient) {
-        emit(PatientsSuccess());
+        emit(const PatientsSuccess(message: 'Patient added successfully'));
         return PatientsLoaded([patient]);
       },
     ));
@@ -45,14 +45,14 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onUpdatePatient(
       UpdatePatient event, Emitter<PatientsState> emit) async {
-    debugPrint('Updating patient: ${event.patient}');
-    final failureOrPatient =
-        await _patientsUseCase.updatePatient(event.patient);
+    debugPrint('Updating patient: ${event.patientModel}');
+    final failureOrPatient = await _patientsUseCase.updatePatient(
+        event.patientId, event.patientModel);
     failureOrPatient.fold(
       (failure) {
         final errorMessage = _mapFailureToMessage(failure);
         debugPrint('Update failed: $errorMessage');
-        emit(PatientsError(errorMessage));
+        emit(PatientsError(message: errorMessage));
       },
       (updatedPatient) {
         debugPrint('Update successful: $updatedPatient');
@@ -62,12 +62,11 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
           final updatedPatients = currentPatients.map((patient) {
             return patient.id == updatedPatient.id ? updatedPatient : patient;
           }).toList();
-
           // Emit the updated list of patients
           emit(PatientsLoaded(updatedPatients));
         } else {
           // If no patients are loaded, emit success without refreshing
-          emit(PatientsUpdateSuccess());
+          emit(const PatientsSuccess(message: 'Patient updated successfully'));
         }
       },
     );
@@ -75,35 +74,35 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onDeletePatient(
       DeletePatient event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading());
+    emit(const PatientsLoading());
     final failureOrPatient =
         await _patientsUseCase.deletePatient(event.patientId);
     emit(failureOrPatient.fold(
-      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patient) {
-        emit(PatientsSuccess());
+        emit(const PatientsSuccess(message: 'Patient deleted successfully'));
         return PatientsLoaded([patient]);
       },
     ));
-  }
+  } 
 
   Future<void> _onSearchPatients(
       SearchPatients event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading());
+    emit(const PatientsLoading());
     final failureOrPatients =
         await _patientsUseCase.searchPatients(event.query);
     emit(failureOrPatients.fold(
-      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),
     ));
   }
 
   PatientsState _eitherLoadedOrErrorState(Either<Failure, dynamic> either) {
     return either.fold(
-      (failure) => PatientsError(_mapFailureToMessage(failure)),
+      (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (result) {
         if (result == null) {
-          return PatientsSuccess();
+          return const PatientsSuccess();
         } else {
           return PatientsLoaded(result as List<PatientModel>);
         }

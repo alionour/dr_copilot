@@ -7,7 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart'; // Add this import for debugPrint
 
 class PatientFirebaseApi extends AbstractPatientsRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final CollectionReference _patientsCollection =
+      FirebaseFirestore.instance.collection('patients');
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -25,15 +26,17 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _firestore
-            .collection('patients')
+        final snapshot = await _patientsCollection
             .where('createdBy', isEqualTo: user.uid)
             .where('name', isGreaterThanOrEqualTo: query)
             .where('name', isLessThanOrEqualTo: '$query\uf8ff')
             .get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data();
+          final data = doc.data() as Map<String,dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
           return PatientModel(
             id: doc.id, // Use Firestore's document ID
             name: data['name'],
@@ -70,7 +73,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       if (user != null) {
         final data = patientModel.toJson();
         data.remove('id'); // Exclude the `id` field from the document data
-        final docRef = await _firestore.collection('patients').add({
+        final docRef = await _patientsCollection.add({
           ...data,
           'createdBy': user.uid,
         });
@@ -92,7 +95,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
   @override
   Future<Either<Failure, PatientModel>> updatePatient(
-      PatientModel patientModel) async {
+      String id, PatientModel patientModel) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -101,11 +104,10 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         debugPrint('Fetching document with ID: ${patientModel.id}');
-        final doc =
-            await _firestore.collection('patients').doc(patientModel.id).get();
+        final doc = await _patientsCollection.doc(patientModel.id).get();
 
         if (doc.exists) {
-          final createdBy = doc.data()?['createdBy'];
+          final createdBy = (doc.data() as Map<String,dynamic>?)?['createdBy'];
           if (createdBy == null) {
             debugPrint('Error: createdBy field is missing in the document');
             return Left(ServerFailure('createdBy field is missing', 400));
@@ -113,10 +115,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           if (createdBy == user.uid) {
             final updatedData = patientModel.toJson();
             updatedData.remove('id'); // Exclude the `id` field from the update
-            await _firestore
-                .collection('patients')
-                .doc(patientModel.id)
-                .update(updatedData);
+            await _patientsCollection.doc(patientModel.id).update(updatedData);
 
             return Right(PatientModel(
               id: patientModel.id,
@@ -152,9 +151,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final doc = await _firestore.collection('patients').doc(id).get();
-        if (doc.exists && doc.data()?['createdBy'] == user.uid) {
-          await _firestore.collection('patients').doc(id).delete();
+        final doc = await _patientsCollection.doc(id).get();
+        if (doc.exists && (doc.data()as Map<String,dynamic>?)?['createdBy'] == user.uid) {
+          await _patientsCollection.doc(id).delete();
           return Right(PatientModel(
             id: id,
             name: '',
@@ -182,15 +181,14 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _firestore
-            .collection('patients')
+        final snapshot = await _patientsCollection
             .where('createdBy', isEqualTo: user.uid)
             .where('name', isGreaterThanOrEqualTo: query)
             .where('name', isLessThanOrEqualTo: '$query\uf8ff')
             .get();
 
         List<PatientModel> patients = snapshot.docs
-            .map((doc) => PatientModel.fromJson(doc.data()))
+            .map((doc) => PatientModel.fromJson(doc.data() as Map<String,dynamic>))
             .toList();
         return Right(patients);
       }

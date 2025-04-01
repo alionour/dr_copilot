@@ -26,12 +26,12 @@ class AddPatient extends PatientsEvent {
 }
 
 class UpdatePatient extends PatientsEvent {
-  final PatientModel patient;
-
-  const UpdatePatient(this.patient);
+  final String patientId;
+  final PatientModel patientModel;
+  const UpdatePatient(this.patientId,this.patientModel);
 
   @override
-  List<Object> get props => [patient];
+  List<Object> get props => [patientId,patientModel];
 }
 
 class DeletePatient extends PatientsEvent {

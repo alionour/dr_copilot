@@ -4,12 +4,22 @@ abstract class PatientsState extends Equatable {
   const PatientsState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class PatientsInitial extends PatientsState {}
+class PatientsInitial extends PatientsState {
+    const PatientsInitial();
 
-class PatientsLoading extends PatientsState {}
+  @override
+  List<Object?> get props => [];
+}
+
+class PatientsLoading extends PatientsState {
+      const PatientsLoading();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class PatientsLoaded extends PatientsState {
   final List<PatientModel> patients;
@@ -20,15 +30,21 @@ class PatientsLoaded extends PatientsState {
   List<Object> get props => [patients];
 }
 
-class PatientsSuccess extends PatientsState {}
+class PatientsSuccess extends PatientsState {
+    final String? message;
 
-class PatientsUpdateSuccess extends PatientsState {}
-
-class PatientsError extends PatientsState {
-  final String message;
-
-  const PatientsError(this.message);
+  const PatientsSuccess({this.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
+}
+
+
+class PatientsError extends PatientsState {
+  final String? message;
+
+  const PatientsError({this.message});
+
+  @override
+  List<Object?> get props => [message];
 }

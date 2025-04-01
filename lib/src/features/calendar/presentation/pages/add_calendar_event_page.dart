@@ -121,13 +121,21 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
       body: BlocListener<PatientsBloc, PatientsState>(
         listener: (context, state) {
           if (state is PatientsSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Patient added successfully')),
-            );
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                ),
+              );
+            }
           } else if (state is PatientsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
           }
         },
         child: LayoutBuilder(

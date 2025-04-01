@@ -4,12 +4,31 @@ abstract class EvaluationsState extends Equatable {
   const EvaluationsState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class EvaluationsInitial extends EvaluationsState {}
 
 class EvaluationsLoading extends EvaluationsState {}
+
+class EvaluationsSuccess extends EvaluationsState {
+  final String? message;
+
+  const EvaluationsSuccess({this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class EvaluationsError extends EvaluationsState {
+  final String? message;
+
+  const EvaluationsError({this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
 
 class EvaluationsLoaded extends EvaluationsState {
   final List<EvaluationModel> evaluations;

@@ -8,10 +8,6 @@ class EvaluationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> navigateToAddEvaluation(BuildContext context) async {
-      await context.push<Map<String, dynamic>>('/evaluations/new');
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Evaluations'),

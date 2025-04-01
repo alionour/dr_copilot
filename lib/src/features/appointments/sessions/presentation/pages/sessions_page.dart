@@ -23,7 +23,9 @@ class _SessionsPageState extends State<SessionsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<SessionsBloc>().add(LoadSessions()); // Fetch sessions on init
+    context
+        .read<SessionsBloc>()
+        .add( GetSessions(query)); // Fetch sessions on init
   }
 
   @override
@@ -49,6 +51,9 @@ class _SessionsPageState extends State<SessionsPage> {
                       query = newQuery;
                       _selectedIndex = 0; // Reset selection on new query
                     });
+                    context
+                        .read<SessionsBloc>()
+                        .add(SearchSessions(query)); // Trigger search event
                   },
                   onSubmitted: (_) {
                     _listFocusNode.requestFocus();
@@ -60,7 +65,7 @@ class _SessionsPageState extends State<SessionsPage> {
               icon: const Icon(Icons.refresh),
               tooltip: 'Refresh',
               onPressed: () {
-                context.read<SessionsBloc>().add(LoadSessions());
+                context.read<SessionsBloc>().add(const GetSessions(''));
               },
             ),
           ],
@@ -69,13 +74,21 @@ class _SessionsPageState extends State<SessionsPage> {
       body: BlocListener<SessionsBloc, SessionsState>(
         listener: (context, state) {
           if (state is SessionsSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                ),
+              );
+            }
           } else if (state is SessionsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
           }
         },
         child: BlocBuilder<SessionsBloc, SessionsState>(
@@ -102,6 +115,9 @@ class _SessionsPageState extends State<SessionsPage> {
                     .toLowerCase()
                     .contains(query.toLowerCase());
               }).toList();
+              if (filteredSessions.isEmpty) {
+                return const Center(child: Text('No sessions found.'));
+              }
               return Container(
                 color: Theme.of(context).colorScheme.surface,
                 child: Focus(
@@ -128,14 +144,9 @@ class _SessionsPageState extends State<SessionsPage> {
                     controller: _scrollController,
                     itemCount: filteredSessions.length,
                     itemBuilder: (context, index) {
-                      final session = filteredSessions[index];
+                      final sessionModel = filteredSessions[index];
                       return SessionListItem(
-                        id: session.id,
-                        patientName: session.patientName,
-                        sessionType: session.sessionType,
-                        startDateTime: session.startDateTime,
-                        endDateTime: session.endDateTime,
-                        price: session.price,
+                        sessionModel: sessionModel,
                         onTap: () {
                           setState(() {
                             _selectedIndex = index;

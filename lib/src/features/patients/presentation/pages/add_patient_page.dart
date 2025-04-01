@@ -70,25 +70,22 @@ class _AddPatientPageState extends State<AddPatientPage> {
       ),
       body: BlocListener<PatientsBloc, PatientsState>(
         listener: (context, state) {
-          if (state is PatientsSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Patient added successfully',
+        if (state is PatientsSuccess) {
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
                 ),
-              ),
-            );
-            Navigator.pop(context);
+              );
+            }
           } else if (state is PatientsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.message.contains('Unauthorized')
-                      ? 'You are not authorized to perform this action'
-                      : state.message,
-                ),
-              ),
-            );
+            final message = state.message;
+            if (message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
           }
         },
         child: LayoutBuilder(

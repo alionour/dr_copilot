@@ -13,6 +13,8 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       startDateTime: DateTime.parse(json['startDateTime'] as String),
       endDateTime: DateTime.parse(json['endDateTime'] as String),
       sessionType: $enumDecode(_$SessionTypeEnumMap, json['sessionType']),
+      userId: json['userId'] as String,
+      createdBy: json['createdBy'] as String,
     );
 
 Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
@@ -23,6 +25,8 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'startDateTime': instance.startDateTime.toIso8601String(),
       'endDateTime': instance.endDateTime.toIso8601String(),
       'sessionType': _$SessionTypeEnumMap[instance.sessionType]!,
+      'userId': instance.userId,
+      'createdBy': instance.createdBy,
     };
 
 const _$SessionTypeEnumMap = {

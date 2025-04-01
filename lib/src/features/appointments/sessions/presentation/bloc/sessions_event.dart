@@ -4,11 +4,27 @@ abstract class SessionsEvent extends Equatable {
   const SessionsEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class LoadSessions extends SessionsEvent {}
+class GetSessions extends SessionsEvent {
+    final String query;
 
+  const GetSessions(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
+
+
+class SearchSessions extends SessionsEvent {
+    final String query;
+
+  const SearchSessions(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
 class AddSession extends SessionsEvent {
   final SessionModel model;
 

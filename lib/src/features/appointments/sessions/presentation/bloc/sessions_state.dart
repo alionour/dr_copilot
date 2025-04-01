@@ -4,7 +4,7 @@ abstract class SessionsState extends Equatable {
   const SessionsState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class SessionsInitial extends SessionsState {}
@@ -21,19 +21,19 @@ class SessionsLoaded extends SessionsState {
 }
 
 class SessionsError extends SessionsState {
-  final String message;
+  final String? message;
 
-  const SessionsError(this.message);
+  const SessionsError({this.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
 
 class SessionsSuccess extends SessionsState {
-  final String message;
+  final String? message;
 
-  const SessionsSuccess(this.message);
+  const SessionsSuccess({this.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
