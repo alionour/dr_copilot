@@ -9,8 +9,10 @@ class SessionsUseCase {
   SessionsUseCase(this.repository);
 
   /// Gets a list of sessions.
-  Future<Either<Failure, List<SessionModel>>> getSessions(String query) async {
-    return await repository.getSessions(query);
+  Future<Either<Failure, List<SessionModel>>> getSessions(
+      {String? lastDocumentID, int? limit = 20}) async {
+    return await repository.getSessions(
+        lastDocumentID: lastDocumentID, limit: limit ?? 20);
   }
 
   /// Adds a new session.
@@ -20,9 +22,9 @@ class SessionsUseCase {
   }
 
   /// Updates an existing session.
-  Future<Either<Failure, SessionModel>> updateSession(String id,
-      SessionModel sessionModel) async {
-    return await repository.updateSession(id,sessionModel);
+  Future<Either<Failure, SessionModel>> updateSession(
+      String id, SessionModel sessionModel) async {
+    return await repository.updateSession(id, sessionModel);
   }
 
   /// Deletes a session by their ID.
@@ -34,5 +36,11 @@ class SessionsUseCase {
   Future<Either<Failure, List<SessionModel>>> searchSessions(
       String query) async {
     return await repository.searchSessions(query);
+  }
+
+  /// Gets sessions by a specific date.
+  Future<Either<Failure, List<SessionModel>>> getSessionsByDate(
+      DateTime date) async {
+    return await repository.getSessionsByDate(date);
   }
 }

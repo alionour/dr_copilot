@@ -8,23 +8,24 @@ abstract class SessionsEvent extends Equatable {
 }
 
 class GetSessions extends SessionsEvent {
-    final String query;
+  final String? lastDocumentID;
+  final int limit;
 
-  const GetSessions(this.query);
+  const GetSessions({this.lastDocumentID, this.limit = 20});
 
   @override
-  List<Object> get props => [query];
+  List<Object?> get props => [lastDocumentID, limit];
 }
 
-
 class SearchSessions extends SessionsEvent {
-    final String query;
+  final String query;
 
   const SearchSessions(this.query);
 
   @override
   List<Object> get props => [query];
 }
+
 class AddSession extends SessionsEvent {
   final SessionModel model;
 
@@ -51,4 +52,24 @@ class DeleteSession extends SessionsEvent {
 
   @override
   List<Object> get props => [sessionId];
+}
+
+class GetSessionsByDate extends SessionsEvent {
+  final DateTime date;
+
+  const GetSessionsByDate(this.date);
+
+  @override
+  List<Object> get props => [date];
+}
+
+class LoadMoreSessions extends SessionsEvent {
+  final String query;
+  final int? limit;
+  final String? lastDocumentId;
+
+  const LoadMoreSessions(this.query, {this.lastDocumentId, this.limit});
+
+  @override
+  List<Object?> get props => [query, lastDocumentId, limit];
 }

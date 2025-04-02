@@ -18,7 +18,8 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
   }
 
   @override
-  Future<Either<Failure, List<SessionModel>>> getSessions(String query) async {
+  Future<Either<Failure, List<SessionModel>>> getSessions(
+      {String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -26,9 +27,21 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _sessionsCollection
+        Query queryRef = _sessionsCollection
             .where('createdBy', isEqualTo: user.uid)
-            .get();
+            .limit(limit);
+
+        if (lastDocumentID != null) {
+          final lastDocumentSnapshot =
+              await _sessionsCollection.doc(lastDocumentID).get();
+          if (lastDocumentSnapshot.exists) {
+            queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
+          } else {
+            throw Exception('Document with ID $lastDocumentID does not exist');
+          }
+        }
+
+        final snapshot = await queryRef.get();
 
         List<SessionModel> sessions = snapshot.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>?;
@@ -40,6 +53,7 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
             'id': doc.id, // Ensure the document ID is included
           });
         }).toList();
+
         return Right(sessions);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -179,8 +193,8 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
 
   /// Fetches sessions based on search criteria.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions(
-      String query) async {
+  Future<Either<Failure, List<SessionModel>>> searchSessions(String query,
+      {DocumentSnapshot? lastDocument, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -188,11 +202,19 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _sessionsCollection
+        Query queryRef = _sessionsCollection
             .where('createdBy', isEqualTo: user.uid)
-            .where('name', isGreaterThanOrEqualTo: query)
-            .where('name', isLessThanOrEqualTo: '$query\uf8ff')
-            .get();
+            .where('patientName',
+                isGreaterThanOrEqualTo: query) // Correct field name
+            .where('patientName',
+                isLessThanOrEqualTo: '$query\uf8ff') // Correct field name
+            .limit(limit);
+
+        if (lastDocument != null) {
+          queryRef = queryRef.startAfterDocument(lastDocument);
+        }
+
+        final snapshot = await queryRef.get();
 
         List<SessionModel> sessions = snapshot.docs
             .map((doc) =>
@@ -209,6 +231,56 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
             400));
       }
       debugPrint('Error searching sessions: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date,
+      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
+Query queryRef = _sessionsCollection
+    .where('createdBy', isEqualTo: user.uid)
+    .where('startDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(date.year, date.month, date.day)))
+    .where('startDateTime', isLessThan: Timestamp.fromDate(DateTime(date.year, date.month, date.day + 1)))
+    .limit(limit);
+
+        if (lastDocument != null) {
+          debugPrint('Using lastDocument for pagination');
+          queryRef = queryRef.startAfterDocument(lastDocument);
+        }
+
+        final snapshot = await queryRef.get();
+        debugPrint('Query returned ${snapshot.docs.length} documents');
+
+        List<SessionModel> sessions = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          return SessionModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+          });
+        }).toList();
+        return Right(sessions);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } on FirebaseException catch (e) {
+      if (e.code == 'failed-precondition') {
+        debugPrint('Firestore index required: ${e.message}');
+        return Left(ServerFailure(
+            'Firestore index required. Please create the index in the Firestore console.',
+            400));
+      }
+      debugPrint('Error getting sessions by date: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }

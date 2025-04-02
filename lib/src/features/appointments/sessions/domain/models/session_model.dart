@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'session_model.g.dart';
@@ -15,17 +16,35 @@ enum SessionType {
   const SessionType(this.text, this.basePrice);
 }
 
-/// A model class representing a session.
+class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
+  const TimestampConverter();
+
+  @override
+  Timestamp fromJson(dynamic json) {
+    return json is Timestamp
+        ? json
+        : Timestamp.fromMillisecondsSinceEpoch(json as int);
+  }
+
+  @override
+  dynamic toJson(Timestamp object) => object;
+}
+
 @JsonSerializable()
 class SessionModel {
   final String id;
   final String patientName;
   final double price;
-  final DateTime startDateTime;
-  final DateTime endDateTime;
+
+  @TimestampConverter()
+  final Timestamp startDateTime;
+
+  @TimestampConverter()
+  final Timestamp endDateTime;
+
   final SessionType sessionType;
-  final String userId; // Add userId field
-  final String createdBy; // Add createdBy field
+  final String userId;
+  final String createdBy;
 
   SessionModel({
     required this.id,
@@ -34,27 +53,24 @@ class SessionModel {
     required this.startDateTime,
     required this.endDateTime,
     required this.sessionType,
-    required this.userId, // Initialize userId
-    required this.createdBy, // Initialize createdBy
+    required this.userId,
+    required this.createdBy,
   });
 
-  /// A factory constructor to create a SessionModel instance from a JSON map.
   factory SessionModel.fromJson(Map<String, dynamic> json) =>
       _$SessionModelFromJson(json);
 
-  /// A method to convert a SessionModel instance to a JSON map.
   Map<String, dynamic> toJson() => _$SessionModelToJson(this);
 
-  /// Creates a copy of this SessionModel with updated fields.
   SessionModel copyWith({
     String? id,
     String? patientName,
     double? price,
-    DateTime? startDateTime,
-    DateTime? endDateTime,
+    Timestamp? startDateTime,
+    Timestamp? endDateTime,
     SessionType? sessionType,
-    String? userId, // Add userId to copyWith
-    String? createdBy, // Add userId to copyWith
+    String? userId,
+    String? createdBy,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -63,8 +79,8 @@ class SessionModel {
       startDateTime: startDateTime ?? this.startDateTime,
       endDateTime: endDateTime ?? this.endDateTime,
       sessionType: sessionType ?? this.sessionType,
-      userId: userId ?? this.userId, // Copy userId
-      createdBy: createdBy??this.createdBy, // Keep the original createdBy value
+      userId: userId ?? this.userId,
+      createdBy: createdBy ?? this.createdBy,
     );
   }
 }

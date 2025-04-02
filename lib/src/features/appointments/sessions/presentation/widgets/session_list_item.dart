@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:flutter/material.dart';
@@ -113,6 +114,7 @@ class _SessionListItemState extends State<SessionListItem> {
                           context,
                           label: 'Start Time',
                           value: widget.sessionModel.startDateTime
+                              .toDate()
                               .toLocal()
                               .toString(),
                           fieldKey: 'startDateTime',
@@ -121,6 +123,7 @@ class _SessionListItemState extends State<SessionListItem> {
                           context,
                           label: 'End Time',
                           value: widget.sessionModel.endDateTime
+                              .toDate()
                               .toLocal()
                               .toString(),
                           fieldKey: 'endDateTime',
@@ -209,9 +212,9 @@ class _SessionListItemState extends State<SessionListItem> {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
           child: SizedBox(
-            height: 60,
+            height: 30,
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -226,9 +229,9 @@ class _SessionListItemState extends State<SessionListItem> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
           child: SizedBox(
-            height: 60,
+            height: 30,
             child: Align(
               alignment: Alignment.centerLeft,
               child: fieldKey == 'sessionType'
@@ -418,10 +421,13 @@ class _SessionListItemState extends State<SessionListItem> {
             _updatedValues['patientName'] ?? widget.sessionModel.patientName,
         price: double.tryParse(_updatedValues['price'] ?? '') ??
             widget.sessionModel.price,
-        startDateTime: DateTime.parse(_updatedValues['startDateTime'] ??
-            widget.sessionModel.startDateTime.toIso8601String()),
-        endDateTime: DateTime.parse(_updatedValues['endDateTime'] ??
-            widget.sessionModel.endDateTime.toIso8601String()),
+        startDateTime: _updatedValues['startDateTime'] != null
+            ? Timestamp.fromDate(
+                DateTime.parse(_updatedValues['startDateTime']!))
+            : widget.sessionModel.startDateTime,
+        endDateTime: _updatedValues['endDateTime'] != null
+            ? Timestamp.fromDate(DateTime.parse(_updatedValues['endDateTime']!))
+            : widget.sessionModel.endDateTime,
         sessionType: SessionType.values.firstWhere(
           (type) =>
               type.text ==

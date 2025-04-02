@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddSessionPage extends StatefulWidget {
   const AddSessionPage({super.key});
@@ -21,9 +22,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
   final _patientNameController = TextEditingController();
   final _patientNameFocusNode = FocusNode();
   final _actualPriceFocusNode = FocusNode();
-  DateTime? _startDate = DateTime.now(); // Initialize with the current date
-  DateTime? _endDate = DateTime.now().add(
-      const Duration(hours: 1)); // Initialize with the current date + 1 hour
+  Timestamp? _startDate = Timestamp.fromDate(DateTime.now()); // Initialize with the current date
+  Timestamp? _endDate = Timestamp.fromDate(DateTime.now().add(const Duration(hours: 1))); // Initialize with the current date + 1 hour
   String _selectedCalendar = 'Sessions'; // Default calendar matches the list
   String query = '';
   final FocusNode _searchFocusNode = FocusNode();
@@ -52,10 +52,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
   }
 
   String? _validateTime() {
-    if (_endDate!.isBefore(_startDate!)) {
+    if (_endDate!.toDate().isBefore(_startDate!.toDate())) {
       return 'End time must be after start time.';
     }
-    final duration = _endDate!.difference(_startDate!).inMinutes / 60.0;
+    final duration = _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
     if (duration > 4.0) {
       return 'The maximum allowed duration is 4 hours.';
     }
@@ -63,7 +63,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
   }
 
   void _updateEstimatedPrice() {
-    final duration = _endDate!.difference(_startDate!).inMinutes / 60.0;
+    final duration = _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
     switch (_selectedSessionType) {
       case SessionType.adultIntensive:
         _estimatedPrice =
@@ -83,7 +83,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime initialDate =
-        isStart ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now();
+        isStart ? _startDate!.toDate() : _endDate!.toDate();
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -95,11 +95,11 @@ class _AddSessionPageState extends State<AddSessionPage> {
     if (pickedDate != null) {
       setState(() {
         if (isStart) {
-          _startDate = DateTime(pickedDate.year, pickedDate.month,
-              pickedDate.day, _startDate?.hour ?? 0, _startDate?.minute ?? 0);
+          _startDate = Timestamp.fromDate(DateTime(pickedDate.year, pickedDate.month,
+              pickedDate.day, _startDate?.toDate().hour ?? 0, _startDate?.toDate().minute ?? 0));
         } else {
-          _endDate = DateTime(pickedDate.year, pickedDate.month, pickedDate.day,
-              _endDate?.hour ?? 0, _endDate?.minute ?? 0);
+          _endDate = Timestamp.fromDate(DateTime(pickedDate.year, pickedDate.month, pickedDate.day,
+              _endDate?.toDate().hour ?? 0, _endDate?.toDate().minute ?? 0));
         }
       });
       await _selectTime(context, isStart); // Automatically move to time picker
@@ -108,7 +108,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   Future<void> _selectTime(BuildContext context, bool isStart) async {
     final DateTime initialDate =
-        isStart ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now();
+        isStart ? _startDate!.toDate() : _endDate!.toDate();
     final TimeOfDay initialTime = TimeOfDay.fromDateTime(initialDate);
 
     final TimeOfDay? pickedTime = await showTimePicker(
@@ -119,22 +119,22 @@ class _AddSessionPageState extends State<AddSessionPage> {
     if (pickedTime != null) {
       setState(() {
         if (isStart) {
-          _startDate = DateTime(
-              _startDate?.year ?? DateTime.now().year,
-              _startDate?.month ?? DateTime.now().month,
-              _startDate?.day ?? DateTime.now().day,
+          _startDate = Timestamp.fromDate(DateTime(
+              _startDate?.toDate().year ?? DateTime.now().year,
+              _startDate?.toDate().month ?? DateTime.now().month,
+              _startDate?.toDate().day ?? DateTime.now().day,
               pickedTime.hour,
-              pickedTime.minute);
-          _endDate = _endDate!.isBefore(_startDate!)
-              ? _startDate!.add(const Duration(hours: 1))
+              pickedTime.minute));
+          _endDate = _endDate!.toDate().isBefore(_startDate!.toDate())
+              ? Timestamp.fromDate(_startDate!.toDate().add(const Duration(hours: 1)))
               : _endDate;
         } else {
-          _endDate = DateTime(
-              _endDate?.year ?? DateTime.now().year,
-              _endDate?.month ?? DateTime.now().month,
-              _endDate?.day ?? DateTime.now().day,
+          _endDate = Timestamp.fromDate(DateTime(
+              _endDate?.toDate().year ?? DateTime.now().year,
+              _endDate?.toDate().month ?? DateTime.now().month,
+              _endDate?.toDate().day ?? DateTime.now().day,
               pickedTime.hour,
-              pickedTime.minute);
+              pickedTime.minute));
         }
         _updateEstimatedPrice(); // Update price when time changes
       });
@@ -406,7 +406,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 ),
                                 controller: TextEditingController(
                                   text: DateFormat('yyyy-MM-dd')
-                                      .format(_startDate!),
+                                      .format(_startDate!.toDate()),
                                 ),
                                 onTap: () => _selectDate(context, true),
                               ),
@@ -422,7 +422,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   border: OutlineInputBorder(),
                                 ),
                                 controller: TextEditingController(
-                                  text: DateFormat('HH:mm').format(_startDate!),
+                                  text: DateFormat('HH:mm').format(_startDate!.toDate()),
                                 ),
                                 onTap: () => _selectTime(context, true),
                               ),
@@ -454,7 +454,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 ),
                                 controller: TextEditingController(
                                   text: DateFormat('yyyy-MM-dd')
-                                      .format(_endDate!),
+                                      .format(_endDate!.toDate()),
                                 ),
                                 onTap: () => _selectDate(context, false),
                               ),
@@ -470,7 +470,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   border: OutlineInputBorder(),
                                 ),
                                 controller: TextEditingController(
-                                  text: DateFormat('HH:mm').format(_endDate!),
+                                  text: DateFormat('HH:mm').format(_endDate!.toDate()),
                                 ),
                                 onTap: () => _selectTime(context, false),
                               ),
@@ -481,7 +481,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Duration: ${_endDate!.difference(_startDate!).inMinutes / 60.0} hours',
+                            'Duration: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} hours',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium

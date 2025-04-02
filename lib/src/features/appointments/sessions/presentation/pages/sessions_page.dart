@@ -1,7 +1,6 @@
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/widgets/session_list_item.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -15,6 +14,7 @@ class SessionsPage extends StatefulWidget {
 
 class _SessionsPageState extends State<SessionsPage> {
   String query = '';
+  DateTime? selectedDate; // Add selectedDate variable
   final ScrollController _scrollController = ScrollController();
   final FocusNode _listFocusNode = FocusNode();
   final FocusNode _searchFocusNode = FocusNode();
@@ -25,7 +25,7 @@ class _SessionsPageState extends State<SessionsPage> {
     super.initState();
     context
         .read<SessionsBloc>()
-        .add( GetSessions(query)); // Fetch sessions on init
+        .add(const GetSessions()); // Fetch sessions on init
   }
 
   @override
@@ -62,10 +62,47 @@ class _SessionsPageState extends State<SessionsPage> {
               ),
             ),
             IconButton(
+              icon: Row(
+                children: [
+                  const Icon(Icons.calendar_month_outlined),
+                  if (selectedDate != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Text(
+                        '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 12.0,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              tooltip: 'Filter by Date',
+              onPressed: () async {
+                final pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (pickedDate != null) {
+                  setState(() {
+                    selectedDate = pickedDate;
+                  });
+                  context.read<SessionsBloc>().add(GetSessionsByDate(
+                      pickedDate)); // Dispatch event to filter by date
+                }
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'Refresh',
               onPressed: () {
-                context.read<SessionsBloc>().add(const GetSessions(''));
+                setState(() {
+                  selectedDate = null; // Reset date filter
+                });
+                context.read<SessionsBloc>().add(const GetSessions());
               },
             ),
           ],
@@ -109,52 +146,47 @@ class _SessionsPageState extends State<SessionsPage> {
                   ),
                 ),
               );
-            } else if (state is SessionsLoaded) {
-              final filteredSessions = state.sessions.where((session) {
-                return session.patientName
-                    .toLowerCase()
-                    .contains(query.toLowerCase());
-              }).toList();
-              if (filteredSessions.isEmpty) {
-                return const Center(child: Text('No sessions found.'));
-              }
-              return Container(
-                color: Theme.of(context).colorScheme.surface,
-                child: Focus(
-                  focusNode: _listFocusNode,
-                  autofocus: true,
-                  onKeyEvent: (FocusNode node, KeyEvent event) {
-                    if (event is KeyDownEvent) {
-                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                        moveSelectionDown(filteredSessions.length);
-                        return KeyEventResult.handled;
-                      } else if (event.logicalKey ==
-                          LogicalKeyboardKey.arrowUp) {
-                        moveSelectionUp(filteredSessions.length);
-                        return KeyEventResult.handled;
-                      } else if (event.logicalKey ==
-                          LogicalKeyboardKey.arrowLeft) {
-                        _searchFocusNode.requestFocus();
-                        return KeyEventResult.handled;
-                      }
-                    }
-                    return KeyEventResult.ignored;
+            } else if (state is SessionsLoaded ||
+                state is SessionsLoadingMore) {
+              final sessions = state is SessionsLoaded
+                  ? state.sessions
+                  : (state as SessionsLoadingMore).sessions;
+
+              return NotificationListener<ScrollNotification>(
+                onNotification: (scrollNotification) {
+                  if (scrollNotification.metrics.pixels ==
+                          scrollNotification.metrics.maxScrollExtent &&
+                      state is! SessionsLoadingMore) {
+                    final lastDocumentId =
+                        context.read<SessionsBloc>().state.sessions.isNotEmpty
+                            ? context
+                                .read<SessionsBloc>()
+                                .state
+                                .sessions
+                                .last
+                                .id // Use the last session's ID for pagination
+                            : null;
+                    context.read<SessionsBloc>().add(LoadMoreSessions(
+                          query,
+                          lastDocumentId: lastDocumentId,
+                        ));
+                  }
+                  return false;
+                },
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: sessions.length,
+                  itemBuilder: (context, index) {
+                    final sessionModel = sessions[index];
+                    return SessionListItem(
+                      sessionModel: sessionModel,
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                    );
                   },
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    itemCount: filteredSessions.length,
-                    itemBuilder: (context, index) {
-                      final sessionModel = filteredSessions[index];
-                      return SessionListItem(
-                        sessionModel: sessionModel,
-                        onTap: () {
-                          setState(() {
-                            _selectedIndex = index;
-                          });
-                        },
-                      );
-                    },
-                  ),
                 ),
               );
             } else if (state is SessionsError) {

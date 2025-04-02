@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
@@ -9,10 +10,12 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
 
   SessionsRepositoryImpl({required this.firebaseApi});
 
-  /// Fetches a list of sessions.
+  /// Gets a list of sessions.
   @override
-  Future<Either<Failure, List<SessionModel>>> getSessions(String query) {
-    return firebaseApi.getSessions(query);
+  Future<Either<Failure, List<SessionModel>>> getSessions(
+      {String? lastDocumentID, int limit = 20}) {
+    return firebaseApi.getSessions(
+        lastDocumentID: lastDocumentID, limit: limit);
   }
 
   /// Adds a new session.
@@ -23,9 +26,9 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
 
   /// Updates an existing session.
   @override
-  Future<Either<Failure, SessionModel>> updateSession(String id,
-      SessionModel sessionModel) {
-    return firebaseApi.updateSession(id,sessionModel);
+  Future<Either<Failure, SessionModel>> updateSession(
+      String id, SessionModel sessionModel) {
+    return firebaseApi.updateSession(id, sessionModel);
   }
 
   /// Deletes a session by their ID.
@@ -38,5 +41,11 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   @override
   Future<Either<Failure, List<SessionModel>>> searchSessions(String query) {
     return firebaseApi.searchSessions(query);
+  }
+
+  /// Gets sessions by a specific date.
+  @override
+  Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date) {
+    return firebaseApi.getSessionsByDate(date);
   }
 }
