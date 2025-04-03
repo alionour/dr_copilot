@@ -227,7 +227,7 @@ class _PatientListItemState extends State<PatientListItem> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
           child: SizedBox(
-            height: 60, // Ensure consistent height for all rows
+            height: 30, // Ensure consistent height for all rows
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -244,7 +244,7 @@ class _PatientListItemState extends State<PatientListItem> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
           child: SizedBox(
-            height: 60, // Ensure consistent height for all rows
+            height: 30, // Ensure consistent height for all rows
             child: Align(
               alignment: Alignment.centerLeft,
               child: fieldKey == 'gender'
@@ -398,7 +398,9 @@ class _PatientListItemState extends State<PatientListItem> {
       );
 
       try {
-        context.read<PatientsBloc>().add(UpdatePatient(widget.id,updatedPatient));
+        context
+            .read<PatientsBloc>()
+            .add(UpdatePatient(widget.id, updatedPatient));
         debugPrint(
             'Dispatched UpdateEvent with updated patient: $updatedPatient');
         setState(() {

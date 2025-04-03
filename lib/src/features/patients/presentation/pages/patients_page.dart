@@ -45,6 +45,11 @@ class _FilterDialogState extends State<FilterDialog> {
     _selectedGender = widget.initialGender;
     _minAge = widget.initialMinAge;
     _maxAge = widget.initialMaxAge;
+
+    // Request focus for Min Age when the dialog opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _minAgeFocusNode.requestFocus();
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -101,6 +106,7 @@ class _FilterDialogState extends State<FilterDialog> {
               });
             },
             onSubmitted: (_) {
+              debugPrint('Min Age submitted, requesting focus for Max Age');
               _maxAgeFocusNode.requestFocus();
             },
           ),
@@ -227,11 +233,26 @@ class _PatientsPageState extends State<PatientsPage> {
             ),
             Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                // border: Border.all(
+                //   color: Theme.of(context)
+                //       .colorScheme
+                //       .primary
+                //       .withOpacity(0.3), // Adjusted color to be less intense
+                //   width: 0.3, // Made the border thinner
+                // ),
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Row(
                 children: [
                   IconButton(
