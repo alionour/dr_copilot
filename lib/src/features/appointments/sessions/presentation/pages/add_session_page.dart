@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
@@ -8,7 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddSessionPage extends StatefulWidget {
   const AddSessionPage({super.key});
@@ -22,8 +22,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
   final _patientNameController = TextEditingController();
   final _patientNameFocusNode = FocusNode();
   final _actualPriceFocusNode = FocusNode();
-  Timestamp? _startDate = Timestamp.fromDate(DateTime.now()); // Initialize with the current date
-  Timestamp? _endDate = Timestamp.fromDate(DateTime.now().add(const Duration(hours: 1))); // Initialize with the current date + 1 hour
+  Timestamp? _startDate =
+      Timestamp.fromDate(DateTime.now()); // Initialize with the current date
+  Timestamp? _endDate = Timestamp.fromDate(DateTime.now().add(
+      const Duration(hours: 1))); // Initialize with the current date + 1 hour
   String _selectedCalendar = 'Sessions'; // Default calendar matches the list
   String query = '';
   final FocusNode _searchFocusNode = FocusNode();
@@ -48,14 +50,15 @@ class _AddSessionPageState extends State<AddSessionPage> {
     });
     context
         .read<PatientsBloc>()
-        .add(GetPatients(query)); // Fetch patients on init
+        .add(const GetPatients()); // Fetch patients on init
   }
 
   String? _validateTime() {
     if (_endDate!.toDate().isBefore(_startDate!.toDate())) {
       return 'End time must be after start time.';
     }
-    final duration = _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
+    final duration =
+        _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
     if (duration > 4.0) {
       return 'The maximum allowed duration is 4 hours.';
     }
@@ -63,7 +66,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
   }
 
   void _updateEstimatedPrice() {
-    final duration = _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
+    final duration =
+        _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
     switch (_selectedSessionType) {
       case SessionType.adultIntensive:
         _estimatedPrice =
@@ -95,11 +99,19 @@ class _AddSessionPageState extends State<AddSessionPage> {
     if (pickedDate != null) {
       setState(() {
         if (isStart) {
-          _startDate = Timestamp.fromDate(DateTime(pickedDate.year, pickedDate.month,
-              pickedDate.day, _startDate?.toDate().hour ?? 0, _startDate?.toDate().minute ?? 0));
+          _startDate = Timestamp.fromDate(DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              _startDate?.toDate().hour ?? 0,
+              _startDate?.toDate().minute ?? 0));
         } else {
-          _endDate = Timestamp.fromDate(DateTime(pickedDate.year, pickedDate.month, pickedDate.day,
-              _endDate?.toDate().hour ?? 0, _endDate?.toDate().minute ?? 0));
+          _endDate = Timestamp.fromDate(DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              _endDate?.toDate().hour ?? 0,
+              _endDate?.toDate().minute ?? 0));
         }
       });
       await _selectTime(context, isStart); // Automatically move to time picker
@@ -126,7 +138,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
               pickedTime.hour,
               pickedTime.minute));
           _endDate = _endDate!.toDate().isBefore(_startDate!.toDate())
-              ? Timestamp.fromDate(_startDate!.toDate().add(const Duration(hours: 1)))
+              ? Timestamp.fromDate(
+                  _startDate!.toDate().add(const Duration(hours: 1)))
               : _endDate;
         } else {
           _endDate = Timestamp.fromDate(DateTime(
@@ -168,7 +181,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add New Session'),
@@ -184,43 +196,43 @@ class _AddSessionPageState extends State<AddSessionPage> {
           BlocListener<PatientsBloc, PatientsState>(
             listener: (context, state) {
               if (state is PatientsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is PatientsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          }
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                    ),
+                  );
+                }
+              } else if (state is PatientsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
             },
           ),
           BlocListener<SessionsBloc, SessionsState>(
             listener: (context, state) {
-            if (state is SessionsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is SessionsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          }
+              if (state is SessionsSuccess) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                    ),
+                  );
+                }
+              } else if (state is SessionsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
             },
           ),
         ],
@@ -422,7 +434,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   border: OutlineInputBorder(),
                                 ),
                                 controller: TextEditingController(
-                                  text: DateFormat('HH:mm').format(_startDate!.toDate()),
+                                  text: DateFormat('HH:mm')
+                                      .format(_startDate!.toDate()),
                                 ),
                                 onTap: () => _selectTime(context, true),
                               ),
@@ -470,7 +483,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   border: OutlineInputBorder(),
                                 ),
                                 controller: TextEditingController(
-                                  text: DateFormat('HH:mm').format(_endDate!.toDate()),
+                                  text: DateFormat('HH:mm')
+                                      .format(_endDate!.toDate()),
                                 ),
                                 onTap: () => _selectTime(context, false),
                               ),

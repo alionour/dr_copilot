@@ -30,7 +30,7 @@ class _PatientsPageState extends State<PatientsPage> {
     });
     context
         .read<PatientsBloc>()
-        .add(GetPatients(query)); // Fetch patients on init
+        .add(const GetPatients()); // Fetch patients on init
   }
 
   @override
@@ -57,7 +57,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       _selectedIndex = 0; // Reset selection on new query
                     });
                     context
-                        .read<PatientsBloc>() 
+                        .read<PatientsBloc>()
                         .add(SearchPatients(query)); // Trigger search event
                   },
                   onSubmitted: (_) {
@@ -70,7 +70,24 @@ class _PatientsPageState extends State<PatientsPage> {
               icon: const Icon(Icons.refresh),
               tooltip: 'Refresh',
               onPressed: () {
-                context.read<PatientsBloc>().add(GetPatients(query));
+                context.read<PatientsBloc>().add(const GetPatients());
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.filter_alt),
+              tooltip: 'Filter by Date',
+              onPressed: () async {
+                final DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null) {
+                  context.read<PatientsBloc>().add(
+                        GetPatientsByDate(date: pickedDate),
+                      );
+                }
               },
             ),
           ],
@@ -83,23 +100,23 @@ class _PatientsPageState extends State<PatientsPage> {
           }
           return BlocListener<PatientsBloc, PatientsState>(
             listener: (context, state) {
-            if (state is PatientsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is PatientsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          }
+              if (state is PatientsSuccess) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                    ),
+                  );
+                }
+              } else if (state is PatientsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
             },
             child: BlocBuilder<PatientsBloc, PatientsState>(
               builder: (context, state) {

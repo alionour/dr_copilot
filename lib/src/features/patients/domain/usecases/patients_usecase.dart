@@ -9,8 +9,8 @@ class PatientsUseCase {
   PatientsUseCase(this.repository);
 
   /// Gets a list of patients.
-  Future<Either<Failure, List<PatientModel>>> getPatients(String query) async {
-    return await repository.getPatients(query);
+  Future<Either<Failure, List<PatientModel>>> getPatients() async {
+    return await repository.getPatients();
   }
 
   /// Adds a new patient.
@@ -25,7 +25,7 @@ class PatientsUseCase {
   }
 
   /// Deletes a patient by their ID.
-  Future<Either<Failure, PatientModel>> deletePatient(String patientId) async {
+  Future<Either<Failure, void>> deletePatient(String patientId) async {
     return await repository.deletePatient(patientId);
   }
 

@@ -43,7 +43,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     });
     context
         .read<PatientsBloc>()
-        .add(GetPatients(query)); // Fetch patients on init
+        .add(const GetPatients()); // Fetch patients on init
   }
 
   Future<void> _selectDateTime(BuildContext context, bool isStart) async {
@@ -142,23 +142,24 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           ),
           BlocListener<EvaluationsBloc, EvaluationsState>(
             listener: (context, state) {
-if (state is EvaluationsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is EvaluationsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          }            },
+              if (state is EvaluationsSuccess) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                    ),
+                  );
+                }
+              } else if (state is EvaluationsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
+            },
           ),
         ],
         child: LayoutBuilder(

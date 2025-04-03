@@ -1,50 +1,61 @@
 part of 'patients_bloc.dart';
 
 abstract class PatientsState extends Equatable {
-  const PatientsState();
+  final List<PatientModel> patients;
+  const PatientsState(this.patients);
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [patients];
 }
 
 class PatientsInitial extends PatientsState {
-    const PatientsInitial();
+  const PatientsInitial(super.patients);
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [patients];
 }
 
 class PatientsLoading extends PatientsState {
-      const PatientsLoading();
+
+
+  const PatientsLoading(super.patients);
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [patients];
+}
+
+class PatientsLoadingMore extends PatientsState {
+
+
+  const PatientsLoadingMore(super.patients);
+
+  @override
+  List<Object?> get props => [patients];
 }
 
 class PatientsLoaded extends PatientsState {
-  final List<PatientModel> patients;
 
-  const PatientsLoaded(this.patients);
+
+  const PatientsLoaded(super.patients);
 
   @override
-  List<Object> get props => [patients];
+  List<Object?> get props => [patients];
 }
 
 class PatientsSuccess extends PatientsState {
-    final String? message;
+  final String? message;
 
-  const PatientsSuccess({this.message});
+  const PatientsSuccess(super.patients,{this.message});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [patients,message];
 }
-
 
 class PatientsError extends PatientsState {
   final String? message;
 
-  const PatientsError({this.message});
+  const PatientsError(super.patients,{this.message});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [patients,message];
 }

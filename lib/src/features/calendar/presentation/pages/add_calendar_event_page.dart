@@ -44,7 +44,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
     });
     context
         .read<PatientsBloc>()
-        .add(GetPatients(query)); // Fetch patients on init
+        .add(const GetPatients()); // Fetch patients on init
   }
 
   Future<void> _selectDateTime(BuildContext context, bool isStart) async {

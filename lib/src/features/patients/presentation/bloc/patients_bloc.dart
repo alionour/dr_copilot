@@ -12,18 +12,20 @@ part 'patients_state.dart';
 class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
   final PatientsUseCase _patientsUseCase;
 
-  PatientsBloc(this._patientsUseCase) : super(const PatientsInitial()) {
+  PatientsBloc(this._patientsUseCase) : super(const PatientsInitial([])) {
     on<GetPatients>(_onGetPatients);
     on<AddPatient>(_onAddPatient);
     on<UpdatePatient>(_onUpdatePatient);
     on<DeletePatient>(_onDeletePatient);
     on<SearchPatients>(_onSearchPatients);
+    on<LoadMorePatients>(_onLoadMorePatients);
+    on<GetPatientsByDate>(_onGetPatientsByDate);
   }
 
   Future<void> _onGetPatients(
       GetPatients event, Emitter<PatientsState> emit) async {
     emit(const PatientsLoading());
-    final failureOrPatients = await _patientsUseCase.getPatients(event.query);
+    final failureOrPatients = await _patientsUseCase.getPatients();
     emit(failureOrPatients.fold(
       (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),
@@ -81,10 +83,10 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patient) {
         emit(const PatientsSuccess(message: 'Patient deleted successfully'));
-        return PatientsLoaded([patient]);
+        return const PatientsLoaded([]);
       },
     ));
-  } 
+  }
 
   Future<void> _onSearchPatients(
       SearchPatients event, Emitter<PatientsState> emit) async {
@@ -95,6 +97,45 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       (failure) => PatientsError(message: _mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),
     ));
+  }
+
+  Future<void> _onLoadMorePatients(
+      LoadMorePatients event, Emitter<PatientsState> emit) async {
+    if (state is PatientsLoaded || state is PatientsLoadingMore) {
+      final currentPatients = state.patients;
+      emit(PatientsLoadingMore(currentPatients));
+
+      final result = await _patientsRepository.getPatients(
+        lastDocumentID: event.lastDocumentId,
+        limit: event.limit ?? 20,
+      );
+
+      result.fold(
+        (failure) =>
+            emit(PatientsError(currentPatients, message: failure.message)),
+        (newPatients) {
+          final updatedPatients = List<PatientModel>.from(currentPatients)
+            ..addAll(newPatients);
+          emit(PatientsLoaded(updatedPatients));
+        },
+      );
+    }
+  }
+
+  Future<void> _onGetPatientsByDate(
+      GetPatientsByDate event, Emitter<PatientsState> emit) async {
+    emit(const PatientsLoading([]));
+
+    final result = await _patientsRepository.getPatientsByDate(
+      event.date,
+      lastDocumentID: event.lastDocumentID,
+      limit: event.limit,
+    );
+
+    result.fold(
+      (failure) => emit(PatientsError(const [], message: failure.message)),
+      (patients) => emit(PatientsLoaded(patients)),
+    );
   }
 
   PatientsState _eitherLoadedOrErrorState(Either<Failure, dynamic> either) {

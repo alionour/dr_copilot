@@ -2,205 +2,212 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:dr_copilot/src/features/patients/domain/repositories/abstract_patients_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart'; // Add this import for debugPrint
 
-class PatientFirebaseApi extends AbstractPatientsRepository {
+class PatientFirebaseApi {
   final CollectionReference _patientsCollection =
       FirebaseFirestore.instance.collection('patients');
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<bool> _isAuthenticated() async {
-    final currentUser = await FirebaseAuth.instance.authStateChanges().first;
-    return currentUser != null;
-  }
-
-  @override
-  Future<Either<Failure, List<PatientModel>>> getPatients(String query) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+  Future<Either<Failure, List<PatientModel>>> getPatients({
+    String? lastDocumentID,
+    int limit = 20,
+  }) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final snapshot = await _patientsCollection
-            .where('createdBy', isEqualTo: user.uid)
-            .where('name', isGreaterThanOrEqualTo: query)
-            .where('name', isLessThanOrEqualTo: '$query\uf8ff')
-            .get();
+        Query queryRef = _patientsCollection
+            .where('userId', isEqualTo: user.uid)
+            .limit(limit);
+
+        if (lastDocumentID != null) {
+          final lastDocumentSnapshot =
+              await _patientsCollection.doc(lastDocumentID).get();
+          if (lastDocumentSnapshot.exists) {
+            queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
+          } else {
+            throw Exception('Document with ID $lastDocumentID does not exist');
+          }
+        }
+
+        final snapshot = await queryRef.get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String,dynamic>?;
+          final data = doc.data() as Map<String, dynamic>?;
           if (data == null) {
             throw Exception('Document data is null');
           }
-          return PatientModel(
-            id: doc.id, // Use Firestore's document ID
-            name: data['name'],
-            age: data['age'],
-            gender: data['gender'],
-            address: data['address'],
-            userId: data['createdBy'],
-          );
+          return PatientModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+          });
         }).toList();
+
         return Right(patients);
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } on FirebaseException catch (e) {
-      if (e.code == 'failed-precondition') {
-        debugPrint('Firestore index required: ${e.message}');
-        return Left(ServerFailure(
-            'Firestore index required. Please create the index in the Firestore console.',
-            400));
-      }
-      debugPrint('Error getting patients: $e');
+    } catch (e) {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
 
-  @override
-  Future<Either<Failure, PatientModel>> addPatient(
-      PatientModel patientModel) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+  Future<Either<Failure, PatientModel>> addPatient(PatientModel patient) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final data = patientModel.toJson();
+        final data = patient.toJson();
         data.remove('id'); // Exclude the `id` field from the document data
         final docRef = await _patientsCollection.add({
           ...data,
-          'createdBy': user.uid,
+          'userId': user.uid,
         });
-        return Right(PatientModel(
-          id: docRef.id, // Use Firestore's document ID
-          name: patientModel.name,
-          age: patientModel.age,
-          gender: patientModel.gender,
-          address: patientModel.address,
-          userId: user.uid,
-        ));
+        final createdPatient = patient.copyWith(
+          id: docRef.id, // Assign the generated document ID
+          userId: user.uid, // Ensure userId is set
+        );
+        return Right(createdPatient);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
-      debugPrint('Error adding patient: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }
 
-  @override
   Future<Either<Failure, PatientModel>> updatePatient(
-      String id, PatientModel patientModel) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+      String id, PatientModel patient) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        debugPrint('Fetching document with ID: ${patientModel.id}');
-        final doc = await _patientsCollection.doc(patientModel.id).get();
+        final doc = await _patientsCollection.doc(id).get();
 
         if (doc.exists) {
-          final createdBy = (doc.data() as Map<String,dynamic>?)?['createdBy'];
-          if (createdBy == null) {
-            debugPrint('Error: createdBy field is missing in the document');
-            return Left(ServerFailure('createdBy field is missing', 400));
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            return Left(ServerFailure('Document data is null', 400));
           }
-          if (createdBy == user.uid) {
-            final updatedData = patientModel.toJson();
-            updatedData.remove('id'); // Exclude the `id` field from the update
-            await _patientsCollection.doc(patientModel.id).update(updatedData);
 
-            return Right(PatientModel(
-              id: patientModel.id,
-              name: patientModel.name,
-              age: patientModel.age,
-              gender: patientModel.gender,
-              address: patientModel.address,
-              userId: user.uid,
-            ));
+          final userId = data['userId'] as String?;
+          if (userId == null) {
+            return Left(ServerFailure('userId field is missing or null', 400));
+          }
+
+          if (userId == user.uid) {
+            final updatedData = patient.toJson();
+            updatedData.remove('id'); // Exclude the `id` field from the update
+            await _patientsCollection.doc(id).update(updatedData);
+
+            return Right(patient.copyWith(id: id));
           } else {
-            debugPrint(
-                'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}');
             return Left(ServerFailure('Unauthorized', 403));
           }
         } else {
-          debugPrint('Error: Document does not exist');
           return Left(ServerFailure('Document does not exist', 404));
         }
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
-      debugPrint('Error updating patient: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }
 
-  @override
-  Future<Either<Failure, PatientModel>> deletePatient(String id) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+  Future<Either<Failure, void>> deletePatient(String id) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await _patientsCollection.doc(id).get();
-        if (doc.exists && (doc.data()as Map<String,dynamic>?)?['createdBy'] == user.uid) {
-          await _patientsCollection.doc(id).delete();
-          return Right(PatientModel(
-            id: id,
-            name: '',
-            userId: user.uid, // Ensure userId is passed here
-          ));
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>?;
+          final userId = data?['userId'] as String?;
+          if (userId == null) {
+            return Left(ServerFailure('userId field is missing or null', 400));
+          }
+          if (userId == user.uid) {
+            await _patientsCollection.doc(id).delete();
+            return const Right(null);
+          } else {
+            return Left(ServerFailure('Unauthorized', 403));
+          }
         } else {
-          return Left(ServerFailure('Unauthorized', 403));
+          return Left(ServerFailure('Document does not exist', 404));
         }
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
-      debugPrint('Error deleting patient: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }
 
-  /// Fetches patients based on search criteria.
-  @override
-  Future<Either<Failure, List<PatientModel>>> searchPatients(
-      String query) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+  Future<Either<Failure, List<PatientModel>>> searchPatients(String query,
+      {DocumentSnapshot? lastDocument, int limit = 20}) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final snapshot = await _patientsCollection
-            .where('createdBy', isEqualTo: user.uid)
+        Query queryRef = _patientsCollection
+            .where('userId', isEqualTo: user.uid)
             .where('name', isGreaterThanOrEqualTo: query)
             .where('name', isLessThanOrEqualTo: '$query\uf8ff')
-            .get();
+            .limit(limit);
 
-        List<PatientModel> patients = snapshot.docs
-            .map((doc) => PatientModel.fromJson(doc.data() as Map<String,dynamic>))
-            .toList();
+        if (lastDocument != null) {
+          queryRef = queryRef.startAfterDocument(lastDocument);
+        }
+
+        final snapshot = await queryRef.get();
+
+        List<PatientModel> patients = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          return PatientModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+          });
+        }).toList();
+
         return Right(patients);
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } on FirebaseException catch (e) {
-      if (e.code == 'failed-precondition') {
-        debugPrint('Firestore index required: ${e.message}');
-        return Left(ServerFailure(
-            'Firestore index required. Please create the index in the Firestore console.',
-            400));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Query queryRef = _patientsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('createdAt',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                    DateTime(date.year, date.month, date.day)))
+            .where('createdAt',
+                isLessThan: Timestamp.fromDate(
+                    DateTime(date.year, date.month, date.day + 1)))
+            .limit(limit);
+
+        if (lastDocument != null) {
+          queryRef = queryRef.startAfterDocument(lastDocument);
+        }
+
+        final snapshot = await queryRef.get();
+
+        List<PatientModel> patients = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          return PatientModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+          });
+        }).toList();
+
+        return Right(patients);
       }
-      debugPrint('Error searching patients: $e');
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
       return Left(ServerFailure(e.toString(), 404));
     }
   }

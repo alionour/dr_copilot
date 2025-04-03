@@ -4,34 +4,45 @@ abstract class PatientsEvent extends Equatable {
   const PatientsEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class GetPatients extends PatientsEvent {
+  final String? lastDocumentID;
+  final int limit;
+
+  const GetPatients({this.lastDocumentID, this.limit = 20});
+
+  @override
+  List<Object?> get props => [lastDocumentID, limit];
+}
+
+class SearchPatients extends PatientsEvent {
   final String query;
 
-  const GetPatients(this.query);
+  const SearchPatients(this.query);
 
   @override
   List<Object> get props => [query];
 }
 
 class AddPatient extends PatientsEvent {
-  final PatientModel patient;
+  final PatientModel model;
 
-  const AddPatient(this.patient);
+  const AddPatient(this.model);
 
   @override
-  List<Object> get props => [patient];
+  List<Object> get props => [model];
 }
 
 class UpdatePatient extends PatientsEvent {
   final String patientId;
-  final PatientModel patientModel;
-  const UpdatePatient(this.patientId,this.patientModel);
+  final PatientModel model;
+
+  const UpdatePatient(this.patientId, this.model);
 
   @override
-  List<Object> get props => [patientId,patientModel];
+  List<Object> get props => [patientId, model];
 }
 
 class DeletePatient extends PatientsEvent {
@@ -43,11 +54,28 @@ class DeletePatient extends PatientsEvent {
   List<Object> get props => [patientId];
 }
 
-class SearchPatients extends PatientsEvent {
-  final String query;
+class GetPatientsByDate extends PatientsEvent {
+  final DateTime date;
+  final String? lastDocumentID;
+  final int limit;
 
-  const SearchPatients(this.query);
+  const GetPatientsByDate({
+    required this.date,
+    this.lastDocumentID,
+    this.limit = 20,
+  });
 
   @override
-  List<Object> get props => [query];
+  List<Object?> get props => [date, lastDocumentID, limit];
+}
+
+class LoadMorePatients extends PatientsEvent {
+  final String query;
+  final int? limit;
+  final String? lastDocumentId;
+
+  const LoadMorePatients(this.query, {this.lastDocumentId, this.limit});
+
+  @override
+  List<Object?> get props => [query, lastDocumentId, limit];
 }

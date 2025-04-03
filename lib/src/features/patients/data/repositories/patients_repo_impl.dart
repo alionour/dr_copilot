@@ -11,8 +11,8 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Fetches a list of patients.
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatients(String query) {
-    return api.getPatients(query);
+  Future<Either<Failure, List<PatientModel>>> getPatients() {
+    return api.getPatients();
   }
 
   /// Adds a new patient.
@@ -25,12 +25,12 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
   @override
   Future<Either<Failure, PatientModel>> updatePatient(String id,
       PatientModel patientModel) {
-    return api.updatePatient(id,patientModel);
+    return api.updatePatient(id, patientModel);
   }
 
   /// Deletes a patient by their ID.
   @override
-  Future<Either<Failure, PatientModel>> deletePatient(String id) {
+  Future<Either<Failure, void>> deletePatient(String id) {
     return api.deletePatient(id);
   }
 
@@ -38,5 +38,11 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
   @override
   Future<Either<Failure, List<PatientModel>>> searchPatients(String query) {
     return api.searchPatients(query);
+  }
+
+  /// Fetches patients by a specific date.
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+      {String? lastDocumentID, int limit = 20}) {
+    return api.getPatientsByDate(date, limit: limit);
   }
 }
