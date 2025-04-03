@@ -11,12 +11,22 @@ abstract class AbstractPatientsRepository {
   Future<Either<Failure, PatientModel>> addPatient(PatientModel patientModel);
 
   /// Updates an existing patient.
-  Future<Either<Failure, PatientModel>> updatePatient(String id,
-      PatientModel patientModel);
+  Future<Either<Failure, PatientModel>> updatePatient(
+      String id, PatientModel patientModel);
 
   /// Deletes a patient by their ID.
   Future<Either<Failure, void>> deletePatient(String id);
 
   /// Searches patients based on criteria.
-  Future<Either<Failure, List<PatientModel>>> searchPatients(String query);
+  Future<Either<Failure, List<PatientModel>>> searchPatients({
+    String? name,
+    int? minAge,
+    int? maxAge,
+    String? address,
+    String? gender,
+  });
+
+  /// Gets patients by a specific date.
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+      {String? lastDocumentID, int limit = 20});
 }

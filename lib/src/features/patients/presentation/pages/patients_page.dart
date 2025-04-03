@@ -7,6 +7,144 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
+/// A dialog for filtering patients by date, gender, and age range.
+class FilterDialog extends StatefulWidget {
+  final DateTime? initialDate;
+  final String? initialGender;
+  final int? initialMinAge;
+  final int? initialMaxAge;
+  final Function(DateTime?, String?, int?, int?) onApplyFilters;
+
+  const FilterDialog({
+    super.key,
+    this.initialDate,
+    this.initialGender,
+    this.initialMinAge,
+    this.initialMaxAge,
+    required this.onApplyFilters,
+  });
+
+  @override
+  State<FilterDialog> createState() => _FilterDialogState();
+}
+
+class _FilterDialogState extends State<FilterDialog> {
+  DateTime? _selectedDate;
+  String? _selectedGender;
+  int? _minAge;
+  int? _maxAge;
+
+  // Add focus nodes here
+  final FocusNode _minAgeFocusNode = FocusNode();
+  final FocusNode _maxAgeFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.initialDate;
+    _selectedGender = widget.initialGender;
+    _minAge = widget.initialMinAge;
+    _maxAge = widget.initialMaxAge;
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Filter Patients'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: const Text('Date'),
+            subtitle: Text(_selectedDate != null
+                ? _selectedDate!.toLocal().toString().split(' ')[0]
+                : 'No date selected'),
+            trailing: IconButton(
+              icon: const Icon(Icons.calendar_month_outlined),
+              onPressed: () => _selectDate(context),
+            ),
+          ),
+          DropdownButtonFormField<String>(
+            value: _selectedGender,
+            items: const [
+              DropdownMenuItem(value: 'Male', child: Text('Male')),
+              DropdownMenuItem(value: 'Female', child: Text('Female')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedGender = value;
+              });
+            },
+            decoration: const InputDecoration(labelText: 'Gender'),
+          ),
+          TextField(
+            focusNode: _minAgeFocusNode,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Min Age'),
+            onChanged: (value) {
+              setState(() {
+                _minAge = int.tryParse(value);
+              });
+            },
+            onSubmitted: (_) {
+              _maxAgeFocusNode.requestFocus();
+            },
+          ),
+          TextField(
+            focusNode: _maxAgeFocusNode,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Max Age'),
+            onChanged: (value) {
+              setState(() {
+                _maxAge = int.tryParse(value);
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            widget.onApplyFilters(
+              _selectedDate,
+              _selectedGender,
+              _minAge,
+              _maxAge,
+            );
+            Navigator.of(context).pop();
+          },
+          child: const Text('Apply'),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _minAgeFocusNode.dispose();
+    _maxAgeFocusNode.dispose();
+    super.dispose();
+  }
+}
+
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
   const PatientsPage({super.key});
@@ -21,6 +159,12 @@ class _PatientsPageState extends State<PatientsPage> {
   final FocusNode _listFocusNode = FocusNode();
   final FocusNode _searchFocusNode = FocusNode();
   int _selectedIndex = 0;
+  bool _showFilters = false; // State to toggle filter icons
+  DateTime? _selectedDate;
+  String? _selectedGender;
+  int? _minAge;
+  int? _maxAge;
+  String? _selectedAddress; // Add a variable to store the selected address
 
   @override
   void initState() {
@@ -56,9 +200,8 @@ class _PatientsPageState extends State<PatientsPage> {
                       query = newQuery;
                       _selectedIndex = 0; // Reset selection on new query
                     });
-                    context
-                        .read<PatientsBloc>()
-                        .add(SearchPatients(query)); // Trigger search event
+                    context.read<PatientsBloc>().add(
+                        SearchPatients(name: query)); // Trigger search event
                   },
                   onSubmitted: (_) {
                     _listFocusNode.requestFocus();
@@ -66,29 +209,264 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
               ),
             ),
+            // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'Refresh',
               onPressed: () {
+                setState(() {
+                  query = '';
+                  _selectedDate = null;
+                  _selectedGender = null;
+                  _minAge = null;
+                  _maxAge = null;
+                  _selectedAddress = null;
+                });
                 context.read<PatientsBloc>().add(const GetPatients());
               },
             ),
-            IconButton(
-              icon: const Icon(Icons.filter_alt),
-              tooltip: 'Filter by Date',
-              onPressed: () async {
-                final DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2101),
-                );
-                if (pickedDate != null) {
-                  context.read<PatientsBloc>().add(
-                        GetPatientsByDate(date: pickedDate),
-                      );
-                }
-              },
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_alt),
+                    tooltip: 'Toggle Filters',
+                    onPressed: () {
+                      setState(() {
+                        _showFilters =
+                            !_showFilters; // Toggle filter visibility
+                      });
+                    },
+                  ),
+                  if (_showFilters) ...[
+                    // Update the filter logic to clear previous filter values when a new filter is selected, unless mixed filters are allowed.
+                    IconButton(
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.calendar_month_outlined),
+                          if (_selectedDate != null)
+                            Text(
+                              _selectedDate!.toLocal().toString().split(' ')[0],
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      tooltip: 'Filter by Date',
+                      onPressed: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            _selectedDate = selectedDate;
+                            _selectedGender = null;
+                            _minAge = null;
+                            _maxAge = null;
+                            _selectedAddress = null; // Clear address value
+                          });
+                          context
+                              .read<PatientsBloc>()
+                              .add(GetPatientsByDate(date: selectedDate));
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.male),
+                          if (_selectedGender == 'Male')
+                            const Text(
+                              'Male',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      tooltip: 'Filter by Male',
+                      onPressed: () {
+                        setState(() {
+                          _selectedGender = 'Male';
+                          _selectedDate = null;
+                          _minAge = null;
+                          _maxAge = null;
+                          _selectedAddress = null; // Clear address value
+                        });
+                        context
+                            .read<PatientsBloc>()
+                            .add(const SearchPatients(gender: 'Male'));
+                      },
+                    ),
+                    IconButton(
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.female),
+                          if (_selectedGender == 'Female')
+                            const Text(
+                              'Female',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      tooltip: 'Filter by Female',
+                      onPressed: () {
+                        setState(() {
+                          _selectedGender = 'Female';
+                          _selectedDate = null;
+                          _minAge = null;
+                          _maxAge = null;
+                          _selectedAddress = null; // Clear address value
+                        });
+                        context
+                            .read<PatientsBloc>()
+                            .add(const SearchPatients(gender: 'Female'));
+                      },
+                    ),
+                    IconButton(
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.numbers),
+                          if (_minAge != null || _maxAge != null)
+                            Text(
+                              '${_minAge ?? ''}-${_maxAge ?? ''}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      tooltip: 'Filter by Age',
+                      onPressed: () async {
+                        final minAgeController = TextEditingController();
+                        final maxAgeController = TextEditingController();
+                        await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('Filter by Age'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextField(
+                                    controller: minAgeController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      FilteringTextInputFormatter.allow(RegExp(
+                                          r'^(?:1[0-2][0-9]|1[0-2][0]|[1-9]?[0-9]|130)')),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter min age (0-130)'),
+                                  ),
+                                  TextField(
+                                    controller: maxAgeController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      FilteringTextInputFormatter.allow(RegExp(
+                                          r'^(?:1[0-2][0-9]|1[0-2][0]|[1-9]?[0-9]|130)')),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter max age (0-130)'),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    final minAge =
+                                        int.tryParse(minAgeController.text);
+                                    final maxAge =
+                                        int.tryParse(maxAgeController.text);
+                                    if ((minAge != null && minAge >= 0) ||
+                                        (maxAge != null && maxAge <= 130)) {
+                                      setState(() {
+                                        _minAge = minAge;
+                                        _maxAge = maxAge;
+                                        _selectedDate = null;
+                                        _selectedGender = null;
+                                        _selectedAddress =
+                                            null; // Clear address value
+                                      });
+                                      context.read<PatientsBloc>().add(
+                                          SearchPatients(
+                                              minAge: minAge, maxAge: maxAge));
+                                    }
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Apply'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.location_on),
+                          if (_selectedAddress != null)
+                            Text(
+                              _selectedAddress!,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      tooltip: 'Filter by Address',
+                      onPressed: () async {
+                        final addressController = TextEditingController();
+                        await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('Filter by Address'),
+                              content: TextField(
+                                controller: addressController,
+                                decoration: const InputDecoration(
+                                    hintText: 'Enter address'),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    final address = addressController.text;
+                                    if (address.isNotEmpty) {
+                                      setState(() {
+                                        _selectedAddress = address;
+                                        _selectedDate = null;
+                                        _selectedGender = null;
+                                        _minAge = null;
+                                        _maxAge = null;
+                                      });
+                                      context.read<PatientsBloc>().add(
+                                          SearchPatients(address: address));
+                                    }
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Apply'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
         ),
@@ -137,6 +515,8 @@ class _PatientsPageState extends State<PatientsPage> {
                       ),
                     ),
                   );
+                } else if (state is PatientsLoaded && state.patients.isEmpty) {
+                  return const Center(child: Text('No patients found.'));
                 } else if (state is PatientsLoaded) {
                   debugPrint(
                       'PatientsLoaded state with ${state.patients.length} patients');

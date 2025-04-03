@@ -136,19 +136,39 @@ class PatientFirebaseApi {
     }
   }
 
-  Future<Either<Failure, List<PatientModel>>> searchPatients(String query,
-      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+  Future<Either<Failure, List<PatientModel>>> searchPatients({
+    String? name,
+    int? minAge,
+    int? maxAge,
+    String? address,
+    String? gender,
+  }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef = _patientsCollection
-            .where('userId', isEqualTo: user.uid)
-            .where('name', isGreaterThanOrEqualTo: query)
-            .where('name', isLessThanOrEqualTo: '$query\uf8ff')
-            .limit(limit);
+        Query queryRef =
+            _patientsCollection.where('userId', isEqualTo: user.uid);
 
-        if (lastDocument != null) {
-          queryRef = queryRef.startAfterDocument(lastDocument);
+        if (name != null && name.isNotEmpty) {
+          queryRef = queryRef
+              .where('name', isGreaterThanOrEqualTo: name)
+              .where('name', isLessThanOrEqualTo: '$name\uf8ff');
+        }
+
+        if (minAge != null) {
+          queryRef = queryRef.where('age', isGreaterThanOrEqualTo: minAge);
+        }
+
+        if (maxAge != null) {
+          queryRef = queryRef.where('age', isLessThanOrEqualTo: maxAge);
+        }
+
+        if (address != null && address.isNotEmpty) {
+          queryRef = queryRef.where('address', isEqualTo: address);
+        }
+
+        if (gender != null && gender.isNotEmpty) {
+          queryRef = queryRef.where('gender', isEqualTo: gender);
         }
 
         final snapshot = await queryRef.get();

@@ -246,11 +246,11 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
-Query queryRef = _sessionsCollection
-    .where('createdBy', isEqualTo: user.uid)
-    .where('startDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(date.year, date.month, date.day)))
-    .where('startDateTime', isLessThan: Timestamp.fromDate(DateTime(date.year, date.month, date.day + 1)))
-    .limit(limit);
+        Query queryRef = _sessionsCollection
+            .where('createdBy', isEqualTo: user.uid)
+            .where('startDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(date.year, date.month, date.day)))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(DateTime(date.year, date.month, date.day + 1)))
+            .limit(limit);
 
         if (lastDocument != null) {
           debugPrint('Using lastDocument for pagination');

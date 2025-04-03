@@ -23,8 +23,8 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Updates an existing patient.
   @override
-  Future<Either<Failure, PatientModel>> updatePatient(String id,
-      PatientModel patientModel) {
+  Future<Either<Failure, PatientModel>> updatePatient(
+      String id, PatientModel patientModel) {
     return api.updatePatient(id, patientModel);
   }
 
@@ -36,9 +36,23 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Searches patients based on criteria.
   @override
-  Future<Either<Failure, List<PatientModel>>> searchPatients(String query) {
-    return api.searchPatients(query);
+  Future<Either<Failure, List<PatientModel>>> searchPatients({
+    String? name,
+    int? minAge,
+    int? maxAge,
+    String? address,
+    String? gender,
+  }) {
+    return api.searchPatients(
+      name: name,
+      minAge: minAge,
+      maxAge: maxAge,
+      address: address,
+      gender: gender,
+    );
   }
+
+  @override
 
   /// Fetches patients by a specific date.
   Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,

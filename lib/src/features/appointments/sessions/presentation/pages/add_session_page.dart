@@ -284,7 +284,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       });
                                       context.read<PatientsBloc>().add(
                                           SearchPatients(
-                                              query)); // Trigger search event
+                                              name:query)); // Trigger search event
                                     },
                                     onFieldSubmitted: (_) {
                                       FocusScope.of(context)
