@@ -23,7 +23,10 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
   Future<void> _onGetPatients(
       GetPatients event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading(state.patients));
-    final failureOrPatients = await _patientsUseCase.getPatients();
+    final failureOrPatients = await _patientsUseCase.getPatients(
+      lastDocumentId: event.lastDocumentID, // Corrected property name
+      limit: event.limit, // Removed unnecessary null check
+    );
     emit(failureOrPatients.fold(
       (failure) =>
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
@@ -110,7 +113,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
       final result = await _patientsUseCase.getPatients(
         lastDocumentId: event.lastDocumentId,
-        limit: event.limit ?? 20,
+        limit: event.limit,
       );
 
       emit(result.fold(
@@ -131,10 +134,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
     final result = await _patientsUseCase.getPatientsByDate(
       event.date,
-      lastDocumentID: event.lastDocumentID,
-      limit: event.limit,
     );
-
     emit(result.fold(
       (failure) =>
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),

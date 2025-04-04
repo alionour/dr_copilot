@@ -194,7 +194,7 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
   /// Fetches sessions based on search criteria.
   @override
   Future<Either<Failure, List<SessionModel>>> searchSessions({String? name,
-      DocumentSnapshot? lastDocument, int limit = 20}) async {
+      String? lastDocumentID, int limit = 20}) async {
     
     
     if (!await _isAuthenticated()) {
@@ -215,10 +215,16 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
         }
 
 
-        if (lastDocument != null) {
-          queryRef = queryRef.startAfterDocument(lastDocument);
-        }
 
+        if (lastDocumentID != null) {
+          final lastDocumentSnapshot =
+              await _sessionsCollection.doc(lastDocumentID).get();
+          if (lastDocumentSnapshot.exists) {
+            queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
+          } else {
+            throw Exception('Document with ID $lastDocumentID does not exist');
+          }
+        }
         final snapshot = await queryRef.get();
 
         List<SessionModel> sessions = snapshot.docs

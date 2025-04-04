@@ -61,17 +61,15 @@ class DeletePatient extends PatientsEvent {
 
 class GetPatientsByDate extends PatientsEvent {
   final DateTime date;
-  final String? lastDocumentID;
-  final int limit;
+
 
   const GetPatientsByDate({
     required this.date,
-    this.lastDocumentID,
-    this.limit = 20,
+
   });
 
   @override
-  List<Object?> get props => [date, lastDocumentID, limit];
+  List<Object?> get props => [date,];
 }
 
 class LoadMorePatients extends PatientsEvent {
