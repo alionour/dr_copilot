@@ -74,7 +74,6 @@ class _SessionsPageState extends State<SessionsPage> {
                 setState(() {
                   query = '';
                   _selectedDate = null;
-
                 });
                 context.read<SessionsBloc>().add(const GetSessions());
               },
@@ -137,14 +136,13 @@ class _SessionsPageState extends State<SessionsPage> {
                         if (selectedDate != null) {
                           setState(() {
                             _selectedDate = selectedDate;
-                      });
+                          });
                           context
                               .read<SessionsBloc>()
                               .add(GetSessionsByDate(date: selectedDate));
                         }
                       },
                     ),
-                    
                   ],
                 ],
               ),
@@ -152,7 +150,7 @@ class _SessionsPageState extends State<SessionsPage> {
           ],
         ),
       ),
-    body: BlocListener<SessionsBloc, SessionsState>(
+      body: BlocListener<SessionsBloc, SessionsState>(
         listener: (context, state) {
           if (state is SessionsSuccess) {
             final message = state.message;
@@ -195,6 +193,12 @@ class _SessionsPageState extends State<SessionsPage> {
               final sessions = state is SessionsLoaded
                   ? state.sessions
                   : (state as SessionsLoadingMore).sessions;
+
+              if (sessions.isEmpty) {
+                return const Center(
+                  child: Text('No sessions match the applied filters.'),
+                );
+              }
 
               return NotificationListener<ScrollNotification>(
                 onNotification: (scrollNotification) {
