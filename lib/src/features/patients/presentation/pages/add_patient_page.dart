@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 
 // AddPatientPage StatefulWidget
@@ -49,151 +48,106 @@ class _AddPatientPageState extends State<AddPatientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Patient',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Add Patient'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             context.go('/home');
           },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _submitForm,
-          ),
-        ],
-        elevation: 0,
-        backgroundColor: Colors.blueAccent,
       ),
-      body: BlocListener<PatientsBloc, PatientsState>(
-        listener: (context, state) {
-        if (state is PatientsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is PatientsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          }
-        },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isSmallScreen = constraints.maxWidth < 600;
-            return Center(
-              child: Container(
-                width: isSmallScreen ? double.infinity : 600,
-                padding: const EdgeInsets.all(16.0),
-                child: SingleChildScrollView(
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Add New Patient',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 600;
+          return Center(
+            child: Container(
+              width: isSmallScreen ? double.infinity : 600,
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            controller: _nameController,
+                            focusNode: _nameFocusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(height: 16.0),
-                            TextFormField(
-                              controller: _nameController,
-                              focusNode: _nameFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Name',
-                                labelStyle: GoogleFonts.tajawal(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                              style: GoogleFonts.tajawal(),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a name';
-                                }
-                                return null;
-                              },
-                              onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_ageFocusNode);
-                              },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a name';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_ageFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _ageController,
+                            focusNode: _ageFocusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Age',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(height: 16.0),
-                            TextFormField(
-                              controller: _ageController,
-                              focusNode: _ageFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Age',
-                                labelStyle: GoogleFonts.robotoSlab(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter an age';
-                                }
-                                final age = int.tryParse(value);
-                                if (age == null || age < 1 || age > 120) {
-                                  return 'Age must be between 1 and 120';
-                                }
-                                return null;
-                              },
-                              onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_addressFocusNode);
-                              },
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter an age';
+                              }
+                              final age = int.tryParse(value);
+                              if (age == null || age < 1 || age > 120) {
+                                return 'Age must be between 1 and 120';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_addressFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _addressController,
+                            focusNode: _addressFocusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Address',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(height: 16.0),
-                            TextFormField(
-                              controller: _addressController,
-                              focusNode: _addressFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Address',
-                                labelStyle: GoogleFonts.tajawal(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                              style: GoogleFonts.tajawal(),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter an address';
-                                }
-                                return null;
-                              },
-                              onFieldSubmitted: (_) {
-                                FocusScope.of(context).unfocus();
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            const Text(
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter an address';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context).unfocus();
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
                               'Gender',
                               style: TextStyle(fontSize: 16),
                             ),
-                            const SizedBox(height: 8.0),
-                            ToggleButtons(
+                          ),
+                          const SizedBox(height: 8.0),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: ToggleButtons(
                               isSelected: [
                                 _selectedGender == 'Male',
                                 _selectedGender == 'Female'
@@ -236,34 +190,24 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16.0),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _submitForm,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16.0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Add Patient',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ),
+                          ),
+                          const SizedBox(height: 16.0),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _submitForm,
+                              child: const Text('Add Patient'),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

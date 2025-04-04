@@ -240,385 +240,419 @@ class _AddSessionPageState extends State<AddSessionPage> {
           builder: (context, constraints) {
             final isSmallScreen = constraints.maxWidth < 600;
             return Center(
-              child: SingleChildScrollView(
-                child: Container(
-                  width: isSmallScreen ? double.infinity : 600,
-                  padding: const EdgeInsets.all(8.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Focus(
-                          focusNode: _searchFocusNode,
-                          child: BlocBuilder<PatientsBloc, PatientsState>(
-                            builder: (context, state) {
-                              if (state is PatientsLoaded) {
-                                _filteredPatients =
-                                    state.patients.where((patient) {
-                                  return patient.name
-                                      .toLowerCase()
-                                      .contains(query.toLowerCase());
-                                }).toList();
-                              }
-                              return Column(
-                                children: [
-                                  TextFormField(
-                                    controller: _patientNameController,
-                                    focusNode: _patientNameFocusNode,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Patient Name',
-                                      hintText: 'Search Patients',
-                                      prefixIcon: Icon(Icons.search),
-                                      border: InputBorder.none,
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter a patient name';
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (newQuery) {
-                                      setState(() {
-                                        query = newQuery;
-                                      });
-                                      context.read<PatientsBloc>().add(
-                                          SearchPatients(
-                                              name:query)); // Trigger search event
-                                    },
-                                    onFieldSubmitted: (_) {
-                                      FocusScope.of(context)
-                                          .requestFocus(_actualPriceFocusNode);
-                                    },
-                                  ),
-                                  if (_filteredPatients.isNotEmpty)
-                                    Container(
-                                      constraints: const BoxConstraints(
-                                        maxHeight:
-                                            200, // Limit height for scrolling
-                                      ),
-                                      child: ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: _filteredPatients.length > 5
-                                            ? 2
-                                            : _filteredPatients
-                                                .length, // Show only 5 items
-                                        itemBuilder: (context, index) {
-                                          return ListTile(
-                                            title: Text(
-                                                _filteredPatients[index].name),
-                                            onTap: () {
-                                              setState(() {
-                                                _patientNameController.text =
-                                                    _filteredPatients[index]
-                                                        .name;
-                                                _filteredPatients = [];
-                                              });
-                                              FocusScope.of(context)
-                                                  .requestFocus(
-                                                      _actualPriceFocusNode);
-                                            },
-                                          );
+              child: Container(
+                width: isSmallScreen ? double.infinity : 600,
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Focus(
+                              focusNode: _searchFocusNode,
+                              child: BlocBuilder<PatientsBloc, PatientsState>(
+                                builder: (context, state) {
+                                  if (state is PatientsLoaded) {
+                                    _filteredPatients =
+                                        state.patients.where((patient) {
+                                      return patient.name
+                                          .toLowerCase()
+                                          .contains(query.toLowerCase());
+                                    }).toList();
+                                  }
+                                  return Column(
+                                    children: [
+                                      TextFormField(
+                                        controller: _patientNameController,
+                                        focusNode: _patientNameFocusNode,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Patient Name',
+                                          hintText: 'Search Patients',
+                                          prefixIcon: Icon(Icons.search),
+                                          border: InputBorder.none,
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter a patient name';
+                                          }
+                                          return null;
+                                        },
+                                        onChanged: (newQuery) {
+                                          setState(() {
+                                            query = newQuery;
+                                          });
+                                          context.read<PatientsBloc>().add(
+                                              SearchPatients(
+                                                  name:
+                                                      query)); // Trigger search event
+                                        },
+                                        onFieldSubmitted: (_) {
+                                          FocusScope.of(context).requestFocus(
+                                              _actualPriceFocusNode);
                                         },
                                       ),
-                                    ),
-                                  if (_filteredPatients.isEmpty &&
-                                      query.isNotEmpty)
-                                    Column(
-                                      children: [
-                                        const Text(
-                                            'No patients with provided query.'),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                      if (_filteredPatients.isNotEmpty)
+                                        Container(
+                                          constraints: const BoxConstraints(
+                                            maxHeight:
+                                                200, // Limit height for scrolling
+                                          ),
+                                          child: ListView.builder(
+                                            shrinkWrap: true,
+                                            itemCount: _filteredPatients
+                                                        .length >
+                                                    5
+                                                ? 2
+                                                : _filteredPatients
+                                                    .length, // Show only 5 items
+                                            itemBuilder: (context, index) {
+                                              return ListTile(
+                                                title: Text(
+                                                    _filteredPatients[index]
+                                                        .name),
+                                                onTap: () {
+                                                  setState(() {
+                                                    _patientNameController
+                                                            .text =
+                                                        _filteredPatients[index]
+                                                            .name;
+                                                    _filteredPatients = [];
+                                                  });
+                                                  FocusScope.of(context)
+                                                      .requestFocus(
+                                                          _actualPriceFocusNode);
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      if (_filteredPatients.isEmpty &&
+                                          query.isNotEmpty)
+                                        Column(
                                           children: [
-                                            Tooltip(
-                                              message: 'Add Patient',
-                                              child: IconButton(
-                                                icon: const Icon(Icons.add),
-                                                onPressed: () {
-                                                  final userId = FirebaseAuth
-                                                      .instance
-                                                      .currentUser
-                                                      ?.uid;
-                                                  if (userId != null) {
-                                                    // Add patient directly
-                                                    final newPatient =
-                                                        PatientModel(
-                                                            id: const Uuid()
-                                                                .v4(),
-                                                            name: query,
-                                                            userId: userId);
-                                                    context
-                                                        .read<PatientsBloc>()
-                                                        .add(AddPatient(
-                                                            newPatient));
-                                                    setState(() {
-                                                      _patientNameController
-                                                          .text = query;
-                                                      _filteredPatients = [];
-                                                    });
-                                                    FocusScope.of(context)
-                                                        .requestFocus(
-                                                            _actualPriceFocusNode);
-                                                  } else {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                          content: Text(
-                                                              'User can not be null')),
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                            Tooltip(
-                                              message: 'Go to Add Patient',
-                                              child: IconButton(
-                                                icon: const Icon(
-                                                    Icons.arrow_forward),
-                                                onPressed: () {
-                                                  // Navigate to add patient page
-                                                  context.go('/patients/new');
-                                                },
-                                              ),
+                                            const Text(
+                                                'No patients with provided query.'),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Tooltip(
+                                                  message: 'Add Patient',
+                                                  child: IconButton(
+                                                    icon: const Icon(Icons.add),
+                                                    onPressed: () {
+                                                      final userId =
+                                                          FirebaseAuth.instance
+                                                              .currentUser?.uid;
+                                                      if (userId != null) {
+                                                        // Add patient directly
+                                                        final newPatient =
+                                                            PatientModel(
+                                                                id: const Uuid()
+                                                                    .v4(),
+                                                                name: query,
+                                                                userId: userId);
+                                                        context
+                                                            .read<
+                                                                PatientsBloc>()
+                                                            .add(AddPatient(
+                                                                newPatient));
+                                                        setState(() {
+                                                          _patientNameController
+                                                              .text = query;
+                                                          _filteredPatients =
+                                                              [];
+                                                        });
+                                                        FocusScope.of(context)
+                                                            .requestFocus(
+                                                                _actualPriceFocusNode);
+                                                      } else {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
+                                                              content: Text(
+                                                                  'User can not be null')),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                                Tooltip(
+                                                  message: 'Go to Add Patient',
+                                                  child: IconButton(
+                                                    icon: const Icon(
+                                                        Icons.arrow_forward),
+                                                    onPressed: () {
+                                                      // Navigate to add patient page
+                                                      context
+                                                          .go('/patients/new');
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Start Date & Time',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: TextFormField(
+                                    readOnly: true,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Select start date',
+                                      suffixIcon:
+                                          Icon(Icons.calendar_month_outlined),
+                                      border: OutlineInputBorder(),
                                     ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Start Date & Time',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: TextFormField(
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select start date',
-                                  suffixIcon:
-                                      Icon(Icons.calendar_month_outlined),
-                                  border: OutlineInputBorder(),
+                                    controller: TextEditingController(
+                                      text: DateFormat('yyyy-MM-dd')
+                                          .format(_startDate!.toDate()),
+                                    ),
+                                    onTap: () => _selectDate(context, true),
+                                  ),
                                 ),
-                                controller: TextEditingController(
-                                  text: DateFormat('yyyy-MM-dd')
-                                      .format(_startDate!.toDate()),
+                                const SizedBox(width: 8.0),
+                                Expanded(
+                                  child: TextFormField(
+                                    readOnly: true,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Select start time',
+                                      suffixIcon: Icon(
+                                          Icons.access_time_filled_outlined),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    controller: TextEditingController(
+                                      text: DateFormat('HH:mm')
+                                          .format(_startDate!.toDate()),
+                                    ),
+                                    onTap: () => _selectTime(context, true),
+                                  ),
                                 ),
-                                onTap: () => _selectDate(context, true),
+                              ],
+                            ),
+                            const SizedBox(height: 8.0),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'End Date & Time',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            const SizedBox(width: 8.0),
-                            Expanded(
-                              child: TextFormField(
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select start time',
-                                  suffixIcon:
-                                      Icon(Icons.access_time_filled_outlined),
-                                  border: OutlineInputBorder(),
+                            const SizedBox(height: 8.0),
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: TextFormField(
+                                    readOnly: true,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Select end date',
+                                      suffixIcon:
+                                          Icon(Icons.calendar_month_outlined),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    controller: TextEditingController(
+                                      text: DateFormat('yyyy-MM-dd')
+                                          .format(_endDate!.toDate()),
+                                    ),
+                                    onTap: () => _selectDate(context, false),
+                                  ),
                                 ),
-                                controller: TextEditingController(
-                                  text: DateFormat('HH:mm')
-                                      .format(_startDate!.toDate()),
+                                const SizedBox(width: 8.0),
+                                Expanded(
+                                  child: TextFormField(
+                                    readOnly: true,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Select end time',
+                                      suffixIcon: Icon(
+                                          Icons.access_time_filled_outlined),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    controller: TextEditingController(
+                                      text: DateFormat('HH:mm')
+                                          .format(_endDate!.toDate()),
+                                    ),
+                                    onTap: () => _selectTime(context, false),
+                                  ),
                                 ),
-                                onTap: () => _selectTime(context, true),
+                              ],
+                            ),
+                            const SizedBox(height: 8.0),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Duration: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} hours',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8.0),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'End Date & Time',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: TextFormField(
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select end date',
-                                  suffixIcon:
-                                      Icon(Icons.calendar_month_outlined),
-                                  border: OutlineInputBorder(),
+                            const SizedBox(height: 8.0),
+                            if (_validateTime() != null)
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _validateTime()!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12.0,
+                                  ),
                                 ),
-                                controller: TextEditingController(
-                                  text: DateFormat('yyyy-MM-dd')
-                                      .format(_endDate!.toDate()),
-                                ),
-                                onTap: () => _selectDate(context, false),
+                              ),
+                            const SizedBox(height: 8.0),
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Session Type',
+                                style: TextStyle(fontSize: 16),
                               ),
                             ),
-                            const SizedBox(width: 8.0),
-                            Expanded(
-                              child: TextFormField(
-                                readOnly: true,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select end time',
-                                  suffixIcon:
-                                      Icon(Icons.access_time_filled_outlined),
-                                  border: OutlineInputBorder(),
+                            const SizedBox(height: 8.0),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ToggleButtons(
+                                  isSelected: SessionType.values
+                                      .map((type) =>
+                                          _selectedSessionType == type)
+                                      .toList(),
+                                  onPressed: (index) {
+                                    setState(() {
+                                      _selectedSessionType =
+                                          SessionType.values[index];
+                                      _updateEstimatedPrice(); // Update price when session type changes
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  selectedColor: Colors.white,
+                                  fillColor: Colors.blueAccent,
+                                  children: SessionType.values.map((type) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12.0, vertical: 6.0),
+                                      child: Text(
+                                        type.text,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: _selectedSessionType == type
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
-                                controller: TextEditingController(
-                                  text: DateFormat('HH:mm')
-                                      .format(_endDate!.toDate()),
-                                ),
-                                onTap: () => _selectTime(context, false),
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8.0),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Duration: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} hours',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        if (_validateTime() != null)
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              _validateTime()!,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 12.0,
+                            const SizedBox(height: 8.0),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Actual Price',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                             ),
-                          ),
-                        const SizedBox(height: 8.0),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Session Type',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Wrap(
-                          spacing: 8.0,
-                          children: SessionType.values.map((type) {
-                            return ChoiceChip(
-                              label: Text(type.text),
-                              selected: _selectedSessionType == type,
-                              onSelected: (bool selected) {
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: _actualPriceController,
+                              focusNode: _actualPriceFocusNode,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Enter actual price',
+                                helperText:
+                                    'Estimated Price: \$${_estimatedPrice.toStringAsFixed(2)}',
+                                border: const OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter the actual price';
+                                }
+                                final price = double.tryParse(value);
+                                if (price == null || price <= 0) {
+                                  return 'Please enter a valid price greater than zero';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8.0),
+                            DropdownButtonFormField<String>(
+                              value: _selectedCalendar,
+                              decoration: InputDecoration(
+                                labelText: 'Calendar',
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: _calendars.map((String calendar) {
+                                return DropdownMenuItem<String>(
+                                  value: calendar,
+                                  child: Row(
+                                    children: <Widget>[
+                                      CircleAvatar(
+                                        backgroundColor:
+                                            _calendarColors[calendar],
+                                        radius: 5,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(calendar),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
                                 setState(() {
-                                  if (selected) {
-                                    _selectedSessionType = type;
-                                    _updateEstimatedPrice(); // Update price when session type changes
-                                  }
+                                  _selectedCalendar = newValue!;
                                 });
                               },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Actual Price',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        TextFormField(
-                          controller: _actualPriceController,
-                          focusNode: _actualPriceFocusNode,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: 'Enter actual price',
-                            helperText:
-                                'Estimated Price: \$${_estimatedPrice.toStringAsFixed(2)}',
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter the actual price';
-                            }
-                            final price = double.tryParse(value);
-                            if (price == null || price <= 0) {
-                              return 'Please enter a valid price greater than zero';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 8.0),
-                        DropdownButtonFormField<String>(
-                          value: _selectedCalendar,
-                          decoration: InputDecoration(
-                            labelText: 'Calendar',
-                            labelStyle: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          items: _calendars.map((String calendar) {
-                            return DropdownMenuItem<String>(
-                              value: calendar,
-                              child: Row(
-                                children: <Widget>[
-                                  CircleAvatar(
-                                    backgroundColor: _calendarColors[calendar],
-                                    radius: 5,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(calendar),
-                                ],
+                            ),
+                            const SizedBox(height: 8.0),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed:
+                                    _saveSession, // Call _saveEvent on button press
+                                child: const Text('Save Appointment'),
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedCalendar = newValue!;
-                            });
-                          },
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8.0),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed:
-                                _saveSession, // Call _saveEvent on button press
-                            child: const Text('Save Appointment'),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
