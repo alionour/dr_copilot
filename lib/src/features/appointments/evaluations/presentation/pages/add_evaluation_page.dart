@@ -350,6 +350,19 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                           FirebaseAuth.instance
                                                               .currentUser?.uid;
                                                       if (userId != null) {
+                                                        if (query
+                                                                .split(' ')
+                                                                .length <
+                                                            3) {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                                content: Text(
+                                                                    'Name must contain at least 3 words.')),
+                                                          );
+                                                          return;
+                                                        }
                                                         // Add patient directly
                                                         final newPatient =
                                                             PatientModel(
