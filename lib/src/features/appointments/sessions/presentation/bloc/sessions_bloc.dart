@@ -90,7 +90,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       SearchSessions event, Emitter<SessionsState> emit) async {
     emit(SessionsLoading(state.sessions));
     final failureOrSessions =
-        await _sessionsUseCase.searchSessions(event.query);
+        await _sessionsUseCase.searchSessions(name:event.name);
     emit(failureOrSessions.fold(
       (failure) =>
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),

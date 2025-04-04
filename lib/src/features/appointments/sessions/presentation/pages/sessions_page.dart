@@ -20,9 +20,15 @@ class _SessionsPageState extends State<SessionsPage> {
   final FocusNode _searchFocusNode = FocusNode();
   int _selectedIndex = 0;
 
+  bool _showFilters = false; // State to toggle filter icons
+  DateTime? _selectedDate;
+
   @override
   void initState() {
     super.initState();
+    _listFocusNode.addListener(() {
+      debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
+    });
     context
         .read<SessionsBloc>()
         .add(const GetSessions()); // Fetch sessions on init
@@ -51,9 +57,8 @@ class _SessionsPageState extends State<SessionsPage> {
                       query = newQuery;
                       _selectedIndex = 0; // Reset selection on new query
                     });
-                    context
-                        .read<SessionsBloc>()
-                        .add(SearchSessions(query)); // Trigger search event
+                    context.read<SessionsBloc>().add(
+                        SearchSessions(name: query)); // Trigger search event
                   },
                   onSubmitted: (_) {
                     _listFocusNode.requestFocus();
@@ -61,54 +66,93 @@ class _SessionsPageState extends State<SessionsPage> {
                 ),
               ),
             ),
-            IconButton(
-              icon: Row(
-                children: [
-                  const Icon(Icons.calendar_month_outlined),
-                  if (selectedDate != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(
-                        '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 12.0,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              tooltip: 'Filter by Date',
-              onPressed: () async {
-                final pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: selectedDate ?? DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null) {
-                  setState(() {
-                    selectedDate = pickedDate;
-                  });
-                  context.read<SessionsBloc>().add(GetSessionsByDate(
-                      pickedDate)); // Dispatch event to filter by date
-                }
-              },
-            ),
+            // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'Refresh',
               onPressed: () {
                 setState(() {
-                  selectedDate = null; // Reset date filter
+                  query = '';
+                  _selectedDate = null;
+
                 });
                 context.read<SessionsBloc>().add(const GetSessions());
               },
             ),
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                // border: Border.all(
+                //   color: Theme.of(context)
+                //       .colorScheme
+                //       .primary
+                //       .withOpacity(0.3), // Adjusted color to be less intense
+                //   width: 0.3, // Made the border thinner
+                // ),
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_alt),
+                    tooltip: 'Toggle Filters',
+                    onPressed: () {
+                      setState(() {
+                        _showFilters =
+                            !_showFilters; // Toggle filter visibility
+                      });
+                    },
+                  ),
+                  if (_showFilters) ...[
+                    // Update the filter logic to clear previous filter values when a new filter is selected, unless mixed filters are allowed.
+                    IconButton(
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.calendar_month_outlined),
+                          if (_selectedDate != null)
+                            Text(
+                              _selectedDate!.toLocal().toString().split(' ')[0],
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      tooltip: 'Filter by Date',
+                      onPressed: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            _selectedDate = selectedDate;
+                      });
+                          context
+                              .read<SessionsBloc>()
+                              .add(GetSessionsByDate(date: selectedDate));
+                        }
+                      },
+                    ),
+                    
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      body: BlocListener<SessionsBloc, SessionsState>(
+    body: BlocListener<SessionsBloc, SessionsState>(
         listener: (context, state) {
           if (state is SessionsSuccess) {
             final message = state.message;

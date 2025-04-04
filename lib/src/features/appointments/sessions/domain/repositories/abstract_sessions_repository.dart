@@ -19,7 +19,7 @@ abstract class AbstractSessionsRepository {
   Future<Either<Failure, SessionModel>> deleteSession(String id);
 
   /// Searches sessions based on criteria.
-  Future<Either<Failure, List<SessionModel>>> searchSessions(String query);
+  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name});
 
   /// Gets sessions by a specific date.
   Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date);

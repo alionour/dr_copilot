@@ -193,22 +193,27 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
 
   /// Fetches sessions based on search criteria.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions(String query,
-      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name,
+      DocumentSnapshot? lastDocument, int limit = 20}) async {
+    
+    
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
+      
       final user = _auth.currentUser;
       if (user != null) {
-        Query queryRef = _sessionsCollection
-            .where('createdBy', isEqualTo: user.uid)
-            .where('patientName',
-                isGreaterThanOrEqualTo: query) // Correct field name
-            .where('patientName',
-                isLessThanOrEqualTo: '$query\uf8ff') // Correct field name
-            .limit(limit);
+          Query queryRef =
+            _sessionsCollection.where('createdBy', isEqualTo: user.uid);
+
+        if (name != null && name.isNotEmpty) {
+          queryRef = queryRef
+              .where('patientName', isGreaterThanOrEqualTo: name)
+              .where('patientName', isLessThanOrEqualTo: '$name\uf8ff');
+        }
+
 
         if (lastDocument != null) {
           queryRef = queryRef.startAfterDocument(lastDocument);

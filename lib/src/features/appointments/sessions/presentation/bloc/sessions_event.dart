@@ -18,12 +18,12 @@ class GetSessions extends SessionsEvent {
 }
 
 class SearchSessions extends SessionsEvent {
-  final String query;
+  final String? name;
 
-  const SearchSessions(this.query);
+  const SearchSessions({this.name});
 
   @override
-  List<Object> get props => [query];
+  List<Object?> get props => [name];
 }
 
 class AddSession extends SessionsEvent {
@@ -57,7 +57,7 @@ class DeleteSession extends SessionsEvent {
 class GetSessionsByDate extends SessionsEvent {
   final DateTime date;
 
-  const GetSessionsByDate(this.date);
+  const GetSessionsByDate({required this.date});
 
   @override
   List<Object> get props => [date];
