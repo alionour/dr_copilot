@@ -51,31 +51,57 @@ class _CalendarPageState extends State<CalendarPage> {
           title: const Text('Calendar'),
           centerTitle: true,
           actions: [
-            DropdownButton<CalendarView>(
-              value: _calendarView,
-              icon: const Icon(Icons.arrow_downward),
-              onChanged: (CalendarView? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    _calendarView = newValue;
-                  });
-                }
-              },
-              items: <CalendarView>[
-                CalendarView.day,
-                CalendarView.week,
-                CalendarView.workWeek,
-                CalendarView.month,
-                CalendarView.timelineDay,
-                CalendarView.timelineWeek,
-                CalendarView.timelineWorkWeek,
-                CalendarView.timelineMonth,
-              ].map<DropdownMenuItem<CalendarView>>((CalendarView value) {
-                return DropdownMenuItem<CalendarView>(
-                  value: value,
-                  child: Text(value.toString().split('.').last),
-                );
-              }).toList(),
+            DropdownButtonHideUnderline(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12), // Circular borders
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: DropdownButton<CalendarView>(
+                  value: _calendarView,
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  dropdownColor: Theme.of(context).colorScheme.surface,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                  ),
+                  onChanged: (CalendarView? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        debugPrint(
+                            'Selected calendar view: $newValue'); // Debugging
+                        _calendarView = newValue;
+                      });
+                    }
+                  },
+                  items: <CalendarView>[
+                    CalendarView.day,
+                    CalendarView.week,
+                    CalendarView.workWeek,
+                    CalendarView.month,
+                    CalendarView.timelineDay,
+                    CalendarView.timelineWeek,
+                    CalendarView.timelineWorkWeek,
+                    CalendarView.timelineMonth,
+                  ].map<DropdownMenuItem<CalendarView>>((CalendarView value) {
+                    return DropdownMenuItem<CalendarView>(
+                      value: value,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_month_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(value.toString().split('.').last),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ],
         ),
@@ -89,32 +115,41 @@ class _CalendarPageState extends State<CalendarPage> {
             );
           },
         ),
-        body: BlocBuilder<CalendarBloc, CalendarState>(
-          builder: (context, state) {
-            List<google_calendar.Event> events = [];
-            Map<String, Color> calendarColors = {};
-            if (state is CalendarEventsLoaded) {
-              events = state.events;
-              calendarColors = state.calendarColors;
-            }
-            return RefreshIndicator(
-              onRefresh: () => _refreshCalendarEvents(context),
-              child: SfCalendar(
-                view: _calendarView, // Ensure this is bound to the state
-                dataSource: GoogleCalendarDataSource(events, calendarColors),
-                allowAppointmentResize: true,
-                allowDragAndDrop: true,
-                onViewChanged: (ViewChangedDetails details) {
-                  _visibleDates = details.visibleDates;
-                  final startDate = details.visibleDates.first;
-                  final endDate = details.visibleDates.last;
-                  BlocProvider.of<CalendarBloc>(context)
-                      .add(GetCalendarEventsForRange(startDate, endDate));
-                },
-                monthViewSettings: const MonthViewSettings(
-                    appointmentDisplayMode:
-                        MonthAppointmentDisplayMode.appointment),
-              ),
+        body: Builder(
+          builder: (context) {
+            return BlocBuilder<CalendarBloc, CalendarState>(
+              builder: (context, state) {
+                List<google_calendar.Event> events = [];
+                Map<String, Color> calendarColors = {};
+                if (state is CalendarEventsLoaded) {
+                  events = state.events;
+                  calendarColors = state.calendarColors;
+                }
+                return RefreshIndicator(
+                  onRefresh: () => _refreshCalendarEvents(context),
+                  child: SfCalendar(
+                    key:
+                        ValueKey(_calendarView), // Force rebuild on view change
+                    view: _calendarView, // Ensure this is bound to the state
+                    dataSource:
+                        GoogleCalendarDataSource(events, calendarColors),
+                    allowAppointmentResize: true,
+                    allowDragAndDrop: true,
+                    onViewChanged: (ViewChangedDetails details) {
+                      _visibleDates = details.visibleDates;
+                      final startDate = details.visibleDates.first;
+                      final endDate = details.visibleDates.last;
+                      debugPrint(
+                          'View changed: StartDate=$startDate, EndDate=$endDate'); // Debugging
+                      BlocProvider.of<CalendarBloc>(context)
+                          .add(GetCalendarEventsForRange(startDate, endDate));
+                    },
+                    monthViewSettings: const MonthViewSettings(
+                        appointmentDisplayMode:
+                            MonthAppointmentDisplayMode.appointment),
+                  ),
+                );
+              },
             );
           },
         ),
