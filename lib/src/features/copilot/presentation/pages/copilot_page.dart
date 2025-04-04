@@ -7,9 +7,12 @@ import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.d
 import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart'
     as custom;
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:markdown/markdown.dart' as md;
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -203,35 +206,144 @@ class _CopilotPageState extends State<CopilotPage> {
                                                 base64Decode(message["image"])),
                                           ),
                                         ),
-                                      Container(
-                                        padding: const EdgeInsets.all(12.0),
-                                        decoration: BoxDecoration(
-                                          color: message["isUser"]
-                                              ? const Color(
-                                                  0xFF0078D4) // User message color
-                                              : const Color(
-                                                  0xFF323130), // Bot message color
-                                          borderRadius:
-                                              BorderRadius.circular(12.0),
-                                        ),
-                                        child: Text(
-                                          message["message"],
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: message["isUser"]
-                                                ? Colors
-                                                    .white // User text color
-                                                : Colors
-                                                    .white, // Bot text color
-                                          ),
-                                        ),
-                                      ),
+                                      message["isUser"]
+                                          ? Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(
+                                                      8.0),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                        0xFFF0F0F0), // Light grey background
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                  child: Text(
+                                                    message["message"],
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          16, // Larger font size
+                                                      fontWeight: FontWeight
+                                                          .bold, // Bold text
+                                                      foreground: Paint()
+                                                        ..shader =
+                                                            const LinearGradient(
+                                                          colors: <Color>[
+                                                            Color(
+                                                                0xFF6A11CB), // Gradient start color
+                                                            Color(
+                                                                0xFF2575FC), // Gradient end color
+                                                          ],
+                                                        ).createShader(
+                                                          const Rect.fromLTWH(
+                                                              0.0,
+                                                              0.0,
+                                                              200.0,
+                                                              70.0),
+                                                        ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(width:5),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          right: 8.0),
+                                                  child: CircleAvatar(
+                                                    backgroundColor:
+                                                        Colors.blue,
+                                                    backgroundImage: FirebaseAuth
+                                                                .instance
+                                                                .currentUser
+                                                                ?.photoURL !=
+                                                            null
+                                                        ? NetworkImage(
+                                                            FirebaseAuth
+                                                                .instance
+                                                                .currentUser!
+                                                                .photoURL!)
+                                                        : null, // Handle null photoURL
+                                                    child: FirebaseAuth
+                                                                .instance
+                                                                .currentUser
+                                                                ?.photoURL ==
+                                                            null
+                                                        ? Text(
+                                                            FirebaseAuth
+                                                                    .instance
+                                                                    .currentUser
+                                                                    ?.displayName
+                                                                    ?.substring(
+                                                                        0, 1)
+                                                                    .toUpperCase() ??
+                                                                'U',
+                                                            style:
+                                                                const TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          )
+                                                        : null,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Container(
+                                              padding:
+                                                  const EdgeInsets.all(12.0),
+                                              decoration: BoxDecoration(
+                                                color: const Color(
+                                                    0xFFF0F0F0), // Light grey background
+                                                borderRadius:
+                                                    BorderRadius.circular(12.0),
+                                              ),
+                                              child: _buildMessageContent(
+                                                message["message"],
+                                                message["isUser"],
+                                              ),
+                                            ),
                                     ],
                                   ),
                                 ),
                               );
                             },
                           ),
+                          if (_messages.isEmpty)
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(12.0),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                      0xFFF0F0F0), // Light gray background
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: Text(
+                                  "No messages yet. Start a conversation!",
+                                  style: TextStyle(
+                                    fontSize: 24, // Larger font size
+                                    fontWeight: FontWeight.bold, // Bold text
+                                    foreground: Paint()
+                                      ..shader = const LinearGradient(
+                                        colors: <Color>[
+                                          Color(
+                                              0xFF6A11CB), // Gradient start color
+                                          Color(
+                                              0xFF2575FC), // Gradient end color
+                                        ],
+                                      ).createShader(
+                                        const Rect.fromLTWH(
+                                            0.0, 0.0, 200.0, 70.0),
+                                      ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           if (state is CopilotLoading)
                             const Center(
                               child: CircularProgressIndicator(),
@@ -379,7 +491,7 @@ class _CopilotPageState extends State<CopilotPage> {
     });
     int index = _messages.length - 1;
     int charIndex = 0;
-    Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    Timer.periodic(const Duration(milliseconds: 20), (timer) {
       if (charIndex < message.length) {
         setState(() {
           _messages[index]["message"] += message[charIndex];
@@ -388,8 +500,46 @@ class _CopilotPageState extends State<CopilotPage> {
         _scrollToBottom();
       } else {
         timer.cancel();
+        // Format the message as markdown
+        setState(() {
+          _messages[index]["message"] =
+              _formatMarkdown(_messages[index]["message"]);
+        });
         context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
       }
     });
+  }
+
+  String _formatMarkdown(String message) {
+    // Use the markdown package to convert markdown to HTML
+    // Add spaces for headings by replacing '#' with '# '
+    final spacedMessage = message.replaceAllMapped(
+      RegExp(r'^(#+)([^\s])', multiLine: true),
+      (match) => '${match.group(1)} ${match.group(2)}',
+    );
+    return md.markdownToHtml(spacedMessage);
+  }
+
+  Widget _buildMessageContent(String message, bool isUser) {
+    if (isUser) {
+      return Text(
+        message,
+        style: const TextStyle(
+            color: Colors.white, fontSize: 14), // Decreased font size
+      );
+    } else {
+      return Html(
+        data: message,
+        style: {
+          "body": Style(
+            color:
+                Colors.black, // Changed text color to black for better contrast
+            fontSize: FontSize(14), // Decreased font size
+            backgroundColor: const Color(
+                0xFFF0F0F0), // Set a slightly darker light background color
+          ),
+        },
+      );
+    }
   }
 }
