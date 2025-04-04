@@ -62,12 +62,14 @@ class PatientModel {
   }
 }
 
-class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
+class TimestampConverter implements JsonConverter<Timestamp?, dynamic> {
   const TimestampConverter();
 
   @override
-  Timestamp fromJson(dynamic json) {
-    if (json is Timestamp) {
+  Timestamp? fromJson(dynamic json) {
+    if (json == null) {
+      return null;
+    } else if (json is Timestamp) {
       return json;
     } else if (json is int) {
       return Timestamp.fromMillisecondsSinceEpoch(json);
@@ -79,5 +81,5 @@ class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
   }
 
   @override
-  dynamic toJson(Timestamp object) => object;
+  dynamic toJson(Timestamp? object) => object;
 }

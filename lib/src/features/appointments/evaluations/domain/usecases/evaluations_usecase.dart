@@ -1,24 +1,46 @@
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/evaluations_repository.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
 
 class EvaluationsUseCase {
-  final EvaluationsRepository _repository;
+  final AbstractEvaluationsRepository repository;
 
-  EvaluationsUseCase(this._repository);
+  EvaluationsUseCase(this.repository);
 
-  Future<List<EvaluationModel>> getEvaluations() async {
-    return _repository.getEvaluations();
+  /// Gets a list of evaluations.
+  Future<Either<Failure, List<EvaluationModel>>> getEvaluations(
+      {String? lastDocumentID, int? limit = 20}) async {
+    return await repository.getEvaluations(
+        lastDocumentID: lastDocumentID, limit: limit ?? 20);
   }
 
-  Future<void> addEvaluation(EvaluationModel evaluationModel) async {
-    await _repository.addEvaluation(evaluationModel);
+  /// Adds a new evaluation.
+  Future<Either<Failure, EvaluationModel>> addEvaluation(
+      EvaluationModel evaluationModel) async {
+    return await repository.addEvaluation(evaluationModel);
   }
 
-  Future<void> updateEvaluation(EvaluationModel evaluationModel) async {
-    await _repository.updateEvaluation(evaluationModel);
+  /// Updates an existing evaluation.
+  Future<Either<Failure, EvaluationModel>> updateEvaluation(
+      String id, EvaluationModel evaluationModel) async {
+    return await repository.updateEvaluation(id, evaluationModel);
   }
 
-  Future<void> deleteEvaluation(String id) async {
-    await _repository.deleteEvaluation(id);
+  /// Deletes a evaluation by their ID.
+  Future<Either<Failure, EvaluationModel>> deleteEvaluation(String id) async {
+    return await repository.deleteEvaluation(id);
+  }
+
+  /// Searches evaluations based on criteria.
+  Future<Either<Failure, List<EvaluationModel>>> searchEvaluations(
+      {String? name}) async {
+    return await repository.searchEvaluations(name: name);
+  }
+
+  /// Gets evaluations by a specific date.
+  Future<Either<Failure, List<EvaluationModel>>> getEvaluationsByDate(
+      DateTime date) async {
+    return await repository.getEvaluationsByDate(date);
   }
 }

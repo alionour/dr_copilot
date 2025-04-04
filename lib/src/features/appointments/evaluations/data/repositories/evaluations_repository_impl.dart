@@ -1,55 +1,53 @@
-import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_api_impl.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/evaluations_repository.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
 
-class EvaluationsRepositoryImpl implements EvaluationsRepository {
-  final EvaluationApiImpl? apiImpl;
-  final EvaluationFirebaseApi? firebaseApi;
+class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
+  final EvaluationFirebaseApi firebaseApi;
 
-  EvaluationsRepositoryImpl({this.apiImpl, this.firebaseApi});
+  EvaluationsRepositoryImpl({required this.firebaseApi});
 
+  /// Gets a list of evaluations.
   @override
-  Future<void> addEvaluation(EvaluationModel evaluation) {
-    if (apiImpl != null) {
-      return apiImpl!.addEvaluation(evaluation);
-    } else if (firebaseApi != null) {
-      return firebaseApi!.addEvaluation(evaluation);
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, List<EvaluationModel>>> getEvaluations(
+      {String? lastDocumentID, int limit = 20}) {
+    return firebaseApi.getEvaluations(
+        lastDocumentID: lastDocumentID, limit: limit);
   }
 
+  /// Adds a new evaluation.
   @override
-  Future<void> updateEvaluation(EvaluationModel evaluationModel) {
-    if (apiImpl != null) {
-      return apiImpl!.updateEvaluation(evaluationModel);
-    } else if (firebaseApi != null) {
-      return firebaseApi!.updateEvaluation(evaluationModel);
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, EvaluationModel>> addEvaluation(
+      EvaluationModel evaluationModel) {
+    return firebaseApi.addEvaluation(evaluationModel);
   }
 
+  /// Updates an existing evaluation.
   @override
-  Future<void> deleteEvaluation(String sessionId) {
-    if (apiImpl != null) {
-      return apiImpl!.deleteEvaluation(sessionId);
-    } else if (firebaseApi != null) {
-      return firebaseApi!.deleteEvaluation(sessionId);
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, EvaluationModel>> updateEvaluation(
+      String id, EvaluationModel evaluationModel) {
+    return firebaseApi.updateEvaluation(id, evaluationModel);
   }
 
+  /// Deletes a evaluation by their ID.
   @override
-  Future<List<EvaluationModel>> getEvaluations() {
-    if (apiImpl != null) {
-      return apiImpl!.getEvaluations();
-    } else if (firebaseApi != null) {
-      return firebaseApi!.getEvaluations();
-    } else {
-      throw Exception('No data source provided');
-    }
+  Future<Either<Failure, EvaluationModel>> deleteEvaluation(String id) {
+    return firebaseApi.deleteEvaluation(id);
+  }
+
+  /// Searches evaluations based on criteria.
+  @override
+  Future<Either<Failure, List<EvaluationModel>>> searchEvaluations(
+      {String? name}) {
+    return firebaseApi.searchEvaluations(name: name);
+  }
+
+  /// Gets evaluations by a specific date.
+  @override
+  Future<Either<Failure, List<EvaluationModel>>> getEvaluationsByDate(
+      DateTime date) {
+    return firebaseApi.getEvaluationsByDate(date);
   }
 }

@@ -3,7 +3,7 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 
 // An abstract class that defines the repository for session-related operations.
-abstract class AbstractSessionsRepository {
+abstract class AbstractEvaluationsRepository {
   /// Gets a list of sessions.
   Future<Either<Failure, List<SessionModel>>> getSessions(
       {String? lastDocumentID, int limit = 20});

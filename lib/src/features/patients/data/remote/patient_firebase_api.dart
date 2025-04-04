@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class PatientFirebaseApi {
   final CollectionReference _patientsCollection =
@@ -171,6 +172,8 @@ class PatientFirebaseApi {
           queryRef = queryRef.where('gender', isEqualTo: gender);
         }
 
+        debugPrint('Executing query: $queryRef');
+
         final snapshot = await queryRef.get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
@@ -178,6 +181,7 @@ class PatientFirebaseApi {
           if (data == null) {
             throw Exception('Document data is null');
           }
+          debugPrint('Fetched patient data: $data');
           return PatientModel.fromJson({
             ...data,
             'id': doc.id, // Ensure the document ID is included
@@ -188,6 +192,7 @@ class PatientFirebaseApi {
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
+      debugPrint('Error in searchPatients: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }

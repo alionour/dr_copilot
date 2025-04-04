@@ -102,7 +102,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 boxShadow: [
                   BoxShadow(
                     color:
-                        Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                        Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
@@ -144,6 +144,7 @@ class _PatientsPageState extends State<PatientsPage> {
                           lastDate: DateTime(2101),
                         );
                         if (selectedDate != null) {
+                          if (!mounted) return;
                           setState(() {
                             _selectedDate = selectedDate;
                             _selectedGender = null;
@@ -151,6 +152,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             _maxAge = null;
                             _selectedAddress = null; // Clear address value
                           });
+                          if (!mounted) return;
                           context
                               .read<PatientsBloc>()
                               .add(GetPatientsByDate(date: selectedDate));
@@ -440,7 +442,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                 ? Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withOpacity(0.2)
+                                    .withValues(alpha: 0.2)
                                 : Colors.transparent,
                             child: PatientListItem(
                               id: filteredPatients[index].id,

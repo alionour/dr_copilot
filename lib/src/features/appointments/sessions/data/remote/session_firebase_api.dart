@@ -6,7 +6,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/repositorie
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
-class SessionFirebaseApi extends AbstractSessionsRepository {
+class SessionFirebaseApi extends AbstractEvaluationsRepository {
   final CollectionReference _sessionsCollection =
       FirebaseFirestore.instance.collection('sessions');
 
@@ -193,19 +193,16 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
 
   /// Fetches sessions based on search criteria.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name,
-      String? lastDocumentID, int limit = 20}) async {
-    
-    
+  Future<Either<Failure, List<SessionModel>>> searchSessions(
+      {String? name, String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
-      
       final user = _auth.currentUser;
       if (user != null) {
-          Query queryRef =
+        Query queryRef =
             _sessionsCollection.where('createdBy', isEqualTo: user.uid);
 
         if (name != null && name.isNotEmpty) {
@@ -213,8 +210,6 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
               .where('patientName', isGreaterThanOrEqualTo: name)
               .where('patientName', isLessThanOrEqualTo: '$name\uf8ff');
         }
-
-
 
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
@@ -259,8 +254,12 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
         debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
         Query queryRef = _sessionsCollection
             .where('createdBy', isEqualTo: user.uid)
-            .where('startDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(date.year, date.month, date.day)))
-            .where('startDateTime', isLessThan: Timestamp.fromDate(DateTime(date.year, date.month, date.day + 1)))
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(
+                    DateTime(date.year, date.month, date.day)))
+            .where('startDateTime',
+                isLessThan: Timestamp.fromDate(
+                    DateTime(date.year, date.month, date.day + 1)))
             .limit(limit);
 
         if (lastDocument != null) {

@@ -1,25 +1,69 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'evaluation_model.g.dart';
 
-/// A model class representing an evaluation.
+class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
+  const TimestampConverter();
+
+  @override
+  Timestamp fromJson(dynamic json) {
+    return json is Timestamp
+        ? json
+        : Timestamp.fromMillisecondsSinceEpoch(json as int);
+  }
+
+  @override
+  dynamic toJson(Timestamp object) => object;
+}
+
 @JsonSerializable()
 class EvaluationModel {
   final String id;
-  final String title;
-  final String description;
-  
+  final String patientName;
+  final double price;
+
+  @TimestampConverter()
+  final Timestamp startDateTime;
+
+  @TimestampConverter()
+  final Timestamp endDateTime;
+
+  final String userId;
+  final String createdBy;
 
   EvaluationModel({
     required this.id,
-    required this.title,
-    required this.description,
+    required this.patientName,
+    required this.price,
+    required this.startDateTime,
+    required this.endDateTime,
+    required this.userId,
+    required this.createdBy,
   });
 
-  /// A factory constructor to create an EvaluationModel instance from a JSON map.
   factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
       _$EvaluationModelFromJson(json);
 
-  /// A method to convert an EvaluationModel instance to a JSON map.
   Map<String, dynamic> toJson() => _$EvaluationModelToJson(this);
+
+  EvaluationModel copyWith({
+    String? id,
+    String? patientName,
+    double? price,
+    Timestamp? startDateTime,
+    Timestamp? endDateTime,
+    String? userId,
+    String? createdBy,
+  }) {
+    return EvaluationModel(
+      id: id ?? this.id,
+      patientName: patientName ?? this.patientName,
+      price: price ?? this.price,
+      startDateTime: startDateTime ?? this.startDateTime,
+      endDateTime: endDateTime ?? this.endDateTime,
+      userId: userId ?? this.userId,
+      createdBy: createdBy ?? this.createdBy,
+    );
+  }
 }

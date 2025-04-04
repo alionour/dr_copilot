@@ -4,7 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/data/remote/sessio
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 
-class SessionsRepositoryImpl extends AbstractSessionsRepository {
+class SessionsRepositoryImpl extends AbstractEvaluationsRepository {
   final SessionFirebaseApi firebaseApi;
 
   SessionsRepositoryImpl({required this.firebaseApi});
@@ -39,7 +39,7 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   /// Searches sessions based on criteria.
   @override
   Future<Either<Failure, List<SessionModel>>> searchSessions({String? name}) {
-    return firebaseApi.searchSessions(name:name);
+    return firebaseApi.searchSessions(name: name);
   }
 
   /// Gets sessions by a specific date.

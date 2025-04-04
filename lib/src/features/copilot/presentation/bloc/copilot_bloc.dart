@@ -58,7 +58,11 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       }
       emit(CopilotResponseGenerated(response));
     } catch (e) {
-      emit(CopilotError(e.toString()));
+      if (e is Failure) {
+        emit(_mapFailureToMessage(e));
+      } else {
+        emit(CopilotError(e.toString()));
+      }
     }
   }
 
@@ -72,7 +76,11 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
           await geminiService.getGeminiResponseFromBytes(fileBytes, event.text);
       emit(CopilotResponseGenerated(response));
     } catch (e) {
-      emit(CopilotError(e.toString()));
+      if (e is Failure) {
+        emit(_mapFailureToMessage(e));
+      } else {
+        emit(CopilotError(e.toString()));
+      }
     }
   }
 

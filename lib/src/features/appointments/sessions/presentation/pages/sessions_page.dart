@@ -92,7 +92,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 boxShadow: [
                   BoxShadow(
                     color:
-                        Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                        Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),

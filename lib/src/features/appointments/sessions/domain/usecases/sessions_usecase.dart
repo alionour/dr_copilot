@@ -4,7 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 
 class SessionsUseCase {
-  final AbstractSessionsRepository repository;
+  final AbstractEvaluationsRepository repository;
 
   SessionsUseCase(this.repository);
 
@@ -35,7 +35,7 @@ class SessionsUseCase {
   /// Searches sessions based on criteria.
   Future<Either<Failure, List<SessionModel>>> searchSessions(
       {String? name}) async {
-    return await repository.searchSessions(name:name);
+    return await repository.searchSessions(name: name);
   }
 
   /// Gets sessions by a specific date.

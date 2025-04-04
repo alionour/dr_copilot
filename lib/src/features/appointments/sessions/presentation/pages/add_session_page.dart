@@ -97,6 +97,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
     );
 
     if (pickedDate != null) {
+      if (!mounted) return;
       setState(() {
         if (isStart) {
           _startDate = Timestamp.fromDate(DateTime(
@@ -114,6 +115,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
               _endDate?.toDate().minute ?? 0));
         }
       });
+      if (!mounted) return;
       await _selectTime(context, isStart); // Automatically move to time picker
     }
   }
@@ -129,6 +131,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
     );
 
     if (pickedTime != null) {
+      if (!mounted) return;
       setState(() {
         if (isStart) {
           _startDate = Timestamp.fromDate(DateTime(
