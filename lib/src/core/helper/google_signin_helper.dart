@@ -134,4 +134,30 @@ class GoogleSignInHelper {
     final auth = await account.authentication;
     return auth.accessToken;
   }
+
+  /// Refreshes the access token if it has expired.
+  Future<String?> refreshAccessToken() async {
+    try {
+      final account = _googleSignIn.currentUser;
+      if (account == null) {
+        debugPrint('No user is currently signed in.');
+        return null;
+      }
+
+      final auth = await account.authentication;
+      if (auth.accessToken == null) {
+        debugPrint('Access token is null, attempting to refresh.');
+        await _googleSignIn.signInSilently();
+        final refreshedAuth = await account.authentication;
+        debugPrint('Access token refreshed: ${refreshedAuth.accessToken}');
+        return refreshedAuth.accessToken;
+      }
+
+      debugPrint('Access token is still valid: ${auth.accessToken}');
+      return auth.accessToken;
+    } catch (error) {
+      debugPrint('Error refreshing access token: $error');
+      return null;
+    }
+  }
 }

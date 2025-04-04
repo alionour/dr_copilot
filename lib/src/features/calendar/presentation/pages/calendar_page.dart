@@ -100,7 +100,7 @@ class _CalendarPageState extends State<CalendarPage> {
             return RefreshIndicator(
               onRefresh: () => _refreshCalendarEvents(context),
               child: SfCalendar(
-                view: _calendarView,
+                view: _calendarView, // Ensure this is bound to the state
                 dataSource: GoogleCalendarDataSource(events, calendarColors),
                 allowAppointmentResize: true,
                 allowDragAndDrop: true,

@@ -30,9 +30,18 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       GetCalendarEvents event, Emitter<CalendarState> emit) async {
     try {
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final Client? client = googleSignIn.client;
+      Client? client = googleSignIn.client;
 
-      assert(client != null, 'Authenticated client missing!');
+      if (client == null) {
+        debugPrint(
+            'Authenticated client missing! Attempting to refresh token.');
+        final refreshedToken = await googleSignIn.refreshAccessToken();
+        if (refreshedToken != null) {
+          client = googleSignIn.client;
+        } else {
+          throw Exception('Failed to refresh access token.');
+        }
+      }
 
       final calendarApi = CalendarApi(client!);
       final calendarList = await calendarApi.calendarList.list();
