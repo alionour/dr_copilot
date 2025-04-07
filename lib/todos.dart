@@ -1,3 +1,5 @@
+/// This is a great library.
+library;
 
 /**
  *  :
