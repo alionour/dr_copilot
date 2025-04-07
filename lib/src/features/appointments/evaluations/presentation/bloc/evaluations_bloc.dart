@@ -86,9 +86,9 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     emit(failureOrEvaluation.fold(
         (failure) => EvaluationsError(state.evaluations,
             message: _mapFailureToMessage(failure)), (deletedEvaluation) {
-      debugPrint('Delete successful: ${deletedEvaluation.id}');
+      debugPrint('Delete successful: ${event.evaluationId}');
       final evaluations = state.evaluations
-        ..removeWhere((evaluation) => evaluation.id == deletedEvaluation.id);
+        ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
       emit(EvaluationsSuccess(evaluations,
           message: 'Evaluation deleted successfully'));
       return EvaluationsLoaded(evaluations);

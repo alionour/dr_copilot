@@ -10,6 +10,11 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
   final CollectionReference _evaluationsCollection =
       FirebaseFirestore.instance.collection('evaluations');
 
+  /// Reference to the Firestore collection for patients.
+  /// This is used to fetch patient data.
+  final CollectionReference _patientsCollection =
+      FirebaseFirestore.instance.collection('patients');
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<bool> _isAuthenticated() async {
@@ -43,16 +48,24 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
 
         final snapshot = await queryRef.get();
 
-        List<EvaluationModel> evaluations = snapshot.docs.map((doc) {
+        List<EvaluationModel> evaluations =
+            await Future.wait(snapshot.docs.map((doc) async {
           final data = doc.data() as Map<String, dynamic>?;
           if (data == null) {
             throw Exception('Document data is null');
           }
+          // Fetch the patient name dynamically using the patient ID
+          final patientName =
+              await getPatientNameById(data['patientId'] as String);
+          if (patientName == null) {
+            debugPrint('Patient name not found for ID: ${data['patientId']}');
+          }
           return EvaluationModel.fromJson({
             ...data,
             'id': doc.id, // Ensure the document ID is included
+            'patientName': patientName ?? 'No Name Available',
           });
-        }).toList();
+        }).toList());
 
         return Right(evaluations);
       }
@@ -80,7 +93,16 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         final data = evaluationModel.toJson();
-        data.remove('id'); // Exclude the `id` field from the document data
+
+        // Save the patient name before removing it from the data
+        final patientName = data['patientName'];
+
+        // Remove the `id` field because Firestore generates a unique ID for each document.
+        data.remove('id');
+
+        // Remove the `patientName` field because only the `patientId` is stored in Firestore.
+        data.remove('patientName');
+
         final docRef = await _evaluationsCollection.add({
           ...data,
           'createdBy': user.uid,
@@ -88,6 +110,8 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
         final createdEvaluation = evaluationModel.copyWith(
           id: docRef.id, // Assign the generated document ID
           createdBy: user.uid, // Ensure createdBy is set
+          patientName:
+              patientName, // Include the patient name in the returned model
         );
         return Right(createdEvaluation);
       }
@@ -128,7 +152,13 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
 
           if (createdBy == user.uid) {
             final updatedData = evaluationModel.toJson();
-            updatedData.remove('id'); // Exclude the `id` field from the update
+            // Remove the `id` field because Firestore does not allow updating the document ID.
+            updatedData.remove('id');
+
+            // Remove the `patientName` field because only the `patientId` is stored in Firestore.
+            // The `patientName` is dynamically fetched when needed to ensure data consistency.
+            updatedData.remove('patientName');
+
             await _evaluationsCollection.doc(id).update(updatedData);
 
             return Right(evaluationModel.copyWith(id: id));
@@ -150,7 +180,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
   }
 
   @override
-  Future<Either<Failure, EvaluationModel>> deleteEvaluation(String id) async {
+  Future<Either<Failure, void>> deleteEvaluation(String id) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -242,8 +272,10 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
   }
 
   @override
-  Future<Either<Failure, List<EvaluationModel>>> getEvaluationsByDate(DateTime date,
-      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+  Future<Either<Failure, List<EvaluationModel>>> getEvaluationsByDate(
+      DateTime date,
+      {DocumentSnapshot? lastDocument,
+      int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -251,7 +283,8 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        debugPrint('Filtering evaluations for user: ${user.uid} on date: $date');
+        debugPrint(
+            'Filtering evaluations for user: ${user.uid} on date: $date');
         Query queryRef = _evaluationsCollection
             .where('createdBy', isEqualTo: user.uid)
             .where('startDateTime',
@@ -292,6 +325,33 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       }
       debugPrint('Error getting evaluations by date: $e');
       return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Fetches the name of a patient by their ID.
+  ///
+  /// [patientId] is the ID of the patient to fetch the name for.
+  ///
+  /// Returns the patient's name as a [String] or `null` if not found.
+  Future<String?> getPatientNameById(String patientId) async {
+    try {
+      final docSnapshot = await _patientsCollection.doc(patientId).get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>?;
+        if (data != null && data['name'] != null) {
+          return data['name'] as String;
+        } else {
+          debugPrint(
+              'Patient document found but name is missing for ID: $patientId');
+        }
+      } else {
+        debugPrint('No patient document found for ID: $patientId');
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching patient name for ID $patientId: $e');
+      return null;
     }
   }
 }

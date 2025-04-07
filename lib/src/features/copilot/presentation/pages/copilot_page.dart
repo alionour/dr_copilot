@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:markdown/markdown.dart' as md;
+import 'package:markdown/markdown.dart' show markdownToHtml;
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -411,7 +411,7 @@ class _CopilotPageState extends State<CopilotPage> {
                             controller: _controller,
                             focusNode: _focusNode,
                             decoration: InputDecoration(
-                              hintText: "Message Dr Copilot",
+                              hintText: "messageDrCopilot".tr(),
                               border: InputBorder.none,
                               hintStyle: TextStyle(
                                 color: Theme.of(context)
@@ -518,7 +518,7 @@ class _CopilotPageState extends State<CopilotPage> {
       RegExp(r'^(#+)([^\s])', multiLine: true),
       (match) => '${match.group(1)} ${match.group(2)}',
     );
-    return md.markdownToHtml(spacedMessage);
+    return markdownToHtml(spacedMessage);
   }
 
   Widget _buildMessageContent(String message, bool isUser) {

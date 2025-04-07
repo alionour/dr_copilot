@@ -138,16 +138,18 @@ class _AddPatientPageState extends State<AddPatientPage> {
                             },
                           ),
                           const SizedBox(height: 16.0),
-                          Align(
-                            alignment: Alignment.centerLeft,
+                          Container(
+                            alignment: AlignmentDirectional
+                                .centerStart, // Replaced Align with Container for RTL/LTR support
                             child: Text(
                               'gender'.tr(),
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),
                           const SizedBox(height: 8.0),
-                          Align(
-                            alignment: Alignment.centerLeft,
+                          Container(
+                            alignment: AlignmentDirectional
+                                .centerStart, // Replaced Align with Container for RTL/LTR support
                             child: ToggleButtons(
                               isSelected: [
                                 _selectedGender == 'Male',

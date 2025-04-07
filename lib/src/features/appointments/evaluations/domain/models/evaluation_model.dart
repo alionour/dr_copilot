@@ -20,6 +20,7 @@ class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
 @JsonSerializable()
 class EvaluationModel {
   final String id;
+  final String patientId;
   final String patientName;
   final double price;
 
@@ -34,6 +35,7 @@ class EvaluationModel {
 
   EvaluationModel({
     required this.id,
+    required this.patientId,
     required this.patientName,
     required this.price,
     required this.startDateTime,
@@ -49,6 +51,7 @@ class EvaluationModel {
 
   EvaluationModel copyWith({
     String? id,
+    String? patientId,
     String? patientName,
     double? price,
     Timestamp? startDateTime,
@@ -58,6 +61,7 @@ class EvaluationModel {
   }) {
     return EvaluationModel(
       id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
       patientName: patientName ?? this.patientName,
       price: price ?? this.price,
       startDateTime: startDateTime ?? this.startDateTime,

@@ -15,7 +15,7 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       sessionType: $enumDecode(_$SessionTypeEnumMap, json['sessionType']),
       userId: json['userId'] as String,
       createdBy: json['createdBy'] as String,
-      patientName: json['patientName'] as String,
+      patientName: json['patientName'] as String?,
     );
 
 Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>

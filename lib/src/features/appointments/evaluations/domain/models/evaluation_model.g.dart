@@ -9,6 +9,7 @@ part of 'evaluation_model.dart';
 EvaluationModel _$EvaluationModelFromJson(Map<String, dynamic> json) =>
     EvaluationModel(
       id: json['id'] as String,
+      patientId: json['patientId'] as String,
       patientName: json['patientName'] as String,
       price: (json['price'] as num).toDouble(),
       startDateTime: const TimestampConverter().fromJson(json['startDateTime']),
@@ -20,6 +21,7 @@ EvaluationModel _$EvaluationModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$EvaluationModelToJson(EvaluationModel instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'patientId': instance.patientId,
       'patientName': instance.patientName,
       'price': instance.price,
       'startDateTime':

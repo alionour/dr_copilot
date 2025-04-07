@@ -441,8 +441,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               ),
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'startDateTime'.tr(),
                                 style: Theme.of(context)
@@ -484,8 +485,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               ],
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'endDateTime'.tr(),
                                 style: Theme.of(context)

@@ -76,6 +76,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   easy_localization: ^3.0.7+1
+  markdown: ^7.3.0
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6

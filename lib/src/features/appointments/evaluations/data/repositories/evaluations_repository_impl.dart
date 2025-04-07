@@ -3,7 +3,6 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 
 class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
   final EvaluationFirebaseApi firebaseApi;
@@ -34,7 +33,7 @@ class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
 
   /// Deletes a evaluation by their ID.
   @override
-  Future<Either<Failure, EvaluationModel>> deleteEvaluation(String id) {
+  Future<Either<Failure, void>> deleteEvaluation(String id) {
     return firebaseApi.deleteEvaluation(id);
   }
 

@@ -149,8 +149,19 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         );
         return;
       }
+      final selectedPatient = _filteredPatients.firstWhere(
+        (patient) => patient.name == _patientNameController.text,
+        orElse: () => PatientModel(id: '', name: '', userId: ''),
+      );
+      if (selectedPatient.id.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('invalidPatientSelected'.tr())),
+        );
+        return;
+      }
       final evaluationData = EvaluationModel(
         id: const Uuid().v4(),
+        patientId: selectedPatient.id,
         patientName: _patientNameController.text,
         startDateTime: _startDate!,
         endDateTime: _endDate!,
@@ -420,8 +431,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               ),
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'startDateTime'.tr(),
                                 style: Theme.of(context)
@@ -469,8 +481,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               ],
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'endDateTime'.tr(),
                                 style: Theme.of(context)
@@ -518,8 +531,10 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               ],
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+
                               child: Text(
                                 '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
                                 style: Theme.of(context)
@@ -530,8 +545,10 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             if (_validateTime() != null)
-                              Align(
-                                alignment: Alignment.centerLeft,
+                              Container(
+                                alignment: AlignmentDirectional
+                                    .centerStart, // Replaced Align with Container for RTL/LTR support
+
                                 child: Text(
                                   _validateTime()!,
                                   style: const TextStyle(
@@ -541,8 +558,10 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                 ),
                               ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+
                               child: Text(
                                 'actualPrice'.tr(),
                                 style: Theme.of(context)

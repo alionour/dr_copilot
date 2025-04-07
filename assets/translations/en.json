@@ -146,5 +146,7 @@
   "minAge":"Enter min age (0)",
   "maxAge":"Enter max age (130)",
   "apply": "Apply",
-  "cancel": "Calendar"
+  "cancel": "Calendar",
+  "enterAddress": "Enter Address",
+  "messageDrCopilot": "Message Dr. Copilot"
 }

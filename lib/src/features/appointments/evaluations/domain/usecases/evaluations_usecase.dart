@@ -28,7 +28,7 @@ class EvaluationsUseCase {
   }
 
   /// Deletes a evaluation by their ID.
-  Future<Either<Failure, EvaluationModel>> deleteEvaluation(String id) async {
+  Future<Either<Failure, void>> deleteEvaluation(String id) async {
     return await repository.deleteEvaluation(id);
   }
 
