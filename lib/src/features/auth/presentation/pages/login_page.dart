@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -75,13 +76,13 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  'Welcome Back!',
+                  'welcomeBack'.tr(),
                   style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  'Please sign in to continue',
+                  'signIn'.tr(),
                   style: Theme.of(context).textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -101,8 +102,8 @@ class LoginPage extends StatelessWidget {
                         BlendMode.srcIn,
                       ),
                     ),
-                    label: const Text(
-                      'Sign in with Google',
+                    label: Text(
+                      'SignInWithGoogle'.tr(),
                       style: TextStyle(fontSize: 16),
                     ),
                     style: ElevatedButton.styleFrom(

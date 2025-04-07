@@ -144,7 +144,11 @@
   "apply": "تطبيق",
   "cancel": "إلغاء",
   "enterAddress": "أدخل العنوان",
-  "messageDrCopilot": "رسالة إلى د. كوبايلوت"
+  "messageDrCopilot": "رسالة إلى د. كوبايلوت",
+  "welcomeBack": "مرحبًا بعودتك",
+  "signIn": "تسجيل الدخول",
+  "SignInWithGoogle": "تسجيل الدخول باستخدام جوجل",
+  "signOut": "تسجيل الخروج"
 }
   
   

@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +14,7 @@ class AccountPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Account'),
+        title:  Text('account'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -49,7 +50,7 @@ class AccountPage extends StatelessWidget {
                   debugPrint('Sign-out button pressed');
                   context.read<AuthBloc>().add(SignOutEvent());
                 },
-                child: const Text('Sign Out'),
+                child:  Text('signOut'.tr()),
               ),
             ],
           ),

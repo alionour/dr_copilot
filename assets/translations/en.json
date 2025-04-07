@@ -148,5 +148,10 @@
   "apply": "Apply",
   "cancel": "Calendar",
   "enterAddress": "Enter Address",
-  "messageDrCopilot": "Message Dr. Copilot"
+  "messageDrCopilot": "Message Dr. Copilot",
+  "welcomeBack": "Welcome back!",
+  "signIn":"Please sign in to continue",
+  "SignInWithGoogle":"Sign in with Google",
+  "account":"Account",
+  "signOut":"Sign out"
 }
