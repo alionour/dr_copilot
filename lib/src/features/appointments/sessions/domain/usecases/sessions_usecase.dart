@@ -4,7 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 
 class SessionsUseCase {
-  final AbstractEvaluationsRepository repository;
+  final AbstractSessionsRepository repository;
 
   SessionsUseCase(this.repository);
 
@@ -28,19 +28,25 @@ class SessionsUseCase {
   }
 
   /// Deletes a session by their ID.
-  Future<Either<Failure, SessionModel>> deleteSession(String id) async {
+  Future<Either<Failure, void>> deleteSession(String id) async {
     return await repository.deleteSession(id);
   }
 
   /// Searches sessions based on criteria.
   Future<Either<Failure, List<SessionModel>>> searchSessions(
       {String? name}) async {
-    return await repository.searchSessions(name: name);
+    return await repository.searchSessions(patientId: name);
   }
 
   /// Gets sessions by a specific date.
   Future<Either<Failure, List<SessionModel>>> getSessionsByDate(
       DateTime date) async {
     return await repository.getSessionsByDate(date);
+  }
+
+  /// Detects the type of session based on patient name.
+  Future<Either<Failure, SessionType>> detectSessionType(
+      String patientId) async {
+    return await repository.detectSessionType(patientId);
   }
 }

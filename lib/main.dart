@@ -22,18 +22,22 @@ import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'src/core/helper/api_key_helper.dart';
+import 'src/core/locale_notifier.dart';
 import 'src/core/router/routing_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await localization.EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -41,9 +45,25 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeNotifier(isDarkMode: isDarkMode),
-      child: const MyApp(),
+    localization.EasyLocalization(
+      supportedLocales: const [
+        Locale('en', ''), // English
+        Locale('ar', ''), // Arabic
+      ],
+      path: 'assets/translations', // Path to the translations folder
+      fallbackLocale: const Locale('en', ''),
+      startLocale: const Locale('en', ''), // Default start locale
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => ThemeNotifier(isDarkMode: isDarkMode),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => LocaleNotifier(),
+          ),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -55,59 +75,94 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
       builder: (context, themeNotifier, child) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider<AuthBloc>(
-              create: (context) => AuthBloc(),
-            ),
-            BlocProvider<NavigationBloc>(
-                create: (context) => NavigationBloc()..add(GetUserData())),
-            BlocProvider<PatientsBloc>(
-                create: (context) => PatientsBloc(
-                      PatientsUseCase(
-                        PatientsRepositoryImpl(
-                          PatientFirebaseApi(),
-                        ),
+        return Consumer<LocaleNotifier>(
+          builder: (context, localeNotifier, child) {
+            debugPrint('1 Current Locale: ${localeNotifier.currentLocale}');
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<AuthBloc>(
+                  create: (context) => AuthBloc(),
+                ),
+                BlocProvider<NavigationBloc>(
+                    create: (context) => NavigationBloc()..add(GetUserData())),
+                BlocProvider<PatientsBloc>(
+                    create: (context) => PatientsBloc(
+                          PatientsUseCase(
+                            PatientsRepositoryImpl(
+                              PatientFirebaseApi(),
+                            ),
+                          ),
+                        )),
+                BlocProvider<CopilotBloc>(
+                  create: (context) => CopilotBloc(
+                    vertexAIService: VertexAIService(ApiKeyHelper.vertexAIKey),
+                    gptService: GPTService(ApiKeyHelper.gptKey),
+                    geminiService: GeminiService(ApiKeyHelper.geminiKey),
+                    deepSeekService: DeepSeekService(ApiKeyHelper.deepSeekKey),
+                    qwenService: QwenService(ApiKeyHelper.qwenKey),
+                    claudeService: ClaudeService(ApiKeyHelper.claudeKey),
+                  ),
+                ),
+                BlocProvider<SettingsBloc>(
+                  create: (context) => SettingsBloc(),
+                ),
+                BlocProvider<SessionsBloc>(
+                  create: (context) => SessionsBloc(
+                    SessionsUseCase(
+                      SessionsRepositoryImpl(
+                        firebaseApi: SessionFirebaseApi(),
                       ),
-                    )),
-            BlocProvider<CopilotBloc>(
-              create: (context) => CopilotBloc(
-                vertexAIService: VertexAIService(ApiKeyHelper.vertexAIKey),
-                gptService: GPTService(ApiKeyHelper.gptKey),
-                geminiService: GeminiService(ApiKeyHelper.geminiKey),
-                deepSeekService: DeepSeekService(ApiKeyHelper.deepSeekKey),
-                qwenService: QwenService(ApiKeyHelper.qwenKey),
-                claudeService: ClaudeService(ApiKeyHelper.claudeKey),
-              ),
-            ),
-            BlocProvider<SettingsBloc>(
-              create: (context) => SettingsBloc(),
-            ),
-            BlocProvider<SessionsBloc>(
-              create: (context) => SessionsBloc(
-                SessionsUseCase(
-                  SessionsRepositoryImpl(
-                    firebaseApi: SessionFirebaseApi(),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            BlocProvider<EvaluationsBloc>(
-              create: (context) => EvaluationsBloc(
-                EvaluationsUseCase(
-                  EvaluationsRepositoryImpl(
-                    firebaseApi: EvaluationFirebaseApi(),
+                BlocProvider<EvaluationsBloc>(
+                  create: (context) => EvaluationsBloc(
+                    EvaluationsUseCase(
+                      EvaluationsRepositoryImpl(
+                        firebaseApi: EvaluationFirebaseApi(),
+                      ),
+                    ),
                   ),
                 ),
+              ],
+              child: MaterialApp.router(
+                routerConfig: RoutingConfig.router,
+                title: 'Dr Copilot',
+                theme: themeNotifier.currentTheme.copyWith(
+                  scrollbarTheme: ScrollbarThemeData(
+                    thumbVisibility: WidgetStateProperty.all(true),
+                    thickness:
+                        WidgetStateProperty.all(8.0), // Increased thickness
+                  ),
+                  textTheme: context.locale.languageCode == 'ar'
+                      ? GoogleFonts.tajawalTextTheme()
+                      : GoogleFonts.robotoTextTheme(),
+                ),
+                debugShowCheckedModeBanner: false,
+                locale: context.locale, // Use EasyLocalization's locale
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: context.localizationDelegates,
+                builder: (context, child) {
+                  final isArabic =
+                      Localizations.localeOf(context).languageCode == 'ar';
+                  debugPrint(
+                      '2 Current Locale: ${Localizations.localeOf(context).languageCode}');
+                  return ScrollConfiguration(
+                    behavior: ScrollBehavior(),
+                    child: Builder(
+                      builder: (context) {
+                        return Directionality(
+                            textDirection: isArabic
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            child: child!);
+                      },
+                    ),
+                  );
+                },
               ),
-            ),
-          ],
-          child: MaterialApp.router(
-            routerConfig: RoutingConfig.router,
-            title: 'Dr Copilot',
-            theme: themeNotifier.currentTheme,
-            debugShowCheckedModeBanner: false,
-          ),
+            );
+          },
         );
       },
     );

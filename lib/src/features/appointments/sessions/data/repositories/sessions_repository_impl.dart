@@ -4,7 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/data/remote/sessio
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 
-class SessionsRepositoryImpl extends AbstractEvaluationsRepository {
+class SessionsRepositoryImpl extends AbstractSessionsRepository {
   final SessionFirebaseApi firebaseApi;
 
   SessionsRepositoryImpl({required this.firebaseApi});
@@ -32,19 +32,26 @@ class SessionsRepositoryImpl extends AbstractEvaluationsRepository {
 
   /// Deletes a session by their ID.
   @override
-  Future<Either<Failure, SessionModel>> deleteSession(String id) {
+  Future<Either<Failure, void>> deleteSession(String id) {
     return firebaseApi.deleteSession(id);
   }
 
   /// Searches sessions based on criteria.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name}) {
-    return firebaseApi.searchSessions(name: name);
+  Future<Either<Failure, List<SessionModel>>> searchSessions(
+      {String? patientId}) {
+    return firebaseApi.searchSessions(patientId: patientId);
   }
 
   /// Gets sessions by a specific date.
   @override
   Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date) {
     return firebaseApi.getSessionsByDate(date);
+  }
+
+  /// Detects the type of session based on patient ID.
+  @override
+  Future<Either<Failure, SessionType>> detectSessionType(String patientId) {
+    return firebaseApi.detectSessionType(patientId);
   }
 }

@@ -73,3 +73,13 @@ class LoadMoreSessions extends SessionsEvent {
   @override
   List<Object?> get props => [query, lastDocumentId, limit];
 }
+
+class DetectSessionType extends SessionsEvent {
+  final String patientId;
+
+  const DetectSessionType(this.patientId);
+
+  @override
+  List<Object?> get props => [patientId];
+}
+

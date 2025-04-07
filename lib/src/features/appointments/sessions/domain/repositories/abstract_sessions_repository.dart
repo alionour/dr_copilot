@@ -3,7 +3,7 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 
 // An abstract class that defines the repository for session-related operations.
-abstract class AbstractEvaluationsRepository {
+abstract class AbstractSessionsRepository {
   /// Gets a list of sessions.
   Future<Either<Failure, List<SessionModel>>> getSessions(
       {String? lastDocumentID, int limit = 20});
@@ -16,11 +16,15 @@ abstract class AbstractEvaluationsRepository {
       String id, SessionModel sessionModel);
 
   /// Deletes a session by their ID.
-  Future<Either<Failure, SessionModel>> deleteSession(String id);
+  Future<Either<Failure, void>> deleteSession(String id);
 
   /// Searches sessions based on criteria.
-  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name});
+  Future<Either<Failure, List<SessionModel>>> searchSessions(
+      {String? patientId});
 
   /// Gets sessions by a specific date.
   Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date);
+
+  /// Detects the type of session based on patient ID.
+  Future<Either<Failure, SessionType>> detectSessionType(String patientId);
 }

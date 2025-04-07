@@ -1,5 +1,6 @@
 import 'package:dr_copilot/main.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text('settings'.tr()),
       ),
       body: Focus(
         focusNode: _focusNode,
@@ -62,8 +63,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         leading: const Icon(Icons.color_lens),
                         title: Text(
                           state is SettingsDarkMode
-                              ? 'Light Mode'
-                              : 'Dark Mode',
+                              ? 'lightMode'.tr()
+                              : 'darkMode'.tr(),
                         ),
                         selected: _selectedIndex == 0,
                         onTap: () {
@@ -78,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.lock),
-                    title: const Text('Privacy'),
+                    title: Text('privacy'.tr()),
                     selected: _selectedIndex == 1,
                     onTap: () {
                       setState(() {
@@ -89,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.notifications),
-                    title: const Text('Notifications'),
+                    title: Text('notifications'.tr()),
                     selected: _selectedIndex == 2,
                     onTap: () {
                       setState(() {
@@ -100,18 +101,57 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.language),
-                    title: const Text('Language'),
+                    title: Text('language'.tr()),
                     selected: _selectedIndex == 3,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 3;
                       });
-                      // Handle language settings tap
                     },
+                    trailing: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: context.locale
+                            .languageCode, // Use EasyLocalization's locale
+                        onChanged: (String? newLocale) {
+                          if (newLocale != null) {
+                            context
+                                .read<SettingsBloc>()
+                                .add(ChangeLocaleEvent(newLocale));
+                            context.setLocale(Locale(newLocale));
+                          }
+                        },
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'en',
+                            child: Row(
+                              children: [
+                                Icon(Icons.language, color: Colors.blue),
+                                SizedBox(width: 8),
+                                Text('English'),
+                              ],
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'ar',
+                            child: Row(
+                              children: [
+                                Icon(Icons.language, color: Colors.green),
+                                SizedBox(width: 8),
+                                Text('Arabic'),
+                              ],
+                            ),
+                          ),
+                        ],
+                        dropdownColor: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        icon: const Icon(Icons.arrow_drop_down,
+                            color: Colors.black),
+                      ),
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.security),
-                    title: const Text('Security'),
+                    title: Text('security'.tr()),
                     selected: _selectedIndex == 4,
                     onTap: () {
                       setState(() {
@@ -122,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.help),
-                    title: const Text('Help & Support'),
+                    title: Text('helpSupport'.tr()),
                     selected: _selectedIndex == 5,
                     onTap: () {
                       setState(() {
@@ -133,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.info),
-                    title: const Text('About'),
+                    title: Text('about'.tr()),
                     selected: _selectedIndex == 6,
                     onTap: () {
                       setState(() {

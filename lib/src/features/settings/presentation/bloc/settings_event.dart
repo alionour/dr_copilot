@@ -10,3 +10,12 @@ abstract class SettingsEvent extends Equatable {
 class ToggleThemeEvent extends SettingsEvent {}
 
 class LoadSettingsEvent extends SettingsEvent {}
+
+class ChangeLocaleEvent extends SettingsEvent {
+  final String localeCode;
+
+  const ChangeLocaleEvent(this.localeCode);
+
+  @override
+  List<Object> get props => [localeCode];
+}

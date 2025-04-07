@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -63,7 +64,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                   ),
                 ),
                 subtitle: Text(
-                  'Tap to view details',
+                  'tapToViewDetails'.tr(),
                   style: GoogleFonts.robotoSlab(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -100,13 +101,13 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                       children: [
                         _buildEditableTableRow(
                           context,
-                          label: 'Name',
+                          label: 'name'.tr(),
                           value: widget.evaluationModel.patientName,
                           fieldKey: 'patientName',
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'Start Time',
+                          label: 'startTime'.tr(),
                           value: widget.evaluationModel.startDateTime
                               .toDate()
                               .toLocal()
@@ -115,7 +116,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'End Time',
+                          label: 'endTime'.tr(),
                           value: widget.evaluationModel.endDateTime
                               .toDate()
                               .toLocal()
@@ -124,7 +125,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'Price',
+                          label: 'price'.tr(),
                           value:
                               '\$${widget.evaluationModel.price.toStringAsFixed(2)}',
                           fieldKey: 'price',
@@ -145,7 +146,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                             color: Colors.white, // Ensure icon color is visible
                           ),
                           label: Text(
-                            _isEditing ? 'Save' : 'Edit',
+                            _isEditing ? 'save'.tr() : 'edit'.tr(),
                             style: const TextStyle(
                                 color: Colors
                                     .white), // Ensure text color is visible
@@ -173,8 +174,8 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                             Icons.delete,
                             color: Colors.white, // Ensure icon color is visible
                           ),
-                          label: const Text(
-                            'Delete',
+                          label: Text(
+                            'delete'.tr(),
                             style: TextStyle(
                                 color: Colors
                                     .white), // Ensure text color is visible
@@ -205,11 +206,13 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0, horizontal: 12.0), // Consistent padding
           child: SizedBox(
             height: 30,
-            child: Align(
-              alignment: Alignment.centerLeft,
+            child: Container(
+              alignment: AlignmentDirectional
+                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
               child: Text(
                 label,
                 style: GoogleFonts.robotoSlab(
@@ -222,11 +225,13 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0, horizontal: 12.0), // Consistent padding
           child: SizedBox(
             height: 30,
-            child: Align(
-              alignment: Alignment.centerLeft,
+            child: Container(
+              alignment: AlignmentDirectional
+                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
               child: (fieldKey == 'startDateTime' || fieldKey == 'endDateTime')
                   ? Row(
                       children: [
@@ -236,8 +241,8 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                                 !_isEditing, // Enable editing when _isEditing is true
                             decoration: InputDecoration(
                               hintText: fieldKey == 'startDateTime'
-                                  ? 'Select start date'
-                                  : 'Select end date',
+                                  ? 'selectStartDate'.tr()
+                                  : 'selectEndDate'.tr(),
                               suffixIcon:
                                   const Icon(Icons.calendar_month_outlined),
                               border: const OutlineInputBorder(),
@@ -287,8 +292,8 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                                 !_isEditing, // Enable editing when _isEditing is true
                             decoration: InputDecoration(
                               hintText: fieldKey == 'startDateTime'
-                                  ? 'Select start time'
-                                  : 'Select end time',
+                                  ? 'selectStartTime'.tr()
+                                  : 'selectEndTime'.tr(),
                               suffixIcon:
                                   const Icon(Icons.access_time_filled_outlined),
                               border: const OutlineInputBorder(),
@@ -391,7 +396,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
         debugPrint(
             'Dispatched UpdateEvaluation event with updated evaluation: $updatedEvaluationModel');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Evaluation updated successfully')),
+          const SnackBar(content: Text('evaluationUpdated')),
         );
         setState(() {
           _isEditing = false; // Exit editing mode
@@ -401,8 +406,8 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
           SnackBar(
             content: Text(
               e.toString().contains('Unauthorized')
-                  ? 'You are not authorized to perform this action'
-                  : 'An unexpected error occurred',
+                  ? 'notAuthorized'.tr()
+                  : 'unexpectedError'.tr(),
             ),
           ),
         );

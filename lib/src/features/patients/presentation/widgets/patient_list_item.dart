@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart' as localization;
 
 /// A widget that displays a patient's information in a list item.
 class PatientListItem extends StatefulWidget {
@@ -81,7 +82,7 @@ class _PatientListItemState extends State<PatientListItem> {
                         ),
                 ),
                 subtitle: Text(
-                  'Tap to view details',
+                  'tapToViewDetails'.tr(),
                   style: GoogleFonts.robotoSlab(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -105,48 +106,54 @@ class _PatientListItemState extends State<PatientListItem> {
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     padding: const EdgeInsets.all(12.0),
-                    child: Table(
-                      columnWidths: const {
-                        0: IntrinsicColumnWidth(),
-                        1: FlexColumnWidth(),
-                      },
-                      border: TableBorder.all(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        width: 0.3,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      children: [
-                        _buildEditableTableRow(
-                          context,
-                          label: 'Name',
-                          value: widget.name,
-                          fieldKey: 'name',
-                          isArabic:
-                              widget.name.contains(RegExp(r'[\u0600-\u06FF]')),
+                    child: Builder(builder: (context) {
+                      final isArabic =
+                          Localizations.localeOf(context).languageCode == 'ar';
+                      return Table(
+                        textDirection:
+                            isArabic ? TextDirection.rtl : TextDirection.ltr,
+                        columnWidths: const {
+                          0: IntrinsicColumnWidth(),
+                          1: FlexColumnWidth(),
+                        },
+                        border: TableBorder.all(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          width: 0.3,
+                          borderRadius: BorderRadius.circular(8.0),
                         ),
-                        _buildEditableTableRow(
-                          context,
-                          label: 'Age',
-                          value: widget.age?.toString() ?? 'N/A',
-                          fieldKey: 'age',
-                        ),
-                        _buildEditableTableRow(
-                          context,
-                          label: 'Address',
-                          value: widget.address ?? 'N/A',
-                          fieldKey: 'address',
-                          isArabic: widget.address
-                                  ?.contains(RegExp(r'[\u0600-\u06FF]')) ??
-                              false,
-                        ),
-                        _buildEditableTableRow(
-                          context,
-                          label: 'Gender',
-                          value: widget.gender ?? 'N/A',
-                          fieldKey: 'gender',
-                        ),
-                      ],
-                    ),
+                        children: [
+                          _buildEditableTableRow(
+                            context,
+                            label: 'name'.tr(),
+                            value: widget.name,
+                            fieldKey: 'name',
+                            isArabic: widget.name
+                                .contains(RegExp(r'[\u0600-\u06FF]')),
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'age'.tr(),
+                            value: widget.age?.toString() ?? 'N/A',
+                            fieldKey: 'age',
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'address'.tr(),
+                            value: widget.address ?? 'N/A',
+                            fieldKey: 'address',
+                            isArabic: widget.address
+                                    ?.contains(RegExp(r'[\u0600-\u06FF]')) ??
+                                false,
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'gender'.tr(),
+                            value: widget.gender ?? 'N/A',
+                            fieldKey: 'gender',
+                          ),
+                        ],
+                      );
+                    }),
                   ),
                   const SizedBox(height: 16.0),
                   Row(
@@ -161,7 +168,7 @@ class _PatientListItemState extends State<PatientListItem> {
                             color: Colors.white, // Ensure icon color is visible
                           ),
                           label: Text(
-                            _isEditing ? 'Save' : 'Edit',
+                            _isEditing ? 'save'.tr() : 'edit'.tr(),
                             style: const TextStyle(
                                 color: Colors
                                     .white), // Ensure text color is visible
@@ -192,8 +199,8 @@ class _PatientListItemState extends State<PatientListItem> {
                             Icons.delete,
                             color: Colors.white, // Ensure icon color is visible
                           ),
-                          label: const Text(
-                            'Delete',
+                          label: Text(
+                            'delete'.tr(),
                             style: TextStyle(
                                 color: Colors
                                     .white), // Ensure text color is visible
@@ -225,11 +232,13 @@ class _PatientListItemState extends State<PatientListItem> {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0, horizontal: 12.0), // Consistent padding
           child: SizedBox(
             height: 30, // Ensure consistent height for all rows
-            child: Align(
-              alignment: Alignment.centerLeft,
+            child: Container(
+              alignment: AlignmentDirectional
+                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
               child: Text(
                 label,
                 style: GoogleFonts.robotoSlab(
@@ -242,21 +251,24 @@ class _PatientListItemState extends State<PatientListItem> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0, horizontal: 12.0), // Consistent padding
           child: SizedBox(
             height: 30, // Ensure consistent height for all rows
-            child: Align(
-              alignment: Alignment.centerLeft,
+            child: Container(
+              alignment: AlignmentDirectional
+                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
               child: fieldKey == 'gender'
                   ? _isEditing
                       ? Row(
                           children: [
                             ChoiceChip(
-                              label: const Row(
+                              label: Row(
                                 children: [
                                   Icon(Icons.male, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Male'),
+                                  const SizedBox(width: 8),
+                                  Text('male'
+                                      .tr()), // Added translation for Male
                                 ],
                               ),
                               selected:
@@ -278,11 +290,12 @@ class _PatientListItemState extends State<PatientListItem> {
                             ),
                             const SizedBox(width: 8),
                             ChoiceChip(
-                              label: const Row(
+                              label: Row(
                                 children: [
                                   Icon(Icons.female, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Female'),
+                                  const SizedBox(width: 8),
+                                  Text('female'
+                                      .tr()), // Added translation for Female
                                 ],
                               ),
                               selected: (_updatedValues[fieldKey] ?? value) ==
@@ -315,7 +328,10 @@ class _PatientListItemState extends State<PatientListItem> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              value,
+                              value == 'Male'
+                                  ? 'male'.tr()
+                                  : 'female'
+                                      .tr(), // Apply translation for non-editing state
                               style: GoogleFonts.robotoSlab(
                                 fontSize: 16,
                                 color: Theme.of(context).colorScheme.onSurface,
@@ -412,8 +428,8 @@ class _PatientListItemState extends State<PatientListItem> {
           SnackBar(
             content: Text(
               e.toString().contains('Unauthorized')
-                  ? 'You are not authorized to perform this action'
-                  : 'An unexpected error occurred',
+                  ? 'unauthorizedError'.tr()
+                  : 'unexpectedError'.tr(),
             ),
           ),
         );

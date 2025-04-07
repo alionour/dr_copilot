@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,7 +9,7 @@ class HelpSupportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Help & Support'),
+        title: Text('helpSupport'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -16,39 +17,39 @@ class HelpSupportPage extends StatelessWidget {
           },
         ),
       ),
-      body: const Padding(
+      body:  Padding(
         padding: EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Help & Support',
+                'helpSupport'.tr(),
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
               Text(
-                'If you need assistance with Dr. Copilot, please refer to the following resources:',
+                'helpSupportContent'.tr(),
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 16),
               Text(
-                '1. User Guide: Our comprehensive user guide provides detailed instructions on how to use all the features of Dr. Copilot. You can access the user guide on our website.',
+                'userGuide'.tr(),
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 8),
               Text(
-                '2. FAQ: Visit our FAQ section on the website for answers to common questions about Dr. Copilot.',
+                'faq'.tr(),
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 8),
               Text(
-                '3. Contact Support: If you need further assistance, please contact our support team. You can reach us via email at support@drcopilot.com or call us at (123) 456-7890.',
+                'contactSupport'.tr(),
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 16),
               Text(
-                'We are here to help you make the most of Dr. Copilot and ensure that you have a positive experience using our app.',
+                'positiveExperience'.tr(),
                 style: TextStyle(fontSize: 16),
               ),
             ],

@@ -1,11 +1,11 @@
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:googleapis/calendar/v3.dart' as google_calendar;
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 class AddCalendarEventPage extends StatefulWidget {
@@ -107,10 +107,9 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   @override
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Appointment'),
+        title: Text('addCalendarEvent'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -168,15 +167,15 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                   TextFormField(
                                     controller: _patientNameController,
                                     focusNode: _patientNameFocusNode,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Patient Name',
-                                      hintText: 'Search Patients',
-                                      prefixIcon: Icon(Icons.search),
+                                    decoration: InputDecoration(
+                                      labelText: 'patientName'.tr(),
+                                      hintText: 'searchPatients'.tr(),
+                                      prefixIcon: const Icon(Icons.search),
                                       border: InputBorder.none,
                                     ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return 'Please enter a patient name';
+                                        return 'pleaseEnterPatientName'.tr();
                                       }
                                       return null;
                                     },
@@ -186,7 +185,8 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                       });
                                       context.read<PatientsBloc>().add(
                                           SearchPatients(
-                                              name:query)); // Trigger search event
+                                              name:
+                                                  query)); // Trigger search event
                                     },
                                     onFieldSubmitted: (_) {
                                       FocusScope.of(context)
@@ -224,14 +224,13 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                       query.isNotEmpty)
                                     Column(
                                       children: [
-                                        const Text(
-                                            'No patients with provided query.'),
+                                        Text('noPatientsWithQuery'.tr()),
                                         Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
                                             Tooltip(
-                                              message: 'Add Patient',
+                                              message: 'addPatient'.tr(),
                                               child: IconButton(
                                                 icon: const Icon(Icons.add),
                                                 onPressed: () {
@@ -263,16 +262,17 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                                     ScaffoldMessenger.of(
                                                             context)
                                                         .showSnackBar(
-                                                      const SnackBar(
+                                                      SnackBar(
                                                           content: Text(
-                                                              'User can not be null')),
+                                                              'userIdCannotBeNull'
+                                                                  .tr())),
                                                     );
                                                   }
                                                 },
                                               ),
                                             ),
                                             Tooltip(
-                                              message: 'Go to Add Patient',
+                                              message: 'goToAddPatient'.tr(),
                                               child: IconButton(
                                                 icon: const Icon(
                                                     Icons.arrow_forward),
@@ -296,7 +296,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                           controller: _descriptionController,
                           focusNode: _descriptionFocusNode,
                           decoration:
-                              const InputDecoration(labelText: 'Description'),
+                              InputDecoration(labelText: 'description'.tr()),
                           onFieldSubmitted: (_) {
                             FocusScope.of(context).unfocus();
                           },
@@ -329,7 +329,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                         DropdownButtonFormField<String>(
                           value: _selectedCalendar,
                           decoration:
-                              const InputDecoration(labelText: 'Calendar'),
+                              InputDecoration(labelText: 'calendar'.tr()),
                           items: _calendars.map((String calendar) {
                             return DropdownMenuItem<String>(
                               value: calendar,
@@ -356,7 +356,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _saveEvent,
-                            child: const Text('Save Appointment'),
+                            child: Text('saveAppointment'.tr()),
                           ),
                         ),
                       ],

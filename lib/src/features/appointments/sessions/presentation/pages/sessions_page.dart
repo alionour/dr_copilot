@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/widgets/session_list_item.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +46,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 focusNode: _searchFocusNode,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'Search Sessions',
+                    hintText: 'searchSessions'.tr(),
                     prefixIcon: Icon(Icons.search,
                         color: Theme.of(context).colorScheme.onSurface),
                     border: InputBorder.none,
@@ -69,7 +70,7 @@ class _SessionsPageState extends State<SessionsPage> {
             // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh',
+              tooltip: 'refresh'.tr(),
               onPressed: () {
                 setState(() {
                   query = '';
@@ -91,8 +92,10 @@ class _SessionsPageState extends State<SessionsPage> {
                 borderRadius: BorderRadius.circular(12.0),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
@@ -104,7 +107,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.filter_alt),
-                    tooltip: 'Toggle Filters',
+                    tooltip: 'toggleFilters'.tr(),
                     onPressed: () {
                       setState(() {
                         _showFilters =
@@ -125,7 +128,7 @@ class _SessionsPageState extends State<SessionsPage> {
                             ),
                         ],
                       ),
-                      tooltip: 'Filter by Date',
+                      tooltip: 'filterByDate'.tr(),
                       onPressed: () async {
                         final selectedDate = await showDatePicker(
                           context: context,
@@ -195,8 +198,8 @@ class _SessionsPageState extends State<SessionsPage> {
                   : (state as SessionsLoadingMore).sessions;
 
               if (sessions.isEmpty) {
-                return const Center(
-                  child: Text('No sessions match the applied filters.'),
+                return Center(
+                  child: Text('noSessionsMatch'.tr()),
                 );
               }
 
@@ -240,7 +243,7 @@ class _SessionsPageState extends State<SessionsPage> {
             } else if (state is SessionsError) {
               return Center(child: Text('Error: ${state.message}'));
             }
-            return const Center(child: Text('No sessions found.'));
+            return Center(child: Text('noSessionsFound'.tr()));
           },
         ),
       ),

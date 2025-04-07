@@ -1,9 +1,10 @@
-library sessions_bloc;
+library;
 
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
@@ -21,6 +22,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     on<SearchSessions>(_onSearchSessions);
     on<GetSessionsByDate>(_onGetSessionsByDate);
     on<LoadMoreSessions>(_onLoadMoreSessions);
+    on<DetectSessionType>(_onDetectSessionType);
   }
 
   void _onGetSessions(GetSessions event, Emitter<SessionsState> emit) async {
@@ -45,7 +47,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       (addedSession) {
         debugPrint('Add successful: $addedSession');
         final sessions = state.sessions..add(addedSession);
-        emit(SessionsSuccess(sessions, message: 'Session added successfully'));
+        emit(SessionsSuccess(sessions,
+            message: 'sessionAddedSuccessfully'.tr()));
         return SessionsLoaded(sessions);
       },
     ));
@@ -78,9 +81,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     emit(failureOrSession.fold(
         (failure) => SessionsError(state.sessions,
             message: _mapFailureToMessage(failure)), (deletedSession) {
-      debugPrint('Delete successful: ${deletedSession.id}');
+      debugPrint('Delete successful: ${event.sessionId}');
       final sessions = state.sessions
-        ..removeWhere((session) => session.id == deletedSession.id);
+        ..removeWhere((session) => session.id == event.sessionId);
       emit(SessionsSuccess(sessions, message: 'Session deleted successfully'));
       return SessionsLoaded(sessions);
     }));
@@ -90,7 +93,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       SearchSessions event, Emitter<SessionsState> emit) async {
     emit(SessionsLoading(state.sessions));
     final failureOrSessions =
-        await _sessionsUseCase.searchSessions(name:event.name);
+        await _sessionsUseCase.searchSessions(name: event.name);
     emit(failureOrSessions.fold(
       (failure) =>
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
@@ -131,6 +134,18 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         },
       ));
     }
+  }
+
+  void _onDetectSessionType(
+      DetectSessionType event, Emitter<SessionsState> emit) async {
+    emit(SessionsLoading(state.sessions));
+    final failureOrSessionType =
+        await _sessionsUseCase.detectSessionType(event.patientId);
+    emit(failureOrSessionType.fold(
+      (failure) =>
+          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
+      (sessionType) => SessionTypeDetected(sessionType),
+    ));
   }
 
   String _mapFailureToMessage(Failure failure) {

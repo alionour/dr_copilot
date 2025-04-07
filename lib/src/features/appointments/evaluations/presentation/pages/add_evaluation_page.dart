@@ -3,11 +3,11 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/e
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 class AddEvaluationPage extends StatefulWidget {
@@ -53,15 +53,15 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
 
   String? _validateTime() {
     if (_startDate == null || _endDate == null) {
-      return 'Start and end times must be set.';
+      return 'startAndEndTimesRequired'.tr();
     }
     if (_endDate!.toDate().isBefore(_startDate!.toDate())) {
-      return 'End time must be after start time.';
+      return 'endTimeAfterStartTime'.tr();
     }
     final duration =
         _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
     if (duration > 4.0) {
-      return 'The maximum allowed duration is 4 hours.';
+      return 'maximumAllowedDuration'.tr();
     }
     return null;
   }
@@ -145,7 +145,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     if (_formKey.currentState!.validate()) {
       if (_startDate == null || _endDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Start and end times must be set.')),
+          SnackBar(content: Text('startAndEndTimesRequired'.tr())),
         );
         return;
       }
@@ -175,7 +175,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Evaluation'),
+        title: Text('addEvaluation'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -270,15 +270,15 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       TextFormField(
                                         controller: _patientNameController,
                                         focusNode: _patientNameFocusNode,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Patient Name',
-                                          hintText: 'Search Patients',
-                                          prefixIcon: Icon(Icons.search),
+                                        decoration: InputDecoration(
+                                          labelText: 'patientName'.tr(),
+                                          hintText: 'searchPatients'.tr(),
+                                          prefixIcon: const Icon(Icons.search),
                                           border: InputBorder.none,
                                         ),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return 'Please enter a patient name';
+                                            return 'pleaseEnterName'.tr();
                                           }
                                           return null;
                                         },
@@ -335,14 +335,13 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                           query.isNotEmpty)
                                         Column(
                                           children: [
-                                            const Text(
-                                                'No patients with provided query.'),
+                                            Text('noPatients'.tr()),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Tooltip(
-                                                  message: 'Add Patient',
+                                                  message: 'addPatient'.tr(),
                                                   child: IconButton(
                                                     icon: const Icon(Icons.add),
                                                     onPressed: () {
@@ -357,9 +356,10 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                           ScaffoldMessenger.of(
                                                                   context)
                                                               .showSnackBar(
-                                                            const SnackBar(
+                                                            SnackBar(
                                                                 content: Text(
-                                                                    'Name must contain at least 3 words.')),
+                                                                    'nameMustContain'
+                                                                        .tr())),
                                                           );
                                                           return;
                                                         }
@@ -388,16 +388,18 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                         ScaffoldMessenger.of(
                                                                 context)
                                                             .showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
                                                               content: Text(
-                                                                  'User can not be null')),
+                                                                  'userIdCannotBeNull'
+                                                                      .tr())),
                                                         );
                                                       }
                                                     },
                                                   ),
                                                 ),
                                                 Tooltip(
-                                                  message: 'Go to Add Patient',
+                                                  message:
+                                                      'goToAddPatient'.tr(),
                                                   child: IconButton(
                                                     icon: const Icon(
                                                         Icons.arrow_forward),
@@ -421,7 +423,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Start Date & Time',
+                                'startDateTime'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -434,11 +436,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select start date',
-                                      suffixIcon:
-                                          Icon(Icons.calendar_month_outlined),
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      hintText: 'selectStartDate'.tr(),
+                                      suffixIcon: const Icon(
+                                          Icons.calendar_month_outlined),
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('yyyy-MM-dd')
@@ -451,11 +453,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select start time',
-                                      suffixIcon: Icon(
+                                    decoration: InputDecoration(
+                                      hintText: 'selectStartTime'.tr(),
+                                      suffixIcon: const Icon(
                                           Icons.access_time_filled_outlined),
-                                      border: OutlineInputBorder(),
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('HH:mm')
@@ -470,7 +472,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'End Date & Time',
+                                'endDateTime'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -483,11 +485,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select end date',
-                                      suffixIcon:
-                                          Icon(Icons.calendar_month_outlined),
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      hintText: 'selectEndDate'.tr(),
+                                      suffixIcon: const Icon(
+                                          Icons.calendar_month_outlined),
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('yyyy-MM-dd')
@@ -500,11 +502,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select end time',
-                                      suffixIcon: Icon(
+                                    decoration: InputDecoration(
+                                      hintText: 'selectEndTime'.tr(),
+                                      suffixIcon: const Icon(
                                           Icons.access_time_filled_outlined),
-                                      border: OutlineInputBorder(),
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('HH:mm')
@@ -519,7 +521,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Duration: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} hours',
+                                '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -542,7 +544,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Actual Price',
+                                'actualPrice'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -557,18 +559,18 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               focusNode: _actualPriceFocusNode,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                hintText: 'Enter actual price',
+                                hintText: 'enterActualPrice'.tr(),
                                 helperText:
-                                    'Estimated Price: \$${_estimatedPrice.toStringAsFixed(2)}',
+                                    '${'estimatedPrice'.tr()}: \$${_estimatedPrice.toStringAsFixed(2)}',
                                 border: const OutlineInputBorder(),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter the actual price';
+                                  return 'enterValidPrice'.tr();
                                 }
                                 final price = double.tryParse(value);
                                 if (price == null || price <= 0) {
-                                  return 'Please enter a valid price greater than zero';
+                                  return 'enterValidPriceGreaterThanZero'.tr();
                                 }
                                 return null;
                               },
@@ -577,7 +579,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             DropdownButtonFormField<String>(
                               value: _selectedCalendar,
                               decoration: InputDecoration(
-                                labelText: 'Calendar',
+                                labelText: 'calendar'.tr(),
                                 labelStyle: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -611,7 +613,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               child: ElevatedButton(
                                 onPressed:
                                     _saveEvaluation, // Call _saveEvent on button press
-                                child: const Text('Save Appointment'),
+                                child: Text('saveAppointment'.tr()),
                               ),
                             ),
                           ],

@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
 import 'package:dr_copilot/src/features/copilot/presentation/pages/copilot_page.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -117,7 +118,7 @@ class _NavigationSideState extends State<NavigationSide> {
                                           .read<NavigationBloc>()
                                           .add(NavigateToEvent(e));
                                     },
-                                    title: e.model.title,
+                                    title: tr(e.model.title),
                                     tooltip: e.message,
                                     icon: Icon(
                                       e.model.icon,
@@ -126,9 +127,10 @@ class _NavigationSideState extends State<NavigationSide> {
                                   ),
                                 ),
                                 if (data.isOpen)
-                                  const SideMenuItemDataTitle(
-                                      title: 'Appointments',
-                                      padding: EdgeInsetsDirectional.all(8)),
+                                  SideMenuItemDataTitle(
+                                      title: 'appointments'.tr(),
+                                      padding:
+                                          const EdgeInsetsDirectional.all(8)),
                                 ...[
                                   Destination.sessions,
                                   Destination.evaluations
@@ -140,7 +142,7 @@ class _NavigationSideState extends State<NavigationSide> {
                                           .read<NavigationBloc>()
                                           .add(NavigateToEvent(e));
                                     },
-                                    title: e.model.title,
+                                    title: tr(e.model.title),
                                     tooltip: e.message,
                                     icon: Icon(
                                       e.model.icon,

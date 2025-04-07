@@ -9,6 +9,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   SettingsBloc() : super(SettingsInitial()) {
     on<ToggleThemeEvent>(_toggleTheme);
     on<LoadSettingsEvent>(_loadSettings);
+    on<ChangeLocaleEvent>(_changeLocale);
   }
 
   void _toggleTheme(ToggleThemeEvent event, Emitter<SettingsState> emit) async {
@@ -24,5 +25,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     final prefs = await SharedPreferences.getInstance();
     final isDarkMode = prefs.getBool('isDarkMode') ?? false;
     emit(isDarkMode ? SettingsDarkMode() : SettingsLightMode());
+  }
+
+  void _changeLocale(
+      ChangeLocaleEvent event, Emitter<SettingsState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('localeCode', event.localeCode);
+    emit(SettingsLocale(event.localeCode));
   }
 }

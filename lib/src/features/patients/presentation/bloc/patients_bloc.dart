@@ -1,6 +1,7 @@
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -43,7 +44,8 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
       (patient) {
         final patients = List<PatientModel>.from(state.patients)..add(patient);
-        emit(PatientsSuccess(patients, message: 'Patient added successfully'));
+        emit(PatientsSuccess(patients,
+            message: 'patientAddedSuccessfully'.tr()));
         return PatientsLoaded(patients);
       },
     ));

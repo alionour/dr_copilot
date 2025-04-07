@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,7 +34,7 @@ class _SessionListItemState extends State<SessionListItem> {
         children: [
           GestureDetector(
             onTap: () {
-              debugPrint('Tile tapped: ${widget.sessionModel.patientName}');
+              debugPrint('Tile tapped: ${widget.sessionModel.patientId}');
               setState(() {
                 _isExpanded = !_isExpanded; // Toggle the expanded state
               });
@@ -48,7 +49,7 @@ class _SessionListItemState extends State<SessionListItem> {
                 leading: CircleAvatar(
                   backgroundColor: Colors.blueAccent,
                   child: Text(
-                    widget.sessionModel.patientName[0],
+                    widget.sessionModel.patientName?[0] ?? '',
                     style: GoogleFonts.robotoSlab(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -56,14 +57,14 @@ class _SessionListItemState extends State<SessionListItem> {
                   ),
                 ),
                 title: Text(
-                  widget.sessionModel.patientName,
+                  widget.sessionModel.patientName ?? '',
                   style: GoogleFonts.robotoSlab(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 subtitle: Text(
-                  'Tap to view details',
+                  'tapToViewDetails'.tr(),
                   style: GoogleFonts.robotoSlab(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -79,6 +80,7 @@ class _SessionListItemState extends State<SessionListItem> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     decoration: BoxDecoration(
@@ -100,19 +102,19 @@ class _SessionListItemState extends State<SessionListItem> {
                       children: [
                         _buildEditableTableRow(
                           context,
-                          label: 'Name',
-                          value: widget.sessionModel.patientName,
+                          label: 'name'.tr(),
+                          value: widget.sessionModel.patientName ?? '',
                           fieldKey: 'patientName',
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'Type',
+                          label: 'sessionType'.tr(),
                           value: widget.sessionModel.sessionType.text,
                           fieldKey: 'sessionType',
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'Start Time',
+                          label: 'startTime'.tr(),
                           value: widget.sessionModel.startDateTime
                               .toDate()
                               .toLocal()
@@ -121,7 +123,7 @@ class _SessionListItemState extends State<SessionListItem> {
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'End Time',
+                          label: 'endTime'.tr(),
                           value: widget.sessionModel.endDateTime
                               .toDate()
                               .toLocal()
@@ -130,7 +132,7 @@ class _SessionListItemState extends State<SessionListItem> {
                         ),
                         _buildEditableTableRow(
                           context,
-                          label: 'Price',
+                          label: 'price'.tr(),
                           value:
                               '\$${widget.sessionModel.price.toStringAsFixed(2)}',
                           fieldKey: 'price',
@@ -151,7 +153,7 @@ class _SessionListItemState extends State<SessionListItem> {
                             color: Colors.white, // Ensure icon color is visible
                           ),
                           label: Text(
-                            _isEditing ? 'Save' : 'Edit',
+                            _isEditing ? 'save'.tr() : 'edit'.tr(),
                             style: const TextStyle(
                                 color: Colors
                                     .white), // Ensure text color is visible
@@ -180,8 +182,8 @@ class _SessionListItemState extends State<SessionListItem> {
                             Icons.delete,
                             color: Colors.white, // Ensure icon color is visible
                           ),
-                          label: const Text(
-                            'Delete',
+                          label: Text(
+                            'delete'.tr(),
                             style: TextStyle(
                                 color: Colors
                                     .white), // Ensure text color is visible
@@ -212,11 +214,13 @@ class _SessionListItemState extends State<SessionListItem> {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0, horizontal: 12.0), // Consistent padding
           child: SizedBox(
             height: 30,
-            child: Align(
-              alignment: Alignment.centerLeft,
+            child: Container(
+              alignment: AlignmentDirectional
+                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
               child: Text(
                 label,
                 style: GoogleFonts.robotoSlab(
@@ -229,17 +233,20 @@ class _SessionListItemState extends State<SessionListItem> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0, horizontal: 12.0), // Consistent padding
           child: SizedBox(
             height: 30,
-            child: Align(
-              alignment: Alignment.centerLeft,
+            child: Container(
+              alignment: AlignmentDirectional
+                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
               child: fieldKey == 'sessionType'
                   ? Wrap(
                       spacing: 8.0,
                       children: SessionType.values.map((type) {
                         return ChoiceChip(
-                          label: Text(type.text),
+                          label: Text(type.text
+                              .tr()), // Added translation for session type
                           selected:
                               (_updatedValues[fieldKey] ?? value) == type.text,
                           onSelected: _isEditing
@@ -276,8 +283,8 @@ class _SessionListItemState extends State<SessionListItem> {
                                     !_isEditing, // Enable editing when _isEditing is true
                                 decoration: InputDecoration(
                                   hintText: fieldKey == 'startDateTime'
-                                      ? 'Select start date'
-                                      : 'Select end date',
+                                      ? 'selectStartDate'.tr()
+                                      : 'selectEndDate'.tr(),
                                   suffixIcon:
                                       const Icon(Icons.calendar_month_outlined),
                                   border: const OutlineInputBorder(),
@@ -329,8 +336,8 @@ class _SessionListItemState extends State<SessionListItem> {
                                     !_isEditing, // Enable editing when _isEditing is true
                                 decoration: InputDecoration(
                                   hintText: fieldKey == 'startDateTime'
-                                      ? 'Select start time'
-                                      : 'Select end time',
+                                      ? 'selectStartTime'.tr()
+                                      : 'selectEndTime'.tr(),
                                   suffixIcon: const Icon(
                                       Icons.access_time_filled_outlined),
                                   border: const OutlineInputBorder(),
@@ -417,8 +424,7 @@ class _SessionListItemState extends State<SessionListItem> {
   void _submitChanges() {
     if (_updatedValues.isNotEmpty) {
       final updatedSessionModel = widget.sessionModel.copyWith(
-        patientName:
-            _updatedValues['patientName'] ?? widget.sessionModel.patientName,
+        patientId: widget.sessionModel.patientId, // Keep the original ID
         price: double.tryParse(_updatedValues['price'] ?? '') ??
             widget.sessionModel.price,
         startDateTime: _updatedValues['startDateTime'] != null
@@ -444,7 +450,7 @@ class _SessionListItemState extends State<SessionListItem> {
         debugPrint(
             'Dispatched UpdateSession event with updated session: $updatedSessionModel');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Session updated successfully')),
+          SnackBar(content: Text('sessionUpdated'.tr())),
         );
         setState(() {
           _isEditing = false; // Exit editing mode
@@ -454,8 +460,8 @@ class _SessionListItemState extends State<SessionListItem> {
           SnackBar(
             content: Text(
               e.toString().contains('Unauthorized')
-                  ? 'You are not authorized to perform this action'
-                  : 'An unexpected error occurred',
+                  ? 'notAuthorized'.tr()
+                  : 'unexpectedError'.tr(),
             ),
           ),
         );

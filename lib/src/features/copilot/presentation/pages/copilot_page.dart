@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.dart';
 import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart'
     as custom;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -212,8 +213,8 @@ class _CopilotPageState extends State<CopilotPage> {
                                                   MainAxisAlignment.end,
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(
-                                                      8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   decoration: BoxDecoration(
                                                     color: const Color(
                                                         0xFFF0F0F0), // Light grey background
@@ -247,7 +248,7 @@ class _CopilotPageState extends State<CopilotPage> {
                                                     ),
                                                   ),
                                                 ),
-                                                SizedBox(width:5),
+                                                const SizedBox(width: 5),
                                                 Padding(
                                                   padding:
                                                       const EdgeInsets.only(
@@ -324,7 +325,7 @@ class _CopilotPageState extends State<CopilotPage> {
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                                 child: Text(
-                                  "No messages yet. Start a conversation!",
+                                  'noMessages'.tr(),
                                   style: TextStyle(
                                     fontSize: 24, // Larger font size
                                     fontWeight: FontWeight.bold, // Bold text

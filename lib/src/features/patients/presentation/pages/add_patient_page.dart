@@ -1,6 +1,7 @@
 // Import necessary packages
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,7 +49,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Patient'),
+        title: Text('addPatient'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -79,13 +80,13 @@ class _AddPatientPageState extends State<AddPatientPage> {
                           TextFormField(
                             controller: _nameController,
                             focusNode: _nameFocusNode,
-                            decoration: const InputDecoration(
-                              labelText: 'Name',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: 'name'.tr(),
+                              border: const OutlineInputBorder(),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter a name';
+                                return 'pleaseEnterName'.tr();
                               }
                               return null;
                             },
@@ -98,18 +99,18 @@ class _AddPatientPageState extends State<AddPatientPage> {
                           TextFormField(
                             controller: _ageController,
                             focusNode: _ageFocusNode,
-                            decoration: const InputDecoration(
-                              labelText: 'Age',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: 'age'.tr(),
+                              border: const OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter an age';
+                                return 'pleaseEnterAge'.tr();
                               }
                               final age = int.tryParse(value);
                               if (age == null || age < 1 || age > 120) {
-                                return 'Age must be between 1 and 120';
+                                return 'ageMustBeBetween'.tr();
                               }
                               return null;
                             },
@@ -122,13 +123,13 @@ class _AddPatientPageState extends State<AddPatientPage> {
                           TextFormField(
                             controller: _addressController,
                             focusNode: _addressFocusNode,
-                            decoration: const InputDecoration(
-                              labelText: 'Address',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: 'address'.tr(),
+                              border: const OutlineInputBorder(),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter an address';
+                                return 'pleaseEnterAddress'.tr();
                               }
                               return null;
                             },
@@ -137,11 +138,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
                             },
                           ),
                           const SizedBox(height: 16.0),
-                          const Align(
+                          Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              'Gender',
-                              style: TextStyle(fontSize: 16),
+                              'gender'.tr(),
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
                           const SizedBox(height: 8.0),
@@ -161,29 +162,29 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               borderRadius: BorderRadius.circular(8.0),
                               selectedColor: Colors.white,
                               fillColor: Colors.blueAccent,
-                              children: const [
+                              children: [
                                 Padding(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0, vertical: 8.0),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.male, size: 20),
-                                      SizedBox(width: 8),
+                                      const Icon(Icons.male, size: 20),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'Male',
+                                        'male'.tr(),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0, vertical: 8.0),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.female, size: 20),
-                                      SizedBox(width: 8),
+                                      const Icon(Icons.female, size: 20),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'Female',
+                                        'female'.tr(),
                                       ),
                                     ],
                                   ),
@@ -196,7 +197,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: _submitForm,
-                              child: const Text('Add Patient'),
+                              child: Text('addPatient'.tr()),
                             ),
                           ),
                         ],
@@ -231,7 +232,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('UserId can not be null')),
+          SnackBar(content: Text('userIdCannotBeNull'.tr())),
         );
       }
     }

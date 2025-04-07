@@ -41,18 +41,18 @@ class NavItemModel {
 /// Enum representing different navigation destinations.
 enum Destination {
   copilot(
-      NavItemModel('Copilot', Icons.dashboard_outlined), 'Navigate to Copilot'),
-  calendar(NavItemModel('Calendar', Icons.calendar_month_outlined),
+      NavItemModel('copilot', Icons.dashboard_outlined), 'Navigate to Copilot'),
+  calendar(NavItemModel('calendar', Icons.calendar_month_outlined),
       'View your calendar'),
-  settings(NavItemModel('Settings', Icons.settings_suggest_outlined),
+  settings(NavItemModel('settings', Icons.settings_suggest_outlined),
       'Adjust your settings'),
-  notifications(NavItemModel('Notifications', Icons.notifications_on_outlined),
+  notifications(NavItemModel('notifications', Icons.notifications_on_outlined),
       'View notifications'),
-  chat(NavItemModel('Chat', Icons.chat_outlined), 'Open chat'),
-  patients(NavItemModel('Patients', Icons.people), 'Manage your patients'),
+  chat(NavItemModel('chat', Icons.chat_outlined), 'Open chat'),
+  patients(NavItemModel('patients', Icons.people), 'Manage your patients'),
   sessions(
-      NavItemModel('Sessions', Icons.schedule_outlined), 'View your sessions'),
-  evaluations(NavItemModel('Evaluations', Icons.assessment_outlined),
+      NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),
+  evaluations(NavItemModel('evaluations', Icons.assessment_outlined),
       'View evaluations');
 
   final NavItemModel model;

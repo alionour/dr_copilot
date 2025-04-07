@@ -3,11 +3,11 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 class AddSessionPage extends StatefulWidget {
@@ -32,6 +32,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
   List<PatientModel> _filteredPatients = [];
   SessionType _selectedSessionType =
       SessionType.standard; // Default session type
+  PatientModel? _selectedPatient; // Add a field to store the selected patient
 
   final List<String> _calendars = ['Sessions'];
   final Map<String, Color> _calendarColors = {
@@ -55,12 +56,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   String? _validateTime() {
     if (_endDate!.toDate().isBefore(_startDate!.toDate())) {
-      return 'End time must be after start time.';
+      return 'endTimeAfterStartTime'.tr();
     }
     final duration =
         _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
     if (duration > 4.0) {
-      return 'The maximum allowed duration is 4 hours.';
+      return 'maximumAllowedDuration'.tr();
     }
     return null;
   }
@@ -120,6 +121,18 @@ class _AddSessionPageState extends State<AddSessionPage> {
     }
   }
 
+  DateTime _roundToNearestHalfHour(DateTime dateTime) {
+    final int minute = dateTime.minute;
+    final int roundedMinute = (minute < 15)
+        ? 0
+        : (minute < 45)
+            ? 30
+            : 0;
+    final int hour = (minute >= 45) ? dateTime.hour + 1 : dateTime.hour;
+    return DateTime(
+        dateTime.year, dateTime.month, dateTime.day, hour, roundedMinute);
+  }
+
   Future<void> _selectTime(BuildContext context, bool isStart) async {
     final DateTime initialDate =
         isStart ? _startDate!.toDate() : _endDate!.toDate();
@@ -133,35 +146,46 @@ class _AddSessionPageState extends State<AddSessionPage> {
     if (pickedTime != null) {
       if (!mounted) return;
       setState(() {
+        final DateTime selectedDateTime = DateTime(
+          initialDate.year,
+          initialDate.month,
+          initialDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        final roundedDateTime = _roundToNearestHalfHour(selectedDateTime);
         if (isStart) {
-          _startDate = Timestamp.fromDate(DateTime(
-              _startDate?.toDate().year ?? DateTime.now().year,
-              _startDate?.toDate().month ?? DateTime.now().month,
-              _startDate?.toDate().day ?? DateTime.now().day,
-              pickedTime.hour,
-              pickedTime.minute));
+          _startDate = Timestamp.fromDate(roundedDateTime);
           _endDate = _endDate!.toDate().isBefore(_startDate!.toDate())
               ? Timestamp.fromDate(
                   _startDate!.toDate().add(const Duration(hours: 1)))
               : _endDate;
         } else {
-          _endDate = Timestamp.fromDate(DateTime(
-              _endDate?.toDate().year ?? DateTime.now().year,
-              _endDate?.toDate().month ?? DateTime.now().month,
-              _endDate?.toDate().day ?? DateTime.now().day,
-              pickedTime.hour,
-              pickedTime.minute));
+          _endDate = Timestamp.fromDate(roundedDateTime);
         }
         _updateEstimatedPrice(); // Update price when time changes
       });
     }
   }
 
+  void _detectSessionTypeForPatient(String patientId) {
+    context.read<SessionsBloc>().add(DetectSessionType(patientId));
+  }
+
   void _saveSession() {
     if (_formKey.currentState!.validate()) {
+      if (_selectedPatient == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('pleaseSelectPatient'.tr())),
+        );
+        return;
+      }
+
       final sessionData = SessionModel(
         id: const Uuid().v4(),
-        patientName: _patientNameController.text,
+        patientId: _selectedPatient!.id, // Use the selected patient's ID
+        patientName:
+            _selectedPatient!.name, // Include the selected patient's name
         startDateTime: _startDate!,
         endDateTime: _endDate!,
         sessionType: _selectedSessionType,
@@ -186,7 +210,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Session'),
+        title: Text('addSession'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -235,6 +259,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
                     SnackBar(content: Text(message)),
                   );
                 }
+              } else if (state is SessionTypeDetected) {
+                setState(() {
+                  _selectedSessionType = state.sessionType;
+                });
               }
             },
           ),
@@ -276,15 +304,16 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       TextFormField(
                                         controller: _patientNameController,
                                         focusNode: _patientNameFocusNode,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Patient Name',
-                                          hintText: 'Search Patients',
-                                          prefixIcon: Icon(Icons.search),
+                                        decoration: InputDecoration(
+                                          labelText: 'patientName'.tr(),
+                                          hintText: 'searchPatients'.tr(),
+                                          prefixIcon: const Icon(Icons.search),
                                           border: InputBorder.none,
                                         ),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return 'Please enter a patient name';
+                                            return 'pleaseEnterPatientName'
+                                                .tr();
                                           }
                                           return null;
                                         },
@@ -305,17 +334,11 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       if (_filteredPatients.isNotEmpty)
                                         Container(
                                           constraints: const BoxConstraints(
-                                            maxHeight:
-                                                200, // Limit height for scrolling
+                                            maxHeight: 200,
                                           ),
                                           child: ListView.builder(
                                             shrinkWrap: true,
-                                            itemCount: _filteredPatients
-                                                        .length >
-                                                    5
-                                                ? 2
-                                                : _filteredPatients
-                                                    .length, // Show only 5 items
+                                            itemCount: _filteredPatients.length,
                                             itemBuilder: (context, index) {
                                               return ListTile(
                                                 title: Text(
@@ -327,8 +350,14 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                             .text =
                                                         _filteredPatients[index]
                                                             .name;
+                                                    _selectedPatient =
+                                                        _filteredPatients[
+                                                            index]; // Set the selected patient
                                                     _filteredPatients = [];
                                                   });
+                                                  _detectSessionTypeForPatient(
+                                                      _filteredPatients[index]
+                                                          .id);
                                                   FocusScope.of(context)
                                                       .requestFocus(
                                                           _actualPriceFocusNode);
@@ -341,14 +370,13 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                           query.isNotEmpty)
                                         Column(
                                           children: [
-                                            const Text(
-                                                'No patients with provided query.'),
+                                            Text('noPatientsWithQuery'.tr()),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Tooltip(
-                                                  message: 'Add Patient',
+                                                  message: 'addPatient'.tr(),
                                                   child: IconButton(
                                                     icon: const Icon(Icons.add),
                                                     onPressed: () {
@@ -356,19 +384,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                           FirebaseAuth.instance
                                                               .currentUser?.uid;
                                                       if (userId != null) {
-                                                        if (query
-                                                                .split(' ')
-                                                                .length <
-                                                            3) {
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            const SnackBar(
-                                                                content: Text(
-                                                                    'Name must contain at least 3 words.')),
-                                                          );
-                                                          return;
-                                                        }
                                                         // Add patient directly
                                                         final newPatient =
                                                             PatientModel(
@@ -394,16 +409,18 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                         ScaffoldMessenger.of(
                                                                 context)
                                                             .showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
                                                               content: Text(
-                                                                  'User can not be null')),
+                                                                  'userIdCannotBeNull'
+                                                                      .tr())),
                                                         );
                                                       }
                                                     },
                                                   ),
                                                 ),
                                                 Tooltip(
-                                                  message: 'Go to Add Patient',
+                                                  message:
+                                                      'goToAddPatient'.tr(),
                                                   child: IconButton(
                                                     icon: const Icon(
                                                         Icons.arrow_forward),
@@ -427,7 +444,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Start Date & Time',
+                                'startDateTime'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -440,11 +457,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select start date',
-                                      suffixIcon:
-                                          Icon(Icons.calendar_month_outlined),
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('yyyy-MM-dd')
@@ -457,11 +471,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select start time',
-                                      suffixIcon: Icon(
-                                          Icons.access_time_filled_outlined),
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('HH:mm')
@@ -476,7 +487,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'End Date & Time',
+                                'endDateTime'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -489,11 +500,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select end date',
-                                      suffixIcon:
-                                          Icon(Icons.calendar_month_outlined),
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('yyyy-MM-dd')
@@ -506,11 +514,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 Expanded(
                                   child: TextFormField(
                                     readOnly: true,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Select end time',
-                                      suffixIcon: Icon(
-                                          Icons.access_time_filled_outlined),
-                                      border: OutlineInputBorder(),
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
                                       text: DateFormat('HH:mm')
@@ -525,7 +530,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Duration: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} hours',
+                                '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -545,12 +550,65 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 ),
                               ),
                             const SizedBox(height: 8.0),
-                            const Align(
+                            Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Session Type',
-                                style: TextStyle(fontSize: 16),
+                                'actualPrice'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: _actualPriceController,
+                              focusNode: _actualPriceFocusNode,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'enterActualPrice'.tr(),
+                                helperText:
+                                    '${'estimatedPrice'.tr()}: \$${_estimatedPrice.toStringAsFixed(2)}',
+                                border: const OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'enterValidPrice'.tr();
+                                }
+                                final price = double.tryParse(value);
+                                if (price == null || price <= 0) {
+                                  return 'enterValidPriceGreaterThanZero'.tr();
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8.0),
+                            DropdownButtonFormField<String>(
+                              value: _selectedCalendar,
+                              decoration: InputDecoration(
+                                labelText: 'calendar'.tr(),
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: _calendars.map((String calendar) {
+                                return DropdownMenuItem<String>(
+                                  value: calendar,
+                                  child: Row(
+                                    children: <Widget>[
+                                      Text(calendar),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedCalendar = newValue!;
+                                });
+                              },
                             ),
                             const SizedBox(height: 8.0),
                             Align(
@@ -591,79 +649,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               ),
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Actual Price',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            TextFormField(
-                              controller: _actualPriceController,
-                              focusNode: _actualPriceFocusNode,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                hintText: 'Enter actual price',
-                                helperText:
-                                    'Estimated Price: \$${_estimatedPrice.toStringAsFixed(2)}',
-                                border: const OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter the actual price';
-                                }
-                                final price = double.tryParse(value);
-                                if (price == null || price <= 0) {
-                                  return 'Please enter a valid price greater than zero';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 8.0),
-                            DropdownButtonFormField<String>(
-                              value: _selectedCalendar,
-                              decoration: InputDecoration(
-                                labelText: 'Calendar',
-                                labelStyle: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              items: _calendars.map((String calendar) {
-                                return DropdownMenuItem<String>(
-                                  value: calendar,
-                                  child: Row(
-                                    children: <Widget>[
-                                      CircleAvatar(
-                                        backgroundColor:
-                                            _calendarColors[calendar],
-                                        radius: 5,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(calendar),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedCalendar = newValue!;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 8.0),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed:
                                     _saveSession, // Call _saveEvent on button press
-                                child: const Text('Save Appointment'),
+                                child: Text('saveAppointment'.tr()),
                               ),
                             ),
                           ],

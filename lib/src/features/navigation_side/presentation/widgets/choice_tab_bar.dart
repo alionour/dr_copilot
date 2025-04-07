@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class ChipTabBar extends StatefulWidget {
@@ -16,7 +17,7 @@ class _ChipTabBarState extends State<ChipTabBar> {
       spacing: 8.0,
       children: [
         ChoiceChip(
-          label: const Text('PERSONAL'),
+          label: Text('personal'.tr()),
           selected: selectedIndex == 0,
           onSelected: (bool selected) {
             setState(() {
@@ -31,7 +32,7 @@ class _ChipTabBarState extends State<ChipTabBar> {
           backgroundColor: const Color(0xFF1E1E2D),
         ),
         ChoiceChip(
-          label: const Text('BUSINESS'),
+          label: Text('business'.tr()),
           selected: selectedIndex == 1,
           onSelected: (bool selected) {
             setState(() {

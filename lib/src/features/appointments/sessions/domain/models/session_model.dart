@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'session_model.g.dart';
@@ -33,7 +34,7 @@ class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
 @JsonSerializable()
 class SessionModel {
   final String id;
-  final String patientName;
+  final String patientId;
   final double price;
 
   @TimestampConverter()
@@ -45,16 +46,18 @@ class SessionModel {
   final SessionType sessionType;
   final String userId;
   final String createdBy;
+  final String? patientName;
 
   SessionModel({
     required this.id,
-    required this.patientName,
+    required this.patientId,
     required this.price,
     required this.startDateTime,
     required this.endDateTime,
     required this.sessionType,
     required this.userId,
     required this.createdBy,
+    this.patientName,
   });
 
   factory SessionModel.fromJson(Map<String, dynamic> json) =>
@@ -64,23 +67,25 @@ class SessionModel {
 
   SessionModel copyWith({
     String? id,
-    String? patientName,
+    String? patientId,
     double? price,
     Timestamp? startDateTime,
     Timestamp? endDateTime,
     SessionType? sessionType,
     String? userId,
     String? createdBy,
+    String? patientName,
   }) {
     return SessionModel(
       id: id ?? this.id,
-      patientName: patientName ?? this.patientName,
+      patientId: patientId ?? this.patientId,
       price: price ?? this.price,
       startDateTime: startDateTime ?? this.startDateTime,
       endDateTime: endDateTime ?? this.endDateTime,
       sessionType: sessionType ?? this.sessionType,
       userId: userId ?? this.userId,
       createdBy: createdBy ?? this.createdBy,
+      patientName: patientName ?? this.patientName,
     );
   }
 }

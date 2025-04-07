@@ -54,3 +54,12 @@ class SessionsSuccess extends SessionsState {
   @override
   List<Object?> get props => [sessions, message];
 }
+
+class SessionTypeDetected extends SessionsState {
+  final SessionType sessionType;
+
+  const SessionTypeDetected(this.sessionType) : super(const []);
+
+  @override
+  List<Object?> get props => [sessionType];
+}

@@ -25,14 +25,6 @@ Map<String, dynamic> _$PatientModelToJson(PatientModel instance) =>
       'gender': instance.gender,
       'address': instance.address,
       'userId': instance.userId,
-      'createdAt': _$JsonConverterToJson<dynamic, Timestamp>(
-          instance.createdAt, const TimestampConverter().toJson),
-      'updatedAt': _$JsonConverterToJson<dynamic, Timestamp>(
-          instance.updatedAt, const TimestampConverter().toJson),
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
     };
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) =>
-    value == null ? null : toJson(value);

@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/calendar/presentation/bloc/calendar_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -48,7 +49,7 @@ class _CalendarPageState extends State<CalendarPage> {
       create: (context) => CalendarBloc(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Calendar'),
+          title: Text('calendarTitle'.tr()),
           centerTitle: true,
           actions: [
             DropdownButtonHideUnderline(
@@ -95,7 +96,9 @@ class _CalendarPageState extends State<CalendarPage> {
                             size: 18,
                           ),
                           const SizedBox(width: 8),
-                          Text(value.toString().split('.').last),
+                          Text(
+                              'calendarView.${value.toString().split('.').last}'
+                                  .tr()),
                         ],
                       ),
                     );
@@ -111,6 +114,7 @@ class _CalendarPageState extends State<CalendarPage> {
               onPressed: () {
                 _navigateToAddEvent(context);
               },
+              tooltip: 'addEventTooltip'.tr(),
               child: const Icon(Icons.add),
             );
           },

@@ -1,12 +1,12 @@
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -51,7 +51,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 focusNode: _searchFocusNode,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'Search Patients',
+                    hintText: 'searchPatients'.tr(),
                     prefixIcon: Icon(Icons.search,
                         color: Theme.of(context).colorScheme.onSurface),
                     border: InputBorder.none,
@@ -75,7 +75,7 @@ class _PatientsPageState extends State<PatientsPage> {
             // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh',
+              tooltip: 'refresh'.tr(),
               onPressed: () {
                 setState(() {
                   query = '';
@@ -101,8 +101,10 @@ class _PatientsPageState extends State<PatientsPage> {
                 borderRadius: BorderRadius.circular(12.0),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
@@ -114,7 +116,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.filter_alt),
-                    tooltip: 'Toggle Filters',
+                    tooltip: 'toggleFilters'.tr(),
                     onPressed: () {
                       setState(() {
                         _showFilters =
@@ -135,7 +137,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             ),
                         ],
                       ),
-                      tooltip: 'Filter by Date',
+                      tooltip: 'filterByDate'.tr(),
                       onPressed: () async {
                         final selectedDate = await showDatePicker(
                           context: context,
@@ -164,13 +166,13 @@ class _PatientsPageState extends State<PatientsPage> {
                         children: [
                           const Icon(Icons.male),
                           if (_selectedGender == 'Male')
-                            const Text(
-                              'Male',
+                            Text(
+                              'male'.tr(),
                               style: TextStyle(fontSize: 12),
                             ),
                         ],
                       ),
-                      tooltip: 'Filter by Male',
+                      tooltip: 'filterByMale'.tr(),
                       onPressed: () {
                         setState(() {
                           _selectedGender = 'Male';
@@ -181,7 +183,7 @@ class _PatientsPageState extends State<PatientsPage> {
                         });
                         context
                             .read<PatientsBloc>()
-                            .add(const SearchPatients(gender: 'Male'));
+                            .add(SearchPatients(gender: 'male'.tr()));
                       },
                     ),
                     IconButton(
@@ -195,7 +197,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             ),
                         ],
                       ),
-                      tooltip: 'Filter by Female',
+                      tooltip: 'filterByFemale'.tr(),
                       onPressed: () {
                         setState(() {
                           _selectedGender = 'Female';
@@ -206,7 +208,7 @@ class _PatientsPageState extends State<PatientsPage> {
                         });
                         context
                             .read<PatientsBloc>()
-                            .add(const SearchPatients(gender: 'Female'));
+                            .add(SearchPatients(gender: 'female'.tr()));
                       },
                     ),
                     IconButton(
@@ -220,7 +222,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             ),
                         ],
                       ),
-                      tooltip: 'Filter by Age',
+                      tooltip: 'filterByAge'.tr(),
                       onPressed: () async {
                         final minAgeController = TextEditingController();
                         final maxAgeController = TextEditingController();
@@ -228,7 +230,7 @@ class _PatientsPageState extends State<PatientsPage> {
                           context: context,
                           builder: (context) {
                             return AlertDialog(
-                              title: const Text('Filter by Age'),
+                              title: Text('filterByAge'.tr()),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -240,8 +242,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                       FilteringTextInputFormatter.allow(RegExp(
                                           r'^(?:1[0-2][0-9]|1[0-2][0]|[1-9]?[0-9]|130)')),
                                     ],
-                                    decoration: const InputDecoration(
-                                        hintText: 'Enter min age (0-130)'),
+                                    decoration: InputDecoration(
+                                        hintText: 'minAge'.tr()),
                                   ),
                                   TextField(
                                     controller: maxAgeController,
@@ -251,15 +253,15 @@ class _PatientsPageState extends State<PatientsPage> {
                                       FilteringTextInputFormatter.allow(RegExp(
                                           r'^(?:1[0-2][0-9]|1[0-2][0]|[1-9]?[0-9]|130)')),
                                     ],
-                                    decoration: const InputDecoration(
-                                        hintText: 'Enter max age (0-130)'),
+                                    decoration: InputDecoration(
+                                        hintText: 'maxAge'.tr()),
                                   ),
                                 ],
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('Cancel'),
+                                  child: Text('cancel'.tr()),
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
@@ -283,7 +285,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                     }
                                     Navigator.of(context).pop();
                                   },
-                                  child: const Text('Apply'),
+                                  child: Text('apply'.tr()),
                                 ),
                               ],
                             );
@@ -302,23 +304,23 @@ class _PatientsPageState extends State<PatientsPage> {
                             ),
                         ],
                       ),
-                      tooltip: 'Filter by Address',
+                      tooltip: 'filterByAddress'.tr(),
                       onPressed: () async {
                         final addressController = TextEditingController();
                         await showDialog(
                           context: context,
                           builder: (context) {
                             return AlertDialog(
-                              title: const Text('Filter by Address'),
+                              title: Text('filterByAddress'.tr()),
                               content: TextField(
                                 controller: addressController,
-                                decoration: const InputDecoration(
-                                    hintText: 'Enter address'),
+                                decoration: InputDecoration(
+                                    hintText: 'enterAddress'.tr()),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('Cancel'),
+                                  child: Text('cancel'.tr()),
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
@@ -336,7 +338,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                     }
                                     Navigator.of(context).pop();
                                   },
-                                  child: const Text('Apply'),
+                                  child: Text('apply'.tr()),
                                 ),
                               ],
                             );
@@ -396,7 +398,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     ),
                   );
                 } else if (state is PatientsLoaded && state.patients.isEmpty) {
-                  return const Center(child: Text('No patients found.'));
+                  return Center(child: Text('noPatients'.tr()));
                 } else if (state is PatientsLoaded) {
                   debugPrint(
                       'PatientsLoaded state with ${state.patients.length} patients');
@@ -468,7 +470,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   return Center(child: Text('Error: ${state.message}'));
                 }
                 debugPrint('No patients found state');
-                return const Center(child: Text('No patients found.'));
+                return Center(child: Text('noPatients'.tr()));
               },
             ),
           );
