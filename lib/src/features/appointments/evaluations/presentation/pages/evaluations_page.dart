@@ -140,6 +140,8 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           setState(() {
                             _selectedDate = selectedDate;
                           });
+                          if (!context.mounted) return;
+
                           context
                               .read<EvaluationsBloc>()
                               .add(GetEvaluationsByDate(date: selectedDate));

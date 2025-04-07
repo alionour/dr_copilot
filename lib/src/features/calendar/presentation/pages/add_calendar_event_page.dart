@@ -55,6 +55,8 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
       lastDate: DateTime(2101),
     );
     if (pickedDate != null) {
+      if (!context.mounted) return;
+
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(DateTime.now()),

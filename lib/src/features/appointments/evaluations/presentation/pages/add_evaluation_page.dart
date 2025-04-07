@@ -101,6 +101,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
               _endDate?.toDate().minute ?? 0));
         }
       });
+      if (!context.mounted) return;
+
       await _selectTime(context, isStart); // Automatically move to time picker
     }
   }

@@ -35,9 +35,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
   PatientModel? _selectedPatient; // Add a field to store the selected patient
 
   final List<String> _calendars = ['Sessions'];
-  final Map<String, Color> _calendarColors = {
-    'Sessions': Colors.red,
-  };
 
   double _estimatedPrice =
       SessionType.standard.basePrice; // Default estimated price for 'Standard'
@@ -116,7 +113,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
               _endDate?.toDate().minute ?? 0));
         }
       });
-      if (!mounted) return;
+      if (!context.mounted) return;
+
       await _selectTime(context, isStart); // Automatically move to time picker
     }
   }

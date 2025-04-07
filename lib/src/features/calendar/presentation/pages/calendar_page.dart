@@ -38,6 +38,7 @@ class _CalendarPageState extends State<CalendarPage> {
     if (result != null) {
       final newEvent = result['event'] as google_calendar.Event;
       final calendarId = result['calendar'] as String;
+      if (!context.mounted) return;
       BlocProvider.of<CalendarBloc>(context)
           .add(AddCalendarEvent(newEvent, calendarId));
     }

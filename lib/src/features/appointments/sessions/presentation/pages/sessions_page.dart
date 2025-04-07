@@ -140,6 +140,8 @@ class _SessionsPageState extends State<SessionsPage> {
                           setState(() {
                             _selectedDate = selectedDate;
                           });
+                          if (!context.mounted) return;
+
                           context
                               .read<SessionsBloc>()
                               .add(GetSessionsByDate(date: selectedDate));

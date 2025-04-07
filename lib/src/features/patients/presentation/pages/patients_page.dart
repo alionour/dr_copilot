@@ -154,7 +154,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             _maxAge = null;
                             _selectedAddress = null; // Clear address value
                           });
-                          if (!mounted) return;
+                          if (!context.mounted) return;
                           context
                               .read<PatientsBloc>()
                               .add(GetPatientsByDate(date: selectedDate));
@@ -513,21 +513,5 @@ class _PatientsPageState extends State<PatientsPage> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
     );
-  }
-
-  /// Normalizes Arabic text for better search matching.
-  ///
-  /// This method replaces certain Arabic characters with their normalized forms.
-  /// @param input The input string to normalize.
-  /// @return The normalized string.
-  String _normalize(String input) {
-    return input
-        .replaceAll('أ', 'ا')
-        .replaceAll('إ', 'ا')
-        .replaceAll('آ', 'ا')
-        .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي')
-        .replaceAll('ئ', 'ي')
-        .replaceAll('ؤ', 'و');
   }
 }

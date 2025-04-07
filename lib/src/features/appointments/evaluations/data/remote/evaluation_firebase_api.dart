@@ -200,10 +200,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
           }
           if (createdBy == user.uid) {
             await _evaluationsCollection.doc(id).delete();
-            return Right(EvaluationModel.fromJson({
-              ...data!,
-              'id': id, // Include the document ID
-            }));
+            return Right(null);
           } else {
             debugPrint(
                 'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}');
