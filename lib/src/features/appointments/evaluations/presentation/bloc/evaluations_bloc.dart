@@ -88,7 +88,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       final evaluations = state.evaluations
         ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
       emit(EvaluationsSuccess(evaluations,
-          message: 'Evaluation deleted successfully'));
+          message: 'evaluationDeleted'.tr()));
       return EvaluationsLoaded(evaluations);
     }));
   }

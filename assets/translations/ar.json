@@ -148,7 +148,15 @@
   "welcomeBack": "مرحبًا بعودتك",
   "signIn": "تسجيل الدخول",
   "SignInWithGoogle": "تسجيل الدخول باستخدام جوجل",
-  "signOut": "تسجيل الخروج"
+  "signOut": "تسجيل الخروج",
+  "phoneNumber": "رقم الهاتف",
+  "alternativePhoneNumber": "رقم هاتف بديل",
+  "treatingDoctor": "الطبيب المعالج",
+  "occupation": "المهنة",
+  "pleaseEnterPhoneNumber": "يرجى إدخال رقم الهاتف",
+  "pleaseEnterAlternativePhoneNumber": "يرجى إدخال رقم هاتف بديل",
+  "pleaseEnterTreatingDoctor": "يرجى إدخال اسم الطبيب المعالج",
+  "pleaseEnterOccupation": "يرجى إدخال المهنة"
 }
-  
-  
+
+

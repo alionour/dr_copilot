@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/services.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
@@ -26,12 +27,20 @@ class _AddPatientPageState extends State<AddPatientPage> {
   final _ageController = TextEditingController();
   final _genderController = TextEditingController();
   final _addressController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
+  final _alternativePhoneNumberController = TextEditingController();
+  final _treatingDoctorController = TextEditingController();
+  final _occupationController = TextEditingController();
 
   // Focus nodes for form fields
   final _nameFocusNode = FocusNode();
   final _ageFocusNode = FocusNode();
   final _genderFocusNode = FocusNode();
   final _addressFocusNode = FocusNode();
+  final _phoneNumberFocusNode = FocusNode();
+  final _alternativePhoneNumberFocusNode = FocusNode();
+  final _treatingDoctorFocusNode = FocusNode();
+  final _occupationFocusNode = FocusNode();
 
   String _selectedGender = 'Male';
 
@@ -134,6 +143,72 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               return null;
                             },
                             onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_phoneNumberFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _phoneNumberController,
+                            focusNode: _phoneNumberFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'phoneNumber'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'pleaseEnterPhoneNumber'.tr();
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context).requestFocus(
+                                  _alternativePhoneNumberFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _alternativePhoneNumberController,
+                            focusNode: _alternativePhoneNumberFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'alternativePhoneNumber'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_treatingDoctorFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _treatingDoctorController,
+                            focusNode: _treatingDoctorFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'treatingDoctor'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_occupationFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _occupationController,
+                            focusNode: _occupationFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'occupation'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            onFieldSubmitted: (_) {
                               FocusScope.of(context).unfocus();
                             },
                           ),
@@ -226,10 +301,23 @@ class _AddPatientPageState extends State<AddPatientPage> {
         final patientModel = PatientModel(
           id: uuid.v4(), // Generate a unique ID
           name: _nameController.text,
-          age: int.parse(_ageController.text),
+          age: int.tryParse(_ageController.text),
           gender: _selectedGender,
           address: _addressController.text,
           userId: userId, // Get userId from AuthBloc
+          phoneNumber: _phoneNumberController.text.isNotEmpty
+              ? _phoneNumberController.text
+              : null,
+          alternativePhoneNumber:
+              _alternativePhoneNumberController.text.isNotEmpty
+                  ? _alternativePhoneNumberController.text
+                  : null,
+          treatingDoctor: _treatingDoctorController.text.isNotEmpty
+              ? _treatingDoctorController.text
+              : null,
+          occupation: _occupationController.text.isNotEmpty
+              ? _occupationController.text
+              : null,
         );
         BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
       } else {
@@ -248,11 +336,19 @@ class _AddPatientPageState extends State<AddPatientPage> {
     _ageController.dispose();
     _genderController.dispose();
     _addressController.dispose();
+    _phoneNumberController.dispose();
+    _alternativePhoneNumberController.dispose();
+    _treatingDoctorController.dispose();
+    _occupationController.dispose();
     // Dispose the focus nodes
     _nameFocusNode.dispose();
     _ageFocusNode.dispose();
     _genderFocusNode.dispose();
     _addressFocusNode.dispose();
+    _phoneNumberFocusNode.dispose();
+    _alternativePhoneNumberFocusNode.dispose();
+    _treatingDoctorFocusNode.dispose();
+    _occupationFocusNode.dispose();
     super.dispose();
   }
 }

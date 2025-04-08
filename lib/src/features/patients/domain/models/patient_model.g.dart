@@ -13,6 +13,10 @@ PatientModel _$PatientModelFromJson(Map<String, dynamic> json) => PatientModel(
       gender: json['gender'] as String?,
       address: json['address'] as String?,
       userId: json['userId'] as String,
+      phoneNumber: json['phoneNumber'] as String?,
+      alternativePhoneNumber: json['alternativePhoneNumber'] as String?,
+      treatingDoctor: json['treatingDoctor'] as String?,
+      occupation: json['occupation'] as String?,
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
     );
@@ -25,6 +29,10 @@ Map<String, dynamic> _$PatientModelToJson(PatientModel instance) =>
       'gender': instance.gender,
       'address': instance.address,
       'userId': instance.userId,
+      'phoneNumber': instance.phoneNumber,
+      'alternativePhoneNumber': instance.alternativePhoneNumber,
+      'treatingDoctor': instance.treatingDoctor,
+      'occupation': instance.occupation,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
     };

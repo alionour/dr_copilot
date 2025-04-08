@@ -12,6 +12,10 @@ class PatientModel {
   final String? gender;
   final String? address;
   final String userId;
+  final String? phoneNumber;
+  final String? alternativePhoneNumber;
+  final String? treatingDoctor;
+  final String? occupation;
 
   @TimestampConverter()
   final Timestamp? createdAt;
@@ -27,6 +31,10 @@ class PatientModel {
     this.gender,
     this.address,
     required this.userId,
+    this.phoneNumber,
+    this.alternativePhoneNumber,
+    this.treatingDoctor,
+    this.occupation,
     this.createdAt,
     this.updatedAt,
   });
@@ -46,6 +54,10 @@ class PatientModel {
     String? gender,
     String? address,
     String? userId,
+    String? phoneNumber,
+    String? alternativePhoneNumber,
+    String? treatingDoctor,
+    String? occupation,
     Timestamp? createdAt,
     Timestamp? updatedAt,
   }) {
@@ -56,6 +68,11 @@ class PatientModel {
       gender: gender ?? this.gender,
       address: address ?? this.address,
       userId: userId ?? this.userId,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      alternativePhoneNumber:
+          alternativePhoneNumber ?? this.alternativePhoneNumber,
+      treatingDoctor: treatingDoctor ?? this.treatingDoctor,
+      occupation: occupation ?? this.occupation,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

@@ -62,8 +62,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
         final patients = state.patients.map((patient) {
           return patient.id == updatedPatient.id ? updatedPatient : patient;
         }).toList();
-        emit(
-            PatientsSuccess(patients, message: 'Patient updated successfully'));
+        emit(PatientsSuccess(patients, message: 'patientUpdated'.tr()));
         return PatientsLoaded(patients);
       },
     ));
@@ -82,7 +81,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
             .where((patient) => patient.id != event.patientId)
             .toList();
         emit(PatientsSuccess(updatedPatients,
-            message: 'Patient deleted successfully'));
+            message: 'patientDeleted'));
         return PatientsLoaded(updatedPatients);
       },
     ));

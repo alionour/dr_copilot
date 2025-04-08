@@ -84,7 +84,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       debugPrint('Delete successful: ${event.sessionId}');
       final sessions = state.sessions
         ..removeWhere((session) => session.id == event.sessionId);
-      emit(SessionsSuccess(sessions, message: 'Session deleted successfully'));
+      emit(SessionsSuccess(sessions, message: 'sessionDeleted'.tr()));
       return SessionsLoaded(sessions);
     }));
   }

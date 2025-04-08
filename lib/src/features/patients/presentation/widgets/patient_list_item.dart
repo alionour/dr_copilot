@@ -8,20 +8,12 @@ import 'package:easy_localization/easy_localization.dart' as localization;
 
 /// A widget that displays a patient's information in a list item.
 class PatientListItem extends StatefulWidget {
-  final String id; // Add id property
-  final String name;
-  final int? age;
-  final String? address;
-  final String? gender;
+  final PatientModel patientModel;
   final VoidCallback onTap;
 
   const PatientListItem({
     super.key,
-    required this.id, // Initialize id
-    required this.name,
-    this.age,
-    this.address,
-    this.gender,
+    required this.patientModel,
     required this.onTap,
   });
 
@@ -47,7 +39,7 @@ class _PatientListItemState extends State<PatientListItem> {
         children: [
           GestureDetector(
             onTap: () {
-              debugPrint('Tile tapped: ${widget.name}');
+              debugPrint('Tile tapped: ${widget.patientModel.name}');
               setState(() {
                 _isExpanded = !_isExpanded; // Toggle the expanded state
               });
@@ -62,7 +54,7 @@ class _PatientListItemState extends State<PatientListItem> {
                 leading: CircleAvatar(
                   backgroundColor: Colors.blueAccent,
                   child: Text(
-                    widget.name[0],
+                    widget.patientModel.name[0],
                     style: GoogleFonts.robotoSlab(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -70,8 +62,9 @@ class _PatientListItemState extends State<PatientListItem> {
                   ),
                 ),
                 title: Text(
-                  widget.name,
-                  style: widget.name.contains(RegExp(r'[\u0600-\u06FF]'))
+                  widget.patientModel.name,
+                  style: widget.patientModel.name
+                          .contains(RegExp(r'[\u0600-\u06FF]'))
                       ? GoogleFonts.tajawal(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
@@ -125,31 +118,56 @@ class _PatientListItemState extends State<PatientListItem> {
                           _buildEditableTableRow(
                             context,
                             label: 'name'.tr(),
-                            value: widget.name,
+                            value: widget.patientModel.name,
                             fieldKey: 'name',
-                            isArabic: widget.name
+                            isArabic: widget.patientModel.name
                                 .contains(RegExp(r'[\u0600-\u06FF]')),
                           ),
                           _buildEditableTableRow(
                             context,
                             label: 'age'.tr(),
-                            value: widget.age?.toString() ?? 'N/A',
+                            value: widget.patientModel.age?.toString() ?? 'N/A',
                             fieldKey: 'age',
                           ),
                           _buildEditableTableRow(
                             context,
                             label: 'address'.tr(),
-                            value: widget.address ?? 'N/A',
+                            value: widget.patientModel.address ?? 'N/A',
                             fieldKey: 'address',
-                            isArabic: widget.address
+                            isArabic: widget.patientModel.address
                                     ?.contains(RegExp(r'[\u0600-\u06FF]')) ??
                                 false,
                           ),
                           _buildEditableTableRow(
                             context,
                             label: 'gender'.tr(),
-                            value: widget.gender ?? 'N/A',
+                            value: widget.patientModel.gender ?? 'N/A',
                             fieldKey: 'gender',
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'phoneNumber'.tr(),
+                            value: widget.patientModel.phoneNumber ?? 'N/A',
+                            fieldKey: 'phoneNumber',
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'alternativePhoneNumber'.tr(),
+                            value: widget.patientModel.alternativePhoneNumber ??
+                                'N/A',
+                            fieldKey: 'alternativePhoneNumber',
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'treatingDoctor'.tr(),
+                            value: widget.patientModel.treatingDoctor ?? 'N/A',
+                            fieldKey: 'treatingDoctor',
+                          ),
+                          _buildEditableTableRow(
+                            context,
+                            label: 'occupation'.tr(),
+                            value: widget.patientModel.occupation ?? 'N/A',
+                            fieldKey: 'occupation',
                           ),
                         ],
                       );
@@ -188,12 +206,12 @@ class _PatientListItemState extends State<PatientListItem> {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             debugPrint(
-                                'Delete button pressed for patient ID: ${widget.id}');
+                                'Delete button pressed for patient ID: ${widget.patientModel.id}');
                             context
                                 .read<PatientsBloc>()
-                                .add(DeletePatient(widget.id));
+                                .add(DeletePatient(widget.patientModel.id));
                             debugPrint(
-                                'Dispatched DeletePatient event for ID: ${widget.id}');
+                                'Dispatched DeletePatient event for ID: ${widget.patientModel.id}');
                           },
                           icon: const Icon(
                             Icons.delete,
@@ -342,20 +360,29 @@ class _PatientListItemState extends State<PatientListItem> {
                   : _isEditing
                       ? TextField(
                           autofocus: _editableField == fieldKey,
-                          controller: TextEditingController(text: value),
+                          controller: TextEditingController(
+                              text: value == 'N/A' ? '' : value),
                           onChanged: (newValue) {
                             _updatedValues[fieldKey] = newValue;
                           },
                           keyboardType: fieldKey == 'age'
                               ? TextInputType.number // Restrict to numbers
-                              : TextInputType.text,
+                              : fieldKey == 'phoneNumber' ||
+                                      fieldKey == 'alternativePhoneNumber'
+                                  ? TextInputType.phone
+                                  : TextInputType.text,
                           inputFormatters: fieldKey == 'age'
                               ? [
                                   FilteringTextInputFormatter.digitsOnly,
                                   LengthLimitingTextInputFormatter(
                                       3), // Limit to 3 digits
                                 ]
-                              : null, // Allow only digits for age
+                              : fieldKey == 'phoneNumber' ||
+                                      fieldKey == 'alternativePhoneNumber'
+                                  ? [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ]
+                                  : null, // Allow only digits for age
                           decoration: const InputDecoration(
                             border: InputBorder.none, // Removes underline
                             isDense: true, // Reduces height
@@ -404,19 +431,31 @@ class _PatientListItemState extends State<PatientListItem> {
 
   void _submitChanges() {
     if (_updatedValues.isNotEmpty) {
-      final updatedPatient = PatientModel(
-        id: widget.id,
-        name: _updatedValues['name'] ?? widget.name,
-        age: int.tryParse(_updatedValues['age'] ?? '') ?? widget.age,
-        address: _updatedValues['address'] ?? widget.address,
-        gender: _updatedValues['gender'] ?? widget.gender,
-        userId: '', // Add userId if required
+      final updatedPatient = widget.patientModel.copyWith(
+        name: _updatedValues['name'] ?? widget.patientModel.name,
+        age: int.tryParse(_updatedValues['age'] ?? '') ??
+            widget.patientModel.age,
+        address: _updatedValues['address'] ?? widget.patientModel.address,
+        gender: _updatedValues['gender'] ?? widget.patientModel.gender,
+        phoneNumber: _updatedValues['phoneNumber']?.isNotEmpty == true
+            ? _updatedValues['phoneNumber']
+            : null,
+        alternativePhoneNumber:
+            _updatedValues['alternativePhoneNumber']?.isNotEmpty == true
+                ? _updatedValues['alternativePhoneNumber']
+                : null,
+        treatingDoctor: _updatedValues['treatingDoctor']?.isNotEmpty == true
+            ? _updatedValues['treatingDoctor']
+            : null,
+        occupation: _updatedValues['occupation']?.isNotEmpty == true
+            ? _updatedValues['occupation']
+            : null,
       );
 
       try {
         context
             .read<PatientsBloc>()
-            .add(UpdatePatient(widget.id, updatedPatient));
+            .add(UpdatePatient(widget.patientModel.id, updatedPatient));
         debugPrint(
             'Dispatched UpdateEvent with updated patient: $updatedPatient');
         setState(() {

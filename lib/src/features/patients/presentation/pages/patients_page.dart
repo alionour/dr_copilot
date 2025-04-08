@@ -447,13 +447,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                     .withValues(alpha: 0.2)
                                 : Colors.transparent,
                             child: PatientListItem(
-                              id: filteredPatients[index].id,
-                              name: filteredPatients[index].name,
-                              age: filteredPatients[index].age, // Add age
-                              address: filteredPatients[index]
-                                  .address, // Add address
-                              gender:
-                                  filteredPatients[index].gender, // Add gender
+                              patientModel: filteredPatients[index],
                               onTap: () {
                                 setState(() {
                                   _selectedIndex = index;
