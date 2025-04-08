@@ -53,7 +53,9 @@ enum Destination {
   sessions(
       NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),
   evaluations(NavItemModel('evaluations', Icons.assessment_outlined),
-      'View evaluations');
+      'View evaluations'),
+  charts(
+      NavItemModel('charts', Icons.area_chart_outlined), 'Navigate to Charts');
 
   final NavItemModel model;
   final String message; // Tooltip or explanation for the destination

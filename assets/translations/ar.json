@@ -48,6 +48,8 @@
   "copilot": "مساعد مهني",
   "settings": "الإعدادات",
   "notifications": "الإشعارات",
+  "notificationTitle": "الإشعار رقم {{0}}",
+  "notificationDetails": "تفاصيل الإشعار رقم {{0}}",
   "chat": "الدردشة",
   "patients": "المرضى",
   "privacy": "الخصوصية",
@@ -156,7 +158,10 @@
   "pleaseEnterPhoneNumber": "يرجى إدخال رقم الهاتف",
   "pleaseEnterAlternativePhoneNumber": "يرجى إدخال رقم هاتف بديل",
   "pleaseEnterTreatingDoctor": "يرجى إدخال اسم الطبيب المعالج",
-  "pleaseEnterOccupation": "يرجى إدخال المهنة"
+  "pleaseEnterOccupation": "يرجى إدخال المهنة",
+  "chartsPageTitle": "صفحة الرسوم البيانية",
+  "chartsPageDescription": "هذه هي صفحة الرسوم البيانية التي تعرض الرسوم المختلفة.",
+  "charts": "الرسوم البيانية"
 }
 
 

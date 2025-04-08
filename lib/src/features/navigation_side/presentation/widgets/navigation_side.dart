@@ -14,7 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
   final Widget child;
@@ -110,6 +110,7 @@ class _NavigationSideState extends State<NavigationSide> {
                                   Destination.patients,
                                   Destination.settings,
                                   Destination.notifications,
+                                  Destination.charts,
                                 ].map(
                                   (e) => SideMenuItemDataTile(
                                     isSelected: state.destination == e,
@@ -260,6 +261,11 @@ class _NavigationSideState extends State<NavigationSide> {
                               Destination.evaluations) {
                             return const Center(
                               child: EvaluationsPage(),
+                            );
+                          } else if (state.destination ==
+                              Destination.charts) {
+                            return const Center(
+                              child: ChartsPage(),
                             );
                           } else {
                             return const SizedBox();

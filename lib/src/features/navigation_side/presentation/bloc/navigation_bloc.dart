@@ -42,6 +42,8 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
         break;
       case Destination.evaluations:
         emit(state.copyWith(destination: Destination.evaluations));
+            case Destination.charts:
+        emit(state.copyWith(destination: Destination.charts));
         break;
     }
   }

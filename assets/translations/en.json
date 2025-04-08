@@ -48,6 +48,8 @@
   "copilot": "Copilot",
   "settings": "Settings",
   "notifications": "Notifications",
+  "notificationTitle": "Notification #{{0}}",
+  "notificationDetails": "Details for notification #{{0}}",
   "chat": "Chat",
   "patients": "Patients",
   "privacy": "Privacy",
@@ -161,5 +163,8 @@
   "pleaseEnterPhoneNumber": "Please enter a phone number",
   "pleaseEnterAlternativePhoneNumber": "Please enter an alternative phone number",
   "pleaseEnterTreatingDoctor": "Please enter the treating doctor's name",
-  "pleaseEnterOccupation": "Please enter the occupation"
+  "pleaseEnterOccupation": "Please enter the occupation",
+  "chartsPageTitle": "Charts Page",
+  "chartsPageDescription": "This is the Charts Page displaying various charts.",
+  "charts": "Charts"
 }
