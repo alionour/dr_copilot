@@ -527,8 +527,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               ],
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
                                 style: Theme.of(context)
@@ -550,8 +551,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 ),
                               ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'actualPrice'.tr(),
                                 style: Theme.of(context)
@@ -611,8 +613,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               },
                             ),
                             const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: ToggleButtons(
@@ -635,7 +638,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12.0, vertical: 6.0),
                                       child: Text(
-                                        type.text,
+                                        'sessionType.${type.name}'.tr(),
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: _selectedSessionType == type

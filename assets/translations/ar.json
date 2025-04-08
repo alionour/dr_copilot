@@ -29,6 +29,10 @@
   "startDateTime": "تاريخ ووقت البدء",
   "endDateTime": "تاريخ ووقت الانتهاء",
   "sessionType": "نوع الجلسة",
+  "sessionType.standard": "عادي",
+  "sessionType.adultIntensive": "مكثف للبالغين",
+  "sessionType.pediatricIntensive": "مكثف للأطفال",
+  "sessionType.traction": "شد فقرات", 
   "actualPrice": "السعر الفعلي",
   "patientName": "اسم المريض",
   "searchPatients": "ابحث عن المرضى",
@@ -161,7 +165,8 @@
   "pleaseEnterOccupation": "يرجى إدخال المهنة",
   "chartsPageTitle": "صفحة الرسوم البيانية",
   "chartsPageDescription": "هذه هي صفحة الرسوم البيانية التي تعرض الرسوم المختلفة.",
-  "charts": "الرسوم البيانية"
+  "charts": "الرسوم البيانية",
+  "account": "الحساب"
 }
 
 
