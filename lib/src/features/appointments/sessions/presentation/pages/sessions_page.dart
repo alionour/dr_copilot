@@ -251,7 +251,7 @@ class _SessionsPageState extends State<SessionsPage> {
                             });
                           },
                         );
-                      }).toList(),
+                      }),
                     ],
                   );
                 },

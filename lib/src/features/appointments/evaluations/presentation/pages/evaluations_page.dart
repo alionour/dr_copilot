@@ -255,7 +255,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                             });
                           },
                         );
-                      }).toList(),
+                      }),
                     ],
                   );
                 },

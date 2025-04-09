@@ -1,14 +1,15 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class ChartsPage extends StatelessWidget {
-  const ChartsPage({Key? key}) : super(key: key);
+  const ChartsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Charts Page'),
+        title: Text('chartsPageTitle'.tr()),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {

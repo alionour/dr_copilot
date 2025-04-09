@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -491,7 +490,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                     },
                                   ),
                                 );
-                              }).toList(),
+                              }),
                             ],
                           );
                         },

@@ -55,7 +55,9 @@ enum Destination {
   evaluations(NavItemModel('evaluations', Icons.assessment_outlined),
       'View evaluations'),
   charts(
-      NavItemModel('charts', Icons.area_chart_outlined), 'Navigate to Charts');
+      NavItemModel('charts', Icons.area_chart_outlined), 'Navigate to Charts'),
+  financials(NavItemModel('financials', Icons.attach_money_outlined),
+      'Manage your financials');
 
   final NavItemModel model;
   final String message; // Tooltip or explanation for the destination

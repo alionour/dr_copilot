@@ -130,8 +130,8 @@ class MyApp extends StatelessWidget {
                 title: 'Dr Copilot',
                 theme: themeNotifier.currentTheme.copyWith(
                   scrollbarTheme: ScrollbarThemeData(
-                    thumbVisibility: MaterialStateProperty.all(true),
-                    thickness: MaterialStateProperty.all(
+                    thumbVisibility: WidgetStateProperty.all(true),
+                    thickness: WidgetStateProperty.all(
                         12.0), // Corrected and increased thickness
                   ),
                   textTheme: context.locale.languageCode == 'ar'
