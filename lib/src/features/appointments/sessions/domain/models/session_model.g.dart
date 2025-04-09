@@ -16,6 +16,11 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       userId: json['userId'] as String,
       createdBy: json['createdBy'] as String,
       patientName: json['patientName'] as String?,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
+      deletedAt: const TimestampConverter().fromJson(json['deletedAt']),
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
     );
 
 Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
@@ -30,6 +35,14 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'userId': instance.userId,
       'createdBy': instance.createdBy,
       'patientName': instance.patientName,
+      'updatedBy': instance.updatedBy,
+      'deletedBy': instance.deletedBy,
+      'deletedAt': _$JsonConverterToJson<dynamic, Timestamp>(
+          instance.deletedAt, const TimestampConverter().toJson),
+      'createdAt': _$JsonConverterToJson<dynamic, Timestamp>(
+          instance.createdAt, const TimestampConverter().toJson),
+      'updatedAt': _$JsonConverterToJson<dynamic, Timestamp>(
+          instance.updatedAt, const TimestampConverter().toJson),
     };
 
 const _$SessionTypeEnumMap = {
@@ -38,3 +51,9 @@ const _$SessionTypeEnumMap = {
   SessionType.standard: 'standard',
   SessionType.traction: 'traction',
 };
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);

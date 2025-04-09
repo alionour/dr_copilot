@@ -167,6 +167,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         patientName: _patientNameController.text,
         startDateTime: _startDate!,
         endDateTime: _endDate!,
+            createdAt: Timestamp.now(),
+
         price: double.parse(_actualPriceController.text),
         userId: FirebaseAuth.instance.currentUser?.uid ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',

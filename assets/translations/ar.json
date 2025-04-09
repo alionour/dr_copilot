@@ -166,7 +166,9 @@
   "chartsPageTitle": "صفحة الرسوم البيانية",
   "chartsPageDescription": "هذه هي صفحة الرسوم البيانية التي تعرض الرسوم المختلفة.",
   "charts": "الرسوم البيانية",
-  "account": "الحساب"
+  "account": "الحساب",
+  "today": "اليوم",
+  "yesterday": "أمس"
 }
 
 

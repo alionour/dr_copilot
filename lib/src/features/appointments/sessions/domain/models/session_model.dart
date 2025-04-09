@@ -46,6 +46,17 @@ class SessionModel {
   final String userId;
   final String createdBy;
   final String? patientName;
+  final String? updatedBy;
+  final String? deletedBy;
+
+  @TimestampConverter()
+  final Timestamp? deletedAt;
+
+  @TimestampConverter()
+  final Timestamp? createdAt;
+
+  @TimestampConverter()
+  final Timestamp? updatedAt;
 
   SessionModel({
     required this.id,
@@ -57,6 +68,11 @@ class SessionModel {
     required this.userId,
     required this.createdBy,
     this.patientName,
+    this.updatedBy,
+    this.deletedBy,
+    this.deletedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory SessionModel.fromJson(Map<String, dynamic> json) =>
@@ -74,6 +90,11 @@ class SessionModel {
     String? userId,
     String? createdBy,
     String? patientName,
+    String? updatedBy,
+    String? deletedBy,
+    Timestamp? deletedAt,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -85,6 +106,11 @@ class SessionModel {
       userId: userId ?? this.userId,
       createdBy: createdBy ?? this.createdBy,
       patientName: patientName ?? this.patientName,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
+      deletedAt: deletedAt ?? this.deletedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

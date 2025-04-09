@@ -186,6 +186,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
             _selectedPatient!.name, // Include the selected patient's name
         startDateTime: _startDate!,
         endDateTime: _endDate!,
+        createdAt: Timestamp.now(),
+
         sessionType: _selectedSessionType,
         price: double.parse(_actualPriceController.text),
         userId: FirebaseAuth.instance.currentUser?.uid ?? '',

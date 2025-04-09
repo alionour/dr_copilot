@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:intl/intl.dart'; // Import for date formatting
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -183,7 +185,7 @@ class _PatientsPageState extends State<PatientsPage> {
                         });
                         context
                             .read<PatientsBloc>()
-                            .add(SearchPatients(gender: 'male'.tr()));
+                            .add(SearchPatients(gender: 'Male'));
                       },
                     ),
                     IconButton(
@@ -191,8 +193,8 @@ class _PatientsPageState extends State<PatientsPage> {
                         children: [
                           const Icon(Icons.female),
                           if (_selectedGender == 'Female')
-                            const Text(
-                              'Female',
+                            Text(
+                              'female'.tr(),
                               style: TextStyle(fontSize: 12),
                             ),
                         ],
@@ -208,7 +210,7 @@ class _PatientsPageState extends State<PatientsPage> {
                         });
                         context
                             .read<PatientsBloc>()
-                            .add(SearchPatients(gender: 'female'.tr()));
+                            .add(SearchPatients(gender: 'Female'));
                       },
                     ),
                     IconButton(
@@ -407,10 +409,24 @@ class _PatientsPageState extends State<PatientsPage> {
                         .toLowerCase()
                         .contains(query.toLowerCase());
                   }).toList();
+
+                  // Group patients by creation date
+                  final groupedPatients = <String, List<PatientModel>>{};
+                  for (var patient in filteredPatients) {
+                    if (patient.createdAt != null) {
+                      final creationDate = DateFormat('yyyy-MM-dd').format(patient.createdAt!.toDate());
+                      groupedPatients.putIfAbsent(creationDate, () => []).add(patient);
+                    } else {
+                      groupedPatients.putIfAbsent('Unknown', () => []).add(patient);
+                    }
+                  }
+
+                  // Sort grouped patients by date in descending order
+                  final sortedGroupedPatients = groupedPatients.entries.toList()
+                    ..sort((a, b) => b.key.compareTo(a.key));
+
                   return Container(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surface, // Use a solid color background
+                    color: Theme.of(context).colorScheme.surface,
                     child: Focus(
                       focusNode: _listFocusNode,
                       autofocus: true,
@@ -436,24 +452,47 @@ class _PatientsPageState extends State<PatientsPage> {
                       },
                       child: ListView.builder(
                         controller: _scrollController,
-                        itemCount: filteredPatients.length,
+                        itemCount: sortedGroupedPatients.length,
                         itemBuilder: (context, index) {
-                          return Container(
-                            color: !navState.isNavigationFocused &&
-                                    _selectedIndex == index
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.2)
-                                : Colors.transparent,
-                            child: PatientListItem(
-                              patientModel: filteredPatients[index],
-                              onTap: () {
-                                setState(() {
-                                  _selectedIndex = index;
-                                });
-                              },
-                            ),
+                          final dateKey = sortedGroupedPatients[index].key;
+                          final patientsForDate =
+                              sortedGroupedPatients[index].value;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: Text(
+                                  _getDateLabel(dateKey),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium,
+                                ),
+                              ),
+                              ...patientsForDate.map((patient) {
+                                return Container(
+                                  color: !navState.isNavigationFocused &&
+                                          _selectedIndex ==
+                                              filteredPatients.indexOf(patient)
+                                      ? Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.2)
+                                      : Colors.transparent,
+                                  child: PatientListItem(
+                                    patientModel: patient,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedIndex =
+                                            filteredPatients.indexOf(patient);
+                                      });
+                                    },
+                                  ),
+                                );
+                              }).toList(),
+                            ],
                           );
                         },
                       ),
@@ -477,6 +516,24 @@ class _PatientsPageState extends State<PatientsPage> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  /// Returns a human-readable label for a given date string.
+  String _getDateLabel(String date) {
+    final today = DateTime.now();
+    final parsedDate = DateTime.parse(date);
+    if (parsedDate.year == today.year &&
+        parsedDate.month == today.month &&
+        parsedDate.day == today.day) {
+      return 'today'.tr(); // Use translation for 'Today'
+    } else if (parsedDate.year == today.year &&
+        parsedDate.month == today.month &&
+        parsedDate.day == today.day - 1) {
+      return 'yesterday'.tr(); // Use translation for 'Yesterday'
+    } else {
+      return DateFormat('MMMM dd, yyyy', context.locale.toString())
+          .format(parsedDate);
+    }
   }
 
   /// Moves the selection down in the list.

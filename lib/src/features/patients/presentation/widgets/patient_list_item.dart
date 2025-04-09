@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:flutter/material.dart';
@@ -437,6 +438,7 @@ class _PatientListItemState extends State<PatientListItem> {
             widget.patientModel.age,
         address: _updatedValues['address'] ?? widget.patientModel.address,
         gender: _updatedValues['gender'] ?? widget.patientModel.gender,
+        updatedAt: Timestamp.now(),
         phoneNumber: _updatedValues['phoneNumber']?.isNotEmpty == true
             ? _updatedValues['phoneNumber']
             : null,

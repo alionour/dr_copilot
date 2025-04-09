@@ -170,5 +170,7 @@
   "pleaseEnterOccupation": "Please enter the occupation",
   "chartsPageTitle": "Charts Page",
   "chartsPageDescription": "This is the Charts Page displaying various charts.",
-  "charts": "Charts"
+  "charts": "Charts",
+  "today": "Today",
+  "yesterday": "Yesterday"
 }

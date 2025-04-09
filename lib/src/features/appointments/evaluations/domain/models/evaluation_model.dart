@@ -31,7 +31,18 @@ class EvaluationModel {
   final Timestamp endDateTime;
 
   final String userId;
-  final String createdBy;
+  final String? createdBy;
+  final String? updatedBy;
+  final String? deletedBy;
+
+  @TimestampConverter()
+  final Timestamp? createdAt;
+
+  @TimestampConverter()
+  final Timestamp? updatedAt;
+
+  @TimestampConverter()
+  final Timestamp? deletedAt;
 
   EvaluationModel({
     required this.id,
@@ -41,7 +52,12 @@ class EvaluationModel {
     required this.startDateTime,
     required this.endDateTime,
     required this.userId,
-    required this.createdBy,
+    this.createdBy,
+    this.updatedBy,
+    this.deletedBy,
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
   });
 
   factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
@@ -58,6 +74,11 @@ class EvaluationModel {
     Timestamp? endDateTime,
     String? userId,
     String? createdBy,
+    String? updatedBy,
+    String? deletedBy,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
   }) {
     return EvaluationModel(
       id: id ?? this.id,
@@ -68,6 +89,11 @@ class EvaluationModel {
       endDateTime: endDateTime ?? this.endDateTime,
       userId: userId ?? this.userId,
       createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }

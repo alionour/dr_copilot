@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/widgets/evaluation_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -205,45 +206,59 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 );
               }
 
-              return NotificationListener<ScrollNotification>(
-                onNotification: (scrollNotification) {
-                  if (scrollNotification.metrics.pixels ==
-                          scrollNotification.metrics.maxScrollExtent &&
-                      state is! EvaluationsLoadingMore) {
-                    final lastDocumentId = context
-                            .read<EvaluationsBloc>()
-                            .state
-                            .evaluations
-                            .isNotEmpty
-                        ? context
-                            .read<EvaluationsBloc>()
-                            .state
-                            .evaluations
-                            .last
-                            .id // Use the last evaluation's ID for pagination
-                        : null;
-                    context.read<EvaluationsBloc>().add(LoadMoreEvaluations(
-                          query,
-                          lastDocumentId: lastDocumentId,
-                        ));
-                  }
-                  return false;
+              // Group evaluations by creation date
+              final groupedEvaluations = <String, List<EvaluationModel>>{};
+              for (var evaluation in evaluations) {
+                if (evaluation.createdAt != null) {
+                  final creationDate = DateFormat('yyyy-MM-dd')
+                      .format(evaluation.createdAt!.toDate());
+                  groupedEvaluations
+                      .putIfAbsent(creationDate, () => [])
+                      .add(evaluation);
+                } else {
+                  groupedEvaluations
+                      .putIfAbsent('Unknown', () => [])
+                      .add(evaluation);
+                }
+              }
+
+              // Sort grouped evaluations by date in descending order
+              final sortedGroupedEvaluations = groupedEvaluations.entries
+                  .toList()
+                ..sort((a, b) => b.key.compareTo(a.key));
+
+              return ListView.builder(
+                controller: _scrollController,
+                itemCount: sortedGroupedEvaluations.length,
+                itemBuilder: (context, index) {
+                  final dateKey = sortedGroupedEvaluations[index].key;
+                  final evaluationsForDate =
+                      sortedGroupedEvaluations[index].value;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: Text(
+                          _getDateLabel(dateKey),
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ),
+                      ...evaluationsForDate.map((evaluation) {
+                        return EvaluationListItem(
+                          evaluationModel: evaluation,
+                          onTap: () {
+                            setState(() {
+                              _selectedIndex = evaluations.indexOf(evaluation);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ],
+                  );
                 },
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: evaluations.length,
-                  itemBuilder: (context, index) {
-                    final evaluationModel = evaluations[index];
-                    return EvaluationListItem(
-                      evaluationModel: evaluationModel,
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    );
-                  },
-                ),
               );
             } else if (state is EvaluationsError) {
               return Center(child: Text('Error: ${state.message}'));
@@ -281,5 +296,22 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
     );
+  }
+
+  String _getDateLabel(String dateKey) {
+    final today = DateTime.now();
+    final parsedDate = DateTime.parse(dateKey);
+
+    if (parsedDate.year == today.year &&
+        parsedDate.month == today.month &&
+        parsedDate.day == today.day) {
+      return 'Today';
+    } else if (parsedDate.year == today.year &&
+        parsedDate.month == today.month &&
+        parsedDate.day == today.day - 1) {
+      return 'Yesterday';
+    } else {
+      return DateFormat('MMMM dd, yyyy').format(parsedDate);
+    }
   }
 }

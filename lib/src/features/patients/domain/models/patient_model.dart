@@ -23,6 +23,13 @@ class PatientModel {
   @TimestampConverter()
   final Timestamp? updatedAt;
 
+  final String? createdBy;
+  final String? updatedBy;
+  final String? deletedBy;
+
+  @TimestampConverter()
+  final Timestamp? deletedAt;
+
   /// Constructor for the Patient class.
   PatientModel({
     required this.id,
@@ -37,6 +44,10 @@ class PatientModel {
     this.occupation,
     this.createdAt,
     this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    this.deletedBy,
+    this.deletedAt,
   });
 
   /// A factory constructor to create a Patient instance from a JSON map.
@@ -60,6 +71,10 @@ class PatientModel {
     String? occupation,
     Timestamp? createdAt,
     Timestamp? updatedAt,
+    String? createdBy,
+    String? updatedBy,
+    String? deletedBy,
+    Timestamp? deletedAt,
   }) {
     return PatientModel(
       id: id ?? this.id,
@@ -75,6 +90,10 @@ class PatientModel {
       occupation: occupation ?? this.occupation,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }

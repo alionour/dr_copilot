@@ -1,4 +1,5 @@
 // Import necessary packages
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -113,6 +114,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               border: const OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'pleaseEnterAge'.tr();
@@ -302,6 +306,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           id: uuid.v4(), // Generate a unique ID
           name: _nameController.text,
           age: int.tryParse(_ageController.text),
+          createdAt: Timestamp.now(),
           gender: _selectedGender,
           address: _addressController.text,
           userId: userId, // Get userId from AuthBloc

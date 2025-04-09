@@ -60,6 +60,7 @@ class PatientFirebaseApi {
         final docRef = await _patientsCollection.add({
           ...data,
           'userId': user.uid,
+          "createdBy": user.uid,
         });
         final createdPatient = patient.copyWith(
           id: docRef.id, // Assign the generated document ID
@@ -94,6 +95,7 @@ class PatientFirebaseApi {
           if (userId == user.uid) {
             final updatedData = patient.toJson();
             updatedData.remove('id'); // Exclude the `id` field from the update
+            updatedData['updatedAt'] = Timestamp.now(); // Add updatedAt field
             await _patientsCollection.doc(id).update(updatedData);
 
             return Right(patient.copyWith(id: id));

@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/widgets/session_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -205,42 +206,55 @@ class _SessionsPageState extends State<SessionsPage> {
                 );
               }
 
-              return NotificationListener<ScrollNotification>(
-                onNotification: (scrollNotification) {
-                  if (scrollNotification.metrics.pixels ==
-                          scrollNotification.metrics.maxScrollExtent &&
-                      state is! SessionsLoadingMore) {
-                    final lastDocumentId =
-                        context.read<SessionsBloc>().state.sessions.isNotEmpty
-                            ? context
-                                .read<SessionsBloc>()
-                                .state
-                                .sessions
-                                .last
-                                .id // Use the last session's ID for pagination
-                            : null;
-                    context.read<SessionsBloc>().add(LoadMoreSessions(
-                          query,
-                          lastDocumentId: lastDocumentId,
-                        ));
-                  }
-                  return false;
+              // Group sessions by creation date
+              final groupedSessions = <String, List<SessionModel>>{};
+              for (var session in sessions) {
+                if (session.createdAt != null) {
+                  final creationDate = DateFormat('yyyy-MM-dd')
+                      .format(session.createdAt!.toDate());
+                  groupedSessions
+                      .putIfAbsent(creationDate, () => [])
+                      .add(session);
+                } else {
+                  groupedSessions.putIfAbsent('Unknown', () => []).add(session);
+                }
+              }
+
+              // Sort grouped sessions by date in descending order
+              final sortedGroupedSessions = groupedSessions.entries.toList()
+                ..sort((a, b) => b.key.compareTo(a.key));
+
+              return ListView.builder(
+                controller: _scrollController,
+                itemCount: sortedGroupedSessions.length,
+                itemBuilder: (context, index) {
+                  final dateKey = sortedGroupedSessions[index].key;
+                  final sessionsForDate = sortedGroupedSessions[index].value;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: Text(
+                          _getDateLabel(dateKey),
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ),
+                      ...sessionsForDate.map((session) {
+                        return SessionListItem(
+                          sessionModel: session,
+                          onTap: () {
+                            setState(() {
+                              _selectedIndex = sessions.indexOf(session);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ],
+                  );
                 },
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: sessions.length,
-                  itemBuilder: (context, index) {
-                    final sessionModel = sessions[index];
-                    return SessionListItem(
-                      sessionModel: sessionModel,
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    );
-                  },
-                ),
               );
             } else if (state is SessionsError) {
               return Center(child: Text('Error: ${state.message}'));
@@ -278,5 +292,24 @@ class _SessionsPageState extends State<SessionsPage> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
     );
+  }
+
+  String _getDateLabel(String dateKey) {
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    final parsedDate = DateTime.tryParse(dateKey);
+
+    if (parsedDate != null) {
+      if (parsedDate.year == today.year &&
+          parsedDate.month == today.month &&
+          parsedDate.day == today.day) {
+        return 'Today';
+      } else if (parsedDate.year == yesterday.year &&
+          parsedDate.month == yesterday.month &&
+          parsedDate.day == yesterday.day) {
+        return 'Yesterday';
+      }
+    }
+    return dateKey;
   }
 }
