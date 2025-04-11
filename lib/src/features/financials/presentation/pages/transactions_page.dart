@@ -33,7 +33,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     });
     context
         .read<FinancialsBloc>()
-        .add(GetTransactionsEvent()); // Fetch sessions on init
+        .add(GetTransactionsEvent()); // Fetch transaction on init
   }
 
   @override
@@ -47,7 +47,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 focusNode: _searchFocusNode,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'searchSessions'.tr(),
+                    hintText: 'searchTransactions'.tr(),
                     prefixIcon: Icon(Icons.search,
                         color: Theme.of(context).colorScheme.onSurface),
                     border: OutlineInputBorder(
@@ -214,17 +214,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
               // Group transactions by creation date
               final groupedTransactions = <String, List<TransactionModel>>{};
               for (var transaction in transactions) {
-                
-                  final creationDate = DateFormat('yyyy-MM-dd')
-                      .format(transaction.createdAt.toDate());
-                  groupedTransactions
-                      .putIfAbsent(creationDate, () => [])
-                      .add(transaction);
-                
+                final creationDate = DateFormat('yyyy-MM-dd')
+                    .format(transaction.createdAt.toDate());
+                groupedTransactions
+                    .putIfAbsent(creationDate, () => [])
+                    .add(transaction);
               }
 
               // Sort grouped transactions by date in descending order
-              final sortedGroupedTransactions = groupedTransactions.entries.toList()
+              final sortedGroupedTransactions = groupedTransactions.entries
+                  .toList()
                 ..sort((a, b) => b.key.compareTo(a.key));
 
               return ListView.builder(
@@ -232,7 +231,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 itemCount: sortedGroupedTransactions.length,
                 itemBuilder: (context, index) {
                   final dateKey = sortedGroupedTransactions[index].key;
-                  final transactionsForDate = sortedGroupedTransactions[index].value;
+                  final transactionsForDate =
+                      sortedGroupedTransactions[index].value;
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,8 +250,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           transaction: transaction,
                           onTap: () {
                             setState(() {
-                              _selectedIndex = transactions.indexOf(transaction);
+                              _selectedIndex =
+                                  transactions.indexOf(transaction);
                             });
+
+                            /// Trigger the delete event
+                            context.read<FinancialsBloc>().add(
+                                  DeleteTransactionEvent(transaction.id),
+                                );
                           },
                         );
                       }),
