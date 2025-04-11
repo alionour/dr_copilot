@@ -172,5 +172,12 @@
   "chartsPageDescription": "This is the Charts Page displaying various charts.",
   "charts": "Charts",
   "today": "Today",
-  "yesterday": "Yesterday"
+  "yesterday": "Yesterday",
+  "addFinancial":"Add Financial",
+  "financials":"Financials",
+  "totalBalance":"Total Balance",
+  "USD":"USD",
+  "profit":"Profit",
+  "transactionsActivity": "Transactions Activity"
+
 }

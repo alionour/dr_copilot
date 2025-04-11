@@ -4,7 +4,7 @@ part of 'financials_bloc.dart';
 abstract class FinancialsState extends Equatable {
   final List<TransactionModel> transactions;
 
-  FinancialsState({this.transactions = const []});
+  const FinancialsState({this.transactions = const []});
 
   @override
   List<Object?> get props => [transactions];
@@ -18,7 +18,7 @@ class FinancialsLoading extends FinancialsState {}
 
 /// State when financial transactions are successfully loaded.
 class FinancialsLoaded extends FinancialsState {
-  FinancialsLoaded(List<TransactionModel> transactions)
+  const FinancialsLoaded(List<TransactionModel> transactions)
       : super(transactions: transactions);
 }
 
@@ -26,9 +26,8 @@ class FinancialsLoaded extends FinancialsState {
 class FinancialsSuccess extends FinancialsState {
   final String message;
 
-  FinancialsSuccess(this.message,
-      {List<TransactionModel> transactions = const []})
-      : super(transactions: transactions);
+  const FinancialsSuccess(this.message,
+      {super.transactions});
 
   @override
   List<Object?> get props => [message, transactions];
@@ -38,8 +37,7 @@ class FinancialsSuccess extends FinancialsState {
 class FinancialsError extends FinancialsState {
   final String error;
 
-  FinancialsError(this.error, {List<TransactionModel> transactions = const []})
-      : super(transactions: transactions);
+  const FinancialsError(this.error, {super.transactions});
 
   @override
   List<Object?> get props => [error, transactions];

@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
 import 'package:dr_copilot/src/features/copilot/presentation/pages/copilot_page.dart';
+import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
@@ -267,6 +268,11 @@ class _NavigationSideState extends State<NavigationSide> {
                           } else if (state.destination == Destination.charts) {
                             return const Center(
                               child: ChartsPage(),
+                            );
+                          } else if (state.destination ==
+                              Destination.financials) {
+                            return const Center(
+                              child: FinancialsPage(),
                             );
                           } else {
                             return const SizedBox();

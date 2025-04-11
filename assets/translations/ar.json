@@ -168,7 +168,13 @@
   "charts": "الرسوم البيانية",
   "account": "الحساب",
   "today": "اليوم",
-  "yesterday": "أمس"
+  "yesterday": "أمس",
+  "addFinancial": "إضافة مالية",
+  "financials": "الماليات",
+  "totalBalance": "الرصيد الكلي",
+  "USD": "دولار أمريكي",
+  "profit": "الربح",
+  "transactionsActivity": "نشاط المعاملات"
 }
 
 

@@ -55,9 +55,9 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   /// Maps a [Failure] to a user-friendly error message.
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
-      case ServerFailure:
+      case ServerFailure _:
         return 'Server error occurred';
-      case CacheFailure:
+      case CacheFailure _:
         return 'Cache error occurred';
       default:
         return 'An unexpected error occurred';

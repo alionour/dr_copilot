@@ -10,6 +10,7 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
     TransactionModel(
       id: json['id'] as String,
       amount: (json['amount'] as num).toDouble(),
+      userId: json['userId'] as String,
       type: json['type'] as String,
       date: const TimestampConverter().fromJson(json['date'] as Object),
       description: json['description'] as String,
@@ -29,6 +30,7 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
       'id': instance.id,
       'amount': instance.amount,
       'type': instance.type,
+      'userId': instance.userId,
       'date': const TimestampConverter().toJson(instance.date),
       'description': instance.description,
       'createdAt': _$JsonConverterToJson<Object, Timestamp>(
