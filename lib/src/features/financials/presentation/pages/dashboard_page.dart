@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({Key? key}) : super(key: key);
+  const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class DashboardPage extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'USD'.tr() + ' 424,540',
+                    '${'USD'.tr()} 424,540',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

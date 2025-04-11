@@ -7,7 +7,7 @@ import 'package:dr_copilot/src/features/financials/presentation/pages/goals_page
 import 'package:dr_copilot/src/features/financials/presentation/pages/dashboard_page.dart';
 
 class FinancialsPage extends StatefulWidget {
-  const FinancialsPage({Key? key}) : super(key: key);
+  const FinancialsPage({super.key});
 
   @override
   State<FinancialsPage> createState() => _FinancialsPageState();

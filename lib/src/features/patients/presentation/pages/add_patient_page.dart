@@ -322,7 +322,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
               : null,
           occupation: _occupationController.text.isNotEmpty
               ? _occupationController.text
-              : null,
+              : null,  
         );
         BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
       } else {

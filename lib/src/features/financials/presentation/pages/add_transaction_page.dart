@@ -1,6 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTransactionPage extends StatefulWidget {
@@ -16,14 +21,67 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   final _descriptionController = TextEditingController();
   final _amountFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
-  Timestamp? _transactionDate = Timestamp.fromDate(DateTime.now());
+  Timestamp _transactionDate = Timestamp.fromDate(DateTime.now());
   String _transactionType = 'Income'; // Default transaction type
   final List<String> _transactionTypes = ['Income', 'Expense'];
+
+  // Define controllers for the new optional fields
+  final _categoryController = TextEditingController();
+  final _notesController = TextEditingController();
+  final _statusController = TextEditingController();
+  final _referenceIdController = TextEditingController();
+
+  // Updated list of currencies for the dropdown
+  final List<String> _currencies = [
+    'EGP', // Egyptian Pound
+    'USD', // US Dollar
+    'EUR', // Euro
+    'GBP', // British Pound
+    'JPY', // Japanese Yen
+    'AUD', // Australian Dollar
+    'CAD', // Canadian Dollar
+    'CHF', // Swiss Franc
+    'CNY', // Chinese Yuan
+    'INR', // Indian Rupee
+    'SAR', // Saudi Riyal
+    'AED', // UAE Dirham
+  ];
+  String? _selectedCurrency = 'EGP'; // Default currency value
+
+  // Define a list of statuses for the dropdown
+  final List<String> _statuses = ['Pending', 'Completed', 'Cancelled'];
+  String? _selectedStatus = 'Completed'; // Default status value
+
+  // Define focus nodes for the form fields
+  final FocusNode _categoryFocusNode = FocusNode();
+  final FocusNode _currencyFocusNode = FocusNode();
+  final FocusNode _notesFocusNode = FocusNode();
+  final FocusNode _statusFocusNode = FocusNode();
+  final FocusNode _referenceIdFocusNode = FocusNode();
+  final FocusNode _transactionTypeFocusNode = FocusNode();
+  final FocusNode _transactionDateFocusNode = FocusNode();
+
+  // New variables for category
+  String? _selectedCategory = 'Bill'; // Default category value
+  // Ensure the list of categories contains unique values
+  final List<String> _categories = [
+    'Medical',
+    'Consultation',
+    'Therapy',
+    'Medication',
+    'Equipment',
+    'Insurance',
+    'Salary',
+    'Bonus',
+    'Investment',
+    'Miscellaneous',
+    'Bill', // Ensure 'Bill' is included only once
+  ];
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _transactionDate!.toDate(),
+      initialDate: _transactionDate.toDate(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
@@ -37,27 +95,57 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   void _saveTransaction() {
     if (_formKey.currentState!.validate()) {
-      // Save transaction logic here
-      final transactionData = {
-        'id': const Uuid().v4(),
-        'amount': double.parse(_amountController.text),
-        'description': _descriptionController.text,
-        'transactionDate': _transactionDate,
-        'transactionType': _transactionType,
-        'createdAt': Timestamp.now(),
-      };
+      final userId = FirebaseAuth.instance.currentUser?.uid;
 
-      // Example: Save to Firestore
-      FirebaseFirestore.instance
-          .collection('transactions')
-          .add(transactionData);
+      if (userId != null) {
+        final transactionData = TransactionModel(
+          id: const Uuid().v4(),
+          amount: double.parse(_amountController.text),
+          description: _descriptionController.text,
+          transactionDate: _transactionDate,
+          transactionType: _transactionType,
+          category: _categoryController.text.isNotEmpty
+              ? _categoryController.text
+              : null,
+          currency: _selectedCurrency,
+          notes:
+              _notesController.text.isNotEmpty ? _notesController.text : null,
+          status: _selectedStatus,
+          referenceId: _referenceIdController.text.isNotEmpty
+              ? _referenceIdController.text
+              : null,
+          createdAt: Timestamp.now(),
+          createdBy: userId,
+          userId: userId,
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('transactionSaved'.tr())),
-      );
+        // Dispatch AddTransactionEvent
+        context
+            .read<FinancialsBloc>()
+            .add(AddTransactionEvent(transactionData));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('userIdCannotBeNull'.tr())),
+        );
+      }
 
       Navigator.of(context).pop(); // Navigate back after saving
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Add a listener to the transactionDate focus node to open the date picker
+    _transactionDateFocusNode.addListener(() {
+      if (_transactionDateFocusNode.hasFocus) {
+        _selectDate(context).then((_) {
+          if (context.mounted) return;
+          FocusScope.of(context).requestFocus(_categoryFocusNode);
+        });
+      }
+    });
   }
 
   @override
@@ -66,6 +154,19 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _descriptionController.dispose();
     _amountFocusNode.dispose();
     _descriptionFocusNode.dispose();
+    // Dispose the newly added controllers
+    _categoryController.dispose();
+    _notesController.dispose();
+    _statusController.dispose();
+    _referenceIdController.dispose();
+    // Dispose the newly added focus nodes
+    _categoryFocusNode.dispose();
+    _currencyFocusNode.dispose();
+    _notesFocusNode.dispose();
+    _statusFocusNode.dispose();
+    _referenceIdFocusNode.dispose();
+    _transactionTypeFocusNode.dispose();
+    _transactionDateFocusNode.dispose();
     super.dispose();
   }
 
@@ -73,11 +174,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('addTransaction').tr(),
+        title: Text('add_transaction'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop();
+            context.go('/home');
           },
         ),
       ),
@@ -117,6 +218,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           }
                           return null;
                         },
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_descriptionFocusNode);
+                        },
                       ),
                       const SizedBox(height: 16.0),
                       TextFormField(
@@ -126,34 +231,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           labelText: 'description'.tr(),
                           border: const OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'enterDescription'.tr();
-                          }
-                          return null;
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_transactionTypeFocusNode);
                         },
                       ),
                       const SizedBox(height: 16.0),
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: TextFormField(
-                              readOnly: true,
-                              decoration: InputDecoration(
-                                labelText: 'transactionDate'.tr(),
-                                border: const OutlineInputBorder(),
-                              ),
-                              controller: TextEditingController(
-                                text: DateFormat('yyyy-MM-dd')
-                                    .format(_transactionDate!.toDate()),
-                              ),
-                              onTap: () => _selectDate(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16.0),
                       DropdownButtonFormField<String>(
+                        focusNode: _transactionTypeFocusNode,
                         value: _transactionType,
                         decoration: InputDecoration(
                           labelText: 'transactionType'.tr(),
@@ -169,6 +254,117 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           setState(() {
                             _transactionType = newValue!;
                           });
+                          FocusScope.of(context)
+                              .requestFocus(_transactionDateFocusNode);
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        readOnly: true,
+                        focusNode: _transactionDateFocusNode,
+                        decoration: InputDecoration(
+                          labelText: 'transactionDate'.tr(),
+                          border: const OutlineInputBorder(),
+                        ),
+                        controller: TextEditingController(
+                          text: DateFormat('yyyy-MM-dd')
+                              .format(_transactionDate.toDate()),
+                        ),
+                        onTap: () async {
+                          await _selectDate(context);
+      if (!context.mounted) return;
+                          FocusScope.of(context)
+                              .requestFocus(_categoryFocusNode);
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      DropdownButtonFormField<String>(
+                        focusNode: _categoryFocusNode,
+                        value: _selectedCategory,
+                        decoration: InputDecoration(
+                          labelText: 'category'.tr(),
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: _categories.map((String category) {
+                          return DropdownMenuItem<String>(
+                            value: category,
+                            child: Text(category.tr()),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCategory = newValue;
+                          });
+                          FocusScope.of(context)
+                              .requestFocus(_currencyFocusNode);
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      DropdownButtonFormField<String>(
+                        focusNode: _currencyFocusNode,
+                        value: _selectedCurrency,
+                        decoration: InputDecoration(
+                          labelText: 'currency'.tr(),
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: _currencies.map((String currency) {
+                          return DropdownMenuItem<String>(
+                            value: currency,
+                            child: Text(currency),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCurrency = newValue;
+                          });
+                          FocusScope.of(context).requestFocus(_notesFocusNode);
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _notesController,
+                        focusNode: _notesFocusNode,
+                        decoration: InputDecoration(
+                          labelText: 'notes'.tr(),
+                          border: const OutlineInputBorder(),
+                        ),
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_statusFocusNode);
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      DropdownButtonFormField<String>(
+                        focusNode: _statusFocusNode,
+                        value: _selectedStatus,
+                        decoration: InputDecoration(
+                          labelText: 'status'.tr(),
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: _statuses.map((String status) {
+                          return DropdownMenuItem<String>(
+                            value: status,
+                            child: Text(status.tr()),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedStatus = newValue;
+                          });
+                          FocusScope.of(context)
+                              .requestFocus(_referenceIdFocusNode);
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _referenceIdController,
+                        focusNode: _referenceIdFocusNode,
+                        decoration: InputDecoration(
+                          labelText: 'referenceId'.tr(),
+                          border: const OutlineInputBorder(),
+                        ),
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .unfocus(); // Unfocus after the last field
                         },
                       ),
                       const SizedBox(height: 16.0),

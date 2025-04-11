@@ -16,12 +16,16 @@ import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
+import 'package:dr_copilot/src/features/financials/data/remote/financials_firebase_api.dart';
+import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
 import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo_impl.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:dr_copilot/src/features/financials/data/repositories/financials_repository_impl.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
@@ -120,6 +124,15 @@ class MyApp extends StatelessWidget {
                     EvaluationsUseCase(
                       EvaluationsRepositoryImpl(
                         firebaseApi: EvaluationFirebaseApi(),
+                      ),
+                    ),
+                  ),
+                ),
+                BlocProvider<FinancialsBloc>(
+                  create: (context) => FinancialsBloc(
+                    financialsUseCase: FinancialsUseCase(
+                      FinancialsRepositoryImpl(
+                        firebaseApi: FinancialsFirebaseApi(),
                       ),
                     ),
                   ),

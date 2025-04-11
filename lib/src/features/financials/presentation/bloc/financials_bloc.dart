@@ -13,14 +13,14 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   FinancialsBloc({required this.financialsUseCase})
       : super(FinancialsInitial()) {
-    on<GetFinancialsEvent>(_onGetFinancials);
-    on<AddFinancialEvent>(_onAddFinancial);
-    on<DeleteFinancialEvent>(_onDeleteFinancial);
+    on<GetTransactionsEvent>(_onGetTransactions);
+    on<AddTransactionEvent>(_onAddTransaction);
+    on<DeleteTransactionEvent>(_onDeleteTransaction);
   }
 
   /// Handles fetching all financial transactions.
-  Future<void> _onGetFinancials(
-      GetFinancialsEvent event, Emitter<FinancialsState> emit) async {
+  Future<void> _onGetTransactions(
+      GetTransactionsEvent event, Emitter<FinancialsState> emit) async {
     emit(FinancialsLoading());
     final result = await financialsUseCase.getTransactions();
     emit(result.fold(
@@ -30,8 +30,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   /// Handles adding a new financial transaction.
-  Future<void> _onAddFinancial(
-      AddFinancialEvent event, Emitter<FinancialsState> emit) async {
+  Future<void> _onAddTransaction(
+      AddTransactionEvent event, Emitter<FinancialsState> emit) async {
     emit(FinancialsLoading());
     final result = await financialsUseCase.addTransaction(event.transaction);
     emit(result.fold(
@@ -41,8 +41,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   /// Handles deleting a financial transaction.
-  Future<void> _onDeleteFinancial(
-      DeleteFinancialEvent event, Emitter<FinancialsState> emit) async {
+  Future<void> _onDeleteTransaction(
+      DeleteTransactionEvent event, Emitter<FinancialsState> emit) async {
     emit(FinancialsLoading());
     final result =
         await financialsUseCase.deleteTransaction(event.transactionId);

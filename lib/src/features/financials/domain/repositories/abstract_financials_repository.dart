@@ -5,11 +5,28 @@ import '../../../../core/error/failures.dart';
 /// Abstract repository for financial transactions.
 abstract class AbstractFinancialsRepository {
   /// Fetches all transactions.
-  Future<Either<Failure, List<TransactionModel>>> getTransactions();
+  Future<Either<Failure, List<TransactionModel>>> getTransactions({
+    String? lastDocumentID,
+    int limit = 20,
+  });
 
   /// Adds a new transaction.
-  Future<Either<Failure, void>> addTransaction(TransactionModel transaction);
+  Future<Either<Failure, TransactionModel>> addTransaction(
+      TransactionModel transactionModel);
+
+  /// Updates an existing transaction.
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      String id, TransactionModel transactionModel);
 
   /// Deletes a transaction by its ID.
   Future<Either<Failure, void>> deleteTransaction(String id);
+
+  /// Searches for transactions based on description.
+  Future<Either<Failure, List<TransactionModel>>> searchTransactions({
+    String? description,
+  });
+
+  /// Fetches transactions for a specific date.
+  Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
+      DateTime date);
 }

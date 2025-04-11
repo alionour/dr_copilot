@@ -8,7 +8,7 @@ class FinancialsUseCase {
   final AbstractFinancialsRepository repository;
 
   /// Constructor for [FinancialsUseCase].
-  FinancialsUseCase({required this.repository});
+  FinancialsUseCase( this.repository);
 
   /// Fetches all transactions.
   Future<Either<Failure, List<TransactionModel>>> getTransactions() {

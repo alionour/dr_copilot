@@ -10,8 +10,8 @@ class TransactionTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.amount,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

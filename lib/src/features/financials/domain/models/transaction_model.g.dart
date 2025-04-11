@@ -10,38 +10,49 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
     TransactionModel(
       id: json['id'] as String,
       amount: (json['amount'] as num).toDouble(),
-      userId: json['userId'] as String,
-      type: json['type'] as String,
-      date: const TimestampConverter().fromJson(json['date'] as Object),
       description: json['description'] as String,
-      createdAt: _$JsonConverterFromJson<Object, Timestamp>(
-          json['createdAt'], const TimestampConverter().fromJson),
+      transactionDate: const TimestampConverter()
+          .fromJson(json['transactionDate'] as Object),
+      transactionType: json['transactionType'] as String,
+      createdAt:
+          const TimestampConverter().fromJson(json['createdAt'] as Object),
       updatedAt: _$JsonConverterFromJson<Object, Timestamp>(
           json['updatedAt'], const TimestampConverter().fromJson),
+      category: json['category'] as String?,
+      createdBy: json['createdBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
+      updatedBy: json['updatedBy'] as String?,
       deletedAt: _$JsonConverterFromJson<Object, Timestamp>(
           json['deletedAt'], const TimestampConverter().fromJson),
-      createdBy: json['createdBy'] as String?,
-      updatedBy: json['updatedBy'] as String?,
-      deletedBy: json['deletedBy'] as String?,
+      userId: json['userId'] as String,
+      currency: json['currency'] as String?,
+      notes: json['notes'] as String?,
+      status: json['status'] as String?,
+      referenceId: json['referenceId'] as String?,
     );
 
 Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'amount': instance.amount,
-      'type': instance.type,
-      'userId': instance.userId,
-      'date': const TimestampConverter().toJson(instance.date),
       'description': instance.description,
-      'createdAt': _$JsonConverterToJson<Object, Timestamp>(
-          instance.createdAt, const TimestampConverter().toJson),
-      'updatedAt': _$JsonConverterToJson<Object, Timestamp>(
-          instance.updatedAt, const TimestampConverter().toJson),
+      'transactionDate':
+          const TimestampConverter().toJson(instance.transactionDate),
+      'transactionType': instance.transactionType,
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'deletedAt': _$JsonConverterToJson<Object, Timestamp>(
           instance.deletedAt, const TimestampConverter().toJson),
+      'updatedAt': _$JsonConverterToJson<Object, Timestamp>(
+          instance.updatedAt, const TimestampConverter().toJson),
+      'category': instance.category,
+      'userId': instance.userId,
       'createdBy': instance.createdBy,
-      'updatedBy': instance.updatedBy,
       'deletedBy': instance.deletedBy,
+      'updatedBy': instance.updatedBy,
+      'currency': instance.currency,
+      'notes': instance.notes,
+      'status': instance.status,
+      'referenceId': instance.referenceId,
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(
