@@ -4,7 +4,7 @@ import '../../../../core/error/failures.dart';
 
 /// Abstract repository for financial transactions.
 abstract class AbstractFinancialsRepository {
-  /// Fetches all transactions.
+  /// Fetches all transactions. 
   Future<Either<Failure, List<TransactionModel>>> getTransactions({
     String? lastDocumentID,
     int limit = 20,
@@ -21,12 +21,13 @@ abstract class AbstractFinancialsRepository {
   /// Deletes a transaction by its ID.
   Future<Either<Failure, void>> deleteTransaction(String id);
 
-  /// Searches for transactions based on description.
+
+  /// Searches transactions based on criteria.
   Future<Either<Failure, List<TransactionModel>>> searchTransactions({
     String? description,
   });
 
-  /// Fetches transactions for a specific date.
-  Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
-      DateTime date);
+  /// Gets transactions by a specific date.
+  Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(DateTime date,
+      {String? lastDocumentID, int limit = 20});
 }

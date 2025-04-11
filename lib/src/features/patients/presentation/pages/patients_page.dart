@@ -55,7 +55,12 @@ class _PatientsPageState extends State<PatientsPage> {
                     hintText: 'searchPatients'.tr(),
                     prefixIcon: Icon(Icons.search,
                         color: Theme.of(context).colorScheme.onSurface),
-                    border: InputBorder.none,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 0.3),
+                    ),
                     hintStyle: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
@@ -413,10 +418,15 @@ class _PatientsPageState extends State<PatientsPage> {
                   final groupedPatients = <String, List<PatientModel>>{};
                   for (var patient in filteredPatients) {
                     if (patient.createdAt != null) {
-                      final creationDate = DateFormat('yyyy-MM-dd').format(patient.createdAt!.toDate());
-                      groupedPatients.putIfAbsent(creationDate, () => []).add(patient);
+                      final creationDate = DateFormat('yyyy-MM-dd')
+                          .format(patient.createdAt!.toDate());
+                      groupedPatients
+                          .putIfAbsent(creationDate, () => [])
+                          .add(patient);
                     } else {
-                      groupedPatients.putIfAbsent('Unknown', () => []).add(patient);
+                      groupedPatients
+                          .putIfAbsent('Unknown', () => [])
+                          .add(patient);
                     }
                   }
 

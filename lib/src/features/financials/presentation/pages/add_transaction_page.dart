@@ -118,7 +118,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           createdBy: userId,
           userId: userId,
         );
-
         // Dispatch AddTransactionEvent
         context
             .read<FinancialsBloc>()
@@ -128,8 +127,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           SnackBar(content: Text('userIdCannotBeNull'.tr())),
         );
       }
-
-      Navigator.of(context).pop(); // Navigate back after saving
     }
   }
 
@@ -141,7 +138,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _transactionDateFocusNode.addListener(() {
       if (_transactionDateFocusNode.hasFocus) {
         _selectDate(context).then((_) {
-          if (context.mounted) return;
           FocusScope.of(context).requestFocus(_categoryFocusNode);
         });
       }
@@ -174,7 +170,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('add_transaction'.tr()),
+        title: Text('addTransaction'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -182,206 +178,235 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           },
         ),
       ),
-      body: Center(
-        child: Container(
-          width:
-              MediaQuery.of(context).size.width < 600 ? double.infinity : 600,
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+      body: BlocListener<FinancialsBloc, FinancialsState>(
+        listener: (context, state) {
+          if (state is FinancialsSuccess) {
+            final message = state.message;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextFormField(
-                        controller: _amountController,
-                        focusNode: _amountFocusNode,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'amount'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'enterValidAmount'.tr();
-                          }
-                          final amount = double.tryParse(value);
-                          if (amount == null || amount <= 0) {
-                            return 'enterValidAmountGreaterThanZero'.tr();
-                          }
-                          return null;
-                        },
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context)
-                              .requestFocus(_descriptionFocusNode);
-                        },
+            );
+          } else if (state is FinancialsError) {
+            final message = state.message;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          }
+        },
+        child: BlocBuilder<FinancialsBloc, FinancialsState>(
+            builder: (context, state) {
+          return Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width < 600
+                  ? double.infinity
+                  : 600,
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextFormField(
+                            controller: _amountController,
+                            focusNode: _amountFocusNode,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'amount'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'enterValidAmount'.tr();
+                              }
+                              final amount = double.tryParse(value);
+                              if (amount == null || amount <= 0) {
+                                return 'enterValidAmountGreaterThanZero'.tr();
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_descriptionFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _descriptionController,
+                            focusNode: _descriptionFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'description'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_transactionTypeFocusNode);
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'enterDescription'.tr();
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          DropdownButtonFormField<String>(
+                            focusNode: _transactionTypeFocusNode,
+                            value: _transactionType,
+                            decoration: InputDecoration(
+                              labelText: 'transactionType'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _transactionTypes.map((String type) {
+                              return DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type.tr()),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _transactionType = newValue!;
+                              });
+                              FocusScope.of(context)
+                                  .requestFocus(_transactionDateFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            readOnly: true,
+                            focusNode: _transactionDateFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'transactionDate'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            controller: TextEditingController(
+                              text: DateFormat('yyyy-MM-dd')
+                                  .format(_transactionDate.toDate()),
+                            ),
+                            onTap: () async {
+                              await _selectDate(context);
+                              if (!context.mounted) return;
+                              FocusScope.of(context)
+                                  .requestFocus(_categoryFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          DropdownButtonFormField<String>(
+                            focusNode: _categoryFocusNode,
+                            value: _selectedCategory,
+                            decoration: InputDecoration(
+                              labelText: 'category'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _categories.map((String category) {
+                              return DropdownMenuItem<String>(
+                                value: category,
+                                child: Text(category.tr()),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedCategory = newValue;
+                              });
+                              FocusScope.of(context)
+                                  .requestFocus(_currencyFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          DropdownButtonFormField<String>(
+                            focusNode: _currencyFocusNode,
+                            value: _selectedCurrency,
+                            decoration: InputDecoration(
+                              labelText: 'currency'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _currencies.map((String currency) {
+                              return DropdownMenuItem<String>(
+                                value: currency,
+                                child: Text(currency),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedCurrency = newValue;
+                              });
+                              FocusScope.of(context)
+                                  .requestFocus(_notesFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _notesController,
+                            focusNode: _notesFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'notes'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_statusFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          DropdownButtonFormField<String>(
+                            focusNode: _statusFocusNode,
+                            value: _selectedStatus,
+                            decoration: InputDecoration(
+                              labelText: 'status'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _statuses.map((String status) {
+                              return DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status.tr()),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedStatus = newValue;
+                              });
+                              FocusScope.of(context)
+                                  .requestFocus(_referenceIdFocusNode);
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          TextFormField(
+                            controller: _referenceIdController,
+                            focusNode: _referenceIdFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'referenceId'.tr(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .unfocus(); // Unfocus after the last field
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _saveTransaction,
+                              child: Text('saveTransaction'.tr()),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _descriptionController,
-                        focusNode: _descriptionFocusNode,
-                        decoration: InputDecoration(
-                          labelText: 'description'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context)
-                              .requestFocus(_transactionTypeFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      DropdownButtonFormField<String>(
-                        focusNode: _transactionTypeFocusNode,
-                        value: _transactionType,
-                        decoration: InputDecoration(
-                          labelText: 'transactionType'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: _transactionTypes.map((String type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type.tr()),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _transactionType = newValue!;
-                          });
-                          FocusScope.of(context)
-                              .requestFocus(_transactionDateFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        readOnly: true,
-                        focusNode: _transactionDateFocusNode,
-                        decoration: InputDecoration(
-                          labelText: 'transactionDate'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        controller: TextEditingController(
-                          text: DateFormat('yyyy-MM-dd')
-                              .format(_transactionDate.toDate()),
-                        ),
-                        onTap: () async {
-                          await _selectDate(context);
-      if (!context.mounted) return;
-                          FocusScope.of(context)
-                              .requestFocus(_categoryFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      DropdownButtonFormField<String>(
-                        focusNode: _categoryFocusNode,
-                        value: _selectedCategory,
-                        decoration: InputDecoration(
-                          labelText: 'category'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: _categories.map((String category) {
-                          return DropdownMenuItem<String>(
-                            value: category,
-                            child: Text(category.tr()),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                          FocusScope.of(context)
-                              .requestFocus(_currencyFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      DropdownButtonFormField<String>(
-                        focusNode: _currencyFocusNode,
-                        value: _selectedCurrency,
-                        decoration: InputDecoration(
-                          labelText: 'currency'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: _currencies.map((String currency) {
-                          return DropdownMenuItem<String>(
-                            value: currency,
-                            child: Text(currency),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedCurrency = newValue;
-                          });
-                          FocusScope.of(context).requestFocus(_notesFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _notesController,
-                        focusNode: _notesFocusNode,
-                        decoration: InputDecoration(
-                          labelText: 'notes'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(_statusFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      DropdownButtonFormField<String>(
-                        focusNode: _statusFocusNode,
-                        value: _selectedStatus,
-                        decoration: InputDecoration(
-                          labelText: 'status'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: _statuses.map((String status) {
-                          return DropdownMenuItem<String>(
-                            value: status,
-                            child: Text(status.tr()),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedStatus = newValue;
-                          });
-                          FocusScope.of(context)
-                              .requestFocus(_referenceIdFocusNode);
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _referenceIdController,
-                        focusNode: _referenceIdFocusNode,
-                        decoration: InputDecoration(
-                          labelText: 'referenceId'.tr(),
-                          border: const OutlineInputBorder(),
-                        ),
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context)
-                              .unfocus(); // Unfocus after the last field
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _saveTransaction,
-                          child: Text('saveTransaction'.tr()),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

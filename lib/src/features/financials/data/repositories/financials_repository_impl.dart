@@ -47,7 +47,10 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   /// Gets transactions by a specific date.
   @override
   Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
-      DateTime date) {
-    return firebaseApi.getTransactionsByDate(date);
+      DateTime date,
+      {String? lastDocumentID,
+      int limit = 20}) {
+    return firebaseApi.getTransactionsByDate(date,
+         limit: limit);
   }
 }

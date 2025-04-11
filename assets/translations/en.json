@@ -221,6 +221,10 @@
   "currencies": "Currencies",
   "enterDescription": "Enter Description",
   "enterValidAmount": "Enter a valid amount",
-  "enterValidAmountGreaterThanZero": "Enter an amount greater than zero"
-  
+  "enterValidAmountGreaterThanZero": "Enter an amount greater than zero",
+  "transactionAdded": "Transaction added successfully",
+  "transactionDeleted": "Transaction deleted successfully",
+  "searchTransactions": "Search transactions",
+  "errorLoadingTransactions": "Error loading transactions",
+  "transactionDetailsHere": "Transaction details here"
 }

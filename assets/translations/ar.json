@@ -216,7 +216,12 @@
   "currencies": "العملات",
   "enterDescription": "أدخل الوصف",
   "enterValidAmount": "أدخل مبلغًا صالحًا",
-  "enterValidAmountGreaterThanZero": "أدخل مبلغًا أكبر من الصفر"
+  "enterValidAmountGreaterThanZero": "أدخل مبلغًا أكبر من الصفر",
+  "transactionAdded": "تم إضافة المعاملة بنجاح",
+  "transactionDeleted": "تم حذف المعاملة بنجاح",
+  "searchTransactions": "ابحث عن المعاملات",
+  "errorLoadingTransactions": "خطأ في تحميل المعاملات",
+  "transactionDetailsHere": "تفاصيل المعاملة هنا"
 }
 
 

@@ -85,7 +85,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       },
     ));
   }
-
+  /// Handles searching for patients based on various criteria.
   Future<void> _onSearchPatients(
       SearchPatients event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading(state.patients));
