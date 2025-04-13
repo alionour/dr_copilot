@@ -132,12 +132,10 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
             }
           } else if (state is PatientsError) {
             final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+                    }
         },
         child: LayoutBuilder(
           builder: (context, constraints) {

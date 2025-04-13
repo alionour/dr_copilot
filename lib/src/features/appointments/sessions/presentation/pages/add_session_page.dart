@@ -233,12 +233,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
                 }
               } else if (state is PatientsError) {
                 final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
-                }
-              }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+                            }
             },
           ),
           BlocListener<SessionsBloc, SessionsState>(

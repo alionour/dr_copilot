@@ -377,12 +377,10 @@ class _PatientsPageState extends State<PatientsPage> {
                 }
               } else if (state is PatientsError) {
                 final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
-                }
-              }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+                            }
             },
             child: BlocBuilder<PatientsBloc, PatientsState>(
               builder: (context, state) {

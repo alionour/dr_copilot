@@ -52,9 +52,9 @@ class PatientsSuccess extends PatientsState {
 }
 
 class PatientsError extends PatientsState {
-  final String? message;
+  final String message;
 
-  const PatientsError(super.patients,{this.message});
+  const PatientsError(super.patients,{required this.message});
 
   @override
   List<Object?> get props => [patients,message];

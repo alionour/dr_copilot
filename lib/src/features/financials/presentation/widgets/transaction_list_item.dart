@@ -34,15 +34,14 @@ class TransactionListItem extends StatelessWidget {
           children: [
             Text('${transaction.amount} ${transaction.currency ?? ''}',
                 style: Theme.of(context).textTheme.bodyMedium),
-            if (transaction.transactionDate != null)
-              Text(
-                'Date: ${transaction.transactionDate.toDate().toLocal()}'
-                    .split(' ')[0],
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
-              ),
+            Text(
+              'Date: ${transaction.transactionDate.toDate().toLocal()}'
+                  .split(' ')[0],
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.grey),
+            ),
           ],
         ),
         trailing: IconButton(

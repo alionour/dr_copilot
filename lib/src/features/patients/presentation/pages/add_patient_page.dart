@@ -67,229 +67,250 @@ class _AddPatientPageState extends State<AddPatientPage> {
           },
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isSmallScreen = constraints.maxWidth < 600;
-          return Center(
-            child: Container(
-              width: isSmallScreen ? double.infinity : 600,
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextFormField(
-                            controller: _nameController,
-                            focusNode: _nameFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'name'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'pleaseEnterName'.tr();
-                              }
-                              return null;
-                            },
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(_ageFocusNode);
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextFormField(
-                            controller: _ageController,
-                            focusNode: _ageFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'age'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'pleaseEnterAge'.tr();
-                              }
-                              final age = int.tryParse(value);
-                              if (age == null || age < 1 || age > 120) {
-                                return 'ageMustBeBetween'.tr();
-                              }
-                              return null;
-                            },
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(_addressFocusNode);
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextFormField(
-                            controller: _addressController,
-                            focusNode: _addressFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'address'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'pleaseEnterAddress'.tr();
-                              }
-                              return null;
-                            },
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(_phoneNumberFocusNode);
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextFormField(
-                            controller: _phoneNumberController,
-                            focusNode: _phoneNumberFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'phoneNumber'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'pleaseEnterPhoneNumber'.tr();
-                              }
-                              return null;
-                            },
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context).requestFocus(
-                                  _alternativePhoneNumberFocusNode);
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextFormField(
-                            controller: _alternativePhoneNumberController,
-                            focusNode: _alternativePhoneNumberFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'alternativePhoneNumber'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(_treatingDoctorFocusNode);
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextFormField(
-                            controller: _treatingDoctorController,
-                            focusNode: _treatingDoctorFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'treatingDoctor'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(_occupationFocusNode);
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextFormField(
-                            controller: _occupationController,
-                            focusNode: _occupationFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'occupation'.tr(),
-                              border: const OutlineInputBorder(),
-                            ),
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context).unfocus();
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          Container(
-                            alignment: AlignmentDirectional
-                                .centerStart, // Replaced Align with Container for RTL/LTR support
-                            child: Text(
-                              'gender'.tr(),
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          Container(
-                            alignment: AlignmentDirectional
-                                .centerStart, // Replaced Align with Container for RTL/LTR support
-                            child: ToggleButtons(
-                              isSelected: [
-                                _selectedGender == 'Male',
-                                _selectedGender == 'Female'
-                              ],
-                              onPressed: (index) {
-                                setState(() {
-                                  _selectedGender =
-                                      index == 0 ? 'Male' : 'Female';
-                                });
+      body: BlocListener<PatientsBloc, PatientsState>(
+        listener: (context, state) {
+          if (state is PatientsSuccess) {
+            // Clear the form fields after successful addition
+            _nameController.clear();
+            _ageController.clear();
+            _addressController.clear();
+            _phoneNumberController.clear();
+            _alternativePhoneNumberController.clear();
+            _treatingDoctorController.clear();
+            _occupationController.clear();
+            setState(() {
+              _selectedGender = 'Male';
+            });
+          } else if (state is PatientsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = constraints.maxWidth < 600;
+            return Center(
+              child: Container(
+                width: isSmallScreen ? double.infinity : 600,
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextFormField(
+                              controller: _nameController,
+                              focusNode: _nameFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'name'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'pleaseEnterName'.tr();
+                                }
+                                return null;
                               },
-                              borderRadius: BorderRadius.circular(8.0),
-                              selectedColor: Colors.white,
-                              fillColor: Colors.blueAccent,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0, vertical: 8.0),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.male, size: 20),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'male'.tr(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0, vertical: 8.0),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.female, size: 20),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'female'.tr(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context)
+                                    .requestFocus(_ageFocusNode);
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
+                            TextFormField(
+                              controller: _ageController,
+                              focusNode: _ageFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'age'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
                               ],
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'pleaseEnterAge'.tr();
+                                }
+                                final age = int.tryParse(value);
+                                if (age == null || age < 1 || age > 120) {
+                                  return 'ageMustBeBetween'.tr();
+                                }
+                                return null;
+                              },
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context)
+                                    .requestFocus(_addressFocusNode);
+                              },
                             ),
-                          ),
-                          const SizedBox(height: 16.0),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _submitForm,
-                              child: Text('addPatient'.tr()),
+                            const SizedBox(height: 16.0),
+                            TextFormField(
+                              controller: _addressController,
+                              focusNode: _addressFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'address'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'pleaseEnterAddress'.tr();
+                                }
+                                return null;
+                              },
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context)
+                                    .requestFocus(_phoneNumberFocusNode);
+                              },
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16.0),
+                            TextFormField(
+                              controller: _phoneNumberController,
+                              focusNode: _phoneNumberFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'phoneNumber'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'pleaseEnterPhoneNumber'.tr();
+                                }
+                                return null;
+                              },
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context).requestFocus(
+                                    _alternativePhoneNumberFocusNode);
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
+                            TextFormField(
+                              controller: _alternativePhoneNumberController,
+                              focusNode: _alternativePhoneNumberFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'alternativePhoneNumber'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context)
+                                    .requestFocus(_treatingDoctorFocusNode);
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
+                            TextFormField(
+                              controller: _treatingDoctorController,
+                              focusNode: _treatingDoctorFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'treatingDoctor'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context)
+                                    .requestFocus(_occupationFocusNode);
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
+                            TextFormField(
+                              controller: _occupationController,
+                              focusNode: _occupationFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'occupation'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              onFieldSubmitted: (_) {
+                                FocusScope.of(context).unfocus();
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+                              child: Text(
+                                'gender'.tr(),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+                              child: ToggleButtons(
+                                isSelected: [
+                                  _selectedGender == 'Male',
+                                  _selectedGender == 'Female'
+                                ],
+                                onPressed: (index) {
+                                  setState(() {
+                                    _selectedGender =
+                                        index == 0 ? 'Male' : 'Female';
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(8.0),
+                                selectedColor: Colors.white,
+                                fillColor: Colors.blueAccent,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 8.0),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.male, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'male'.tr(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 8.0),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.female, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'female'.tr(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16.0),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _submitForm,
+                                child: Text('addPatient'.tr()),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -322,7 +343,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
               : null,
           occupation: _occupationController.text.isNotEmpty
               ? _occupationController.text
-              : null,  
+              : null,
         );
         BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
       } else {

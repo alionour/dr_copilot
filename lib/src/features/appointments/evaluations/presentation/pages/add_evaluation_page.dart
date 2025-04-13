@@ -167,8 +167,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         patientName: _patientNameController.text,
         startDateTime: _startDate!,
         endDateTime: _endDate!,
-            createdAt: Timestamp.now(),
-
+        createdAt: Timestamp.now(),
         price: double.parse(_actualPriceController.text),
         userId: FirebaseAuth.instance.currentUser?.uid ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
@@ -214,11 +213,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                 }
               } else if (state is PatientsError) {
                 final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
-                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
               }
             },
           ),
