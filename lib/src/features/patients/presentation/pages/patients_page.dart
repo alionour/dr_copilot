@@ -380,7 +380,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(message)),
                 );
-                            }
+              }
             },
             child: BlocBuilder<PatientsBloc, PatientsState>(
               builder: (context, state) {
@@ -404,8 +404,11 @@ class _PatientsPageState extends State<PatientsPage> {
                 } else if (state is PatientsLoaded && state.patients.isEmpty) {
                   return Center(child: Text('noPatients'.tr()));
                 } else if (state is PatientsLoaded) {
+                  state.patients.forEach((e) {
+                    debugPrint('PatientsLoaded state with ${e.name} patients');
+                  });
                   debugPrint(
-                      'PatientsLoaded state with ${state.patients.length} patients');
+                      'PatientsLoaded state with ${state.patients} patients');
                   final filteredPatients = state.patients.where((patient) {
                     return patient.name
                         .toLowerCase()

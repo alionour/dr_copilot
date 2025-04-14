@@ -9,10 +9,13 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   PatientsRepositoryImpl(this.api);
 
-  /// Fetches a list of patients.
+  /// Fetches a list of patients with pagination.
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatients() {
-    return api.getPatients();
+  Future<Either<Failure, List<PatientModel>>> getPatients({
+    String? lastDocumentId,
+    int? limit,
+  }) {
+    return api.getPatients(lastDocumentID: lastDocumentId, limit: limit ?? 20);
   }
 
   /// Adds a new patient.

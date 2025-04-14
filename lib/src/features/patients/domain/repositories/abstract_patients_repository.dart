@@ -3,9 +3,12 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 
 /// An abstract class that defines the repository for patient-related operations.
-abstract class AbstractPatientsRepository { 
-  /// Gets a list of patients.
-  Future<Either<Failure, List<PatientModel>>> getPatients();
+abstract class AbstractPatientsRepository {
+  /// Gets a list of patients with pagination.
+  Future<Either<Failure, List<PatientModel>>> getPatients({
+    String? lastDocumentId,
+    int? limit,
+  });
 
   /// Adds a new patient.
   Future<Either<Failure, PatientModel>> addPatient(PatientModel patientModel);

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
@@ -19,6 +20,14 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     on<SearchPatients>(_onSearchPatients);
     on<LoadMorePatients>(_onLoadMorePatients);
     on<GetPatientsByDate>(_onGetPatientsByDate);
+
+    FirebaseFirestore.instance.collection('patients').snapshots().listen(
+      (snapshot) {
+        if (snapshot.docChanges.isNotEmpty) {
+          add(GetPatients());
+        }
+      },
+    );
   }
 
   Future<void> _onGetPatients(
@@ -85,6 +94,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       },
     ));
   }
+
   /// Handles searching for patients based on various criteria.
   Future<void> _onSearchPatients(
       SearchPatients event, Emitter<PatientsState> emit) async {
@@ -121,7 +131,8 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
             message: _mapFailureToMessage(failure)),
         (newPatients) {
           final updatedPatients = List<PatientModel>.from(currentPatients)
-            ..addAll(newPatients);
+            ..addAll(newPatients.where((newPatient) => !currentPatients.any(
+                (existingPatient) => existingPatient.id == newPatient.id)));
           return PatientsLoaded(updatedPatients);
         },
       ));

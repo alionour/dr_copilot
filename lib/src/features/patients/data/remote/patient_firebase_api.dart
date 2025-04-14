@@ -18,6 +18,7 @@ class PatientFirebaseApi {
       if (user != null) {
         Query queryRef = _patientsCollection
             .where('userId', isEqualTo: user.uid)
+            .orderBy('createdAt', descending: true) // Order by creation date
             .limit(limit);
 
         if (lastDocumentID != null) {
