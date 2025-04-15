@@ -16,19 +16,25 @@ class PatientFirebaseApi {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef = _patientsCollection
-            .where('userId', isEqualTo: user.uid)
-            .orderBy('createdAt', descending: true) // Order by creation date
-            .limit(limit);
-
+        Query queryRef;
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
               await _patientsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
-            queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
+            queryRef = _patientsCollection
+                .where('userId', isEqualTo: user.uid)
+                .orderBy('createdAt',
+                    descending: true) // Order by creation date
+                .startAfterDocument(lastDocumentSnapshot)
+                .limit(limit);
           } else {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
+        } else {
+          queryRef = _patientsCollection
+              .where('userId', isEqualTo: user.uid)
+              .orderBy('createdAt', descending: true) // Order by creation date
+              .limit(limit);
         }
 
         final snapshot = await queryRef.get();

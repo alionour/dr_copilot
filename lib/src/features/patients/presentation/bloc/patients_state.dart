@@ -16,8 +16,6 @@ class PatientsInitial extends PatientsState {
 }
 
 class PatientsLoading extends PatientsState {
-
-
   const PatientsLoading(super.patients);
 
   @override
@@ -25,8 +23,6 @@ class PatientsLoading extends PatientsState {
 }
 
 class PatientsLoadingMore extends PatientsState {
-
-
   const PatientsLoadingMore(super.patients);
 
   @override
@@ -34,28 +30,28 @@ class PatientsLoadingMore extends PatientsState {
 }
 
 class PatientsLoaded extends PatientsState {
+  final bool isLoadingMore;
 
-
-  const PatientsLoaded(super.patients);
+  const PatientsLoaded(super.patients, {this.isLoadingMore = false});
 
   @override
-  List<Object?> get props => [patients];
+  List<Object?> get props => [patients, isLoadingMore];
 }
 
 class PatientsSuccess extends PatientsState {
   final String? message;
 
-  const PatientsSuccess(super.patients,{this.message});
+  const PatientsSuccess(super.patients, {this.message});
 
   @override
-  List<Object?> get props => [patients,message];
+  List<Object?> get props => [patients, message];
 }
 
 class PatientsError extends PatientsState {
   final String message;
 
-  const PatientsError(super.patients,{required this.message});
+  const PatientsError(super.patients, {required this.message});
 
   @override
-  List<Object?> get props => [patients,message];
+  List<Object?> get props => [patients, message];
 }

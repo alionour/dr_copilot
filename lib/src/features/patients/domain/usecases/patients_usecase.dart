@@ -10,10 +10,13 @@ class PatientsUseCase {
 
   /// Gets a list of patients.
   Future<Either<Failure, List<PatientModel>>> getPatients({
-    String? lastDocumentId, // Corrected parameter name
+    required String? lastDocumentId, // Corrected parameter name
     int? limit = 20,
   }) async {
-    return await repository.getPatients();
+    return await repository.getPatients(
+      lastDocumentId: lastDocumentId,
+      limit: limit,
+    );
   }
 
   /// Adds a new patient.

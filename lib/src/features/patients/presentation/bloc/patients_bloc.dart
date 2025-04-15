@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dar
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'patients_event.dart';
@@ -117,25 +118,36 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onLoadMorePatients(
       LoadMorePatients event, Emitter<PatientsState> emit) async {
-    if (state is PatientsLoaded || state is PatientsLoadingMore) {
-      final currentPatients = state.patients;
-      emit(PatientsLoadingMore(currentPatients));
+    if (state is PatientsLoaded) {
+      final currentState = state as PatientsLoaded;
+      if (currentState.isLoadingMore) return;
 
+      emit(PatientsLoaded(currentState.patients, isLoadingMore: true));
+      await Future.delayed(Duration(seconds: 1));
       final result = await _patientsUseCase.getPatients(
         lastDocumentId: event.lastDocumentId,
         limit: event.limit,
       );
 
-      emit(result.fold(
-        (failure) => PatientsError(currentPatients,
-            message: _mapFailureToMessage(failure)),
-        (newPatients) {
-          final updatedPatients = List<PatientModel>.from(currentPatients)
-            ..addAll(newPatients.where((newPatient) => !currentPatients.any(
-                (existingPatient) => existingPatient.id == newPatient.id)));
-          return PatientsLoaded(updatedPatients);
+      result.fold(
+        (failure) {
+          debugPrint(
+              'LoadMorePatients failed: ${_mapFailureToMessage(failure)}');
+          emit(PatientsError(currentState.patients,
+              message: _mapFailureToMessage(failure)));
         },
-      ));
+        (newPatients) {
+          debugPrint(
+              'Fetched ${newPatients.length} new patients: ${newPatients.map((p) => p.id).toList()}');
+          final updatedPatients = List<PatientModel>.from(currentState.patients)
+            ..addAll(newPatients.where((newPatient) => !currentState.patients
+                .any(
+                    (existingPatient) => existingPatient.id == newPatient.id)));
+          debugPrint(
+              'Updated patients list contains ${updatedPatients.length} patients.');
+          emit(PatientsLoaded(updatedPatients));
+        },
+      );
     }
   }
 

@@ -29,6 +29,7 @@ class _PatientsPageState extends State<PatientsPage> {
   int? _minAge;
   int? _maxAge;
   String? _selectedAddress; // Add a variable to store the selected address
+  bool _canLoadMore = true; // Add a flag to control loading more patients
 
   @override
   void initState() {
@@ -36,9 +37,38 @@ class _PatientsPageState extends State<PatientsPage> {
     _listFocusNode.addListener(() {
       debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
     });
+    _scrollController.addListener(_onScroll);
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _listFocusNode.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = context.read<PatientsBloc>().state;
+      if (state is PatientsLoaded && !state.isLoadingMore) {
+        if (_canLoadMore) {
+          _canLoadMore = false;
+          context.read<PatientsBloc>().add(LoadMorePatients(
+                lastDocumentId: state.patients.last.id,
+                limit: 20,
+              ));
+          Future.delayed(const Duration(seconds: 1), () {
+            _canLoadMore = true;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -78,7 +108,32 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
               ),
             ),
-            // Update the refresh button to clear all filters
+            // Add a label to show the total number of patients
+            BlocBuilder<PatientsBloc, PatientsState>(
+              builder: (context, state) {
+                if (state is PatientsLoaded) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 4.0, right: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.people, size: 20, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${state.patients.length} ',
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'refresh'.tr(),
@@ -385,30 +440,29 @@ class _PatientsPageState extends State<PatientsPage> {
             child: BlocBuilder<PatientsBloc, PatientsState>(
               builder: (context, state) {
                 if (state is PatientsLoading) {
-                  debugPrint('PatientsLoading state');
                   return Shimmer.fromColors(
-                    baseColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    highlightColor: Theme.of(context).colorScheme.surface,
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
                     child: ListView.builder(
-                      itemCount: 10,
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Container(
-                          height: 50.0,
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                      ),
+                      itemCount: 10, // Placeholder count for shimmer effect
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
+                          child: Container(
+                            height: 80.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   );
                 } else if (state is PatientsLoaded && state.patients.isEmpty) {
                   return Center(child: Text('noPatients'.tr()));
                 } else if (state is PatientsLoaded) {
-                  state.patients.forEach((e) {
-                    debugPrint('PatientsLoaded state with ${e.name} patients');
-                  });
-                  debugPrint(
-                      'PatientsLoaded state with ${state.patients} patients');
                   final filteredPatients = state.patients.where((patient) {
                     return patient.name
                         .toLowerCase()
@@ -435,84 +489,78 @@ class _PatientsPageState extends State<PatientsPage> {
                   final sortedGroupedPatients = groupedPatients.entries.toList()
                     ..sort((a, b) => b.key.compareTo(a.key));
 
-                  return Container(
-                    color: Theme.of(context).colorScheme.surface,
-                    child: Focus(
-                      focusNode: _listFocusNode,
-                      autofocus: true,
-                      onKeyEvent: (FocusNode node, KeyEvent event) {
-                        if (!navState.isNavigationFocused) {
-                          if (event is KeyDownEvent) {
-                            if (event.logicalKey ==
-                                LogicalKeyboardKey.arrowDown) {
-                              moveSelectionDown(filteredPatients.length);
-                              return KeyEventResult.handled;
-                            } else if (event.logicalKey ==
-                                LogicalKeyboardKey.arrowUp) {
-                              moveSelectionUp(filteredPatients.length);
-                              return KeyEventResult.handled;
-                            } else if (event.logicalKey ==
-                                LogicalKeyboardKey.arrowLeft) {
-                              _searchFocusNode.requestFocus();
-                              return KeyEventResult.handled;
-                            }
-                          }
-                        }
-                        return KeyEventResult.ignored;
-                      },
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        itemCount: sortedGroupedPatients.length,
-                        itemBuilder: (context, index) {
-                          final dateKey = sortedGroupedPatients[index].key;
-                          final patientsForDate =
-                              sortedGroupedPatients[index].value;
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          itemCount: sortedGroupedPatients.length,
+                          itemBuilder: (context, index) {
+                            final dateKey = sortedGroupedPatients[index].key;
+                            final patientsForDate =
+                                sortedGroupedPatients[index].value;
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                child: Text(
-                                  _getDateLabel(dateKey),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium,
-                                ),
-                              ),
-                              ...patientsForDate.map((patient) {
-                                return Container(
-                                  color: !navState.isNavigationFocused &&
-                                          _selectedIndex ==
-                                              filteredPatients.indexOf(patient)
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.2)
-                                      : Colors.transparent,
-                                  child: PatientListItem(
-                                    patientModel: patient,
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedIndex =
-                                            filteredPatients.indexOf(patient);
-                                      });
-                                    },
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 16.0),
+                                  child: Text(
+                                    _getDateLabel(dateKey),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium,
                                   ),
-                                );
-                              }),
-                            ],
-                          );
-                        },
+                                ),
+                                ...patientsForDate.map((patient) {
+                                  return Container(
+                                    color: !navState.isNavigationFocused &&
+                                            _selectedIndex ==
+                                                filteredPatients
+                                                    .indexOf(patient)
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.2)
+                                        : Colors.transparent,
+                                    child: PatientListItem(
+                                      patientModel: patient,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedIndex =
+                                              filteredPatients.indexOf(patient);
+                                        });
+                                      },
+                                    ),
+                                  );
+                                }),
+                              ],
+                            );
+                          },
+                        ),
                       ),
-                    ),
+                      if (state.isLoadingMore)
+                        Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              height: 50.0,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 } else if (state is PatientsError) {
-                  debugPrint('PatientsError state: ${state.message}');
                   return Center(child: Text('Error: ${state.message}'));
                 }
-                debugPrint('No patients found state');
                 return Center(child: Text('noPatients'.tr()));
               },
             ),

@@ -62,23 +62,22 @@ class DeletePatient extends PatientsEvent {
 class GetPatientsByDate extends PatientsEvent {
   final DateTime date;
 
-
   const GetPatientsByDate({
     required this.date,
-
   });
 
   @override
-  List<Object?> get props => [date,];
+  List<Object?> get props => [
+        date,
+      ];
 }
 
 class LoadMorePatients extends PatientsEvent {
-  final String query;
-  final int? limit;
-  final String? lastDocumentId;
+  final String lastDocumentId;
+  final int limit;
 
-  const LoadMorePatients(this.query, {this.lastDocumentId, this.limit});
+  const LoadMorePatients({required this.lastDocumentId, this.limit = 20});
 
   @override
-  List<Object?> get props => [query, lastDocumentId, limit];
+  List<Object?> get props => [lastDocumentId, limit];
 }

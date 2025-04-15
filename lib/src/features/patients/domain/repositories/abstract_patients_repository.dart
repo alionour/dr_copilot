@@ -6,7 +6,7 @@ import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dar
 abstract class AbstractPatientsRepository {
   /// Gets a list of patients with pagination.
   Future<Either<Failure, List<PatientModel>>> getPatients({
-    String? lastDocumentId,
+   required String? lastDocumentId,
     int? limit,
   });
 
