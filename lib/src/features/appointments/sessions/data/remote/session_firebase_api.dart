@@ -85,7 +85,7 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
             'patientName': patientName ?? 'No Name Available',
           });
         }).toList());
-;
+        
 
         return Right(sessions);
       }

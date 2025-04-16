@@ -58,7 +58,24 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
 
         debugPrint('Query returned ${snapshot.docs.length} documents');
         for (var doc in snapshot.docs) {
-          debugPrint('Document ID: ${doc.id}, Data: ${doc.data()}');
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          // Debugging each field to find null values
+          debugPrint('Document ID: ${doc.id}');
+          debugPrint('Field patientId: ${data['patientId']}');
+          debugPrint('Field patientName: ${data['patientName']}');
+          debugPrint('Field price: ${data['price']}');
+          debugPrint('Field startDateTime: ${data['startDateTime']}');
+          debugPrint('Field endDateTime: ${data['endDateTime']}');
+          debugPrint('Field userId: ${data['userId']}');
+          debugPrint('Field createdBy: ${data['createdBy']}');
+          debugPrint('Field updatedBy: ${data['updatedBy']}');
+          debugPrint('Field deletedBy: ${data['deletedBy']}');
+          debugPrint('Field createdAt: ${data['createdAt']}');
+          debugPrint('Field updatedAt: ${data['updatedAt']}');
+          debugPrint('Field deletedAt: ${data['deletedAt']}');
         }
 
         List<EvaluationModel> evaluations =

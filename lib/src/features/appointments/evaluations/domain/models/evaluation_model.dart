@@ -1,47 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:json_annotation/json_annotation.dart';
 
-part 'evaluation_model.g.dart';
-
-class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
-  const TimestampConverter();
-
-  @override
-  Timestamp fromJson(dynamic json) {
-    return json is Timestamp
-        ? json
-        : Timestamp.fromMillisecondsSinceEpoch(json as int);
-  }
-
-  @override
-  dynamic toJson(Timestamp object) => object;
-}
-
-@JsonSerializable()
 class EvaluationModel {
   final String id;
   final String patientId;
   final String patientName;
   final double price;
-
-  @TimestampConverter()
   final Timestamp startDateTime;
-
-  @TimestampConverter()
   final Timestamp endDateTime;
-
   final String userId;
   final String? createdBy;
   final String? updatedBy;
   final String? deletedBy;
-
-  @TimestampConverter()
   final Timestamp? createdAt;
-
-  @TimestampConverter()
   final Timestamp? updatedAt;
-
-  @TimestampConverter()
   final Timestamp? deletedAt;
 
   EvaluationModel({
@@ -60,10 +31,41 @@ class EvaluationModel {
     this.deletedAt,
   });
 
-  factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
-      _$EvaluationModelFromJson(json);
+  factory EvaluationModel.fromJson(Map<String, dynamic> json) {
+    return EvaluationModel(
+      id: json['id'] as String,
+      patientId: json['patientId'] as String,
+      patientName: json['patientName'] as String,
+      price: (json['price'] as num).toDouble(),
+      startDateTime: json['startDateTime'] as Timestamp,
+      endDateTime: json['endDateTime'] as Timestamp,
+      userId: json['userId'] as String,
+      createdBy: json['createdBy'] as String?,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
+      createdAt: json['createdAt'] as Timestamp?,
+      updatedAt: json['updatedAt'] as Timestamp?,
+      deletedAt: json['deletedAt'] as Timestamp?,
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$EvaluationModelToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'patientId': patientId,
+      'patientName': patientName,
+      'price': price,
+      'startDateTime': startDateTime,
+      'endDateTime': endDateTime,
+      'userId': userId,
+      'createdBy': createdBy,
+      'updatedBy': updatedBy,
+      'deletedBy': deletedBy,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'deletedAt': deletedAt,
+    };
+  }
 
   EvaluationModel copyWith({
     String? id,

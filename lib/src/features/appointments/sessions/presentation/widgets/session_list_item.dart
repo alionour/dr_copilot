@@ -426,7 +426,7 @@ class _SessionListItemState extends State<SessionListItem> {
         patientId: widget.sessionModel.patientId, // Keep the original ID
         price: double.tryParse(_updatedValues['price'] ?? '') ??
             widget.sessionModel.price,
-            updatedAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
         startDateTime: _updatedValues['startDateTime'] != null
             ? Timestamp.fromDate(
                 DateTime.parse(_updatedValues['startDateTime']!))
