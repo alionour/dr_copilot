@@ -240,15 +240,11 @@ class _SessionsPageState extends State<SessionsPage> {
               // Group sessions by creation date
               final groupedSessions = <String, List<SessionModel>>{};
               for (var session in sessions) {
-                if (session.createdAt != null) {
-                  final creationDate = DateFormat('yyyy-MM-dd')
-                      .format(session.createdAt!.toDate());
-                  groupedSessions
-                      .putIfAbsent(creationDate, () => [])
-                      .add(session);
-                } else {
-                  groupedSessions.putIfAbsent('Unknown', () => []).add(session);
-                }
+                final creationDate = DateFormat('yyyy-MM-dd')
+                    .format(session.startDateTime.toDate());
+                groupedSessions
+                    .putIfAbsent(creationDate, () => [])
+                    .add(session);
               }
 
               // Sort grouped sessions by date in descending order

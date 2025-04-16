@@ -240,17 +240,12 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               // Group evaluations by creation date
               final groupedEvaluations = <String, List<EvaluationModel>>{};
               for (var evaluation in evaluations) {
-                if (evaluation.createdAt != null) {
                   final creationDate = DateFormat('yyyy-MM-dd')
-                      .format(evaluation.createdAt!.toDate());
+                      .format(evaluation.startDateTime.toDate());
                   groupedEvaluations
                       .putIfAbsent(creationDate, () => [])
                       .add(evaluation);
-                } else {
-                  groupedEvaluations
-                      .putIfAbsent('Unknown', () => [])
-                      .add(evaluation);
-                }
+            
               }
 
               // Sort grouped evaluations by date in descending order
