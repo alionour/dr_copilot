@@ -15,38 +15,51 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
   final CollectionReference _patientsCollection =
       FirebaseFirestore.instance.collection('patients');
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
   Future<bool> _isAuthenticated() async {
     final currentUser = await FirebaseAuth.instance.authStateChanges().first;
     return currentUser != null;
   }
 
   @override
-  Future<Either<Failure, List<EvaluationModel>>> getEvaluations(
-      {String? lastDocumentID, int limit = 20}) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+  Future<Either<Failure, List<EvaluationModel>>> getEvaluations({
+    String? lastDocumentID,
+    int limit = 20,
+  }) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef = _evaluationsCollection
-            .where('createdBy', isEqualTo: user.uid)
-            .limit(limit);
-
+        Query queryRef;
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
               await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
-            queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
+            queryRef = _evaluationsCollection
+                .where('userId', isEqualTo: user.uid)
+                .orderBy('startDateTime', descending: true)
+                .startAfterDocument(lastDocumentSnapshot)
+                .limit(limit);
           } else {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
+        } else {
+          queryRef = _evaluationsCollection
+              .where('userId', isEqualTo: user.uid)
+              .orderBy('startDateTime', descending: true)
+              .limit(limit);
+        }
+
+        debugPrint('Executing query for evaluations');
+        debugPrint('Query details: userId = ${user.uid}, limit = $limit');
+        if (lastDocumentID != null) {
+          debugPrint('Using lastDocumentID: $lastDocumentID');
         }
 
         final snapshot = await queryRef.get();
+
+        debugPrint('Query returned ${snapshot.docs.length} documents');
+        for (var doc in snapshot.docs) {
+          debugPrint('Document ID: ${doc.id}, Data: ${doc.data()}');
+        }
 
         List<EvaluationModel> evaluations =
             await Future.wait(snapshot.docs.map((doc) async {
@@ -70,14 +83,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
         return Right(evaluations);
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } on FirebaseException catch (e) {
-      if (e.code == 'failed-precondition') {
-        debugPrint('Firestore index required: ${e.message}');
-        return Left(ServerFailure(
-            'Firestore index required. Please create the index in the Firestore console.',
-            400));
-      }
-      debugPrint('Error getting evaluations: $e');
+    } catch (e) {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
@@ -85,12 +91,8 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
   @override
   Future<Either<Failure, EvaluationModel>> addEvaluation(
       EvaluationModel evaluationModel) async {
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final data = evaluationModel.toJson();
 
@@ -130,7 +132,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         debugPrint('Fetching document with ID: $id');
         final doc = await _evaluationsCollection.doc(id).get();
@@ -186,7 +188,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await _evaluationsCollection.doc(id).get();
         if (doc.exists) {
@@ -227,7 +229,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         Query queryRef =
             _evaluationsCollection.where('createdBy', isEqualTo: user.uid);
@@ -278,7 +280,7 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         debugPrint(
             'Filtering evaluations for user: ${user.uid} on date: $date');

@@ -29,7 +29,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
         }
       },
     );
-  }
+  } 
 
   Future<void> _onGetPatients(
       GetPatients event, Emitter<PatientsState> emit) async {

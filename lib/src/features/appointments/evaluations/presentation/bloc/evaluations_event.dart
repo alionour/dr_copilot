@@ -64,12 +64,11 @@ class GetEvaluationsByDate extends EvaluationsEvent {
 }
 
 class LoadMoreEvaluations extends EvaluationsEvent {
-  final String query;
   final int? limit;
   final String? lastDocumentId;
 
-  const LoadMoreEvaluations(this.query, {this.lastDocumentId, this.limit});
+  const LoadMoreEvaluations({this.lastDocumentId, this.limit});
 
   @override
-  List<Object?> get props => [query, lastDocumentId, limit];
+  List<Object?> get props => [lastDocumentId, limit];
 }

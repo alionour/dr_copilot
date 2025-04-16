@@ -31,10 +31,12 @@ class EvaluationsLoadingMore extends EvaluationsState {
 }
 
 class EvaluationsLoaded extends EvaluationsState {
-  const EvaluationsLoaded(super.evaluations);
+  final bool isLoadingMore;
+
+  const EvaluationsLoaded(super.evaluations, {this.isLoadingMore = false});
 
   @override
-  List<Object> get props => [evaluations];
+  List<Object> get props => [evaluations, isLoadingMore];
 }
 
 class EvaluationsError extends EvaluationsState {

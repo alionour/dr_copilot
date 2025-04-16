@@ -87,8 +87,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       debugPrint('Delete successful: ${event.evaluationId}');
       final evaluations = state.evaluations
         ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
-      emit(EvaluationsSuccess(evaluations,
-          message: 'evaluationDeleted'.tr()));
+      emit(EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr()));
       return EvaluationsLoaded(evaluations);
     }));
   }
@@ -119,26 +118,38 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   void _onLoadMoreEvaluations(
       LoadMoreEvaluations event, Emitter<EvaluationsState> emit) async {
-    if (state is EvaluationsLoaded) {
+       if (state is EvaluationsLoaded) {
       final currentState = state as EvaluationsLoaded;
-      emit(EvaluationsLoadingMore(currentState.evaluations));
+      if (currentState.isLoadingMore) return;
 
-      final failureOrEvaluations = await _evaluationsUseCase.getEvaluations(
+      emit(EvaluationsLoaded(currentState.evaluations, isLoadingMore: true));
+      await Future.delayed(Duration(seconds: 1));
+      final result = await _evaluationsUseCase.getEvaluations(
         lastDocumentID: event.lastDocumentId,
         limit: event.limit,
       );
 
-      emit(failureOrEvaluations.fold(
-        (failure) => EvaluationsError(currentState.evaluations,
-            message: _mapFailureToMessage(failure)),
-        (newEvaluations) {
-          final allEvaluations =
-              List<EvaluationModel>.from(currentState.evaluations)
-                ..addAll(newEvaluations);
-          return EvaluationsLoaded(allEvaluations);
+      result.fold(
+        (failure) {
+          debugPrint(
+              'LoadMoreEvaluations failed: ${_mapFailureToMessage(failure)}');
+          emit(EvaluationsError(currentState.evaluations,
+              message: _mapFailureToMessage(failure)));
         },
-      ));
+        (newEvaluations) {
+          debugPrint(
+              'Fetched ${newEvaluations.length} new evaluations: ${newEvaluations.map((e) => e.id).toList()}');
+          final updatedEvaluations = List<EvaluationModel>.from(currentState.evaluations)
+            ..addAll(newEvaluations.where((newEvaluation) => !currentState.evaluations
+                .any(
+                    (existingEvaluation) => existingEvaluation.id == newEvaluation.id)));
+          debugPrint(
+              'Updated evaluations list contains ${updatedEvaluations.length} evaluations.');
+          emit(EvaluationsLoaded(updatedEvaluations));
+        },
+      );
     }
+   
   }
 
   String _mapFailureToMessage(Failure failure) {

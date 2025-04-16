@@ -37,33 +37,33 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
   ///
   /// Returns a list of [SessionModel] objects or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, List<SessionModel>>> getSessions(
-      {String? lastDocumentID, int limit = 20}) async {
-    // Check if the user is authenticated
-    if (!await _isAuthenticated()) {
-      debugPrint('User not authenticated');
-      return Left(ServerFailure('User not authenticated', 401));
-    }
+  Future<Either<Failure, List<SessionModel>>> getSessions({
+    String? lastDocumentID,
+    int limit = 20,
+  }) async {
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Initialize the query to fetch sessions created by the authenticated user
-        Query queryRef = _sessionsCollection
-            .where('createdBy', isEqualTo: user.uid)
-            .limit(limit);
-
-        // If a last document ID is provided, use it for pagination
+        Query queryRef;
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
               await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
-            queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
+            queryRef = _sessionsCollection
+                .where('userId', isEqualTo: user.uid)
+                .orderBy('startDateTime', descending: true)
+                .startAfterDocument(lastDocumentSnapshot)
+                .limit(limit);
           } else {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
+        } else {
+          queryRef = _sessionsCollection
+              .where('userId', isEqualTo: user.uid)
+              .orderBy('startDateTime', descending: true)
+              .limit(limit);
         }
 
-        // Execute the query and fetch the snapshot
         final snapshot = await queryRef.get();
 
         // Map the snapshot documents to a list of SessionModel objects
@@ -85,19 +85,12 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
             'patientName': patientName ?? 'No Name Available',
           });
         }).toList());
+;
 
         return Right(sessions);
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } on FirebaseException catch (e) {
-      // Handle Firestore-specific exceptions
-      if (e.code == 'failed-precondition') {
-        debugPrint('Firestore index required: ${e.message}');
-        return Left(ServerFailure(
-            'Firestore index required. Please create the index in the Firestore console.',
-            400));
-      }
-      debugPrint('Error getting sessions: $e');
+    } catch (e) {
       return Left(ServerFailure(e.toString(), 404));
     }
   }

@@ -117,22 +117,34 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       LoadMoreSessions event, Emitter<SessionsState> emit) async {
     if (state is SessionsLoaded) {
       final currentState = state as SessionsLoaded;
-      emit(SessionsLoadingMore(currentState.sessions));
+      if (currentState.isLoadingMore) return;
 
-      final failureOrSessions = await _sessionsUseCase.getSessions(
+      emit(SessionsLoaded(currentState.sessions, isLoadingMore: true));
+      await Future.delayed(Duration(seconds: 1));
+      final result = await _sessionsUseCase.getSessions(
         lastDocumentID: event.lastDocumentId,
         limit: event.limit,
       );
 
-      emit(failureOrSessions.fold(
-        (failure) => SessionsError(currentState.sessions,
-            message: _mapFailureToMessage(failure)),
-        (newSessions) {
-          final allSessions = List<SessionModel>.from(currentState.sessions)
-            ..addAll(newSessions);
-          return SessionsLoaded(allSessions);
+      result.fold(
+        (failure) {
+          debugPrint(
+              'LoadMoreSessions failed: ${_mapFailureToMessage(failure)}');
+          emit(SessionsError(currentState.sessions,
+              message: _mapFailureToMessage(failure)));
         },
-      ));
+        (newSessions) {
+          debugPrint(
+              'Fetched ${newSessions.length} new sessions: ${newSessions.map((s) => s.id).toList()}');
+          final updatedSessions = List<SessionModel>.from(currentState.sessions)
+            ..addAll(newSessions.where((newSession) => !currentState.sessions
+                .any(
+                    (existingSession) => existingSession.id == newSession.id)));
+          debugPrint(
+              'Updated sessions list contains ${updatedSessions.length} sessions.');
+          emit(SessionsLoaded(updatedSessions));
+        },
+      );
     }
   }
 

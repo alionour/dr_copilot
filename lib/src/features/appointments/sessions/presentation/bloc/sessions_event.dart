@@ -64,14 +64,13 @@ class GetSessionsByDate extends SessionsEvent {
 }
 
 class LoadMoreSessions extends SessionsEvent {
-  final String query;
   final int? limit;
   final String? lastDocumentId;
 
-  const LoadMoreSessions(this.query, {this.lastDocumentId, this.limit});
+  const LoadMoreSessions( {this.lastDocumentId, this.limit});
 
   @override
-  List<Object?> get props => [query, lastDocumentId, limit];
+  List<Object?> get props => [lastDocumentId, limit];
 }
 
 class DetectSessionType extends SessionsEvent {

@@ -24,16 +24,42 @@ class _SessionsPageState extends State<SessionsPage> {
 
   bool _showFilters = false; // State to toggle filter icons
   DateTime? _selectedDate;
+  bool _canLoadMore = true; // Add a flag to control loading more sessions
 
   @override
   void initState() {
     super.initState();
-    _listFocusNode.addListener(() {
-      debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
-    });
+    _scrollController.addListener(_onScroll);
     context
         .read<SessionsBloc>()
         .add(const GetSessions()); // Fetch sessions on init
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _listFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = context.read<SessionsBloc>().state;
+      if (state is SessionsLoaded && !state.isLoadingMore) {
+        if (_canLoadMore) {
+          _canLoadMore = false;
+          context.read<SessionsBloc>().add(LoadMoreSessions(
+                lastDocumentId: state.sessions.last.id,
+                limit: 20,
+              ));
+          Future.delayed(const Duration(seconds: 1), () {
+            _canLoadMore = true;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -50,7 +76,7 @@ class _SessionsPageState extends State<SessionsPage> {
                     hintText: 'searchSessions'.tr(),
                     prefixIcon: Icon(Icons.search,
                         color: Theme.of(context).colorScheme.onSurface),
-                     border: OutlineInputBorder(
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                       borderSide: BorderSide(
                           color: Theme.of(context).colorScheme.primary,
@@ -262,6 +288,8 @@ class _SessionsPageState extends State<SessionsPage> {
                 },
               );
             } else if (state is SessionsError) {
+              debugPrint('Error: ${state.message}');
+
               return Center(child: Text('Error: ${state.message}'));
             }
             return Center(child: Text('noSessionsFound'.tr()));

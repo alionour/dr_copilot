@@ -60,8 +60,29 @@ class EvaluationModel {
     this.deletedAt,
   });
 
-  factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
-      _$EvaluationModelFromJson(json);
+  factory EvaluationModel.fromJson(Map<String, dynamic> json) {
+    return EvaluationModel(
+      id: json['id'] as String,
+      patientId: json['patientId'] as String,
+      patientName: json['patientName'] as String? ?? 'Unknown', // Handle null patientName
+      price: (json['price'] as num).toDouble(),
+      startDateTime: TimestampConverter().fromJson(json['startDateTime']),
+      endDateTime: TimestampConverter().fromJson(json['endDateTime']),
+      userId: json['userId'] as String,
+      createdBy: json['createdBy'] as String?,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
+      createdAt: json['createdAt'] != null
+          ? TimestampConverter().fromJson(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? TimestampConverter().fromJson(json['updatedAt'])
+          : null,
+      deletedAt: json['deletedAt'] != null
+          ? TimestampConverter().fromJson(json['deletedAt'])
+          : null,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$EvaluationModelToJson(this);
 

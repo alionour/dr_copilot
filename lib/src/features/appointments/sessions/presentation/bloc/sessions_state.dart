@@ -31,10 +31,12 @@ class SessionsLoadingMore extends SessionsState {
 }
 
 class SessionsLoaded extends SessionsState {
-  const SessionsLoaded(super.sessions);
+  final bool isLoadingMore;
+
+  const SessionsLoaded(super.sessions, {this.isLoadingMore = false});
 
   @override
-  List<Object> get props => [sessions];
+  List<Object> get props => [sessions, isLoadingMore];
 }
 
 class SessionsError extends SessionsState {

@@ -450,7 +450,7 @@ class _PatientsPageState extends State<PatientsPage> {
                           padding: const EdgeInsets.symmetric(
                               vertical: 8.0, horizontal: 16.0),
                           child: Container(
-                            height: 80.0,
+                            height: 50.0,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(8.0),

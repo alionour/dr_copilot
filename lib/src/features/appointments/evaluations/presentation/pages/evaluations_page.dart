@@ -24,16 +24,42 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
 
   bool _showFilters = false; // State to toggle filter icons
   DateTime? _selectedDate;
+  bool _canLoadMore = true; // Add a flag to control loading more evaluations
 
   @override
   void initState() {
     super.initState();
-    _listFocusNode.addListener(() {
-      debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
-    });
+    _scrollController.addListener(_onScroll);
     context
         .read<EvaluationsBloc>()
         .add(const GetEvaluations()); // Fetch evaluations on init
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _listFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = context.read<EvaluationsBloc>().state;
+      if (state is EvaluationsLoaded && !state.isLoadingMore) {
+        if (_canLoadMore) {
+          _canLoadMore = false;
+          context.read<EvaluationsBloc>().add(LoadMoreEvaluations(
+                lastDocumentId: state.evaluations.last.id,
+                limit: 20,
+              ));
+          Future.delayed(const Duration(seconds: 1), () {
+            _canLoadMore = true;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -266,6 +292,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 },
               );
             } else if (state is EvaluationsError) {
+              debugPrint('Error: ${state.message}');
               return Center(child: Text('Error: ${state.message}'));
             }
             return Center(child: Text('noEvaluations'.tr()));
