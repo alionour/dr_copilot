@@ -3,6 +3,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -133,8 +134,12 @@ class _SessionListItemState extends State<SessionListItem> {
                           context,
                           label: 'price'.tr(),
                           value:
-                              '\$${widget.sessionModel.price.toStringAsFixed(2)}',
+                              widget.sessionModel.price.toStringAsFixed(2),
                           fieldKey: 'price',
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                         ),
                       ],
                     ),
@@ -209,7 +214,9 @@ class _SessionListItemState extends State<SessionListItem> {
   TableRow _buildEditableTableRow(BuildContext context,
       {required String label,
       required String value,
-      required String fieldKey}) {
+      required String fieldKey,
+      TextInputType? keyboardType,
+      List<TextInputFormatter>? inputFormatters}) {
     return TableRow(
       children: [
         Padding(
@@ -395,6 +402,8 @@ class _SessionListItemState extends State<SessionListItem> {
                                 contentPadding:
                                     EdgeInsets.fromLTRB(10, 10, 10, 0),
                               ),
+                              keyboardType: keyboardType,
+                              inputFormatters: inputFormatters,
                               style: GoogleFonts.robotoSlab(
                                 color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 14,
@@ -442,7 +451,9 @@ class _SessionListItemState extends State<SessionListItem> {
           orElse: () => widget.sessionModel.sessionType,
         ),
       );
-
+      debugPrint(
+          'Updated price: ${double.tryParse(_updatedValues['price'] ?? '')}');
+      debugPrint('Updated session model: $updatedSessionModel');
       try {
         context
             .read<SessionsBloc>()

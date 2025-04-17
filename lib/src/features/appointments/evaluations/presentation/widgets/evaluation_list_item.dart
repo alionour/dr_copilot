@@ -3,6 +3,7 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/e
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -126,8 +127,12 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                           context,
                           label: 'price'.tr(),
                           value:
-                              '\$${widget.evaluationModel.price.toStringAsFixed(2)}',
+                              widget.evaluationModel.price.toStringAsFixed(2),
                           fieldKey: 'price',
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                         ),
                       ],
                     ),
@@ -201,7 +206,9 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
   TableRow _buildEditableTableRow(BuildContext context,
       {required String label,
       required String value,
-      required String fieldKey}) {
+      required String fieldKey,
+      TextInputType? keyboardType,
+      List<TextInputFormatter>? inputFormatters}) {
     return TableRow(
       children: [
         Padding(
@@ -380,8 +387,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
             _updatedValues['patientName'] ?? widget.evaluationModel.patientName,
         price: double.tryParse(_updatedValues['price'] ?? '') ??
             widget.evaluationModel.price,
-            updatedAt: Timestamp.now(),
-
+        updatedAt: Timestamp.now(),
         startDateTime: _updatedValues['startDateTime'] != null
             ? Timestamp.fromDate(
                 DateTime.parse(_updatedValues['startDateTime']!))

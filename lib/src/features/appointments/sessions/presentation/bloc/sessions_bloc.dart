@@ -58,11 +58,13 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       UpdateSession event, Emitter<SessionsState> emit) async {
     final failureOrSession =
         await _sessionsUseCase.updateSession(event.sessionId, event.model);
+    debugPrint(': ${event.model.toJson()}');
+
     emit(failureOrSession.fold(
       (failure) =>
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
       (updatedSession) {
-        debugPrint('Update successful: $updatedSession');
+        debugPrint('Update successful: ${updatedSession.toJson()}');
         final sessions = state.sessions.map((session) {
           return session.id == updatedSession.id ? updatedSession : session;
         }).toList();
