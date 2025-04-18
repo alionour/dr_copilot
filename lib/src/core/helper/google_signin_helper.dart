@@ -6,6 +6,7 @@ import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
 import 'package:googleapis/calendar/v3.dart';
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
+import 'dart:io';
 
 final scopes = [
   'profile',
@@ -36,19 +37,16 @@ class GoogleSignInHelper {
   final google_sign_in_all_platforms.GoogleSignIn _googleSignInAllPlatforms =
       google_sign_in_all_platforms.GoogleSignIn(
     params: google_sign_in_all_platforms.GoogleSignInParams(
-        clientId:
-            '991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com',
-        clientSecret: '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',
-        redirectPort: 5000,
+        clientId: Platform.environment['GOOGLE_CLIENT_ID']!,
+        clientSecret: Platform.environment['GOOGLE_CLIENT_SECRET']!,
+        redirectPort: int.parse(Platform.environment['REDIRECT_PORT']!),
         scopes: scopes
         // Ensure this matches the registered redirect URI
         ),
   );
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-      clientId:
-          '991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com',
-      scopes: scopes);
+      clientId: Platform.environment['GOOGLE_CLIENT_ID']!, scopes: scopes);
   late Client? _client;
 
   /// Getter for the authenticated client.
