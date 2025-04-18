@@ -37,16 +37,16 @@ class GoogleSignInHelper {
   final google_sign_in_all_platforms.GoogleSignIn _googleSignInAllPlatforms =
       google_sign_in_all_platforms.GoogleSignIn(
     params: google_sign_in_all_platforms.GoogleSignInParams(
-        clientId: Platform.environment['GOOGLE_CLIENT_ID']!,
-        clientSecret: Platform.environment['GOOGLE_CLIENT_SECRET']!,
-        redirectPort: int.parse(Platform.environment['REDIRECT_PORT']!),
+        clientId: Platform.environment['WEB_CLIENT_ID']!,
+        clientSecret: Platform.environment['WEB_CLIENT_SECRET']!,
+        redirectPort: int.parse(Platform.environment['WEB_REDIRECT_PORT']!),
         scopes: scopes
         // Ensure this matches the registered redirect URI
         ),
   );
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-      clientId: Platform.environment['GOOGLE_CLIENT_ID']!, scopes: scopes);
+      clientId: Platform.environment['WEB_CLIENT_ID']!, scopes: scopes);
   late Client? _client;
 
   /// Getter for the authenticated client.

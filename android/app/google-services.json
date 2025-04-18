@@ -12,38 +12,18 @@
           "package_name": "com.alionour.drcopilot"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "991809114105-rf23fmptm5k56oss8picvsrmsnvdv3kh.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.alionour.drcopilot",
-            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
-          }
-        },
-        {
-          "client_id": "991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDHCrxCJanHxzsfa3xTDOL4TD7E5ML0PMA"
+          "current_key": "AIzaSyB4dxViBrLabhb8Ie-SE0QRTWL7pHqrKEw"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com",
+              "client_id": "991809114105-4uqc3pb24huche509om4jr8e7f0v8kfa.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "991809114105-gjmdi9v4bjvhbh11a3khbb3ah1606fqb.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.alionour.drcopilot"
-              }
             }
           ]
         }
@@ -56,30 +36,18 @@
           "package_name": "com.example.dr_copilot"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDHCrxCJanHxzsfa3xTDOL4TD7E5ML0PMA"
+          "current_key": "AIzaSyB4dxViBrLabhb8Ie-SE0QRTWL7pHqrKEw"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "991809114105-7st6rs7ntt1a8j2rdp8iveffjhobsn93.apps.googleusercontent.com",
+              "client_id": "991809114105-4uqc3pb24huche509om4jr8e7f0v8kfa.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "991809114105-gjmdi9v4bjvhbh11a3khbb3ah1606fqb.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.alionour.drcopilot"
-              }
             }
           ]
         }

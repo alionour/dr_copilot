@@ -29,6 +29,18 @@
             "args": [
                 "--web-port=3000"
             ],
-        }
+        },
+        {
+            "name": "dr_copilot (doppler)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "toolArgs": [],
+            "args": [],
+            "env": {
+                "DOPPLER_RUN": "doppler run --"
+            },
+            "preLaunchTask": "doppler-run"
+        },
     ]
 }

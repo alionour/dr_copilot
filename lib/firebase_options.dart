@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBgK3Zyi_hIt_bGis5o6u0xYPqjZoIlwQY',
+    apiKey: 'AIzaSyAhVZ_s8meDm3xFGfh54IkxW9G0ScMsvCM',
     appId: '1:991809114105:web:08bf9b694dfb6f1a267728',
     messagingSenderId: '991809114105',
     projectId: 'drcopilot',
@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDHCrxCJanHxzsfa3xTDOL4TD7E5ML0PMA',
+    apiKey: 'AIzaSyB4dxViBrLabhb8Ie-SE0QRTWL7pHqrKEw',
     appId: '1:991809114105:android:86655339d1f662de267728',
     messagingSenderId: '991809114105',
     projectId: 'drcopilot',
@@ -59,28 +59,25 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBvAtOOibXTcYNnusEViBJtNR7Te_DLu9o',
+    apiKey: 'AIzaSyDvkUGxy63jKSx4245xeSeB4WyT66ZQe0E',
     appId: '1:991809114105:ios:ff84bb66f8b6674c267728',
     messagingSenderId: '991809114105',
     projectId: 'drcopilot',
     storageBucket: 'drcopilot.firebasestorage.app',
-    androidClientId: '991809114105-rf23fmptm5k56oss8picvsrmsnvdv3kh.apps.googleusercontent.com',
-    iosClientId: '991809114105-gjmdi9v4bjvhbh11a3khbb3ah1606fqb.apps.googleusercontent.com',
     iosBundleId: 'com.alionour.drcopilot',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBvAtOOibXTcYNnusEViBJtNR7Te_DLu9o',
+    apiKey: 'AIzaSyDvkUGxy63jKSx4245xeSeB4WyT66ZQe0E',
     appId: '1:991809114105:ios:bf24bc30d525b4d5267728',
     messagingSenderId: '991809114105',
     projectId: 'drcopilot',
     storageBucket: 'drcopilot.firebasestorage.app',
-    androidClientId: '991809114105-rf23fmptm5k56oss8picvsrmsnvdv3kh.apps.googleusercontent.com',
     iosBundleId: 'com.example.drCopilot',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBgK3Zyi_hIt_bGis5o6u0xYPqjZoIlwQY',
+    apiKey: 'AIzaSyAhVZ_s8meDm3xFGfh54IkxW9G0ScMsvCM',
     appId: '1:991809114105:web:b503a1abc4021649267728',
     messagingSenderId: '991809114105',
     projectId: 'drcopilot',

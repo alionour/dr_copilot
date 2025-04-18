@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "doppler-run",
+            "type": "shell",
+            "command": "doppler run -- flutter run -d windows",
+            "problemMatcher": []
+        }
+    ]
+}
