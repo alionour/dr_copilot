@@ -135,3 +135,67 @@ We welcome contributions to Dr Copilot! To contribute:
 
 Dr Copilot is licensed under the MIT License. See the `LICENSE` file for more details.
 
+### Running and Building the App with Doppler
+
+Dr Copilot uses Doppler to manage secrets securely. Below are the commands to run and build the app for different platforms with Doppler.
+
+#### Run the App on Android
+```bash
+doppler run -- flutter run -d android
+```
+
+#### Run the App on iOS
+```bash
+doppler run -- flutter run -d ios
+```
+
+#### Run the App on Web
+```bash
+doppler run -- flutter run -d web
+```
+
+#### Run the App on Windows
+```bash
+doppler run -- flutter run -d windows
+```
+
+#### Run the App on macOS
+```bash
+doppler run -- flutter run -d macos
+```
+
+#### Run the App on Linux
+```bash
+doppler run -- flutter run -d linux
+```
+
+#### Build the App for Android
+```bash
+doppler run -- flutter build apk
+```
+
+#### Build the App for iOS
+```bash
+doppler run -- flutter build ios
+```
+
+#### Build the App for Web
+```bash
+doppler run -- flutter build web
+```
+
+#### Build the App for Windows
+```bash
+doppler run -- flutter build windows
+```
+
+#### Build the App for macOS
+```bash
+doppler run -- flutter build macos
+```
+
+#### Build the App for Linux
+```bash
+doppler run -- flutter build linux
+```
+
