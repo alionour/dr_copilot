@@ -236,7 +236,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(message)),
                 );
-                            }
+              }
             },
           ),
           BlocListener<SessionsBloc, SessionsState>(
@@ -369,67 +369,16 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                         Column(
                                           children: [
                                             Text('noPatientsWithQuery'.tr()),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Tooltip(
-                                                  message: 'addPatient'.tr(),
-                                                  child: IconButton(
-                                                    icon: const Icon(Icons.add),
-                                                    onPressed: () {
-                                                      final userId =
-                                                          FirebaseAuth.instance
-                                                              .currentUser?.uid;
-                                                      if (userId != null) {
-                                                        // Add patient directly
-                                                        final newPatient =
-                                                            PatientModel(
-                                                                id: const Uuid()
-                                                                    .v4(),
-                                                                name: query,
-                                                                userId: userId);
-                                                        context
-                                                            .read<
-                                                                PatientsBloc>()
-                                                            .add(AddPatient(
-                                                                newPatient));
-                                                        setState(() {
-                                                          _patientNameController
-                                                              .text = query;
-                                                          _filteredPatients =
-                                                              [];
-                                                        });
-                                                        FocusScope.of(context)
-                                                            .requestFocus(
-                                                                _actualPriceFocusNode);
-                                                      } else {
-                                                        ScaffoldMessenger.of(
-                                                                context)
-                                                            .showSnackBar(
-                                                          SnackBar(
-                                                              content: Text(
-                                                                  'userIdCannotBeNull'
-                                                                      .tr())),
-                                                        );
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                                Tooltip(
-                                                  message:
-                                                      'goToAddPatient'.tr(),
-                                                  child: IconButton(
-                                                    icon: const Icon(
-                                                        Icons.arrow_forward),
-                                                    onPressed: () {
-                                                      // Navigate to add patient page
-                                                      context
-                                                          .go('/patients/new');
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
+                                            Tooltip(
+                                              message: 'goToAddPatient'.tr(),
+                                              child: IconButton(
+                                                icon: const Icon(
+                                                    Icons.arrow_forward),
+                                                onPressed: () {
+                                                  // Navigate to add patient page
+                                                  context.go('/patients/new');
+                                                },
+                                              ),
                                             ),
                                           ],
                                         ),

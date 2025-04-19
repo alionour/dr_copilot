@@ -1,26 +1,44 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:flutter/material.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
-import 'package:mockito/annotations.dart';
-import 'sessions_page_test.mocks.dart';
+import 'dart:ui';
 
-@GenerateMocks([SessionsBloc])
+import 'package:easy_localization/easy_localization.dart';
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
+
+class MockSessionsBloc extends MockBloc<SessionsEvent, SessionsState>
+    implements SessionsBloc {}
+
 void main() {
   group('SessionsPage Tests', () {
     late MockSessionsBloc mockSessionsBloc;
 
     setUp(() {
       mockSessionsBloc = MockSessionsBloc();
+      registerFallbackValue(SessionsLoading([]));
+      registerFallbackValue(SessionsLoaded([]));
     });
 
     testWidgets('should render SessionsPage with initial state',
         (WidgetTester tester) async {
       // Arrange
+      when(() => mockSessionsBloc.state).thenReturn(SessionsLoading([]));
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: SessionsPage(),
+        EasyLocalization(
+          supportedLocales: [Locale('en')],
+          path: 'assets/translations',
+          fallbackLocale: Locale('en'),
+          startLocale: Locale('en'),
+          child: MaterialApp(
+            home: BlocProvider<SessionsBloc>.value(
+              value: mockSessionsBloc,
+              child: SessionsPage(),
+            ),
+          ),
         ),
       );
 
@@ -34,11 +52,20 @@ void main() {
     testWidgets('should display loading indicator when state is loading',
         (WidgetTester tester) async {
       // Arrange
-      when(mockSessionsBloc.state).thenReturn(SessionsLoading());
+      when(() => mockSessionsBloc.state).thenReturn(SessionsLoading([]));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: SessionsPage(),
+        EasyLocalization(
+          supportedLocales: [Locale('en')],
+          path: 'assets/translations',
+          fallbackLocale: Locale('en'),
+          startLocale: Locale('en'),
+          child: MaterialApp(
+            home: BlocProvider<SessionsBloc>.value(
+              value: mockSessionsBloc,
+              child: SessionsPage(),
+            ),
+          ),
         ),
       );
 
@@ -52,11 +79,20 @@ void main() {
     testWidgets('should display sessions list when state is loaded',
         (WidgetTester tester) async {
       // Arrange
-      when(mockSessionsBloc.state).thenReturn(SessionsLoaded(sessions: []));
+      when(() => mockSessionsBloc.state).thenReturn(SessionsLoaded([]));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: SessionsPage(),
+        EasyLocalization(
+          supportedLocales: [Locale('en')],
+          path: 'assets/translations',
+          fallbackLocale: Locale('en'),
+          startLocale: Locale('en'),
+          child: MaterialApp(
+            home: BlocProvider<SessionsBloc>.value(
+              value: mockSessionsBloc,
+              child: SessionsPage(),
+            ),
+          ),
         ),
       );
 

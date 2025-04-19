@@ -21,6 +21,24 @@ class _SessionListItemState extends State<SessionListItem> {
   bool _isExpanded = false;
   bool _isEditing = false; // Track if the row is in editing mode
   final Map<String, String> _updatedValues = {}; // Store updated field values
+  final Map<String, TextEditingController> _controllers =
+      {}; // Persistent controllers
+
+  @override
+  void dispose() {
+    // Dispose controllers to avoid memory leaks
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  TextEditingController _getController(String fieldKey, String initialValue) {
+    if (!_controllers.containsKey(fieldKey)) {
+      _controllers[fieldKey] = TextEditingController(text: initialValue);
+    }
+    return _controllers[fieldKey]!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,43 +121,62 @@ class _SessionListItemState extends State<SessionListItem> {
                         _buildEditableTableRow(
                           context,
                           label: 'name'.tr(),
-                          value: widget.sessionModel.patientName ?? '',
-                          fieldKey: 'patientName',
+                          child: _buildTextField(
+                            value: widget.sessionModel.patientName ?? '',
+                            fieldKey: 'patientName',
+                            isEditable: false,
+                          ),
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'sessionType'.tr(),
-                          value: widget.sessionModel.sessionType.text,
-                          fieldKey: 'sessionType',
+                          child: _buildDropdown(
+                            SessionType.values.firstWhere(
+                              (type) =>
+                                  type.text ==
+                                  (_updatedValues['sessionType'] ??
+                                      widget.sessionModel.sessionType.text),
+                              orElse: () => SessionType.standard,
+                            ),
+                            'sessionType',
+                          ),
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'startTime'.tr(),
-                          value: widget.sessionModel.startDateTime
-                              .toDate()
-                              .toLocal()
-                              .toString(),
-                          fieldKey: 'startDateTime',
+                          child: _buildDateTimePicker(
+                            widget.sessionModel.startDateTime
+                                .toDate()
+                                .toLocal()
+                                .toString(),
+                            'startDateTime',
+                            'selectStartDate'.tr(),
+                          ),
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'endTime'.tr(),
-                          value: widget.sessionModel.endDateTime
-                              .toDate()
-                              .toLocal()
-                              .toString(),
-                          fieldKey: 'endDateTime',
+                          child: _buildDateTimePicker(
+                            widget.sessionModel.endDateTime
+                                .toDate()
+                                .toLocal()
+                                .toString(),
+                            'endDateTime',
+                            'selectEndDate'.tr(),
+                          ),
                         ),
                         _buildEditableTableRow(
                           context,
                           label: 'price'.tr(),
-                          value:
-                              widget.sessionModel.price.toStringAsFixed(2),
-                          fieldKey: 'price',
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
+                          child: _buildTextField(
+                            value: widget.sessionModel.price.toStringAsFixed(2),
+                            fieldKey: 'price',
+                            isEditable: true,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -212,210 +249,201 @@ class _SessionListItemState extends State<SessionListItem> {
   }
 
   TableRow _buildEditableTableRow(BuildContext context,
-      {required String label,
-      required String value,
-      required String fieldKey,
-      TextInputType? keyboardType,
-      List<TextInputFormatter>? inputFormatters}) {
+      {required String label, required Widget child}) {
     return TableRow(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-              vertical: 8.0, horizontal: 12.0), // Consistent padding
-          child: SizedBox(
-            height: 30,
-            child: Container(
-              alignment: AlignmentDirectional
-                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
-              child: Text(
-                label,
-                style: GoogleFonts.robotoSlab(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
+        _buildLabelCell(context, label),
+        _buildContentCell(context, child),
+      ],
+    );
+  }
+
+  Widget _buildLabelCell(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+      child: SizedBox(
+        height: 35,
+        child: Container(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            label,
+            style: GoogleFonts.robotoSlab(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-              vertical: 8.0, horizontal: 12.0), // Consistent padding
-          child: SizedBox(
-            height: 30,
-            child: Container(
-              alignment: AlignmentDirectional
-                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
-              child: fieldKey == 'sessionType'
-                  ? Wrap(
-                      spacing: 8.0,
-                      children: SessionType.values.map((type) {
-                        return ChoiceChip(
-                          label: Text(type.text
-                              .tr()), // Added translation for session type
-                          selected:
-                              (_updatedValues[fieldKey] ?? value) == type.text,
-                          onSelected: _isEditing
-                              ? (bool selected) {
-                                  if (selected) {
-                                    setState(() {
-                                      _updatedValues[fieldKey] = type.text;
-                                    });
-                                  }
-                                }
-                              : null, // Disable selection when not editing
-                          selectedColor: Theme.of(context).colorScheme.primary,
-                          labelStyle: GoogleFonts.robotoSlab(
-                            color:
-                                (_updatedValues[fieldKey] ?? value) == type.text
-                                    ? Colors.white
-                                    : Theme.of(context).colorScheme.onSurface,
-                          ),
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          disabledColor: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                        );
-                      }).toList(),
-                    )
-                  : (fieldKey == 'startDateTime' || fieldKey == 'endDateTime')
-                      ? Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                readOnly:
-                                    !_isEditing, // Enable editing when _isEditing is true
-                                decoration: InputDecoration(
-                                  hintText: fieldKey == 'startDateTime'
-                                      ? 'selectStartDate'.tr()
-                                      : 'selectEndDate'.tr(),
-                                  suffixIcon:
-                                      const Icon(Icons.calendar_month_outlined),
-                                  border: const OutlineInputBorder(),
-                                ),
-                                controller: TextEditingController(
-                                  text: DateFormat('yyyy-MM-dd').format(
-                                    DateTime.parse(
-                                        _updatedValues[fieldKey] ?? value),
-                                  ),
-                                ),
-                                onTap: _isEditing
-                                    ? () async {
-                                        final date = await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime.parse(value),
-                                          firstDate: DateTime(2000),
-                                          lastDate: DateTime(2100),
-                                        );
-                                        if (date != null) {
-                                          final existingDate = DateTime.parse(
-                                            _updatedValues[fieldKey] ?? value,
-                                          );
-                                          final updatedDateTime = DateTime(
-                                            date.year,
-                                            date.month,
-                                            date.day,
-                                            existingDate.hour,
-                                            existingDate.minute,
-                                          );
-                                          setState(() {
-                                            _updatedValues[fieldKey] =
-                                                updatedDateTime
-                                                    .toIso8601String();
-                                          });
-                                        }
-                                      }
-                                    : null,
-                                style: GoogleFonts.robotoSlab(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            Expanded(
-                              child: TextFormField(
-                                readOnly:
-                                    !_isEditing, // Enable editing when _isEditing is true
-                                decoration: InputDecoration(
-                                  hintText: fieldKey == 'startDateTime'
-                                      ? 'selectStartTime'.tr()
-                                      : 'selectEndTime'.tr(),
-                                  suffixIcon: const Icon(
-                                      Icons.access_time_filled_outlined),
-                                  border: const OutlineInputBorder(),
-                                ),
-                                controller: TextEditingController(
-                                  text: DateFormat('HH:mm').format(
-                                    DateTime.parse(
-                                        _updatedValues[fieldKey] ?? value),
-                                  ),
-                                ),
-                                onTap: _isEditing
-                                    ? () async {
-                                        final time = await showTimePicker(
-                                          context: context,
-                                          initialTime: TimeOfDay.fromDateTime(
-                                            DateTime.parse(value),
-                                          ),
-                                        );
-                                        if (time != null) {
-                                          final existingDate = DateTime.parse(
-                                            _updatedValues[fieldKey] ?? value,
-                                          );
-                                          final updatedDateTime = DateTime(
-                                            existingDate.year,
-                                            existingDate.month,
-                                            existingDate.day,
-                                            time.hour,
-                                            time.minute,
-                                          );
-                                          setState(() {
-                                            _updatedValues[fieldKey] =
-                                                updatedDateTime
-                                                    .toIso8601String();
-                                          });
-                                        }
-                                      }
-                                    : null,
-                                style: GoogleFonts.robotoSlab(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : _isEditing
-                          ? TextField(
-                              controller: TextEditingController(text: value),
-                              onChanged: (newValue) {
-                                _updatedValues[fieldKey] = newValue;
-                              },
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding:
-                                    EdgeInsets.fromLTRB(10, 10, 10, 0),
-                              ),
-                              keyboardType: keyboardType,
-                              inputFormatters: inputFormatters,
-                              style: GoogleFonts.robotoSlab(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 14,
-                              ),
-                            )
-                          : Text(
-                              value,
-                              style: GoogleFonts.robotoSlab(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
+      ),
+    );
+  }
+
+  Widget _buildContentCell(BuildContext context, Widget child) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+      child: SizedBox(
+        height: 35,
+        child: Container(
+          alignment: AlignmentDirectional.centerStart,
+          width: double.infinity,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String value,
+    required String fieldKey,
+    required bool isEditable,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    final controller = _controllers.putIfAbsent(
+      fieldKey,
+      () => TextEditingController(text: value),
+    );
+
+    if (controller.text != _updatedValues[fieldKey]) {
+      controller.text = _updatedValues[fieldKey] ?? value;
+    }
+
+    return TextField(
+      controller: controller,
+      onChanged: (newValue) {
+        _updatedValues[fieldKey] = newValue;
+      },
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        isDense: true,
+      ),
+      keyboardType: keyboardType,
+      readOnly: !isEditable || !_isEditing, // Use both isEditable and _isEditing
+      inputFormatters: inputFormatters,
+      style: GoogleFonts.robotoSlab(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontSize: 14,
+      ),
+    );
+  }
+
+  Widget _buildDropdown(SessionType selectedValue, String fieldKey) {
+    return DropdownButtonFormField<SessionType>(
+      value: selectedValue,
+      items: SessionType.values.map((type) {
+        return DropdownMenuItem<SessionType>(
+          value: type,
+          child:
+              Text('sessionType.${type.name}'.tr()), // Display translated value
+        );
+      }).toList(),
+      onChanged: _isEditing
+          ? (SessionType? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  _updatedValues[fieldKey] =
+                      newValue.name; // Store English value for backend
+                });
+              }
+            }
+          : null,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      ),
+    );
+  }
+
+  Widget _buildDateTimePicker(String value, String fieldKey, String hintText) {
+    final date = DateTime.parse(_updatedValues[fieldKey] ?? value);
+    final dateController = TextEditingController(
+      text: DateFormat('yyyy-MM-dd').format(date),
+    );
+
+    final timeController = TextEditingController(
+      text:
+          '${DateFormat('hh:mm').format(date)} ${context.locale.toString() == 'en' ? DateFormat('a', 'en_US').format(date).toUpperCase() : DateFormat('a', context.locale.toString()).format(date)}',
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            readOnly: true, // Make the field read-only
+            decoration: InputDecoration(
+              hintText: hintText,
+              suffixIcon: const Icon(Icons.calendar_month_outlined),
+              border: const OutlineInputBorder(),
+            ),
+            controller: dateController,
+            onTap: _isEditing
+                ? () async {
+                    final selectedDate = await showDatePicker(
+                      context: context,
+                      initialDate: date,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (selectedDate != null) {
+                      final updatedDateTime = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                        date.hour,
+                        date.minute,
+                      );
+                      setState(() {
+                        _updatedValues[fieldKey] =
+                            updatedDateTime.toIso8601String();
+                        dateController.text =
+                            '${DateFormat('yyyy-MM-dd').format(updatedDateTime)}';
+                      });
+                    }
+                  }
+                : null,
+            style: GoogleFonts.robotoSlab(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8.0),
+        Expanded(
+          child: TextFormField(
+            readOnly: true, // Make the field read-only
+            decoration: InputDecoration(
+              hintText: 'selectTime'.tr(),
+              suffixIcon: const Icon(Icons.access_time_filled_outlined),
+              border: const OutlineInputBorder(),
+            ),
+            controller: timeController,
+            onTap: _isEditing
+                ? () async {
+                    final timeOfDay = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(date),
+                    );
+                    if (timeOfDay != null) {
+                      final updatedDateTime = DateTime(
+                        date.year,
+                        date.month,
+                        date.day,
+                        timeOfDay.hour,
+                        timeOfDay.minute,
+                      );
+                      setState(() {
+                        _updatedValues[fieldKey] =
+                            updatedDateTime.toIso8601String();
+                        timeController.text =
+                            '${DateFormat('hh:mm').format(updatedDateTime)} ${context.locale.toString() == 'en' ? DateFormat('a', 'en_US').format(updatedDateTime).toUpperCase() : DateFormat('a', context.locale.toString()).format(updatedDateTime)}';
+                      });
+                    }
+                  }
+                : null,
+            style: GoogleFonts.robotoSlab(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 14,
             ),
           ),
         ),

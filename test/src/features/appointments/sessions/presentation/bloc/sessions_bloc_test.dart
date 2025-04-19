@@ -1,5 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
@@ -16,36 +16,39 @@ void main() {
     });
 
     test('initial state should be SessionsInitial', () {
-      expect(mockSessionsBloc.state, equals(SessionsInitial()));
+      expect(mockSessionsBloc.state, equals(SessionsInitial([])));
     });
 
     blocTest<MockSessionsBloc, SessionsState>(
-      'emits [SessionsLoading, SessionsUpdated] when UpdateSession is added',
+      'emits [SessionsLoading] when UpdateSession is added',
       build: () => mockSessionsBloc,
       act: (bloc) {
         final sessionModel = SessionModel(
           id: '1',
           patientId: '123',
           price: 100.0,
-          startDateTime: DateTime.now(),
-          endDateTime: DateTime.now().add(Duration(hours: 1)),
-          sessionType: SessionType.consultation,
+          startDateTime: Timestamp.fromDate(DateTime.now()),
+          endDateTime:
+              Timestamp.fromDate(DateTime.now().add(Duration(hours: 1))),
+          sessionType: SessionType.standard,
+          userId: 'user_1',
+          createdBy: 'admin',
         );
         bloc.add(UpdateSession('1', sessionModel));
       },
       expect: () => [
-        SessionsLoading(),
-        isA<SessionsUpdated>(),
+        SessionsLoading([]),
+        isA<SessionsSuccess>(),
       ],
     );
 
     blocTest<MockSessionsBloc, SessionsState>(
-      'emits [SessionsLoading, SessionsDeleted] when DeleteSession is added',
+      'emits [SessionsLoading, SessionsSuccess] with message sessionDeleted when DeleteSession is added',
       build: () => mockSessionsBloc,
       act: (bloc) => bloc.add(DeleteSession('1')),
       expect: () => [
-        SessionsLoading(),
-        isA<SessionsDeleted>(),
+        SessionsLoading([]),
+        isA<SessionsSuccess>(),
       ],
     );
   });
