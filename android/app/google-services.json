@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "991809114105",
-    "project_id": "drcopilot",
-    "storage_bucket": "drcopilot.firebasestorage.app"
+    "project_number": "253522261255",
+    "project_id": "drcopilot-bfc9e",
+    "storage_bucket": "drcopilot-bfc9e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:991809114105:android:86655339d1f662de267728",
+        "mobilesdk_app_id": "1:253522261255:android:d7a6db0c62ce9c5c1001a2",
         "android_client_info": {
           "package_name": "com.alionour.drcopilot"
         }
@@ -15,41 +15,12 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB4dxViBrLabhb8Ie-SE0QRTWL7pHqrKEw"
+          "current_key": "AIzaSyCqDfzCa3Vu_ic4ThJRXkUMj5i327Rd5L0"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "991809114105-4uqc3pb24huche509om4jr8e7f0v8kfa.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:991809114105:android:d162281c45b1e1cd267728",
-        "android_client_info": {
-          "package_name": "com.example.dr_copilot"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB4dxViBrLabhb8Ie-SE0QRTWL7pHqrKEw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "991809114105-4uqc3pb24huche509om4jr8e7f0v8kfa.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

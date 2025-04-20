@@ -41,49 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAhVZ_s8meDm3xFGfh54IkxW9G0ScMsvCM',
-    appId: '1:991809114105:web:08bf9b694dfb6f1a267728',
-    messagingSenderId: '991809114105',
-    projectId: 'drcopilot',
-    authDomain: 'drcopilot.firebaseapp.com',
-    storageBucket: 'drcopilot.firebasestorage.app',
-    measurementId: 'G-15ZFMXGP9N',
+    apiKey: 'AIzaSyC6APKuTlDJP9gGT9usJGj1Ub1Eev592PU',
+    appId: '1:253522261255:web:b0c3541bbd0e1da51001a2',
+    messagingSenderId: '253522261255',
+    projectId: 'drcopilot-bfc9e',
+    authDomain: 'drcopilot-bfc9e.firebaseapp.com',
+    storageBucket: 'drcopilot-bfc9e.firebasestorage.app',
+    measurementId: 'G-02M6N1VECS',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB4dxViBrLabhb8Ie-SE0QRTWL7pHqrKEw',
-    appId: '1:991809114105:android:86655339d1f662de267728',
-    messagingSenderId: '991809114105',
-    projectId: 'drcopilot',
-    storageBucket: 'drcopilot.firebasestorage.app',
+    apiKey: 'AIzaSyCqDfzCa3Vu_ic4ThJRXkUMj5i327Rd5L0',
+    appId: '1:253522261255:android:d7a6db0c62ce9c5c1001a2',
+    messagingSenderId: '253522261255',
+    projectId: 'drcopilot-bfc9e',
+    storageBucket: 'drcopilot-bfc9e.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDvkUGxy63jKSx4245xeSeB4WyT66ZQe0E',
-    appId: '1:991809114105:ios:ff84bb66f8b6674c267728',
-    messagingSenderId: '991809114105',
-    projectId: 'drcopilot',
-    storageBucket: 'drcopilot.firebasestorage.app',
+    apiKey: 'AIzaSyDYHn4mg8K_47jqB4L8qaibH1jbH65AJBg',
+    appId: '1:253522261255:ios:294749c166f3da071001a2',
+    messagingSenderId: '253522261255',
+    projectId: 'drcopilot-bfc9e',
+    storageBucket: 'drcopilot-bfc9e.firebasestorage.app',
     iosBundleId: 'com.alionour.drcopilot',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDvkUGxy63jKSx4245xeSeB4WyT66ZQe0E',
-    appId: '1:991809114105:ios:bf24bc30d525b4d5267728',
-    messagingSenderId: '991809114105',
-    projectId: 'drcopilot',
-    storageBucket: 'drcopilot.firebasestorage.app',
+    apiKey: 'AIzaSyDYHn4mg8K_47jqB4L8qaibH1jbH65AJBg',
+    appId: '1:253522261255:ios:f71f7a98c23548851001a2',
+    messagingSenderId: '253522261255',
+    projectId: 'drcopilot-bfc9e',
+    storageBucket: 'drcopilot-bfc9e.firebasestorage.app',
     iosBundleId: 'com.example.drCopilot',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAhVZ_s8meDm3xFGfh54IkxW9G0ScMsvCM',
-    appId: '1:991809114105:web:b503a1abc4021649267728',
-    messagingSenderId: '991809114105',
-    projectId: 'drcopilot',
-    authDomain: 'drcopilot.firebaseapp.com',
-    storageBucket: 'drcopilot.firebasestorage.app',
-    measurementId: 'G-6HQD8WGZZY',
+    apiKey: 'AIzaSyC6APKuTlDJP9gGT9usJGj1Ub1Eev592PU',
+    appId: '1:253522261255:web:7b3e288cbac615531001a2',
+    messagingSenderId: '253522261255',
+    projectId: 'drcopilot-bfc9e',
+    authDomain: 'drcopilot-bfc9e.firebaseapp.com',
+    storageBucket: 'drcopilot-bfc9e.firebasestorage.app',
+    measurementId: 'G-SHYPP6YSQW',
   );
 
 }
