@@ -21,6 +21,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     on<SearchPatients>(_onSearchPatients);
     on<LoadMorePatients>(_onLoadMorePatients);
     on<GetPatientsByDate>(_onGetPatientsByDate);
+    on<GetPatientsCount>(_onGetPatientsCount);
 
     FirebaseFirestore.instance.collection('patients').snapshots().listen(
       (snapshot) {
@@ -29,7 +30,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
         }
       },
     );
-  } 
+  }
 
   Future<void> _onGetPatients(
       GetPatients event, Emitter<PatientsState> emit) async {
@@ -163,6 +164,16 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
       (patients) => PatientsLoaded(patients),
     ));
+  }
+
+  Future<void> _onGetPatientsCount(
+      GetPatientsCount event, Emitter<PatientsState> emit) async {
+    final result = await _patientsUseCase.repository.getPatientsCount();
+    result.fold(
+      (failure) =>
+          emit(PatientsError(state.patients, message: failure.message)),
+      (patientsCount) => emit(PatientsCountLoaded(patientsCount, state.patients)),
+    );
   }
 
   String _mapFailureToMessage(Failure failure) {

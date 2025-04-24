@@ -30,7 +30,7 @@ class _PatientsPageState extends State<PatientsPage> {
   int? _maxAge;
   String? _selectedAddress; // Add a variable to store the selected address
   bool _canLoadMore = true; // Add a flag to control loading more patients
-
+  int? _firestorePatientsCount; // Variable to store Firestore patients count
   @override
   void initState() {
     super.initState();
@@ -41,6 +41,11 @@ class _PatientsPageState extends State<PatientsPage> {
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
+    _dispatchGetPatientsCount();
+  }
+
+  void _dispatchGetPatientsCount() {
+    context.read<PatientsBloc>().add(const GetPatientsCount());
   }
 
   @override
@@ -107,32 +112,6 @@ class _PatientsPageState extends State<PatientsPage> {
                   },
                 ),
               ),
-            ),
-            // Add a label to show the total number of patients
-            BlocBuilder<PatientsBloc, PatientsState>(
-              builder: (context, state) {
-                if (state is PatientsLoaded) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 4.0, right: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.people, size: 20, color: Colors.blue),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${state.patients.length} ',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
             ),
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -436,6 +415,11 @@ class _PatientsPageState extends State<PatientsPage> {
                   SnackBar(content: Text(message)),
                 );
               }
+              else if (state is PatientsCountLoaded) {
+          setState(() {
+            _firestorePatientsCount = state.count;
+          });
+        }
             },
             child: BlocBuilder<PatientsBloc, PatientsState>(
               builder: (context, state) {
@@ -460,7 +444,8 @@ class _PatientsPageState extends State<PatientsPage> {
                       },
                     ),
                   );
-                } else if (state is PatientsLoaded && state.patients.isEmpty) {
+                } else if (state is PatientsLoaded &&
+                    state.patients.isEmpty) {
                   return Center(child: Text('noPatients'.tr()));
                 } else if (state is PatientsLoaded) {
                   final filteredPatients = state.patients.where((patient) {
@@ -468,7 +453,7 @@ class _PatientsPageState extends State<PatientsPage> {
                         .toLowerCase()
                         .contains(query.toLowerCase());
                   }).toList();
-
+      
                   // Group patients by creation date
                   final groupedPatients = <String, List<PatientModel>>{};
                   for (var patient in filteredPatients) {
@@ -484,13 +469,59 @@ class _PatientsPageState extends State<PatientsPage> {
                           .add(patient);
                     }
                   }
-
+      
                   // Sort grouped patients by date in descending order
-                  final sortedGroupedPatients = groupedPatients.entries.toList()
+                  final sortedGroupedPatients = groupedPatients.entries
+                      .toList()
                     ..sort((a, b) => b.key.compareTo(a.key));
-
+      
                   return Column(
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(Icons.people, size: 20, color: Colors.blue),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${filteredPatients.length} ',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                            ),
+                            Text(
+                              'patientsLoaded'.tr(),
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            if (_firestorePatientsCount != null) ...[
+                              const SizedBox(width: 16),
+                              Icon(Icons.cloud,
+                                  size: 18, color: Colors.deepPurple),
+                              const SizedBox(width: 2),
+                              Text(
+                                '$_firestorePatientsCount',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurple,
+                                    ),
+                              ),
+                              Text(
+                                ' ${'storedPatients'.tr()} ',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                       Expanded(
                         child: ListView.builder(
                           controller: _scrollController,
@@ -499,7 +530,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             final dateKey = sortedGroupedPatients[index].key;
                             final patientsForDate =
                                 sortedGroupedPatients[index].value;
-
+      
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -528,8 +559,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                       patientModel: patient,
                                       onTap: () {
                                         setState(() {
-                                          _selectedIndex =
-                                              filteredPatients.indexOf(patient);
+                                          _selectedIndex = filteredPatients
+                                              .indexOf(patient);
                                         });
                                       },
                                     ),

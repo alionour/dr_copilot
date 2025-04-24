@@ -81,3 +81,10 @@ class LoadMorePatients extends PatientsEvent {
   @override
   List<Object?> get props => [lastDocumentId, limit];
 }
+
+class GetPatientsCount extends PatientsEvent {
+  const GetPatientsCount();
+
+  @override
+  List<Object?> get props => [];
+}

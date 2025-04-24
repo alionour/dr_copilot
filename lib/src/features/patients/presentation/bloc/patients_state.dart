@@ -55,3 +55,11 @@ class PatientsError extends PatientsState {
   @override
   List<Object?> get props => [patients, message];
 }
+
+class PatientsCountLoaded extends PatientsState {
+  final int count;
+  const PatientsCountLoaded(this.count, super.patients);
+
+  @override
+  List<Object?> get props => [count, patients];
+}

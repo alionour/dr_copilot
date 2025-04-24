@@ -2,39 +2,50 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/features/patients/domain/repositories/abstract_patients_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class PatientFirebaseApi {
+class PatientFirebaseApi extends AbstractPatientsRepository {
   final CollectionReference _patientsCollection =
       FirebaseFirestore.instance.collection('patients');
 
+  /// Checks if the user is authenticated.
+  ///
+  /// Returns `true` if the user is authenticated, otherwise `false`.
+  Future<bool> _isAuthenticated() async {
+    final currentUser = await FirebaseAuth.instance.authStateChanges().first;
+    return currentUser != null;
+  }
+
+  /// Firebase Authentication instance for user authentication.
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  @override
   Future<Either<Failure, List<PatientModel>>> getPatients({
-    String? lastDocumentID,
-    int limit = 20,
+    String? lastDocumentId, // match the abstract interface
+    int? limit,
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         Query queryRef;
-        if (lastDocumentID != null) {
+        if (lastDocumentId != null) {
           final lastDocumentSnapshot =
-              await _patientsCollection.doc(lastDocumentID).get();
+              await _patientsCollection.doc(lastDocumentId).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = _patientsCollection
                 .where('userId', isEqualTo: user.uid)
-                .orderBy('createdAt',
-                    descending: true) // Order by creation date
+                .orderBy('createdAt', descending: true)
                 .startAfterDocument(lastDocumentSnapshot)
-                .limit(limit);
+                .limit(limit ?? 20);
           } else {
-            throw Exception('Document with ID $lastDocumentID does not exist');
+            throw Exception('Document with ID $lastDocumentId does not exist');
           }
         } else {
           queryRef = _patientsCollection
               .where('userId', isEqualTo: user.uid)
-              .orderBy('createdAt', descending: true) // Order by creation date
-              .limit(limit);
+              .orderBy('createdAt', descending: true)
+              .limit(limit ?? 20);
         }
 
         final snapshot = await queryRef.get();
@@ -206,6 +217,7 @@ class PatientFirebaseApi {
     }
   }
 
+  @override
   Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
       {DocumentSnapshot? lastDocument, int limit = 20}) async {
     try {
@@ -242,6 +254,28 @@ class PatientFirebaseApi {
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Returns the count of patients as an [int] or a [Failure] in case of an error.
+  @override
+  Future<Either<Failure, int>> getPatientsCount() async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final snapshot = await _patientsCollection
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        return Right(snapshot.docs.length);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching patients count: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }

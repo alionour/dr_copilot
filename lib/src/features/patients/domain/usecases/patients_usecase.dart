@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
@@ -55,8 +56,13 @@ class PatientsUseCase {
 
   /// Gets patients by a specific date.
   Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
-      {String? lastDocumentID, int limit = 20}) async {
+      {DocumentSnapshot? lastDocument, int limit = 20}) async {
     return await repository.getPatientsByDate(date,
-        lastDocumentID: lastDocumentID, limit: limit);
+        lastDocument: lastDocument, limit: limit);
+  }
+
+  // Gets Patients Count
+  Future<Either<Failure, int>> getPatientsCount() async {
+    return await repository.getPatientsCount();
   }
 }

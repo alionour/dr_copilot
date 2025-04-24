@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
@@ -15,7 +16,7 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
     String? lastDocumentId,
     int? limit,
   }) {
-    return api.getPatients(lastDocumentID: lastDocumentId, limit: limit ?? 20);
+    return api.getPatients(lastDocumentId: lastDocumentId, limit: limit ?? 20);
   }
 
   /// Adds a new patient.
@@ -56,10 +57,14 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
   }
 
   @override
+  Future<Either<Failure, int>> getPatientsCount() {
+    return api.getPatientsCount();
+  }
 
   /// Fetches patients by a specific date.
+  @override
   Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
-      {String? lastDocumentID, int limit = 20}) {
-    return api.getPatientsByDate(date, limit: limit);
+      {DocumentSnapshot? lastDocument, int limit = 20}) {
+    return api.getPatientsByDate(date, lastDocument: lastDocument, limit: limit);
   }
 }
