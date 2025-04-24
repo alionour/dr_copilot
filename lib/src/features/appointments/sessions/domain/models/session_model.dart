@@ -70,7 +70,7 @@ class SessionModel {
   @TimestampConverter()
   final Timestamp endDateTime;
 
-  final SessionType sessionType;
+  final SessionType? sessionType;
   final String userId;
   final String createdBy;
   final String? patientName;
@@ -92,7 +92,7 @@ class SessionModel {
     required this.price,
     required this.startDateTime,
     required this.endDateTime,
-    required this.sessionType,
+    this.sessionType,
     required this.userId,
     required this.createdBy,
     this.patientName,

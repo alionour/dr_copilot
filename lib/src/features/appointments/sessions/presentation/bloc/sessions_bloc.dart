@@ -23,6 +23,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     on<GetSessionsByDate>(_onGetSessionsByDate);
     on<LoadMoreSessions>(_onLoadMoreSessions);
     on<DetectSessionType>(_onDetectSessionType);
+    on<GetSessionsCount>(_onGetSessionsCount);
   }
 
   void _onGetSessions(GetSessions event, Emitter<SessionsState> emit) async {
@@ -159,6 +160,29 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       (failure) =>
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
       (sessionType) => SessionTypeDetected(sessionType),
+    ));
+  }
+
+  /// Handles the [GetSessionsCount] event by emitting new [SessionsState]s.
+  ///
+  /// This asynchronous function listens for the [GetSessionsCount] event and updates
+  /// the state accordingly using the provided [Emitter]. Typically used to fetch and
+  /// emit the count of sessions in the application.
+  ///
+  /// Parameters:
+  /// - [event]: The [GetSessionsCount] event to handle.
+  /// - [emit]: The function used to emit new [SessionsState]s.
+  void _onGetSessionsCount(
+      GetSessionsCount event, Emitter<SessionsState> emit) async {
+    emit(SessionsLoading(state.sessions));
+    final failureOrCount = await _sessionsUseCase.getSessionsCount();
+    emit(failureOrCount.fold(
+      (failure) =>
+          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
+      (count) {
+        debugPrint('Total sessions count: $count');
+        return SessionsCountLoaded(count, state.sessions);
+      },
     ));
   }
 

@@ -82,3 +82,11 @@ class DetectSessionType extends SessionsEvent {
   List<Object?> get props => [patientId];
 }
 
+
+
+class GetSessionsCount extends SessionsEvent {
+  const GetSessionsCount();
+
+  @override
+  List<Object?> get props => [];
+}

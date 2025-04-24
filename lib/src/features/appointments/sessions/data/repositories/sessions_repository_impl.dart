@@ -54,4 +54,10 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   Future<Either<Failure, SessionType>> detectSessionType(String patientId) {
     return firebaseApi.detectSessionType(patientId);
   }
+
+  /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
+  @override
+  Future<Either<Failure, int>> getSessionsCount() {
+    return firebaseApi.getSessionsCount();
+  }
 }

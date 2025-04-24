@@ -226,5 +226,8 @@
   "transactionDeleted": "Transaction deleted successfully",
   "searchTransactions": "Search transactions",
   "errorLoadingTransactions": "Error loading transactions",
-  "transactionDetailsHere": "Transaction details here"
+  "transactionDetailsHere": "Transaction details here",
+  "sessionsLoaded": "Sessions loaded",
+  "storedSessions": "Stored sessions"
+  
 }

@@ -131,13 +131,16 @@ class _SessionListItemState extends State<SessionListItem> {
                           context,
                           label: 'sessionType'.tr(),
                           child: _buildDropdown(
-                            SessionType.values.firstWhere(
-                              (type) =>
-                                  type.text ==
-                                  (_updatedValues['sessionType'] ??
-                                      widget.sessionModel.sessionType.text),
-                              orElse: () => SessionType.standard,
-                            ),
+                            widget.sessionModel.sessionType != null
+                                ? SessionType.values.firstWhere(
+                                    (type) =>
+                                        type.text ==
+                                        (_updatedValues['sessionType'] ??
+                                            widget.sessionModel.sessionType
+                                                ?.text),
+                                    orElse: () => SessionType.standard,
+                                  )
+                                : SessionType.standard,
                             'sessionType',
                           ),
                         ),
@@ -318,7 +321,8 @@ class _SessionListItemState extends State<SessionListItem> {
         isDense: true,
       ),
       keyboardType: keyboardType,
-      readOnly: !isEditable || !_isEditing, // Use both isEditable and _isEditing
+      readOnly:
+          !isEditable || !_isEditing, // Use both isEditable and _isEditing
       inputFormatters: inputFormatters,
       style: GoogleFonts.robotoSlab(
         color: Theme.of(context).colorScheme.onSurface,
@@ -471,13 +475,13 @@ class _SessionListItemState extends State<SessionListItem> {
         endDateTime: _updatedValues['endDateTime'] != null
             ? Timestamp.fromDate(DateTime.parse(_updatedValues['endDateTime']!))
             : widget.sessionModel.endDateTime,
-        sessionType: SessionType.values.firstWhere(
-          (type) =>
-              type.text ==
-              (_updatedValues['sessionType'] ??
-                  widget.sessionModel.sessionType.text),
-          orElse: () => widget.sessionModel.sessionType,
-        ),
+        sessionType: _updatedValues['sessionType'] != null
+            ? SessionType.values.firstWhere(
+                (type) => type.name == _updatedValues['sessionType'],
+                orElse: () =>
+                    widget.sessionModel.sessionType ?? SessionType.standard,
+              )
+            : widget.sessionModel.sessionType,
       );
       debugPrint(
           'Updated price: ${double.tryParse(_updatedValues['price'] ?? '')}');

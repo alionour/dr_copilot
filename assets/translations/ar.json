@@ -221,7 +221,9 @@
   "transactionDeleted": "تم حذف المعاملة بنجاح",
   "searchTransactions": "ابحث عن المعاملات",
   "errorLoadingTransactions": "خطأ في تحميل المعاملات",
-  "transactionDetailsHere": "تفاصيل المعاملة هنا"
+  "transactionDetailsHere": "تفاصيل المعاملة هنا",
+  "sessionsLoaded": "تم تحميل الجلسات",
+  "storedSessions": "الجلسات المخزنة"
 }
 
 

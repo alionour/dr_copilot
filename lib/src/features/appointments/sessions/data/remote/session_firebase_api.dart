@@ -85,7 +85,6 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
             'patientName': patientName ?? 'No Name Available',
           });
         }).toList());
-        
 
         return Right(sessions);
       }
@@ -458,6 +457,28 @@ class SessionFirebaseApi extends AbstractSessionsRepository {
     } catch (e) {
       debugPrint('Error fetching patient name for ID $patientId: $e');
       return null;
+    }
+  }
+
+  /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
+  @override
+  Future<Either<Failure, int>> getSessionsCount() async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final snapshot = await _sessionsCollection
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        return Right(snapshot.docs.length);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching session count: $e');
+      return Left(ServerFailure(e.toString(), 404));
     }
   }
 }

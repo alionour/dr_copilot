@@ -49,4 +49,9 @@ class SessionsUseCase {
       String patientId) async {
     return await repository.detectSessionType(patientId);
   }
+
+  /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
+  Future<Either<Failure, int>> getSessionsCount() async {
+    return await repository.getSessionsCount();
+  }
 }
