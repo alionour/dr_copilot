@@ -268,7 +268,7 @@ class _SessionsPageState extends State<SessionsPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Icon(Icons.people, size: 20, color: Colors.blue),
+                        Icon(Icons.assignment, size: 20, color: Colors.blue),
                         const SizedBox(width: 4),
                         Text(
                           '${sessions.length} ',

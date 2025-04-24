@@ -223,7 +223,11 @@
   "errorLoadingTransactions": "خطأ في تحميل المعاملات",
   "transactionDetailsHere": "تفاصيل المعاملة هنا",
   "sessionsLoaded": "تم تحميل الجلسات",
-  "storedSessions": "الجلسات المخزنة"
+  "storedSessions": "الجلسات المخزنة",
+  "storedEvaluations": "التقييمات المخزنة",
+  "storedPatients": "المرضى المخزنين",
+  "storedTransactions": "المعاملات المخزنة",
+  "evaluationsLoaded": "تم تحميل التقييمات"
 }
 
 

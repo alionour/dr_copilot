@@ -25,14 +25,18 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
   bool _showFilters = false; // State to toggle filter icons
   DateTime? _selectedDate;
   bool _canLoadMore = true; // Add a flag to control loading more evaluations
+  int? _firestoreEvaluationsCount;
+
+  void _dispatchGetEvaluationsCount() {
+    context.read<EvaluationsBloc>().add(const GetEvaluationsCount());
+  }
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context
-        .read<EvaluationsBloc>()
-        .add(const GetEvaluations()); // Fetch evaluations on init
+    context.read<EvaluationsBloc>().add(const GetEvaluations());
+    _dispatchGetEvaluationsCount();
   }
 
   @override
@@ -189,22 +193,10 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
       ),
       body: BlocListener<EvaluationsBloc, EvaluationsState>(
         listener: (context, state) {
-          if (state is EvaluationsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is EvaluationsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
+          if (state is EvaluationsCountLoaded) {
+            setState(() {
+              _firestoreEvaluationsCount = state.count;
+            });
           }
         },
         child: BlocBuilder<EvaluationsBloc, EvaluationsState>(
@@ -240,12 +232,11 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               // Group evaluations by creation date
               final groupedEvaluations = <String, List<EvaluationModel>>{};
               for (var evaluation in evaluations) {
-                  final creationDate = DateFormat('yyyy-MM-dd')
-                      .format(evaluation.startDateTime.toDate());
-                  groupedEvaluations
-                      .putIfAbsent(creationDate, () => [])
-                      .add(evaluation);
-            
+                final creationDate = DateFormat('yyyy-MM-dd')
+                    .format(evaluation.startDateTime.toDate());
+                groupedEvaluations
+                    .putIfAbsent(creationDate, () => [])
+                    .add(evaluation);
               }
 
               // Sort grouped evaluations by date in descending order
@@ -253,38 +244,88 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                   .toList()
                 ..sort((a, b) => b.key.compareTo(a.key));
 
-              return ListView.builder(
-                controller: _scrollController,
-                itemCount: sortedGroupedEvaluations.length,
-                itemBuilder: (context, index) {
-                  final dateKey = sortedGroupedEvaluations[index].key;
-                  final evaluationsForDate =
-                      sortedGroupedEvaluations[index].value;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        child: Text(
-                          _getDateLabel(dateKey),
-                          style: Theme.of(context).textTheme.headlineMedium,
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(Icons.assignment, size: 20, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${evaluations.length} ',
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
                         ),
-                      ),
-                      ...evaluationsForDate.map((evaluation) {
-                        return EvaluationListItem(
-                          evaluationModel: evaluation,
-                          onTap: () {
-                            setState(() {
-                              _selectedIndex = evaluations.indexOf(evaluation);
-                            });
-                          },
+                        Text(
+                          'evaluationsLoaded'.tr(),
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        if (_firestoreEvaluationsCount != null) ...[
+                          const SizedBox(width: 16),
+                          Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
+                          const SizedBox(width: 2),
+                          Text(
+                            '$_firestoreEvaluationsCount',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple,
+                                ),
+                          ),
+                          Text(
+                            ' ${'storedEvaluations'.tr()} ',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ]
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: sortedGroupedEvaluations.length,
+                      itemBuilder: (context, index) {
+                        final dateKey = sortedGroupedEvaluations[index].key;
+                        final evaluationsForDate =
+                            sortedGroupedEvaluations[index].value;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Text(
+                                _getDateLabel(dateKey),
+                                style:
+                                    Theme.of(context).textTheme.headlineMedium,
+                              ),
+                            ),
+                            ...evaluationsForDate.map((evaluation) {
+                              return EvaluationListItem(
+                                evaluationModel: evaluation,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedIndex =
+                                        evaluations.indexOf(evaluation);
+                                  });
+                                },
+                              );
+                            }),
+                          ],
                         );
-                      }),
-                    ],
-                  );
-                },
+                      },
+                    ),
+                  ),
+                ],
               );
             } else if (state is EvaluationsError) {
               debugPrint('Error: ${state.message}');

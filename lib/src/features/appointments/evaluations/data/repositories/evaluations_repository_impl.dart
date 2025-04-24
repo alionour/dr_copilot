@@ -50,4 +50,10 @@ class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
       DateTime date) {
     return firebaseApi.getEvaluationsByDate(date);
   }
+
+  /// Gets the total count of evaluations in Firestore.
+  @override
+  Future<Either<Failure, int>> getEvaluationsCount() {
+    return firebaseApi.getEvaluationsCount();
+  }
 }

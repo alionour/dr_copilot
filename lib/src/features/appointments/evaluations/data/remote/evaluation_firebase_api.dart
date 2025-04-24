@@ -370,4 +370,14 @@ class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
       return null;
     }
   }
+
+  @override
+  Future<Either<Failure, int>> getEvaluationsCount() async {
+    try {
+      final snapshot = await _evaluationsCollection.count().get();
+      return Right(snapshot.count ?? 0);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
 }

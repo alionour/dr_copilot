@@ -72,3 +72,10 @@ class LoadMoreEvaluations extends EvaluationsEvent {
   @override
   List<Object?> get props => [lastDocumentId, limit];
 }
+
+class GetEvaluationsCount extends EvaluationsEvent {
+  const GetEvaluationsCount();
+
+  @override
+  List<Object?> get props => [];
+}

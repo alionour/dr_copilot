@@ -228,6 +228,10 @@
   "errorLoadingTransactions": "Error loading transactions",
   "transactionDetailsHere": "Transaction details here",
   "sessionsLoaded": "Sessions loaded",
-  "storedSessions": "Stored sessions"
+  "storedSessions": "Stored sessions",
+  "evaluationsLoaded": "Evaluations loaded",
+  "storedEvaluations": "Stored evaluations",
+  "storedPatients": "Stored patients",
+  "storedTransactions": "Stored transactions"
   
 }

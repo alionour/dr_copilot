@@ -21,6 +21,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     on<SearchEvaluations>(_onSearchEvaluations);
     on<GetEvaluationsByDate>(_onGetEvaluationsByDate);
     on<LoadMoreEvaluations>(_onLoadMoreEvaluations);
+    on<GetEvaluationsCount>(_onGetEvaluationsCount);
   }
 
   void _onGetEvaluations(
@@ -118,7 +119,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   void _onLoadMoreEvaluations(
       LoadMoreEvaluations event, Emitter<EvaluationsState> emit) async {
-       if (state is EvaluationsLoaded) {
+    if (state is EvaluationsLoaded) {
       final currentState = state as EvaluationsLoaded;
       if (currentState.isLoadingMore) return;
 
@@ -139,17 +140,27 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         (newEvaluations) {
           debugPrint(
               'Fetched ${newEvaluations.length} new evaluations: ${newEvaluations.map((e) => e.id).toList()}');
-          final updatedEvaluations = List<EvaluationModel>.from(currentState.evaluations)
-            ..addAll(newEvaluations.where((newEvaluation) => !currentState.evaluations
-                .any(
-                    (existingEvaluation) => existingEvaluation.id == newEvaluation.id)));
+          final updatedEvaluations =
+              List<EvaluationModel>.from(currentState.evaluations)
+                ..addAll(newEvaluations.where((newEvaluation) =>
+                    !currentState.evaluations.any((existingEvaluation) =>
+                        existingEvaluation.id == newEvaluation.id)));
           debugPrint(
               'Updated evaluations list contains ${updatedEvaluations.length} evaluations.');
           emit(EvaluationsLoaded(updatedEvaluations));
         },
       );
     }
-   
+  }
+
+  Future<void> _onGetEvaluationsCount(
+      GetEvaluationsCount event, Emitter<EvaluationsState> emit) async {
+    final result = await _evaluationsUseCase.repository.getEvaluationsCount();
+    result.fold(
+      (failure) =>
+          emit(EvaluationsError(state.evaluations, message: failure.message)),
+      (count) => emit(EvaluationsCountLoaded(count, state.evaluations)),
+    );
   }
 
   String _mapFailureToMessage(Failure failure) {

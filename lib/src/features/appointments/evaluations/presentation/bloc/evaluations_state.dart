@@ -56,3 +56,11 @@ class EvaluationsSuccess extends EvaluationsState {
   @override
   List<Object?> get props => [evaluations, message];
 }
+
+class EvaluationsCountLoaded extends EvaluationsState {
+  final int count;
+  const EvaluationsCountLoaded(this.count, super.evaluations);
+
+  @override
+  List<Object?> get props => [count, evaluations];
+}

@@ -26,4 +26,7 @@ abstract class AbstractEvaluationsRepository {
   /// Gets evaluations by a specific date.
   Future<Either<Failure, List<EvaluationModel>>> getEvaluationsByDate(
       DateTime date);
+
+  /// Gets the total count of evaluations in Firestore.
+  Future<Either<Failure, int>> getEvaluationsCount();
 }
