@@ -12,7 +12,7 @@ part 'financials_state.dart';
 class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   final FinancialsUseCase _financialsUseCase;
 
-  FinancialsBloc({required FinancialsUseCase financialsUseCase})
+  FinancialsBloc(FinancialsUseCase financialsUseCase)
       : _financialsUseCase = financialsUseCase,
         super(FinancialsInitial([])) {
     on<GetTransactionsEvent>(_onGetTransactions);

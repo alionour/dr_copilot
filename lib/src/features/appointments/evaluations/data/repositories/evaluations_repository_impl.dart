@@ -5,9 +5,9 @@ import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/eva
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
 
 class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
-  final EvaluationFirebaseApi firebaseApi;
+  final EvaluationsFirebaseApi firebaseApi;
 
-  EvaluationsRepositoryImpl({required this.firebaseApi});
+  EvaluationsRepositoryImpl( this.firebaseApi);
 
   /// Gets a list of evaluations.
   @override

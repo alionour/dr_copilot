@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 /// This class provides methods to perform CRUD operations on session data
 /// and includes additional functionality such as fetching sessions by date
 /// and detecting session types.
-class SessionFirebaseApi extends AbstractSessionsRepository {
+class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// Reference to the Firestore collection for sessions.
   final CollectionReference _sessionsCollection =
       FirebaseFirestore.instance.collection('sessions');

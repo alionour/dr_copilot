@@ -6,7 +6,7 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/reposito
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
-class EvaluationFirebaseApi extends AbstractEvaluationsRepository {
+class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   final CollectionReference _evaluationsCollection =
       FirebaseFirestore.instance.collection('evaluations');
 

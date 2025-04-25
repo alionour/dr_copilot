@@ -96,6 +96,7 @@ dev_dependencies:
   mocktail: ^1.0.4
   bloc_test: ^10.0.0
   freezed: ^3.0.4
+  shorebird_code_push: ^2.0.3
 
 
 # For information on the generic Dart part of this file, see the
@@ -114,6 +115,7 @@ flutter:
     - assets/svg/icons8-google-ios-17-filled/
     - assets/svg/logo.svg
     - assets/translations/
+    - shorebird.yaml
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

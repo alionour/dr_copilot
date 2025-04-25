@@ -7,7 +7,7 @@ import 'package:dr_copilot/src/features/financials/domain/repositories/abstract_
 class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   final FinancialsFirebaseApi firebaseApi;
 
-  FinancialsRepositoryImpl({required this.firebaseApi});
+  FinancialsRepositoryImpl(this.firebaseApi);
 
   /// Gets a list of transactions.
   @override

@@ -1,4 +1,4 @@
-import 'package:dr_copilot/main.dart';
+import 'package:dr_copilot/src/core/theme/theme.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';

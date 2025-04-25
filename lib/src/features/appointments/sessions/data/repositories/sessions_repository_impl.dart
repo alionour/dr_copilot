@@ -5,9 +5,9 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 
 class SessionsRepositoryImpl extends AbstractSessionsRepository {
-  final SessionFirebaseApi firebaseApi;
+  final SessionsFirebaseApi firebaseApi;
 
-  SessionsRepositoryImpl({required this.firebaseApi});
+  SessionsRepositoryImpl( this.firebaseApi);
 
   /// Gets a list of sessions.
   @override
