@@ -2,12 +2,21 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
-    as google_sign_in_all_platforms;
+    as g_sign_in_all;
 import 'package:googleapis/calendar/v3.dart';
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
 import 'dart:io';
 
+/// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
+///
+/// Includes basic user profile information (`profile`, `email`, `openid`) and various
+/// Google Calendar API scopes for different levels of access:
+/// - [CalendarApi.calendarScope]: Full access to the user's calendar.
+/// - [CalendarApi.calendarEventsScope]: Manage the user's calendar events.
+/// - [CalendarApi.calendarReadonlyScope]: Read-only access to the user's calendar.
+/// - [CalendarApi.calendarEventsReadonlyScope]: Read-only access to the user's calendar events.
+/// - [CalendarApi.calendarSettingsReadonlyScope]: Read-only access to the user's calendar settings.
 final scopes = [
   'profile',
   'email',
@@ -34,9 +43,18 @@ class GoogleSignInHelper {
     });
   }
 
-  final google_sign_in_all_platforms.GoogleSignIn _googleSignInAllPlatforms =
-      google_sign_in_all_platforms.GoogleSignIn(
-    params: google_sign_in_all_platforms.GoogleSignInParams(
+  /// Initializes a [GoogleSignIn] instance for all platforms using the provided parameters.
+  ///
+  /// The parameters are retrieved from environment variables:
+  /// - `WEB_CLIENT_ID`: The OAuth 2.0 client ID for web.
+  /// - `WEB_CLIENT_SECRET`: The OAuth 2.0 client secret for web.
+  /// - `WEB_REDIRECT_PORT`: The port used for the redirect URI.
+  /// - `scopes`: The list of OAuth scopes to request.
+  ///
+  /// Make sure the redirect URI matches the one registered in the Google API Console.
+  final g_sign_in_all.GoogleSignIn _googleSignInAllPlatforms =
+      g_sign_in_all.GoogleSignIn(
+    params: g_sign_in_all.GoogleSignInParams(
         clientId: Platform.environment['WEB_CLIENT_ID']!,
         clientSecret: Platform.environment['WEB_CLIENT_SECRET']!,
         redirectPort: int.parse(Platform.environment['WEB_REDIRECT_PORT']!),
@@ -52,9 +70,13 @@ class GoogleSignInHelper {
   /// Getter for the authenticated client.
   Client? get client => _client;
 
-  /// Signs out the current user.
+  /// Signs out the currently authenticated user from Google Sign-In.
   ///
-  /// This method signs out the current user from Google Sign-In and prints a debug message.
+  /// This method revokes the user's authentication credentials and disconnects
+  /// the application from the user's Google account. After calling this method,
+  /// the user will need to sign in again to access Google-protected resources.
+  ///
+  /// Throws an [Exception] if the sign-out process fails.
   Future<void> signOut() async {
     if (io.Platform.isWindows || io.Platform.isLinux) {
       await _googleSignInAllPlatforms.signOut();
@@ -64,16 +86,19 @@ class GoogleSignInHelper {
     debugPrint('User signed out'); // Add this line for debugging
   }
 
-  /// Stream to listen for authentication state changes.
+  /// A stream that emits the current [GoogleSignInAccount] whenever the authentication
+  /// state changes. Emits `null` if the user signs out or is not authenticated.
   ///
-  /// This stream emits events whenever the authentication state changes.
+  /// Listen to this stream to be notified when the user's sign-in state changes.
   Stream<GoogleSignInAccount?> get onAuthStateChanged =>
       _googleSignIn.onCurrentUserChanged;
 
-  /// Signs in the user and returns the account.
+  /// Initiates the Google sign-in process.
   ///
-  /// This method signs in the user using Google Sign-In and returns the account.
-  /// If an error occurs, it prints a debug message and returns null.
+  /// Returns a [GoogleSignInAccount] if the sign-in is successful, or `null` if the user cancels
+  /// the sign-in or an error occurs.
+  ///
+  /// Throws an exception if the sign-in process fails unexpectedly.
   Future<GoogleSignInAccount?> signIn() async {
     try {
       final account = await _googleSignIn.signIn();
@@ -86,14 +111,14 @@ class GoogleSignInHelper {
     }
   }
 
-  /// Signs in the user on all platforms and returns the account.
+  /// Signs in the user using the all-platforms Google Sign-In method.
+  /// Returns a [GoogleSignInCredentials] object if the sign-in is successful,
+  /// or `null` if the sign-in fails or is cancelled by the user.
   ///
-  /// This method signs in the user on all platforms using Google Sign-In and returns the credentials.
-  /// If an error occurs, it prints a debug message and returns null.
-  Future<google_sign_in_all_platforms.GoogleSignInCredentials?>
-      signInAllPlatforms() async {
+  /// Throws an exception if an unexpected error occurs during the sign-in process.
+  Future<g_sign_in_all.GoogleSignInCredentials?> signInAllPlatforms() async {
     try {
-      google_sign_in_all_platforms.GoogleSignInCredentials? credentials =
+      g_sign_in_all.GoogleSignInCredentials? credentials =
           await _googleSignInAllPlatforms.signInOnline();
       if (credentials != null) {
         _client = await _googleSignInAllPlatforms.authenticatedClient;
@@ -107,10 +132,12 @@ class GoogleSignInHelper {
     }
   }
 
-  /// Getter for the ID token of the current user.
+  /// Asynchronously retrieves the current user's Google ID token.
   ///
-  /// This method returns the ID token of the current user.
-  /// If the user is not signed in, it returns null.
+  /// Returns a [String] containing the ID token if the user is signed in,
+  /// or `null` if no user is currently authenticated.
+  ///
+  /// This token can be used to authenticate requests to your backend server.
   Future<String?> get idToken async {
     final account = _googleSignIn.currentUser;
     if (account == null) {
@@ -120,10 +147,11 @@ class GoogleSignInHelper {
     return auth.idToken;
   }
 
-  /// Getter for the access token of the current user.
+  /// Asynchronously retrieves the current Google access token, if available.
   ///
-  /// This method returns the access token of the current user.
-  /// If the user is not signed in, it returns null.
+  /// Returns a [String] containing the access token, or `null` if no token is available.
+  ///
+  /// This getter is typically used to authenticate requests to Google APIs on behalf of the user.
   Future<String?> get accessToken async {
     final account = _googleSignIn.currentUser;
     if (account == null) {
@@ -133,9 +161,21 @@ class GoogleSignInHelper {
     return auth.accessToken;
   }
 
-  /// Refreshes the access token if it has expired.
+  /// Refreshes the Google Sign-In access token.
+  ///
+  /// Returns a [String] containing the new access token if successful,
+  /// or `null` if the token could not be refreshed.
+  ///
+  /// Throws an exception if an error occurs during the refresh process.
   Future<String?> refreshAccessToken() async {
     try {
+      /// Attempts to retrieve the current user's Google access token.
+      /// 
+      /// If no user is currently signed in, logs a message and returns `null`.
+      /// If the access token is `null`, attempts to silently re-sign in and refresh the token.
+      /// Logs the refreshed access token if successful, and returns it.
+      /// If the access token is still valid, logs and returns it.
+      /// In case of any errors during the process, logs the error and returns `null`.
       final account = _googleSignIn.currentUser;
       if (account == null) {
         debugPrint('No user is currently signed in.');

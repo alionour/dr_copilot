@@ -13,9 +13,25 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+/// A configuration class for defining routing settings and behaviors within the application.
+/// 
+/// Use this class to specify and manage route-related options, such as route paths,
+/// navigation rules, and other routing-specific configurations.
 class RoutingConfig {
+  /// A static instance of [GoRouter] used to configure and manage the application's routing.
+  /// 
+  /// This router defines the navigation logic and available routes within the app.
+  /// It should be used throughout the application to handle route transitions and deep linking.
   static final GoRouter router = GoRouter(
+    /// A builder function that returns the widget to display when a routing error occurs.
+    /// 
+    /// The [context] provides the location in the widget tree, and [state] contains
+    /// information about the current routing state. This builder returns an instance
+    /// of [ErrorRoutePage] to inform the user about the navigation error.
     errorBuilder: (context, state) => const ErrorRoutePage(),
+    /// A list of route configurations used to define the navigation structure of the application.
+    /// Each entry in the list represents a route and its associated settings, such as path, widget,
+    /// and any route-specific guards or parameters.
     routes: [
       GoRoute(
         path: '/',
@@ -75,6 +91,11 @@ class RoutingConfig {
     ],
   );
 
+  /// Returns the [GoRoute] that matches the given [path], or `null` if no match is found.
+  ///
+  /// [path]: The route path to search for.
+  ///
+  /// Returns a [GoRoute] if a matching route exists, otherwise returns `null`.
   GoRoute? getRoute(String path) {
     switch (path) {
       case '/':
@@ -139,6 +160,10 @@ class RoutingConfig {
   }
 }
 
+/// A [StatelessWidget] that represents a page displayed when a routing error occurs.
+/// 
+/// Typically used to show an error message or fallback UI when navigation fails
+/// or an invalid route is accessed within the application.
 class ErrorRoutePage extends StatelessWidget {
   const ErrorRoutePage({super.key});
 
