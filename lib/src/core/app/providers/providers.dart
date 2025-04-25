@@ -1,6 +1,6 @@
 import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
-import '../../locale_notifier.dart';
+import '../../locales/locale_notifier.dart';
 
 /// A list of global providers used throughout the application.
 ///
@@ -22,7 +22,7 @@ final appProviders = [
   /// )
   /// ```
   ChangeNotifierProvider(create: (context) => ThemeNotifier(isDarkMode: false)),
-  
+
   /// Provides an instance of [LocaleNotifier] to the widget tree using [ChangeNotifierProvider].
   /// 
   /// This allows descendant widgets to listen for locale changes and rebuild accordingly.
