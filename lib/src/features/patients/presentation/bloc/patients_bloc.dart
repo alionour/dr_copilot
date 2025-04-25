@@ -168,12 +168,16 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onGetPatientsCount(
       GetPatientsCount event, Emitter<PatientsState> emit) async {
-    final result = await _patientsUseCase.repository.getPatientsCount();
-    result.fold(
+    emit(PatientsLoading(state.patients));
+    final failureOrCount = await _patientsUseCase.getPatientsCount();
+    emit(failureOrCount.fold(
       (failure) =>
-          emit(PatientsError(state.patients, message: failure.message)),
-      (patientsCount) => emit(PatientsCountLoaded(patientsCount, state.patients)),
-    );
+          PatientsError(state.patients, message: _mapFailureToMessage(failure)),
+      (count) {
+        debugPrint('Total patients count: $count');
+        return PatientsCountLoaded(count, state.patients);
+      },
+    ));
   }
 
   String _mapFailureToMessage(Failure failure) {

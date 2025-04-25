@@ -209,11 +209,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 SnackBar(content: Text(message)),
               );
             }
-          } else if (state is SessionsCountLoaded) {
-            setState(() {
-              _firestoreSessionsCount = state.count;
-            });
-          }
+          } 
         },
         child: BlocBuilder<SessionsBloc, SessionsState>(
           builder: (context, state) {

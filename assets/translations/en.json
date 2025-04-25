@@ -232,6 +232,9 @@
   "evaluationsLoaded": "Evaluations loaded",
   "storedEvaluations": "Stored evaluations",
   "storedPatients": "Stored patients",
-  "storedTransactions": "Stored transactions"
+  "storedTransactions": "Stored transactions",
+  "patientsLoaded": "Patients loaded",
+  "transactionsLoaded": "Transactions loaded"
+
   
 }

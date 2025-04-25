@@ -227,7 +227,11 @@
   "storedEvaluations": "التقييمات المخزنة",
   "storedPatients": "المرضى المخزنين",
   "storedTransactions": "المعاملات المخزنة",
-  "evaluationsLoaded": "تم تحميل التقييمات"
+  "evaluationsLoaded": "تم تحميل التقييمات",
+    "patientsLoaded": "تم تحميل المرضى",
+  "patientsStored": "المرضى المخزنين",
+  "transactionsLoaded": "تم تحميل المعاملات"
+
 }
 
 
