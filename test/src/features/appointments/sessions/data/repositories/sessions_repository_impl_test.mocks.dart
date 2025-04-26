@@ -33,12 +33,12 @@ class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
     : super(parent, parentInvocation);
 }
 
-/// A class which mocks [SessionFirebaseApi].
+/// A class which mocks [SessionsFirebaseApi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSessionFirebaseApi extends _i1.Mock
-    implements _i3.SessionFirebaseApi {
-  MockSessionFirebaseApi() {
+class MockSessionsFirebaseApi extends _i1.Mock
+    implements _i3.SessionsFirebaseApi {
+  MockSessionsFirebaseApi() {
     _i1.throwOnMissingStub(this);
   }
 
@@ -189,4 +189,17 @@ class MockSessionFirebaseApi extends _i1.Mock
             returnValue: _i4.Future<String?>.value(),
           )
           as _i4.Future<String?>);
+
+  @override
+  _i4.Future<_i2.Either<_i5.Failure, int>> getSessionsCount() =>
+      (super.noSuchMethod(
+            Invocation.method(#getSessionsCount, []),
+            returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
+              _FakeEither_0<_i5.Failure, int>(
+                this,
+                Invocation.method(#getSessionsCount, []),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Either<_i5.Failure, int>>);
 }

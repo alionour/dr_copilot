@@ -5,7 +5,7 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/data/repositories/sessions_repository_impl.dart';
 
-@GenerateMocks([SessionFirebaseApi])
+@GenerateMocks([SessionsFirebaseApi])
 void main() {
   group('SessionsRepositoryImpl Tests', () {
     late MockSessionFirebaseApi mockFirebaseApi;

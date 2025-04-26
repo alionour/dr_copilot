@@ -9,12 +9,11 @@ part of 'session_model.dart';
 SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       id: json['id'] as String,
       patientId: json['patientId'] as String,
-      price: (json['price'] != null) ? (json['price'] as num).toDouble() : 0.0,
+      price: (json['price'] as num).toDouble(),
       startDateTime: const TimestampConverter().fromJson(json['startDateTime']),
       endDateTime: const TimestampConverter().fromJson(json['endDateTime']),
-      sessionType: json['sessionType'] != null
-          ? $enumDecodeNullable(_$SessionTypeEnumMap, json['sessionType'])
-          : null,
+      sessionType:
+          $enumDecodeNullable(_$SessionTypeEnumMap, json['sessionType']),
       userId: json['userId'] as String,
       createdBy: json['createdBy'] as String,
       patientName: json['patientName'] as String?,
@@ -33,7 +32,7 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'startDateTime':
           const TimestampConverter().toJson(instance.startDateTime),
       'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
-      'sessionType': _$SessionTypeEnumMap[instance.sessionType]!,
+      'sessionType': _$SessionTypeEnumMap[instance.sessionType],
       'userId': instance.userId,
       'createdBy': instance.createdBy,
       'patientName': instance.patientName,

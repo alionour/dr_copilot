@@ -1,4 +1,3 @@
-import 'package:dr_copilot/src/features/appointments/sessions/data/remote/Session_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/data/repositories/sessions_repository_impl.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';

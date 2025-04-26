@@ -22,6 +22,7 @@ import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 final sl = GetIt.instance;
 
 Future<void> initInjections() async {
+  
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
