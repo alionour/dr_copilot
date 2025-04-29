@@ -199,3 +199,78 @@ doppler run -- flutter build macos
 doppler run -- flutter build linux
 ```
 
+---
+
+## Continuous Integration & Delivery (CI/CD)
+
+Dr Copilot uses **GitHub Actions** for CI/CD to automatically analyze, test, and build the app for all major platforms on every push and pull request. The workflow is defined in `.github/workflows/flutter_ci.yaml` and covers:
+
+- **Web**: Build and test on Ubuntu.
+- **Windows**: Build and test on Windows.
+- **Linux**: Build and test on Ubuntu.
+- **Android**: Build APK and AppBundle on Ubuntu.
+- **iOS**: Build on macOS (no code signing in CI).
+- **macOS**: Build and test on macOS.
+
+Each job installs dependencies, runs static analysis, executes tests, and builds the app for its platform. See the workflow file for details and customization.
+
+---
+
+## Building and Releasing with Shorebird
+
+[Shorebird](https://shorebird.dev/) enables seamless over-the-air (OTA) updates for Flutter apps. Dr Copilot supports building and releasing with Shorebird for supported platforms.
+
+### Prerequisites
+- Install the [Shorebird CLI](https://docs.shorebird.dev/getting-started/installation).
+- Authenticate with Shorebird:
+  ```bash
+  shorebird login
+  ```
+- Configure your app with Shorebird as needed.
+
+### Building with Shorebird
+
+#### Build for Android
+```bash
+doppler run -- shorebird build android
+```
+
+#### Build for iOS
+```bash
+doppler run -- shorebird build ios
+```
+
+#### Build for Windows
+```bash
+doppler run -- shorebird build windows
+```
+
+#### Build for macOS
+```bash
+doppler run -- shorebird build macos
+```
+
+### Releasing with Shorebird
+
+#### Release for Android
+```bash
+shorebird release android
+```
+
+#### Release for iOS
+```bash
+shorebird release ios
+```
+
+#### Release for Windows
+```bash
+shorebird release windows
+```
+
+#### Release for macOS
+```bash
+shorebird release macos
+```
+
+For more details, see the [Shorebird documentation](https://docs.shorebird.dev/).
+
