@@ -1,6 +1,4 @@
-import 'dart:ui';
-
-import 'package:easy_localization/easy_localization.dart';
+// This file is responsible for registering the dependencies for the financials feature.import 'package:easy_localization/easy_localization.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';

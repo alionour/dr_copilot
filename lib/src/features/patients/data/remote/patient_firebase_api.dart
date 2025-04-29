@@ -69,6 +69,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     }
   }
 
+  @override
   Future<Either<Failure, PatientModel>> addPatient(PatientModel patient) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -92,6 +93,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     }
   }
 
+  @override
   Future<Either<Failure, PatientModel>> updatePatient(
       String id, PatientModel patient) async {
     try {
@@ -130,6 +132,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     }
   }
 
+  @override
   Future<Either<Failure, void>> deletePatient(String id) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -156,7 +159,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
-
+  @override
   Future<Either<Failure, List<PatientModel>>> searchPatients({
     String? name,
     int? minAge,

@@ -138,7 +138,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _transactionDateFocusNode.addListener(() {
       if (_transactionDateFocusNode.hasFocus) {
         _selectDate(context).then((_) {
-          FocusScope.of(context).requestFocus(_categoryFocusNode);
+          if (mounted) {
+            FocusScope.of(context).requestFocus(_categoryFocusNode);
+          }
         });
       }
     });

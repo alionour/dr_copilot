@@ -33,13 +33,6 @@ class _SessionListItemState extends State<SessionListItem> {
     super.dispose();
   }
 
-  TextEditingController _getController(String fieldKey, String initialValue) {
-    if (!_controllers.containsKey(fieldKey)) {
-      _controllers[fieldKey] = TextEditingController(text: initialValue);
-    }
-    return _controllers[fieldKey]!;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -401,7 +394,7 @@ class _SessionListItemState extends State<SessionListItem> {
                         _updatedValues[fieldKey] =
                             updatedDateTime.toIso8601String();
                         dateController.text =
-                            '${DateFormat('yyyy-MM-dd').format(updatedDateTime)}';
+                            DateFormat('yyyy-MM-dd').format(updatedDateTime);
                       });
                     }
                   }

@@ -9,6 +9,9 @@
 ///
 /// All methods return an [Either] type from the `dartz` package, encapsulating
 /// either a [Failure] or the expected result, to handle errors gracefully.
+
+library abstract_sessions_repository;
+
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';

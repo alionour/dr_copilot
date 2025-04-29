@@ -2,10 +2,9 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';
 
-@JsonSerializable()
-
 /// Represents a user in the authentication domain.
 ///
+@JsonSerializable()
 /// Contains basic user information such as [uid], [name], [email], and an optional [profilePicture].
 ///
 /// Provides methods for serializing to and from JSON.
@@ -44,7 +43,7 @@ class UserModel {
   Map<String, dynamic> toJson() => _$UserModelToJson(this);
 
   UserModel copyWith({
-    String? id,
+    String? uid,
     String? displayName,
     String? email,
     bool? emailVerified,
@@ -57,7 +56,7 @@ class UserModel {
     String? tenantId,
   }) {
     return UserModel(
-      uid: id ?? this.uid,
+      uid: uid ?? this.uid,
       displayName: displayName ?? this.displayName,
       email: email ?? this.email,
       emailVerified: emailVerified ?? this.emailVerified,

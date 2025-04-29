@@ -173,9 +173,9 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     emit(failureOrCount.fold(
       (failure) =>
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
-      (count) {
-        debugPrint('Total patients count: $count');
-        return PatientsCountLoaded(count, state.patients);
+      (totalCount) {
+        debugPrint('Total patients count: $totalCount');
+        return PatientsCountLoaded(totalCount, state.patients);
       },
     ));
   }
