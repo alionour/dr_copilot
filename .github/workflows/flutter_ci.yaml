@@ -1,0 +1,164 @@
+# Flutter CI/CD workflow for building and testing on all major platforms.
+#
+# This workflow runs on push and pull request to main/master branches.
+# It builds and tests for Android, iOS, web, Windows, Linux, and macOS.
+#
+# - Android: Builds APK and AppBundle on Ubuntu.
+# - iOS: Builds iOS app (no code signing) on macOS.
+# - Web: Builds web app on Ubuntu.
+# - Windows: Builds Windows app on Windows runner.
+# - Linux: Builds Linux app on Ubuntu.
+# - macOS: Builds macOS app on macOS runner.
+#
+# Each job installs dependencies, analyzes, tests, and builds for its platform.
+# For iOS, --no-codesign is used for CI builds.
+
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # Ubuntu job: Analyze, test, and build for web
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      # Set up the Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+      # Install Dart and Flutter dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      # Run static code analysis (lints, errors)
+      - name: Analyze
+        run: flutter analyze
+      # Run all unit and widget tests
+      - name: Run tests
+        run: flutter test
+      # Build the web app (output in build/web)
+      - name: Build web
+        run: flutter build web
+
+  # Windows job: Analyze, test, and build for Windows
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      # Set up the Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      # Build the Windows app (output in build/windows)
+      - name: Build Windows
+        run: flutter build windows
+
+  # Linux job: Analyze, test, and build for Linux
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      # Set up the Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      # Build the Linux app (output in build/linux)
+      - name: Build Linux
+        run: flutter build linux
+
+  # Android job: Analyze, test, and build APK and AppBundle
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      # Set up the Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      # Build the Android APK (output in build/app/outputs/apk)
+      - name: Build Android APK
+        run: flutter build apk
+      # Build the Android AppBundle (output in build/app/outputs/bundle)
+      - name: Build Android AppBundle
+        run: flutter build appbundle
+
+  # iOS job: Analyze, test, and build for iOS (no code signing)
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      # Set up the Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      # Build the iOS app (output in build/ios, no code signing for CI)
+      - name: Build iOS
+        run: flutter build ios --no-codesign
+
+  # macOS job: Analyze, test, and build for macOS
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      # Set up the Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      # Build the macOS app (output in build/macos)
+      - name: Build macOS
+        run: flutter build macos
