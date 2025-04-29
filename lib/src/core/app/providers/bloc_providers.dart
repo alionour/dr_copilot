@@ -1,3 +1,6 @@
+import 'package:dr_copilot/src/features/auth/data/remote/auth_firebase_api.dart';
+import 'package:dr_copilot/src/features/auth/data/repositories/auth_repositories_impl.dart';
+import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import '../../../features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
@@ -37,19 +40,16 @@ import '../../helper/api_key_helper.dart';
 /// available to descendant widgets via the `Provider` package.
 
 final appBlocProviders = <BlocProvider<dynamic>>[
-  /// Provides an instance of [AuthBloc] to the widget tree using [BlocProvider].
-  ///
-  /// This allows descendant widgets to access and interact with the [AuthBloc]
-  /// for authentication-related state management.
-  ///
-  /// Example usage:
-  /// ```dart
-  /// BlocProvider<AuthBloc>(
-  ///   create: (context) => AuthBloc(),
-  ///   child: MyApp(),
-  /// )
-  /// ```
-  BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+
+  /// Provides an instance of [AuthBloc] to the widget tree, allowing descendant widgets
+  /// to access authentication-related state and events using the BLoC pattern.
+  /// 
+  /// This provider should be placed above any widgets that need to interact with
+  /// authentication logic, such as login, logout, or user session management.
+  BlocProvider<AuthBloc>(
+      create: (context) =>
+          AuthBloc(AuthUseCase(AuthRepositoryImpl(AuthFirebaseApi())))),
+
 
   /// Provides a [NavigationBloc] instance to the widget tree.
   ///

@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
 part 'navigation_event.dart';
 part 'navigation_state.dart';
@@ -72,8 +73,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   /// Fetch user data from Firebase
   void getUserData(GetUserData event, Emitter emit) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      emit(state.copyWith(user: user));
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      UserModel? userModel;
+      if (firebaseUser != null) {
+        userModel = UserModel.fromFirebaseUser(firebaseUser);
+      }
+      emit(state.copyWith(user: userModel));
     } catch (error) {
       emit(state.copyWith(user: null));
     }

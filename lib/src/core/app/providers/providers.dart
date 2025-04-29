@@ -1,6 +1,6 @@
 import 'package:provider/provider.dart';
 import '../../theme/theme.dart';
-import '../../locales/locale_notifier.dart';
+import '../../localization/locale_notifier.dart';
 
 /// A list of global providers used throughout the application.
 ///

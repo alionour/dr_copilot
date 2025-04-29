@@ -29,21 +29,16 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
   Future<void> _fetchGoogleCalendarEvents(
       GetCalendarEvents event, Emitter<CalendarState> emit) async {
     try {
-      // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      Client? client = googleSignIn.client;
+      // Always ensure the client is initialized and valid
+      Client? client = await googleSignIn.client;
 
       if (client == null) {
         debugPrint(
-            'Authenticated client missing! Attempting to refresh token.');
-        final refreshedToken = await googleSignIn.refreshAccessToken();
-        if (refreshedToken != null) {
-          client = googleSignIn.client;
-        } else {
-          throw Exception('Failed to refresh access token.');
-        }
+            'Authenticated client missing and could not be initialized!');
+        throw Exception('Failed to initialize authenticated client.');
       }
 
-      final calendarApi = CalendarApi(client!);
+      final calendarApi = CalendarApi(client);
       final calendarList = await calendarApi.calendarList.list();
       List<Event> allEvents = [];
       Map<String, Color> calendarColors = {};
@@ -97,7 +92,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       }
 
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final Client? client = googleSignIn.client;
+      final Client? client = await googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 
@@ -149,7 +144,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       GetCalendars event, Emitter<CalendarState> emit) async {
     try {
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final Client? client = googleSignIn.client;
+      final Client? client = await googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 
@@ -170,7 +165,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       AddCalendarEvent event, Emitter<CalendarState> emit) async {
     try {
       // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-      final Client? client = googleSignIn.client;
+      final Client? client = await googleSignIn.client;
 
       assert(client != null, 'Authenticated client missing!');
 

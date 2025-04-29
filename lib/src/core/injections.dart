@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/evaluations_injections.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/sessions_injections.dart';
+import 'package:dr_copilot/src/features/auth/auth_injections.dart';
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
 import 'package:get_it/get_it.dart';
 import 'package:dr_copilot/src/core/network/network_info.dart';
@@ -55,5 +56,15 @@ Future<void> initInjections() async {
   /// user sessions, ensuring they are available throughout the application.
   /// Call this during the application's initialization phase.
   initSessionsInjections();  
+
+
+  /// Initializes the dependency injections required for authentication features.
+  /// 
+  /// This function sets up and registers all necessary services, repositories,
+  /// and providers related to authentication in the application's dependency
+  /// injection system. It should be called during the application's startup
+  /// or initialization phase to ensure authentication components are available
+  /// throughout the app.
+  initAuthInjections();
 
 }

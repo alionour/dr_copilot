@@ -1,14 +1,15 @@
+import 'package:dr_copilot/src/core/code_pusher/shorebird_updater.dart';
+import 'package:dr_copilot/src/core/localization/app_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'src/core/injections.dart';
 import 'firebase_options.dart';
-import 'src/core/shorebird_updater.dart';
 import 'src/core/app/app.dart';
 
 /// The entry point of the application.
-/// 
+///
 /// This asynchronous `main` function initializes and starts the app.
 /// Place any necessary setup or initialization logic here before running the app.
 void main() async {
@@ -32,11 +33,9 @@ void main() async {
   // Shorebird: Automatically check for and apply updates on startup
   await ShorebirdCodePushHandler.checkAndApplyUpdate();
 
-  // List of supported locales
-  const locales = [Locale('en', ''), Locale('ar', '')];
 
   /// Initializes the EasyLocalization package to support multiple locales in the app.
-  /// 
+  ///
   /// - Ensures EasyLocalization is initialized before running the app.
   /// - Wraps the root [App] widget with [EasyLocalization] to provide localization support.
   /// - Specifies the list of supported locales via [supportedLocales].
@@ -47,11 +46,9 @@ void main() async {
   await localization.EasyLocalization.ensureInitialized();
 
   runApp(
-    localization.EasyLocalization(
-      supportedLocales: locales,
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en', ''),
-      startLocale: const Locale('en', ''),
+    /// A widget that provides localization support for the application,
+    /// enabling translation and locale management throughout the widget tree.
+    AppLocalization(
       child: App(isDarkMode: isDarkMode),
     ),
   );

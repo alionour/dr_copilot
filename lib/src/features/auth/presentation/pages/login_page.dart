@@ -10,125 +10,141 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authBloc = context.read<AuthBloc>();
-
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthSignedIn) {
-          // Ensure router is properly initialized
-          final router = RoutingConfig.router;
-          router.go('/home');
-        } else if (state is AuthError) {
-          // Handle error state if needed
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+    return StreamBuilder(
+      stream: authBloc.userAuthenticationStream(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        if (user != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            RoutingConfig.router.go('/home');
+          });
+          return const SizedBox.shrink();
         }
-      },
-      child: Scaffold(
-        // appBar: appBar('Sign In'),
-        body: Center(
-          child: Container(
-            width: MediaQuery.of(context).size.width *
-                0.85, // Make box smaller in width
-            margin: const EdgeInsets.all(24.0),
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 15, // Increase blur radius for more shadow
-                  offset: Offset(0, 10), // Increase offset for more shadow
+        // ...existing login page UI...
+        return BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthSignedIn) {
+              final router = RoutingConfig.router;
+              router.go('/home');
+            } else if (state is AuthError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content:
+                        Text(state.message ?? 'Unexpected error occurred')),
+              );
+            }
+          },
+          child: Scaffold(
+            // appBar: appBar('Sign In'),
+            body: Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width *
+                    0.85, // Make box smaller in width
+                margin: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 15, // Increase blur radius for more shadow
+                      offset: Offset(0, 10), // Increase offset for more shadow
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                const SizedBox(height: 60),
-                Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    const SizedBox(height: 60),
+                    Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/svg/logo.svg',
-                        semanticsLabel: 'App Logo',
-                        width: 100,
-                        height: 100,
-                        placeholderBuilder: (context) => const Icon(
-                          Icons.person,
-                          size: 100,
-                          color: Colors.blue,
+                          child: SvgPicture.asset(
+                            'assets/svg/logo.svg',
+                            semanticsLabel: 'App Logo',
+                            width: 100,
+                            height: 100,
+                            placeholderBuilder: (context) => const Icon(
+                              Icons.person,
+                              size: 100,
+                              color: Colors.blue,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Text(
-                  'welcomeBack'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  'signIn'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 50),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      authBloc.add(SignInWithGoogle());
-                    },
-                    icon: SvgPicture.asset(
-                      'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
-                      semanticsLabel: 'Google Logo',
-                      width: 24,
-                      height: 24,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.blue,
-                        BlendMode.srcIn,
-                      ),
+                    const SizedBox(height: 30),
+                    Text(
+                      'welcomeBack'.tr(),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
                     ),
-                    label: Text(
-                      'SignInWithGoogle'.tr(),
-                      style: TextStyle(fontSize: 16),
+                    const SizedBox(height: 15),
+                    Text(
+                      'signIn'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.surface,
-                      foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 50),
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          authBloc.add(SignInWithGoogle());
+                        },
+                        icon: SvgPicture.asset(
+                          'assets/svg/icons8-google-ios-17-filled/icons8-google-50.svg',
+                          semanticsLabel: 'Google Logo',
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.blue,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        label: Text(
+                          'SignInWithGoogle'.tr(),
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onSurface,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          ),
+                          elevation: 6,
+                          shadowColor: Colors.black45,
                         ),
                       ),
-                      elevation: 6,
-                      shadowColor: Colors.black45,
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

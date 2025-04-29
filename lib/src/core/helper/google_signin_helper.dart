@@ -7,6 +7,7 @@ import 'package:googleapis/calendar/v3.dart';
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
 ///
@@ -27,6 +28,18 @@ final scopes = [
   CalendarApi.calendarEventsReadonlyScope,
   CalendarApi.calendarSettingsReadonlyScope
 ];
+
+/// Custom AuthClient for using a saved access token with Google APIs
+class AuthClient extends BaseClient {
+  final String accessToken;
+  final Client _inner = Client();
+  AuthClient(this.accessToken);
+  @override
+  Future<StreamedResponse> send(BaseRequest request) {
+    request.headers['Authorization'] = 'Bearer $accessToken';
+    return _inner.send(request);
+  }
+}
 
 /// Helper class for Google Sign-In.
 class GoogleSignInHelper {
@@ -65,10 +78,59 @@ class GoogleSignInHelper {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
       clientId: Platform.environment['WEB_CLIENT_ID']!, scopes: scopes);
-  late Client? _client;
+  Client? _client;
 
-  /// Getter for the authenticated client.
-  Client? get client => _client;
+  /// Ensures the authenticated client is initialized and returns it.
+  Future<Client?> ensureClientInitialized() async {
+    try {
+      if (_client == null) {
+        // Try to restore from saved authentication first
+        final prefs = await SharedPreferences.getInstance();
+        final accessToken = prefs.getString('auth_access_token');
+        debugPrint(
+            'Trying saved auth: accessToken=${accessToken?.substring(0, 8)}...');
+        if (accessToken != null) {
+          _client = AuthClient(accessToken);
+          debugPrint('Initialized _client from saved tokens: $_client');
+          // Optionally: test the token with a lightweight API call and refresh if 401
+          return _client;
+        }
+        // Fallback to sign-in flows
+        if (io.Platform.isWindows || io.Platform.isLinux) {
+          final credentials = await _googleSignInAllPlatforms.signInOnline();
+          if (credentials != null) {
+            _client = await _googleSignInAllPlatforms.authenticatedClient;
+            debugPrint('Initialized _client for all platforms: $_client');
+          } else {
+            debugPrint('No credentials returned from signInAllPlatforms.');
+          }
+        } else {
+          if (_googleSignIn.currentUser == null) {
+            await _googleSignIn.signInSilently();
+            debugPrint('Called signInSilently for GoogleSignIn.');
+          }
+          _client = await _googleSignIn.authenticatedClient();
+          debugPrint('Initialized _client for GoogleSignIn: $_client');
+        }
+      } else {
+        debugPrint('_client already initialized: $_client');
+      }
+    } catch (e, stack) {
+      debugPrint('Error initializing _client: $e\n$stack');
+      _client = null;
+    }
+    return _client;
+  }
+
+  /// Asynchronous getter for the client (may be null if not initialized).
+  Future<Client?> get client async {
+    if (_client == null) {
+      await ensureClientInitialized();
+    }
+    // print client when access it
+    debugPrint('Accessing client: $_client');
+    return _client;
+  }
 
   /// Signs out the currently authenticated user from Google Sign-In.
   ///
@@ -170,7 +232,7 @@ class GoogleSignInHelper {
   Future<String?> refreshAccessToken() async {
     try {
       /// Attempts to retrieve the current user's Google access token.
-      /// 
+      ///
       /// If no user is currently signed in, logs a message and returns `null`.
       /// If the access token is `null`, attempts to silently re-sign in and refresh the token.
       /// Logs the refreshed access token if successful, and returns it.

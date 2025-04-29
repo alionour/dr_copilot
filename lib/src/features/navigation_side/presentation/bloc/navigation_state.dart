@@ -1,7 +1,7 @@
 part of 'navigation_bloc.dart';
 
 class NavigationState extends Equatable {
-  final User? user;
+  final UserModel? user;
   final Destination destination;
   final int selectedIndex;
   final bool isNavigationFocused;
@@ -9,17 +9,16 @@ class NavigationState extends Equatable {
   const NavigationState(
     this.user,
     this.destination,
-    this.isNavigationFocused,
-    
-     {
+    this.isNavigationFocused, {
     this.selectedIndex = 0,
   });
 
   @override
-  List<Object?> get props => [destination, user, selectedIndex, isNavigationFocused];
+  List<Object?> get props =>
+      [destination, user, selectedIndex, isNavigationFocused];
 
   NavigationState copyWith({
-    User? user,
+    UserModel? user,
     Destination? destination,
     int? selectedIndex,
     bool? isNavigationFocused,
