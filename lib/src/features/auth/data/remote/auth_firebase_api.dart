@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart' as io;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthFirebaseApi extends AbstractAuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -242,12 +242,12 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Saves authentication tokens (accessToken, idToken) to local storage.
   Future<void> saveAuthentication(
       {String? accessToken, String? idToken}) async {
-    final prefs = await SharedPreferences.getInstance();
+    final secureStorage = const FlutterSecureStorage();
     if (accessToken != null) {
-      await prefs.setString('auth_access_token', accessToken);
+      await secureStorage.write(key: 'auth_access_token', value: accessToken);
     }
     if (idToken != null) {
-      await prefs.setString('auth_id_token', idToken);
+      await secureStorage.write(key: 'auth_id_token', value: idToken);
     }
   }
 

@@ -7,7 +7,7 @@ import 'package:googleapis/calendar/v3.dart';
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
 ///
@@ -44,6 +44,7 @@ class AuthClient extends BaseClient {
 /// Helper class for Google Sign-In.
 class GoogleSignInHelper {
   static final GoogleSignInHelper _instance = GoogleSignInHelper._internal();
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   /// Factory constructor to return the singleton instance.
   factory GoogleSignInHelper() => _instance;
@@ -85,8 +86,7 @@ class GoogleSignInHelper {
     try {
       if (_client == null) {
         // Try to restore from saved authentication first
-        final prefs = await SharedPreferences.getInstance();
-        final accessToken = prefs.getString('auth_access_token');
+        final accessToken = await secureStorage.read(key: 'auth_access_token');
         debugPrint(
             'Trying saved auth: accessToken=${accessToken?.substring(0, 8)}...');
         if (accessToken != null) {

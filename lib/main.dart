@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'src/core/injections.dart';
 import 'firebase_options.dart';
 import 'src/core/app/app.dart';
@@ -27,12 +28,12 @@ void main() async {
   // Initialize dependency injections for the app
   // This is where you set up your service locator (GetIt) and register all the necessary services.
   await initInjections();
-  final prefs = await SharedPreferences.getInstance();
-  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
+  final secureStorage = FlutterSecureStorage();
+  final isDarkModeStr = await secureStorage.read(key: 'isDarkMode');
+  final isDarkMode = isDarkModeStr == null ? false : isDarkModeStr == 'true';
 
   // Shorebird: Automatically check for and apply updates on startup
   await ShorebirdCodePushHandler.checkAndApplyUpdate();
-
 
   /// Initializes the EasyLocalization package to support multiple locales in the app.
   ///

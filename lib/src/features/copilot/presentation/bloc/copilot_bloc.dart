@@ -10,7 +10,7 @@ import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 part 'copilot_event.dart';
 part 'copilot_state.dart';
@@ -22,6 +22,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   final DeepSeekService deepSeekService;
   final QwenService qwenService;
   final ClaudeService claudeService;
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   CopilotBloc({
     required this.vertexAIService,
@@ -86,15 +87,14 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
 
   Future<void> _onCacheMessages(
       CacheMessagesEvent event, Emitter<CopilotState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
     final messagesJson = jsonEncode(event.messages);
-    await prefs.setString('cachedMessages', messagesJson);
+    await secureStorage.write(key: 'cachedMessages', value: messagesJson);
   }
 
   Future<void> _onLoadCachedMessages(
       LoadCachedMessagesEvent event, Emitter<CopilotState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    final messagesJson = prefs.getString('cachedMessages') ?? '[]';
+    final messagesJson =
+        await secureStorage.read(key: 'cachedMessages') ?? '[]';
     final List<dynamic> decodedMessages = jsonDecode(messagesJson);
     final messages = decodedMessages
         .map((message) => Map<String, dynamic>.from(message))
@@ -104,8 +104,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
 
   Future<void> _onStartNewChat(
       StartNewChatEvent event, Emitter<CopilotState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('cachedMessages');
+    await secureStorage.delete(key: 'cachedMessages');
     emit(NewChatStarted());
   }
 
