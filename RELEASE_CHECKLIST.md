@@ -36,7 +36,21 @@ This checklist covers what you have and what you might still be missing for a pr
 
 ### 2. Security & Privacy
 - Secure storage for sensitive tokens (not just SharedPreferences)
-  - Use [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) or platform keychains.
+  - Use [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) for Android/iOS/macOS/Linux, or platform keychains.
+  - Replace any usage of SharedPreferences for storing tokens with flutter_secure_storage.
+  - Example usage:
+    ```dart
+    import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+    final storage = FlutterSecureStorage();
+    // To write
+    await storage.write(key: 'auth_token', value: token);
+    // To read
+    String? token = await storage.read(key: 'auth_token');
+    // To delete
+    await storage.delete(key: 'auth_token');
+    ```
+  - For web, consider using [web storage](https://pub.dev/packages/flutter_web_storage) or encrypt data before storing.
+  - Audit your codebase to ensure all sensitive data (tokens, refresh tokens, etc.) are stored securely.
 - Remove/rotate any test credentials or API keys
   - Audit code and environment files for secrets.
   - Rotate and remove any test or hardcoded keys.
