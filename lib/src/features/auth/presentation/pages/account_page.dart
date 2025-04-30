@@ -32,6 +32,11 @@ class AccountPage extends StatelessWidget {
               if (user?.photoURL != null)
                 GestureDetector(
                   onTap: () {
+                    // Try to get a higher-res version by replacing s96-c or similar with s400-c
+                    final photoUrl = user?.photoURL;
+                    final highResUrl = photoUrl != null
+                        ? photoUrl.replaceAll(RegExp(r's\d+-c'), 's400-c')
+                        : '';
                     showDialog(
                       context: context,
                       builder: (context) => Dialog(
@@ -41,7 +46,7 @@ class AccountPage extends StatelessWidget {
                           child: InteractiveViewer(
                             child: ClipOval(
                               child: Image.network(
-                                user?.photoURL ?? '',
+                                highResUrl,
                                 fit: BoxFit.cover,
                                 width: 300,
                                 height: 300,
