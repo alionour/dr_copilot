@@ -380,4 +380,120 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
+
+  /// Sums the total price of all evaluations in a specific month for the authenticated user.
+  @override
+  Future<Either<Failure, double>> sumEvaluationCostsForMonth(
+      {required int year, required int month}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final start = DateTime(year, month, 1);
+        final end = (month < 12)
+            ? DateTime(year, month + 1, 1)
+            : DateTime(year + 1, 1, 1);
+        final querySnapshot = await _evaluationsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end))
+            .get();
+        double total = 0.0;
+        for (final doc in querySnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data != null && data['price'] != null) {
+            final price = data['price'];
+            if (price is int) {
+              total += price.toDouble();
+            } else if (price is double) {
+              total += price;
+            }
+          }
+        }
+        return Right(total);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error summing evaluation costs: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Sums the total price of all evaluations in a specific year for the authenticated user.
+  @override
+  Future<Either<Failure, double>> sumEvaluationCostsForYear(
+      {required int year}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final start = DateTime(year, 1, 1);
+        final end = DateTime(year + 1, 1, 1);
+        final querySnapshot = await _evaluationsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end))
+            .get();
+        double total = 0.0;
+        for (final doc in querySnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data != null && data['price'] != null) {
+            final price = data['price'];
+            if (price is int) {
+              total += price.toDouble();
+            } else if (price is double) {
+              total += price;
+            }
+          }
+        }
+        return Right(total);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error summing evaluation costs for year: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Sums the total price of all evaluations for the authenticated user (all time).
+  @override
+  Future<Either<Failure, double>> sumAllEvaluationCostsForUser() async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final querySnapshot = await _evaluationsCollection
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        double total = 0.0;
+        for (final doc in querySnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data != null && data['price'] != null) {
+            final price = data['price'];
+            if (price is int) {
+              total += price.toDouble();
+            } else if (price is double) {
+              total += price;
+            }
+          }
+        }
+        return Right(total);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error summing all evaluation costs: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
 }

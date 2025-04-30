@@ -44,4 +44,14 @@ abstract class AbstractSessionsRepository {
 
   /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
   Future<Either<Failure, int>> getSessionsCount();
+
+  /// Sums the total price of all sessions in a specific month for the authenticated user.
+  Future<Either<Failure, double>> sumSessionCostsForMonth(
+      {required int year, required int month});
+
+  /// Sums the total price of all sessions in a specific year for the authenticated user.
+  Future<Either<Failure, double>> sumSessionCostsForYear({required int year});
+
+  /// Sums the total price of all sessions for the authenticated user (all time).
+  Future<Either<Failure, double>> sumAllSessionCostsForUser();
 }

@@ -43,4 +43,22 @@ class EvaluationsUseCase {
       DateTime date) async {
     return await repository.getEvaluationsByDate(date);
   }
+
+  /// Sums the total price of all evaluations in a specific month for the authenticated user.
+  Future<Either<Failure, double>> sumEvaluationCostsForMonth(
+      {required int year, required int month}) async {
+    return await repository.sumEvaluationCostsForMonth(
+        year: year, month: month);
+  }
+
+  /// Sums the total price of all evaluations in a specific year for the authenticated user.
+  Future<Either<Failure, double>> sumEvaluationCostsForYear(
+      {required int year}) async {
+    return await repository.sumEvaluationCostsForYear(year: year);
+  }
+
+  /// Sums the total price of all evaluations for the authenticated user (all time).
+  Future<Either<Failure, double>> sumAllEvaluationCostsForUser() async {
+    return await repository.sumAllEvaluationCostsForUser();
+  }
 }

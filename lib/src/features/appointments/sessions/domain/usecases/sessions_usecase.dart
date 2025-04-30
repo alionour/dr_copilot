@@ -54,4 +54,21 @@ class SessionsUseCase {
   Future<Either<Failure, int>> getSessionsCount() async {
     return await repository.getSessionsCount();
   }
+
+  /// Sums the total price of all sessions in a specific month for the authenticated user.
+  Future<Either<Failure, double>> sumSessionCostsForMonth(
+      {required int year, required int month}) async {
+    return await repository.sumSessionCostsForMonth(year: year, month: month);
+  }
+
+  /// Sums the total price of all sessions in a specific year for the authenticated user.
+  Future<Either<Failure, double>> sumSessionCostsForYear(
+      {required int year}) async {
+    return await repository.sumSessionCostsForYear(year: year);
+  }
+
+  /// Sums the total price of all sessions for the authenticated user (all time).
+  Future<Either<Failure, double>> sumAllSessionCostsForUser() async {
+    return await repository.sumAllSessionCostsForUser();
+  }
 }

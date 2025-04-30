@@ -7,7 +7,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/repositorie
 class SessionsRepositoryImpl extends AbstractSessionsRepository {
   final SessionsFirebaseApi firebaseApi;
 
-  SessionsRepositoryImpl( this.firebaseApi);
+  SessionsRepositoryImpl(this.firebaseApi);
 
   /// Gets a list of sessions.
   @override
@@ -59,5 +59,24 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   @override
   Future<Either<Failure, int>> getSessionsCount() {
     return firebaseApi.getSessionsCount();
+  }
+
+  /// Sums the total price of all sessions in a specific month for the authenticated user.
+  @override
+  Future<Either<Failure, double>> sumSessionCostsForMonth(
+      {required int year, required int month}) {
+    return firebaseApi.sumSessionCostsForMonth(year: year, month: month);
+  }
+
+  /// Sums the total price of all sessions in a specific year for the authenticated user.
+  @override
+  Future<Either<Failure, double>> sumSessionCostsForYear({required int year}) {
+    return firebaseApi.sumSessionCostsForYear(year: year);
+  }
+
+  /// Sums the total price of all sessions for the authenticated user (all time).
+  @override
+  Future<Either<Failure, double>> sumAllSessionCostsForUser() {
+    return firebaseApi.sumAllSessionCostsForUser();
   }
 }
