@@ -18,7 +18,7 @@ abstract class AbstractAuthRepository {
   Future<void> signOut();
 
   /// Returns the current authenticated user, or null if not signed in.
-  Future<User?> getCurrentUser();
+  Future<UserModel?> getCurrentUser();
 
   /// Returns a stream of authentication state changes as UserModel.
   Stream<UserModel?> authStateChanges();

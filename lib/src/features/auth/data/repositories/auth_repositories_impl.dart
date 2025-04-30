@@ -1,7 +1,6 @@
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:dr_copilot/src/features/auth/data/remote/auth_firebase_api.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 /// Implementation of AbstractAuthRepository using AuthFirebaseApi
 class AuthRepositoryImpl implements AbstractAuthRepository {
@@ -19,7 +18,7 @@ class AuthRepositoryImpl implements AbstractAuthRepository {
   }
 
   @override
-  Future<User?> getCurrentUser() {
+  Future<UserModel?> getCurrentUser() {
     return api.getCurrentUser();
   }
 

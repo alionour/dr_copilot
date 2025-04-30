@@ -275,8 +275,23 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Returns the current authenticated user as a Firebase [User], or null if not signed in.
   @override
-  Future<User?> getCurrentUser() async {
-    return _firebaseAuth.currentUser;
+  Future<UserModel?> getCurrentUser() async {
+    // cast the current user to a UserModel object
+    final user = _firebaseAuth.currentUser;
+    if (user == null) return null;
+    return UserModel(
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      isAnonymous: user.isAnonymous,
+      metadata: user.metadata,
+      phoneNumber: user.phoneNumber,
+      providerData: user.providerData,
+      refreshToken: user.refreshToken,
+      tenantId: user.tenantId,
+    );
   }
 
   /// Updates the current user's display name and/or photo URL.

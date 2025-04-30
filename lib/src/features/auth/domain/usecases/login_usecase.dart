@@ -1,5 +1,4 @@
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
 /// A use case class responsible for handling the login logic within the authentication feature.
@@ -37,7 +36,7 @@ class AuthUseCase {
   }
 
   /// Returns the current authenticated user, or null if not signed in.
-  Future<User?> getCurrentUser() async {
+  Future<UserModel?> getCurrentUser() async {
     return await repository.getCurrentUser();
   }
 

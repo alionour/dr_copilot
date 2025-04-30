@@ -3,7 +3,6 @@ import 'package:dr_copilot/src/core/localization/app_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'src/core/injections.dart';
 import 'firebase_options.dart';
