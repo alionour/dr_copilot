@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
-import 'package:dr_copilot/src/features/copilot/services/claude_service.dart';
-import 'package:dr_copilot/src/features/copilot/services/deepseek_service.dart';
-import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
-import 'package:dr_copilot/src/features/copilot/services/gpt_service.dart';
-import 'package:dr_copilot/src/features/copilot/services/qwen_service.dart';
-import 'package:dr_copilot/src/features/copilot/services/vertex_ai_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

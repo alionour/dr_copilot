@@ -1,5 +1,5 @@
-import 'package:dr_copilot/src/features/copilot/domain/models/copilot_model.dart';
-import 'package:dr_copilot/src/features/copilot/domain/repositories/copilot_repository.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/models/copilot_model.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/repositories/copilot_repository.dart';
 
 class CopilotUseCase {
   final CopilotRepository _repository;

@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
-import 'package:dr_copilot/src/features/copilot/presentation/bloc/copilot_bloc.dart';
-import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart'
+import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart'
     as custom;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';

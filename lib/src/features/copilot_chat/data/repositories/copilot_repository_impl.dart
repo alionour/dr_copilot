@@ -1,6 +1,6 @@
-import 'package:dr_copilot/src/features/copilot/data/datasources/copilot_remote_data_source.dart';
-import 'package:dr_copilot/src/features/copilot/domain/models/copilot_model.dart';
-import 'package:dr_copilot/src/features/copilot/domain/repositories/copilot_repository.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/datasources/copilot_remote_data_source.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/models/copilot_model.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/repositories/copilot_repository.dart';
 
 class CopilotRepositoryImpl implements CopilotRepository {
   final CopilotRemoteDataSource _remoteDataSource;

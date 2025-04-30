@@ -1,5 +1,5 @@
-import 'package:dr_copilot/src/features/copilot/domain/models/copilot_model.dart';
-import 'package:dr_copilot/src/features/copilot/presentation/widgets/copilot_card.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/models/copilot_model.dart';
+import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/copilot_card.dart';
 import 'package:flutter/material.dart';
 
 class CopilotList extends StatelessWidget {
