@@ -33,11 +33,23 @@ final scopes = [
 class AuthClient extends BaseClient {
   final String accessToken;
   final Client _inner = Client();
-  AuthClient(this.accessToken);
+  final Future<String?> Function()? refreshTokenCallback;
+  AuthClient(this.accessToken, {this.refreshTokenCallback});
+
   @override
-  Future<StreamedResponse> send(BaseRequest request) {
-    request.headers['Authorization'] = 'Bearer $accessToken';
-    return _inner.send(request);
+  Future<StreamedResponse> send(BaseRequest request) async {
+    String token = accessToken;
+    request.headers['Authorization'] = 'Bearer $token';
+    StreamedResponse response = await _inner.send(request);
+    // If unauthorized, try to refresh token and retry once
+    if (response.statusCode == 401 && refreshTokenCallback != null) {
+      final newToken = await refreshTokenCallback!();
+      if (newToken != null && newToken != token) {
+        request.headers['Authorization'] = 'Bearer $newToken';
+        return _inner.send(request);
+      }
+    }
+    return response;
   }
 }
 
@@ -90,7 +102,8 @@ class GoogleSignInHelper {
         debugPrint(
             'Trying saved auth: accessToken=${accessToken?.substring(0, 8)}...');
         if (accessToken != null) {
-          _client = AuthClient(accessToken);
+          _client =
+              AuthClient(accessToken, refreshTokenCallback: refreshAccessToken);
           debugPrint('Initialized _client from saved tokens: $_client');
           // Optionally: test the token with a lightweight API call and refresh if 401
           return _client;

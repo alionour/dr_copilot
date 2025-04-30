@@ -79,7 +79,7 @@ dependencies:
   markdown: ^7.3.0
   syncfusion_flutter_charts: ^29.1.35
   mockito: ^5.4.5
-  flutter_secure_storage: ^4.2.1
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6
