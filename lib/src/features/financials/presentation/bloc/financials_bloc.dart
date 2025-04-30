@@ -45,25 +45,32 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     emit(result.fold(
       (failure) => FinancialsError(state.transactions,
           message: _mapFailureToMessage(failure)),
-      (_) => FinancialsSuccess(
-        List.from(state.transactions)..add(event.transaction),
-        message: 'transactionAdded'.tr(),
-      ),
+      (_) {
+        // Insert the new transaction in the correct sorted position (descending by transactionDate)
+        final transactions = List<TransactionModel>.from(state.transactions)
+          ..add(event.transaction)
+          ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+        emit(FinancialsSuccess(transactions, message: 'transactionAdded'.tr()));
+        return TransactionsLoaded(transactions);
+      },
     ));
   }
 
-    Future<void> _onUpdateTransaction(
+  Future<void> _onUpdateTransaction(
       UpdateTransactionEvent event, Emitter<FinancialsState> emit) async {
-    final failureOrTransaction =
-        await _financialsUseCase.updateTransaction(event.transactionId, event.model);
+    final failureOrTransaction = await _financialsUseCase.updateTransaction(
+        event.transactionId, event.model);
     emit(failureOrTransaction.fold(
-      (failure) =>
-          FinancialsError(state.transactions, message: _mapFailureToMessage(failure)),
+      (failure) => FinancialsError(state.transactions,
+          message: _mapFailureToMessage(failure)),
       (updatedTransaction) {
         final transactions = state.transactions.map((transaction) {
-          return transaction.id == updatedTransaction.id ? updatedTransaction : transaction;
+          return transaction.id == updatedTransaction.id
+              ? updatedTransaction
+              : transaction;
         }).toList();
-        emit(FinancialsSuccess(transactions, message: 'transactionUpdated'.tr()));
+        emit(FinancialsSuccess(transactions,
+            message: 'transactionUpdated'.tr()));
         return TransactionsLoaded(transactions);
       },
     ));

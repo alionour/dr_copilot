@@ -405,13 +405,14 @@ class _SessionsPageState extends State<SessionsPage> {
       if (parsedDate.year == today.year &&
           parsedDate.month == today.month &&
           parsedDate.day == today.day) {
-        return 'Today';
+        return 'today'.tr();
       } else if (parsedDate.year == yesterday.year &&
           parsedDate.month == yesterday.month &&
           parsedDate.day == yesterday.day) {
-        return 'Yesterday';
+        return 'yesterday'.tr();
       }
     }
-    return dateKey;
+      return DateFormat('MMMM dd, yyyy', context.locale.toString())
+          .format(parsedDate ?? DateTime.now());
   }
 }

@@ -48,7 +48,10 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
           message: _mapFailureToMessage(failure)),
       (addedEvaluation) {
         debugPrint('Add successful: $addedEvaluation');
-        final evaluations = state.evaluations..add(addedEvaluation);
+        // Insert the new evaluation in the correct sorted position (descending by startDateTime)
+        final evaluations = List<EvaluationModel>.from(state.evaluations)
+          ..add(addedEvaluation)
+          ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         emit(EvaluationsSuccess(evaluations,
             message: 'evaluationAddedSuccessfully'.tr()));
         return EvaluationsLoaded(evaluations);

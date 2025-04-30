@@ -373,13 +373,14 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
     if (parsedDate.year == today.year &&
         parsedDate.month == today.month &&
         parsedDate.day == today.day) {
-      return 'Today';
+      return 'today'.tr();
     } else if (parsedDate.year == today.year &&
         parsedDate.month == today.month &&
         parsedDate.day == today.day - 1) {
-      return 'Yesterday';
+      return 'yesterday'.tr();
     } else {
-      return DateFormat('MMMM dd, yyyy').format(parsedDate);
+           return DateFormat('MMMM dd, yyyy', context.locale.toString())
+          .format(parsedDate);
     }
   }
 }

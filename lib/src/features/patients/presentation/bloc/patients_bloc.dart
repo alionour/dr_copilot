@@ -54,7 +54,15 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       (failure) =>
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
       (patient) {
-        final patients = List<PatientModel>.from(state.patients)..add(patient);
+        // Insert the new patient in the correct sorted position (descending by createdAt)
+        final patients = List<PatientModel>.from(state.patients)
+          ..add(patient)
+          ..sort((a, b) {
+            if (a.createdAt == null && b.createdAt == null) return 0;
+            if (a.createdAt == null) return 1;
+            if (b.createdAt == null) return -1;
+            return b.createdAt!.compareTo(a.createdAt!);
+          });
         emit(PatientsSuccess(patients,
             message: 'patientAddedSuccessfully'.tr()));
         return PatientsLoaded(patients);

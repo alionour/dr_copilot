@@ -47,7 +47,10 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
       (addedSession) {
         debugPrint('Add successful: $addedSession');
-        final sessions = state.sessions..add(addedSession);
+        // Insert the new session in the correct sorted position (descending by startDateTime)
+        final sessions = List<SessionModel>.from(state.sessions)
+          ..add(addedSession)
+          ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         emit(SessionsSuccess(sessions,
             message: 'sessionAddedSuccessfully'.tr()));
         return SessionsLoaded(sessions);
