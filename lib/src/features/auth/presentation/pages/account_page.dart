@@ -14,7 +14,7 @@ class AccountPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title:  Text('account'.tr()),
+        title: Text('account'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -30,9 +30,32 @@ class AccountPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (user?.photoURL != null)
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage(user!.photoURL!),
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: InteractiveViewer(
+                            child: ClipOval(
+                              child: Image.network(
+                                user?.photoURL ?? '',
+                                fit: BoxFit.cover,
+                                width: 300,
+                                height: 300,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: NetworkImage(user?.photoURL ?? ''),
+                  ),
                 ),
               const SizedBox(height: 16),
               Text(
@@ -50,7 +73,7 @@ class AccountPage extends StatelessWidget {
                   debugPrint('Sign-out button pressed');
                   context.read<AuthBloc>().add(SignOutEvent());
                 },
-                child:  Text('signOut'.tr()),
+                child: Text('signOut'.tr()),
               ),
             ],
           ),
