@@ -35,10 +35,11 @@ This checklist covers what you have and what you might still be missing for a pr
   - Link to them in your app and store listings.
 
 ### 2. Security & Privacy
-- Secure storage for sensitive tokens (not just SharedPreferences)
-  - Use [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) for Android/iOS/macOS/Linux, or platform keychains.
-  - **Do NOT use SharedPreferences for sensitive data, even with encryption, unless absolutely necessary (e.g., on web).**
-  - Replace any usage of SharedPreferences for storing tokens with flutter_secure_storage.
+- [x] Secure storage for sensitive tokens (not just SharedPreferences) ✅
+  - [x] All sensitive tokens and secrets are managed via Doppler environment variables ✅
+  - [x]  Use [flutter_secure_storage] (https://pub.dev/packages/flutter_secure_storage) for Android/iOS/macOS/Linux, or platform keychains.✅
+  - [x]  **Do NOT use SharedPreferences for sensitive data, even with encryption, unless absolutely necessary (e.g., on web).** ✅
+  - [x]  Replace any usage of SharedPreferences for storing tokens with flutter_secure_storage.✅
   - Example usage:
     ```dart
     import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -49,8 +50,7 @@ This checklist covers what you have and what you might still be missing for a pr
     String? token = await storage.read(key: 'auth_token');
     // To delete
     await storage.delete(key: 'auth_token');
-    ```
-  - For web, consider using [web storage](https://pub.dev/packages/flutter_web_storage) or encrypt data before storing, but be aware this is less secure than platform secure storage.
+    ``` 
   - Audit your codebase to ensure all sensitive data (tokens, refresh tokens, etc.) are stored securely.
 - Remove/rotate any test credentials or API keys
   - Audit code and environment files for secrets.
@@ -64,7 +64,7 @@ This checklist covers what you have and what you might still be missing for a pr
 - Release build configuration for all platforms
   - Use `flutter build` with `--release` for each target.
   - Update build flavors if needed.
-- Environment variable management (Doppler, .env, etc.)
+- [x] Environment variable management (Doppler, .env, etc.) ✅
   - Store secrets in Doppler or .env files and load them securely in your app.
 
 ### 4. Testing
