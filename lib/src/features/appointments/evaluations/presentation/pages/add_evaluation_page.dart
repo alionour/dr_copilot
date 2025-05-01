@@ -473,8 +473,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
-                                      text: DateFormat('HH:mm')
-                                          .format(_startDate!.toDate()),
+                                      text: DateFormat('hh:mm a')
+                                          .format(_startDate!.toDate())
+                                          .toUpperCase(),
                                     ),
                                     onTap: () => _selectTime(context, true),
                                   ),
@@ -523,8 +524,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
-                                      text: DateFormat('HH:mm')
-                                          .format(_endDate!.toDate()),
+                                      text: DateFormat('hh:mm a')
+                                          .format(_endDate!.toDate())
+                                          .toUpperCase(),
                                     ),
                                     onTap: () => _selectTime(context, false),
                                   ),

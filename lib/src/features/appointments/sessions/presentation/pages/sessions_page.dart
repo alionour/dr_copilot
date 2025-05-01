@@ -209,7 +209,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 SnackBar(content: Text(message)),
               );
             }
-          } 
+          }
         },
         child: BlocBuilder<SessionsBloc, SessionsState>(
           builder: (context, state) {
@@ -412,7 +412,7 @@ class _SessionsPageState extends State<SessionsPage> {
         return 'yesterday'.tr();
       }
     }
-      return DateFormat('MMMM dd, yyyy', context.locale.toString())
-          .format(parsedDate ?? DateTime.now());
+    return DateFormat('EEEE, MMMM dd, yyyy', context.locale.toString())
+        .format(parsedDate ?? DateTime.now());
   }
 }

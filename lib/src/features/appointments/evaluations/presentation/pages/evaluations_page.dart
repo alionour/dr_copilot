@@ -379,7 +379,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
         parsedDate.day == today.day - 1) {
       return 'yesterday'.tr();
     } else {
-           return DateFormat('MMMM dd, yyyy', context.locale.toString())
+      return DateFormat('EEEE, MMMM dd, yyyy', context.locale.toString())
           .format(parsedDate);
     }
   }
