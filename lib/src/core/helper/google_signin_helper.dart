@@ -43,13 +43,47 @@ class AuthClient extends BaseClient {
     StreamedResponse response = await _inner.send(request);
     // If unauthorized, try to refresh token and retry once
     if (response.statusCode == 401 && refreshTokenCallback != null) {
+      debugPrint('[AuthClient] 401 received, attempting to refresh token...');
       final newToken = await refreshTokenCallback!();
+      debugPrint('[AuthClient] Token after refresh: $newToken');
       if (newToken != null && newToken != token) {
-        request.headers['Authorization'] = 'Bearer $newToken';
-        return _inner.send(request);
+        // Clone the request for retry
+        debugPrint('[AuthClient] Cloning request and retrying with new token.');
+        final clonedRequest = _cloneRequest(request);
+        clonedRequest.headers['Authorization'] = 'Bearer $newToken';
+        return _inner.send(clonedRequest);
+      } else {
+        debugPrint('[AuthClient] Token refresh failed or token unchanged.');
       }
     }
     return response;
+  }
+
+  /// Helper to clone a BaseRequest (supports Request and MultipartRequest)
+  BaseRequest _cloneRequest(BaseRequest request) {
+    if (request is Request) {
+      final cloned = Request(request.method, request.url);
+      cloned.headers.addAll(request.headers);
+      cloned.followRedirects = request.followRedirects;
+      cloned.maxRedirects = request.maxRedirects;
+      cloned.persistentConnection = request.persistentConnection;
+      if (request.bodyBytes.isNotEmpty) {
+        cloned.bodyBytes = request.bodyBytes;
+      }
+      return cloned;
+    } else if (request is MultipartRequest) {
+      final cloned = MultipartRequest(request.method, request.url);
+      cloned.headers.addAll(request.headers);
+      cloned.fields.addAll(request.fields);
+      cloned.files.addAll(request.files);
+      cloned.followRedirects = request.followRedirects;
+      cloned.maxRedirects = request.maxRedirects;
+      cloned.persistentConnection = request.persistentConnection;
+      return cloned;
+    } else {
+      throw UnsupportedError(
+          'Request type not supported for retry: \\${request.runtimeType}');
+    }
   }
 }
 
