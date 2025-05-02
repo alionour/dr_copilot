@@ -230,7 +230,9 @@
     "patientsLoaded": "تم تحميل المرضى",
   "patientsStored": "المرضى المخزنين",
   "transactionsLoaded": "تم تحميل المعاملات",
-  "copilotChat": "دردشة مع المساعد"
+  "copilotChat": "دردشة مع المساعد",
+  "loaded": "محملة",
+  "stored": "مخزنة"
 
 }
 

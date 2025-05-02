@@ -235,7 +235,8 @@
   "storedTransactions": "Stored transactions",
   "patientsLoaded": "Patients loaded",
   "transactionsLoaded": "Transactions loaded",
-  "copilotChat": "Dr. Copilot Chat"
-
+  "copilotChat": "Dr. Copilot Chat",
+"loaded": "Loaded",
+  "stored": "Stored"
   
 }

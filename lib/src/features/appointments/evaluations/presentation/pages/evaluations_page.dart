@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
@@ -66,41 +67,44 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
   @override
   Widget build(BuildContext context) {
     final navMenuButton = NavMenuButtonProvider.of(context);
+    final isMobile = ScreenSizeHelper.isSmall(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Expanded(
-              child: Focus(
-                focusNode: _searchFocusNode,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'searchEvaluations'.tr(),
-                    prefixIcon: Icon(Icons.search,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 0.3),
+            if (!(isMobile && _showFilters))
+              Expanded(
+                child: Focus(
+                  focusNode: _searchFocusNode,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'searchEvaluations'.tr(),
+                      prefixIcon: Icon(Icons.search,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 0.3),
+                      ),
+                      hintStyle: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
-                    hintStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    onChanged: (newQuery) {
+                      setState(() {
+                        query = newQuery;
+                        _selectedIndex = 0; // Reset selection on new query
+                      });
+                      context.read<EvaluationsBloc>().add(SearchEvaluations(
+                          name: query)); // Trigger search event
+                    },
+                    onSubmitted: (_) {
+                      _listFocusNode.requestFocus();
+                    },
                   ),
-                  onChanged: (newQuery) {
-                    setState(() {
-                      query = newQuery;
-                      _selectedIndex = 0; // Reset selection on new query
-                    });
-                    context.read<EvaluationsBloc>().add(
-                        SearchEvaluations(name: query)); // Trigger search event
-                  },
-                  onSubmitted: (_) {
-                    _listFocusNode.requestFocus();
-                  },
                 ),
               ),
-            ),
             // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -265,7 +269,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                   ),
                         ),
                         Text(
-                          'evaluationsLoaded'.tr(),
+                          'loaded'.tr(),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         if (_firestoreEvaluationsCount != null)
@@ -286,7 +290,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                     ),
                               ),
                               Text(
-                                ' ${'storedEvaluations'.tr()} ',
+                                ' ${'stored'.tr()} ',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],

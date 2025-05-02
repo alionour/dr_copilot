@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
+import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -75,7 +76,8 @@ class _PatientsPageState extends State<PatientsPage> {
   @override
   Widget build(BuildContext context) {
     final navMenuButton = NavMenuButtonProvider.of(context);
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final screenSize = ScreenSizeHelper.getScreenSize(context);
+    final isMobile = screenSize == ScreenSize.small;
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -520,7 +522,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                         ),
                                   ),
                                   Text(
-                                    'patientsLoaded'.tr(),
+                                    'loaded'.tr(),
                                     style:
                                         Theme.of(context).textTheme.bodyLarge,
                                   ),
@@ -540,7 +542,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                           ),
                                     ),
                                     Text(
-                                      ' ${'storedPatients'.tr()} ',
+                                      ' ${'stored'.tr()} ',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium,
