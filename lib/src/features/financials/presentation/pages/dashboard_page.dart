@@ -11,77 +11,111 @@ class DashboardPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Section
-          // Total Balance
-          Card(
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'totalBalance'.tr(),
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '${'USD'.tr()} 424,540',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+          // Bill & Payments as horizontal cards (like in dbestech video)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 220,
+                  child: Card(
+                    elevation: 8,
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                        bottomLeft: Radius.circular(0),
+                        topLeft: Radius.circular(0),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('profit'.tr(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer)),
+                          SizedBox(height: 8),
+                          Text('USD 190,655',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer)),
+                          SizedBox(height: 8),
+                          Text('Today\'s left in billing cycle (Feb 28, 2025)',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer
+                                      .withValues(alpha:0.7))),
+                          SizedBox(height: 8),
+                        
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                SizedBox(width: 16),
+                SizedBox(
+                  width: 220,
+                  child: Card(
+                    elevation: 4,
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(0),
+                        bottomLeft: Radius.circular(20),
+                        topLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(0),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('payments'.tr(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer)),
+                          SizedBox(height: 8),
+                          Text('USD 4,200',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer)),
+                          SizedBox(height: 8),
+                          Text('1 day left in billing cycle (Mar 1, 2025)',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer
+                                      .withValues(alpha:0.7))),
+                          SizedBox(height: 8),
+                         
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Add more cards here if needed
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          // Bill & Payments
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('profit'.tr()),
-                        SizedBox(height: 8),
-                        Text('USD 190,655'),
-                        SizedBox(height: 8),
-                        Text('Today\'s left in billing cycle (Feb 28, 2025)'),
-                        SizedBox(height: 8),
-                        Text('Pay Now', style: TextStyle(color: Colors.blue)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('payments'.tr()),
-                        SizedBox(height: 8),
-                        Text('USD 4,200'),
-                        SizedBox(height: 8),
-                        Text('1 day left in billing cycle (Mar 1, 2025)'),
-                        SizedBox(height: 8),
-                        Text('Pay Now', style: TextStyle(color: Colors.blue)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
           const SizedBox(height: 16),
           // Transactions Activity

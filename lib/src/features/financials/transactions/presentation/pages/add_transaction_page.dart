@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/financials/domain/models/transaction_model.dart';
-import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -120,7 +120,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         );
         // Dispatch AddTransactionEvent
         context
-            .read<FinancialsBloc>()
+            .read<TransactionsBloc>()
             .add(AddTransactionEvent(transactionData));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -180,23 +180,23 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           },
         ),
       ),
-      body: BlocListener<FinancialsBloc, FinancialsState>(
+      body: BlocListener<TransactionsBloc, TransactionsState>(
         listener: (context, state) {
-          if (state is FinancialsSuccess) {
+          if (state is TransactionsSuccess) {
             final message = state.message;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(message),
               ),
             );
-          } else if (state is FinancialsError) {
+          } else if (state is TransactionsError) {
             final message = state.message;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(message)),
             );
           }
         },
-        child: BlocBuilder<FinancialsBloc, FinancialsState>(
+        child: BlocBuilder<TransactionsBloc, TransactionsState>(
             builder: (context, state) {
           return Center(
             child: Container(

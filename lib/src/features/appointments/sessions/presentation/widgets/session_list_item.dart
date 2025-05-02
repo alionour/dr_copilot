@@ -210,7 +210,7 @@ class _SessionListItemState extends State<SessionListItem> {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             context
-                                .read<SessionsBloc>()
+                                .read<TransactionsBloc>()
                                 .add(DeleteSession(widget.sessionModel.id));
                             debugPrint(
                                 'Dispatched DeleteSession event for ID: ${widget.sessionModel.id}');
@@ -481,7 +481,7 @@ class _SessionListItemState extends State<SessionListItem> {
       debugPrint('Updated session model: $updatedSessionModel');
       try {
         context
-            .read<SessionsBloc>()
+            .read<TransactionsBloc>()
             .add(UpdateSession(widget.sessionModel.id, updatedSessionModel));
         debugPrint(
             'Dispatched UpdateSession event with updated session: $updatedSessionModel');

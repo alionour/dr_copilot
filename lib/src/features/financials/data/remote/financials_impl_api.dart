@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:dr_copilot/src/features/financials/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/data/remote/abstract_financial_api.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:http/http.dart' as http;
 
-import 'abstract_financial_api.dart';
 
 /// A class that implements the AbstractFinancialApi with real API data.
 class FinancialImplApi implements AbstractFinancialApi {
@@ -68,17 +68,5 @@ class FinancialImplApi implements AbstractFinancialApi {
     }
   }
 
-  /// Searches financial records based on criteria.
-  @override
-  Future<List<TransactionModel>> searchTransactions(String query) async {
-    final response =
-        await http.get(Uri.parse('$apiUrl/financials?search=$query'));
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((json) => TransactionModel.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to search financials');
-    }
-  }
+  
 }

@@ -3,7 +3,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
-import 'package:dr_copilot/src/features/financials/presentation/pages/add_transaction_page.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/pages/add_transaction_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';

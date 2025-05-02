@@ -11,10 +11,10 @@ import 'package:flutter/foundation.dart';
 part 'sessions_event.dart';
 part 'sessions_state.dart';
 
-class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
+class TransactionsBloc extends Bloc<SessionsEvent, SessionsState> {
   final SessionsUseCase _sessionsUseCase;
 
-  SessionsBloc(this._sessionsUseCase) : super(const SessionsInitial([])) {
+  TransactionsBloc(this._sessionsUseCase) : super(const SessionsInitial([])) {
     on<GetSessions>(_onGetSessions);
     on<AddSession>(_onAddSession);
     on<UpdateSession>(_onUpdateSession);

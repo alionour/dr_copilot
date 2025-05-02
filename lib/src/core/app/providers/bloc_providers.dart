@@ -40,16 +40,14 @@ import '../../helper/api_key_helper.dart';
 /// available to descendant widgets via the `Provider` package.
 
 final appBlocProviders = <BlocProvider<dynamic>>[
-
   /// Provides an instance of [AuthBloc] to the widget tree, allowing descendant widgets
   /// to access authentication-related state and events using the BLoC pattern.
-  /// 
+  ///
   /// This provider should be placed above any widgets that need to interact with
   /// authentication logic, such as login, logout, or user session management.
   BlocProvider<AuthBloc>(
       create: (context) =>
           AuthBloc(AuthUseCase(AuthRepositoryImpl(AuthFirebaseApi())))),
-
 
   /// Provides a [NavigationBloc] instance to the widget tree.
   ///
@@ -111,8 +109,8 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// The [create] function initializes the [SessionsBloc] using the provided
   /// [BuildContext].
-  BlocProvider<SessionsBloc>(
-      create: (context) => SessionsBloc(
+  BlocProvider<TransactionsBloc>(
+      create: (context) => TransactionsBloc(
             SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
           )),
 

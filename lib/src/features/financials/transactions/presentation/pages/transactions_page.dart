@@ -1,6 +1,6 @@
-import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/widgets/session_list_item.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -9,14 +9,14 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 
-class SessionsPage extends StatefulWidget {
-  const SessionsPage({super.key});
+class TransactionsPage extends StatefulWidget {
+  const TransactionsPage({super.key});
 
   @override
-  State<SessionsPage> createState() => _SessionsPageState();
+  State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
-class _SessionsPageState extends State<SessionsPage> {
+class _TransactionsPageState extends State<TransactionsPage> {
   String query = '';
   DateTime? selectedDate; // Add selectedDate variable
   final ScrollController _scrollController = ScrollController();
@@ -27,17 +27,17 @@ class _SessionsPageState extends State<SessionsPage> {
   bool _showFilters = false; // State to toggle filter icons
   DateTime? _selectedDate;
   bool _canLoadMore = true; // Add a flag to control loading more sessions
-  int? _firestoreSessionsCount;
+  int? _firestoreTransactionsCount;
 
   void _dispatchGetSessionsCount() {
-    context.read<TransactionsBloc>().add(const GetSessionsCount());
+    context.read<TransactionsBloc>().add(const GetTransactionsCount());
   }
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context.read<TransactionsBloc>().add(const GetSessions());
+    context.read<TransactionsBloc>().add(const GetTransactions());
     _dispatchGetSessionsCount();
   }
 
@@ -53,11 +53,11 @@ class _SessionsPageState extends State<SessionsPage> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<TransactionsBloc>().state;
-      if (state is SessionsLoaded && !state.isLoadingMore) {
+      if (state is TransactionsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
           _canLoadMore = false;
-          context.read<TransactionsBloc>().add(LoadMoreSessions(
-                lastDocumentId: state.sessions.last.id,
+          context.read<TransactionsBloc>().add(LoadMoreTransactions(
+                lastDocumentId: state.transactions.last.id,
                 limit: 20,
               ));
           Future.delayed(const Duration(seconds: 1), () {
@@ -82,7 +82,7 @@ class _SessionsPageState extends State<SessionsPage> {
                   focusNode: _searchFocusNode,
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'searchSessions'.tr(),
+                      hintText: 'searchTransactions'.tr(),
                       prefixIcon: Icon(Icons.search,
                           color: Theme.of(context).colorScheme.onSurface),
                       border: OutlineInputBorder(
@@ -101,7 +101,7 @@ class _SessionsPageState extends State<SessionsPage> {
                         _selectedIndex = 0; // Reset selection on new query
                       });
                       context.read<TransactionsBloc>().add(
-                          SearchSessions(name: query)); // Trigger search event
+                          SearchTransactions(query)); // Trigger search event
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -118,7 +118,7 @@ class _SessionsPageState extends State<SessionsPage> {
                   query = '';
                   _selectedDate = null;
                 });
-                context.read<TransactionsBloc>().add(const GetSessions());
+                context.read<TransactionsBloc>().add(const GetTransactions());
               },
             ),
             Container(
@@ -186,7 +186,7 @@ class _SessionsPageState extends State<SessionsPage> {
 
                           context
                               .read<TransactionsBloc>()
-                              .add(GetSessionsByDate(date: selectedDate));
+                              .add(GetTransactionsByDate(date: selectedDate));
                         }
                       },
                     ),
@@ -198,33 +198,30 @@ class _SessionsPageState extends State<SessionsPage> {
           ],
         ),
       ),
-      body: BlocListener<TransactionsBloc, SessionsState>(
+      body: BlocListener<TransactionsBloc, TransactionsState>(
         listener: (context, state) {
-          if (state is SessionsSuccess) {
+          if (state is TransactionsSuccess) {
             final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is SessionsError) {
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+              ),
+            );
+          } else if (state is TransactionsError) {
             final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            }
-          } else if (state is SessionsCountLoaded) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          } else if (state is TransactionsCountLoaded) {
             setState(() {
-              _firestoreSessionsCount = state.count;
+              _firestoreTransactionsCount = state.count;
             });
           }
         },
-        child: BlocBuilder<TransactionsBloc, SessionsState>(
+        child: BlocBuilder<TransactionsBloc, TransactionsState>(
           builder: (context, state) {
-            if (state is SessionsLoading) {
+            if (state is TransactionsLoading) {
               return Shimmer.fromColors(
                 baseColor:
                     Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -240,35 +237,39 @@ class _SessionsPageState extends State<SessionsPage> {
                   ),
                 ),
               );
-            } else if (state is SessionsLoaded ||
-                state is SessionsLoadingMore) {
-              final sessions = state is SessionsLoaded
-                  ? state.sessions
-                  : (state as SessionsLoadingMore).sessions;
+            } else if (state is TransactionsLoaded ||
+                state is TransactionsLoadingMore ||
+                state is TransactionsCountLoaded) {
+              final transactions = (state is TransactionsLoaded)
+                  ? state.transactions
+                  : (state is TransactionsLoadingMore)
+                      ? state.transactions
+                      : (state as TransactionsCountLoaded).transactions;
 
-              if (sessions.isEmpty) {
+              if (transactions.isEmpty) {
                 return Center(
-                  child: Text('noSessionsMatch'.tr()),
+                  child: Text('noTransactionsMatch'.tr()),
                 );
               }
 
-              // Group sessions by creation date
-              final groupedSessions = <String, List<SessionModel>>{};
-              for (var session in sessions) {
+              // Group transactions by creation date
+              final groupedTransactions = <String, List<TransactionModel>>{};
+              for (var session in transactions) {
                 final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(session.startDateTime.toDate());
-                groupedSessions
+                    .format(session.transactionDate.toDate());
+                groupedTransactions
                     .putIfAbsent(creationDate, () => [])
                     .add(session);
               }
 
-              // Sort grouped sessions by date in descending order
-              final sortedGroupedSessions = groupedSessions.entries.toList()
+              // Sort grouped transactions by date in descending order
+              final sortedGroupedTransactions = groupedTransactions.entries
+                  .toList()
                 ..sort((a, b) => b.key.compareTo(a.key));
 
               return Column(
                 children: [
-                  // Add a label to show the total number of sessions (like patients_page)
+                  // Add a label to show the total number of transactions (like patients_page)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 8.0, horizontal: 16.0),
@@ -278,7 +279,7 @@ class _SessionsPageState extends State<SessionsPage> {
                         Icon(Icons.assignment, size: 20, color: Colors.blue),
                         const SizedBox(width: 4),
                         Text(
-                          '${sessions.length} ',
+                          '${transactions.length} ',
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -289,12 +290,12 @@ class _SessionsPageState extends State<SessionsPage> {
                           'loaded'.tr(),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        if (_firestoreSessionsCount != null) ...[
+                        if (_firestoreTransactionsCount != null) ...[
                           const SizedBox(width: 16),
                           Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
                           const SizedBox(width: 2),
                           Text(
-                            '$_firestoreSessionsCount',
+                            '$_firestoreTransactionsCount',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -314,11 +315,11 @@ class _SessionsPageState extends State<SessionsPage> {
                   Expanded(
                     child: ListView.builder(
                       controller: _scrollController,
-                      itemCount: sortedGroupedSessions.length,
+                      itemCount: sortedGroupedTransactions.length,
                       itemBuilder: (context, index) {
-                        final dateKey = sortedGroupedSessions[index].key;
-                        final sessionsForDate =
-                            sortedGroupedSessions[index].value;
+                        final dateKey = sortedGroupedTransactions[index].key;
+                        final transactionsForDate =
+                            sortedGroupedTransactions[index].value;
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,12 +333,13 @@ class _SessionsPageState extends State<SessionsPage> {
                                     Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
-                            ...sessionsForDate.map((session) {
-                              return SessionListItem(
-                                sessionModel: session,
+                            ...transactionsForDate.map((session) {
+                              return TransactionListItem(
+                                transaction: session,
                                 onTap: () {
                                   setState(() {
-                                    _selectedIndex = sessions.indexOf(session);
+                                    _selectedIndex =
+                                        transactions.indexOf(session);
                                   });
                                 },
                               );
@@ -347,8 +349,8 @@ class _SessionsPageState extends State<SessionsPage> {
                       },
                     ),
                   ),
-                  if (state is SessionsLoaded && state.isLoadingMore ||
-                      state is SessionsLoadingMore)
+                  if (state is TransactionsLoaded && state.isLoadingMore ||
+                      state is TransactionsLoadingMore)
                     Shimmer.fromColors(
                       baseColor:
                           Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -367,18 +369,18 @@ class _SessionsPageState extends State<SessionsPage> {
                     ),
                 ],
               );
-            } else if (state is SessionsError) {
+            } else if (state is TransactionsError) {
               debugPrint('Error: ${state.message}');
 
               return Center(child: Text('Error: ${state.message}'));
             }
-            return Center(child: Text('noSessionsFound'.tr()));
+            return Center(child: Text('TransactionsFound'.tr()));
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push('/sessions/new');
+          context.push('/transactions/new');
         },
         child: const Icon(Icons.add),
       ),

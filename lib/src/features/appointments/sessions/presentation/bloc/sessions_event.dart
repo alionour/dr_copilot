@@ -67,7 +67,7 @@ class LoadMoreSessions extends SessionsEvent {
   final int? limit;
   final String? lastDocumentId;
 
-  const LoadMoreSessions( {this.lastDocumentId, this.limit});
+  const LoadMoreSessions({this.lastDocumentId, this.limit});
 
   @override
   List<Object?> get props => [lastDocumentId, limit];
@@ -82,8 +82,10 @@ class DetectSessionType extends SessionsEvent {
   List<Object?> get props => [patientId];
 }
 
-
-
+/// Event to trigger fetching the count of sessions.
+///
+/// This event can be dispatched to the [TransactionsBloc] to request
+/// the current number of sessions available.
 class GetSessionsCount extends SessionsEvent {
   const GetSessionsCount();
 

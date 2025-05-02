@@ -107,7 +107,7 @@ class _NavigationSideState extends State<NavigationSide> {
                       child: GestureDetector(
                         onTap: _closeMobileNav,
                         child: Container(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha:0.2),
                         ),
                       ),
                     ),

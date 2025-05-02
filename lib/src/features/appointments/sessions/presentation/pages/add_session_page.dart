@@ -167,7 +167,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
   }
 
   void _detectSessionTypeForPatient(String patientId) {
-    context.read<SessionsBloc>().add(DetectSessionType(patientId));
+    context.read<TransactionsBloc>().add(DetectSessionType(patientId));
   }
 
   void _saveSession() {
@@ -193,7 +193,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
         userId: FirebaseAuth.instance.currentUser?.uid ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
       );
-      context.read<SessionsBloc>().add(AddSession(sessionData));
+      context.read<TransactionsBloc>().add(AddSession(sessionData));
     }
   }
 
@@ -239,7 +239,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
               }
             },
           ),
-          BlocListener<SessionsBloc, SessionsState>(
+          BlocListener<TransactionsBloc, SessionsState>(
             listener: (context, state) {
               if (state is SessionsSuccess) {
                 final message = state.message;
