@@ -217,10 +217,13 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 ),
               );
             } else if (state is EvaluationsLoaded ||
-                state is EvaluationsLoadingMore) {
-              final evaluations = state is EvaluationsLoaded
+                state is EvaluationsLoadingMore ||
+                state is EvaluationsCountLoaded) {
+              final evaluations = (state is EvaluationsLoaded)
                   ? state.evaluations
-                  : (state as EvaluationsLoadingMore).evaluations;
+                  : (state is EvaluationsLoadingMore)
+                      ? state.evaluations
+                      : (state as EvaluationsCountLoaded).evaluations;
 
               if (evaluations.isEmpty) {
                 return Center(
