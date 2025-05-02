@@ -16,6 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
@@ -29,6 +30,19 @@ class NavigationSide extends StatefulWidget {
 class _NavigationSideState extends State<NavigationSide> {
   final FocusNode _navigationFocusNode = FocusNode();
   final FocusNode _contentFocusNode = FocusNode();
+  bool _showMobileNav = false;
+
+  void _toggleMobileNav() {
+    setState(() {
+      _showMobileNav = !_showMobileNav;
+    });
+  }
+
+  void _closeMobileNav() {
+    setState(() {
+      _showMobileNav = false;
+    });
+  }
 
   @override
   void initState() {
@@ -48,250 +62,302 @@ class _NavigationSideState extends State<NavigationSide> {
           debugPrint('User signed out');
         }
       },
-      child: Scaffold(
-        body: Row(
-          children: [
-            BlocBuilder<NavigationBloc, NavigationState>(
-              builder: (context, state) {
-                return Focus(
-                  focusNode: _navigationFocusNode,
-                  onKeyEvent: (FocusNode node, KeyEvent event) {
-                    if (event is KeyDownEvent) {
-                      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-                        _contentFocusNode.requestFocus();
-                        bloc.add(const ChangeFocusEvent(false));
-                        debugPrint('Content focus node requested focus');
-                        return KeyEventResult.handled;
-                      } else if (event.logicalKey ==
-                          LogicalKeyboardKey.arrowDown) {
-                        context.read<NavigationBloc>().add(NavigateDownEvent());
-                        return KeyEventResult.handled;
-                      } else if (event.logicalKey ==
-                          LogicalKeyboardKey.arrowUp) {
-                        context.read<NavigationBloc>().add(NavigateUpEvent());
-                        return KeyEventResult.handled;
-                      }
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: Container(
-                    color: bloc.state.isNavigationFocused
-                        ? Colors.blue.withAlpha((0.2 * 255).toInt())
-                        : Colors.transparent,
-                    padding: const EdgeInsets.all(8.0),
-                    child: BlocBuilder<NavigationBloc, NavigationState>(
-                      builder: (context, state) {
-                        return SideMenu(
-                          mode: SideMenuMode.open,
-                          hasResizer: false,
-                          hasResizerToggle: true,
-                          resizerToggleData: const ResizerToggleData(),
-                          builder: (data) {
-                            return SideMenuData(
-                              header: Column(
-                                children: [
-                                  ListTile(
-                                    leading:
-                                        const Icon(Icons.crop_5_4_outlined),
-                                    title: const Text(
-                                      'Dr Copilot',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ).showOrNull(data.isOpen),
-                                    trailing: const Icon(Icons.search)
-                                        .showOrNull(data.isOpen),
-                                  ),
-                                  // if (data.isOpen) const ChipTabBar()
-                                ],
-                              ),
-                              items: [
-                                ...[
-                                  Destination.calendar,
-                                  Destination.chat,
-                                  Destination.copilot,
-                                  Destination.patients,
-                                  Destination.settings,
-                                  Destination.notifications,
-                                  Destination.charts,
-                                  Destination.financials,
-                                ].map(
-                                  (e) => SideMenuItemDataTile(
-                                    isSelected: state.destination == e,
-                                    onTap: () {
-                                      context
-                                          .read<NavigationBloc>()
-                                          .add(NavigateToEvent(e));
-                                    },
-                                    title: tr(e.model.title),
-                                    tooltip: e.message,
-                                    icon: Icon(
-                                      e.model.icon,
-                                      color: const Color(0xff0055c3),
-                                    ),
-                                  ),
-                                ),
-                                if (data.isOpen)
-                                  SideMenuItemDataTitle(
-                                      title: 'appointments'.tr(),
-                                      padding:
-                                          const EdgeInsetsDirectional.all(8)),
-                                ...[
-                                  Destination.sessions,
-                                  Destination.evaluations
-                                ].map(
-                                  (e) => SideMenuItemDataTile(
-                                    isSelected: state.destination == e,
-                                    onTap: () {
-                                      context
-                                          .read<NavigationBloc>()
-                                          .add(NavigateToEvent(e));
-                                    },
-                                    title: tr(e.model.title),
-                                    tooltip: e.message,
-                                    icon: Icon(
-                                      e.model.icon,
-                                      color: const Color(0xff0055c3),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              footer: data.isOpen
-                                  ? BlocBuilder<NavigationBloc,
-                                          NavigationState>(
-                                      builder:
-                                          (context, NavigationState state) {
-                                      final String profileImageUrl =
-                                          state.user?.photoURL ?? '';
-                                      return ListTile(
-                                        title:
-                                            Text(state.user?.displayName ?? '')
-                                                .showOrNull(data.isOpen),
-                                        leading: profileImageUrl.isNotEmpty
-                                            ? InkWell(
-                                                onTap: () {
-                                                  context.go(
-                                                      '/account'); // Navigate to the account page when tapped
-                                                },
-                                                child: Container(
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle),
-                                                  child: ClipOval(
-                                                    child: CachedNetworkImage(
-                                                      imageUrl: profileImageUrl,
-                                                      cacheKey: state.user
-                                                          ?.uid, // Use the user's UID as a unique cache key
-                                                      placeholder: (ctx, url) =>
-                                                          const Icon(Icons
-                                                              .person_pin), // Placeholder icon while loading
-                                                      errorWidget: (context,
-                                                          url, error) {
-                                                        debugPrint(
-                                                            'Failed to load image: $error'); // Log errors if the image fails to load
-                                                        return const SizedBox(); // Return an empty widget on error
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                            : const Icon(Icons
-                                                .person_3_outlined), // Default icon if no profile image is available
-                                      );
-                                    })
-                                  : const SizedBox(),
-                            );
-                          },
-                        );
-                      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+          if (isMobile) {
+            // MOBILE: Stack with menu button and overlay nav
+            return Scaffold(
+              body: Stack(
+                children: [
+                  // Main content
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.transparent,
+                      child: _buildContent(context, bloc),
                     ),
                   ),
-                );
-              },
-            ),
-            Expanded(
-              child: BlocBuilder<NavigationBloc, NavigationState>(
-                builder: (context, state) {
-                  return Focus(
-                    focusNode: _contentFocusNode,
-                    onKeyEvent: (FocusNode node, KeyEvent event) {
-                      if (event is KeyDownEvent) {
-                        if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                          _navigationFocusNode.requestFocus();
-                          bloc.add(const ChangeFocusEvent(true));
-                          debugPrint('Navigation focus node requested focus');
-                          return KeyEventResult.handled;
-                        }
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: Container(
-                      color: !bloc.state.isNavigationFocused
-                          ? Colors.blue.withAlpha((0.2 * 255).toInt())
-                          : Colors.transparent,
-                      padding: const EdgeInsets.all(8),
-                      child: BlocBuilder<NavigationBloc, NavigationState>(
-                        builder: (context, state) {
-                          if (state.destination == Destination.copilot) {
-                            return const Center(
-                                child: CopilotPage(
-                              title: 'Dr Copilot',
-                            ));
-                          } else if (state.destination ==
-                              Destination.calendar) {
-                            return const Center(
-                              child: CalendarPage(),
-                            );
-                          } else if (state.destination ==
-                              Destination.settings) {
-                            return const Center(
-                              child: SettingsPage(),
-                            );
-                          } else if (state.destination ==
-                              Destination.notifications) {
-                            return const Center(
-                              child: NotificationsPage(),
-                            );
-                          } else if (state.destination ==
-                              Destination.patients) {
-                            return const PatientsPage();
-                          } else if (state.destination ==
-                              Destination.sessions) {
-                            return const Center(
-                              child: SessionsPage(),
-                            );
-                          } else if (state.destination ==
-                              Destination.evaluations) {
-                            return const Center(
-                              child: EvaluationsPage(),
-                            );
-                          } else if (state.destination == Destination.charts) {
-                            return const Center(
-                              child: ChartsPage(),
-                            );
-                          } else if (state.destination ==
-                              Destination.financials) {
-                            return const Center(
-                              child: FinancialsPage(),
-                            );
-                          } else {
-                            return const SizedBox();
-                          }
-                        },
+                  // Menu icon button (only when nav is closed)
+
+                  // Sidebar overlay
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 250),
+                    left: _showMobileNav ? 0 : -240,
+                    top: 0,
+                    bottom: 0,
+                    child: SizedBox(
+                      width: 240,
+                      child: Material(
+                        elevation: 16,
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: _buildSideMenu(context, bloc,
+                              onItemTap: _closeMobileNav),
+                        ),
                       ),
                     ),
-                  );
-                },
+                  ),
+                  // Fade overlay when nav is open
+                  if (_showMobileNav)
+                    Positioned(
+                      left: 240,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: GestureDetector(
+                        onTap: _closeMobileNav,
+                        child: Container(
+                          color: Colors.black.withOpacity(0.2),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ),
-          ],
-        ),
+            );
+          } else {
+            // DESKTOP/TABLET: Always show sidebar
+            return Scaffold(
+              body: Row(
+                children: [
+                  _buildSideMenu(context, bloc),
+                  Expanded(child: _buildContent(context, bloc)),
+                ],
+              ),
+            );
+          }
+        },
       ),
     );
   }
-}
 
-/// Extension method to conditionally show a widget.
-extension on Widget {
-  Widget? showOrNull(bool isShow) => isShow ? this : null;
+  Widget _buildSideMenu(BuildContext context, NavigationBloc bloc,
+      {VoidCallback? onItemTap}) {
+    return BlocBuilder<NavigationBloc, NavigationState>(
+      builder: (context, state) {
+        return Focus(
+          focusNode: _navigationFocusNode,
+          onKeyEvent: (FocusNode node, KeyEvent event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                _contentFocusNode.requestFocus();
+                bloc.add(const ChangeFocusEvent(false));
+                debugPrint('Content focus node requested focus');
+                return KeyEventResult.handled;
+              } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                context.read<NavigationBloc>().add(NavigateDownEvent());
+                return KeyEventResult.handled;
+              } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                context.read<NavigationBloc>().add(NavigateUpEvent());
+                return KeyEventResult.handled;
+              }
+            }
+            return KeyEventResult.ignored;
+          },
+          child: Container(
+            color: bloc.state.isNavigationFocused
+                ? Colors.blue.withAlpha((0.2 * 255).toInt())
+                : Colors.transparent,
+            padding: const EdgeInsets.all(8.0),
+            child: BlocBuilder<NavigationBloc, NavigationState>(
+              builder: (context, state) {
+                return SideMenu(
+                  mode: SideMenuMode.open,
+                  hasResizer: false,
+                  hasResizerToggle: MediaQuery.of(context).size.width >=
+                      600, // false on mobile, true otherwise
+                  builder: (data) {
+                    return SideMenuData(
+                      header: data.isOpen
+                          ? Column(
+                              children: [
+                                ListTile(
+                                  title: Text(
+                                    'drCopilot'.tr(),
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : null,
+                      items: [
+                        ...[
+                          Destination.calendar,
+                          Destination.chat,
+                          Destination.copilot,
+                          Destination.patients,
+                          Destination.settings,
+                          Destination.notifications,
+                          Destination.charts,
+                          Destination.financials,
+                        ].map((e) => SideMenuItemDataTile(
+                              isSelected: state.destination == e,
+                              onTap: () {
+                                context
+                                    .read<NavigationBloc>()
+                                    .add(NavigateToEvent(e));
+                                if (onItemTap != null) onItemTap();
+                              },
+                              title: tr(e.model.title),
+                              tooltip: e.message,
+                              icon: Icon(e.model.icon,
+                                  color: const Color(0xff0055c3)),
+                            )),
+                        if (data.isOpen)
+                          SideMenuItemDataTitle(
+                              title: 'appointments'.tr(),
+                              padding: const EdgeInsetsDirectional.all(8)),
+                        ...[Destination.sessions, Destination.evaluations]
+                            .map((e) => SideMenuItemDataTile(
+                                  isSelected: state.destination == e,
+                                  onTap: () {
+                                    context
+                                        .read<NavigationBloc>()
+                                        .add(NavigateToEvent(e));
+                                    if (onItemTap != null) onItemTap();
+                                  },
+                                  title: tr(e.model.title),
+                                  tooltip: e.message,
+                                  icon: Icon(e.model.icon,
+                                      color: const Color(0xff0055c3)),
+                                )),
+                      ],
+                      footer: data.isOpen
+                          ? BlocBuilder<NavigationBloc, NavigationState>(
+                              builder: (context, NavigationState state) {
+                              final String profileImageUrl =
+                                  state.user?.photoURL ?? '';
+                              return ListTile(
+                                title: Text(state.user?.displayName ?? ''),
+                                leading: profileImageUrl.isNotEmpty
+                                    ? InkWell(
+                                        onTap: () {
+                                          context.go('/account');
+                                        },
+                                        child: Container(
+                                          decoration: const BoxDecoration(
+                                              shape: BoxShape.circle),
+                                          child: ClipOval(
+                                            child: CachedNetworkImage(
+                                              imageUrl: profileImageUrl,
+                                              cacheKey: state.user?.uid,
+                                              placeholder: (ctx, url) =>
+                                                  const Icon(Icons.person_pin),
+                                              errorWidget:
+                                                  (context, url, error) {
+                                                debugPrint(
+                                                    'Failed to load image: $error');
+                                                return const SizedBox();
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : const Icon(Icons.person_3_outlined),
+                              );
+                            })
+                          : null,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, NavigationBloc bloc) {
+    return BlocBuilder<NavigationBloc, NavigationState>(
+      builder: (context, state) {
+        return Focus(
+          focusNode: _contentFocusNode,
+          onKeyEvent: (FocusNode node, KeyEvent event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                _navigationFocusNode.requestFocus();
+                bloc.add(const ChangeFocusEvent(true));
+                debugPrint('Navigation focus node requested focus');
+                return KeyEventResult.handled;
+              }
+            }
+            return KeyEventResult.ignored;
+          },
+          child: Container(
+            color: !bloc.state.isNavigationFocused
+                ? Colors.blue.withAlpha((0.2 * 255).toInt())
+                : Colors.transparent,
+            padding: const EdgeInsets.all(8),
+            child: Builder(builder: (context) {
+              final isMobile = MediaQuery.of(context).size.width < 600;
+              if (isMobile) {
+                return NavMenuButtonProvider(
+                  navMenuButton: NavMenuButton(
+                    showMobileNav: _showMobileNav,
+                    tooltip: 'Open navigation',
+                    onTap: _toggleMobileNav,
+                  ),
+                  child: BlocBuilder<NavigationBloc, NavigationState>(
+                    builder: (context, state) {
+                      if (state.destination == Destination.copilot) {
+                        return const Center(
+                            child: CopilotPage(title: 'Dr Copilot'));
+                      } else if (state.destination == Destination.calendar) {
+                        return const Center(child: CalendarPage());
+                      } else if (state.destination == Destination.settings) {
+                        return const Center(child: SettingsPage());
+                      } else if (state.destination ==
+                          Destination.notifications) {
+                        return const Center(child: NotificationsPage());
+                      } else if (state.destination == Destination.patients) {
+                        return const PatientsPage();
+                      } else if (state.destination == Destination.sessions) {
+                        return const Center(child: SessionsPage());
+                      } else if (state.destination == Destination.evaluations) {
+                        return const Center(child: EvaluationsPage());
+                      } else if (state.destination == Destination.charts) {
+                        return const Center(child: ChartsPage());
+                      } else if (state.destination == Destination.financials) {
+                        return const Center(child: FinancialsPage());
+                      } else {
+                        return const SizedBox();
+                      }
+                    },
+                  ),
+                );
+              } else {
+                return BlocBuilder<NavigationBloc, NavigationState>(
+                  builder: (context, state) {
+                    if (state.destination == Destination.copilot) {
+                      return const Center(
+                          child: CopilotPage(title: 'Dr Copilot'));
+                    } else if (state.destination == Destination.calendar) {
+                      return const Center(child: CalendarPage());
+                    } else if (state.destination == Destination.settings) {
+                      return const Center(child: SettingsPage());
+                    } else if (state.destination == Destination.notifications) {
+                      return const Center(child: NotificationsPage());
+                    } else if (state.destination == Destination.patients) {
+                      return const PatientsPage();
+                    } else if (state.destination == Destination.sessions) {
+                      return const Center(child: SessionsPage());
+                    } else if (state.destination == Destination.evaluations) {
+                      return const Center(child: EvaluationsPage());
+                    } else if (state.destination == Destination.charts) {
+                      return const Center(child: ChartsPage());
+                    } else if (state.destination == Destination.financials) {
+                      return const Center(child: FinancialsPage());
+                    } else {
+                      return const SizedBox();
+                    }
+                  },
+                );
+              }
+            }),
+          ),
+        );
+      },
+    );
+  }
 }
