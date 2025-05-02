@@ -80,37 +80,39 @@ class _PatientsPageState extends State<PatientsPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            Expanded(
-              child: Focus(
-                focusNode: _searchFocusNode,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'searchPatients'.tr(),
-                    prefixIcon: Icon(Icons.search,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 0.3),
+            if (!(isMobile && _showFilters))
+              Expanded(
+                child: Focus(
+                  focusNode: _searchFocusNode,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'searchPatients'.tr(),
+                      prefixIcon: Icon(Icons.search,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 0.3),
+                      ),
+                      hintStyle: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
-                    hintStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    onChanged: (newQuery) {
+                      setState(() {
+                        query = newQuery;
+                        _selectedIndex = 0; // Reset selection on new query
+                      });
+                      context.read<PatientsBloc>().add(
+                          SearchPatients(name: query)); // Trigger search event
+                    },
+                    onSubmitted: (_) {
+                      _listFocusNode.requestFocus();
+                    },
                   ),
-                  onChanged: (newQuery) {
-                    setState(() {
-                      query = newQuery;
-                      _selectedIndex = 0; // Reset selection on new query
-                    });
-                    context.read<PatientsBloc>().add(
-                        SearchPatients(name: query)); // Trigger search event
-                  },
-                  onSubmitted: (_) {
-                    _listFocusNode.requestFocus();
-                  },
                 ),
               ),
-            ),
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'refresh'.tr(),
