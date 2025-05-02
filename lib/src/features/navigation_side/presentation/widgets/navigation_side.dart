@@ -188,7 +188,7 @@ class _NavigationSideState extends State<NavigationSide> {
                           Destination.patients,
                           Destination.settings,
                           Destination.notifications,
-                          Destination.charts,
+                          // Destination.charts,
                           Destination.financials,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,

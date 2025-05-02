@@ -4,7 +4,12 @@ part of 'calendar_bloc.dart';
 /// 
 /// This class is sealed, meaning it cannot be extended outside of this file.
 sealed class CalendarState extends Equatable {
-  const CalendarState();
+  /// A list of [Event] objects representing the events in the calendar.
+  /// 
+  /// This list is immutable and initialized as an empty constant list.
+  final List<Event> events ;
+
+  const CalendarState(this.events);
 
   /// Provides a list of properties for comparison.
   /// 
@@ -12,30 +17,33 @@ sealed class CalendarState extends Equatable {
   /// 
   /// @return A list of properties to compare.
   @override
-  List<Object> get props => [];
+  List<Object> get props => [events];
 }
 
 /// Initial state of the calendar, before any events have been loaded.
-final class CalendarInitial extends CalendarState {}
+final class CalendarInitial extends CalendarState {
+  const CalendarInitial() : super(const []);
+
+  
+}
 
 /// State when calendar events are being loaded.
-final class CalendarEventsLoading extends CalendarState {}
+final class CalendarEventsLoading extends CalendarState {
+  const CalendarEventsLoading() : super(const []);
+}
 
 /// State when the list of calendars is being loaded.
-final class CalendarsLoading extends CalendarState {}
+final class CalendarsLoading extends CalendarState {
+  const CalendarsLoading() : super(const []);
+}
 
 /// State when calendar events have been successfully loaded.
 /// 
 /// Contains a list of loaded events and their corresponding calendar colors.
 final class CalendarEventsLoaded extends CalendarState {
-  final List<Event> events;
   final Map<String, Color> calendarColors;
 
-  /// Constructor for CalendarEventsLoaded state.
-  /// 
-  /// @param events The list of loaded events.
-  /// @param calendarColors The map of calendar IDs to their colors.
-  const CalendarEventsLoaded(this.events, this.calendarColors);
+  const CalendarEventsLoaded(super.events, this.calendarColors);
 
   /// Provides a list of properties for comparison.
   /// 
@@ -55,7 +63,7 @@ final class CalendarsLoaded extends CalendarState {
   /// Constructor for CalendarsLoaded state.
   /// 
   /// @param calendars The list of loaded calendar list entries.
-  const CalendarsLoaded(this.calendars);
+  const CalendarsLoaded(this.calendars) : super(const []);
 
   /// Provides a list of properties for comparison.
   /// 

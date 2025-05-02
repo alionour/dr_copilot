@@ -1,3 +1,5 @@
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/transactions_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/wallet_page.dart';
@@ -36,7 +38,15 @@ class _FinancialsPageState extends State<FinancialsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
     return Scaffold(
+       appBar: AppBar(
+        title: Text('financials'.tr()),
+        leading: Icon(Icons.attach_money_outlined),
+        actions: [navMenuButton ?? SizedBox()],
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0.5,
+      ),
       body: Center(
         child: _pages[_selectedIndex],
       ),
