@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart'
     as custom;
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -130,7 +131,15 @@ class _CopilotPageState extends State<CopilotPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
     return Scaffold(
+       appBar: AppBar(
+        title: Text('copilotChat'.tr()),
+        leading: Icon(Icons.chat),
+        actions: [navMenuButton ?? SizedBox()],
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0.5,
+      ),
       body: Column(
         children: <Widget>[
           Expanded(

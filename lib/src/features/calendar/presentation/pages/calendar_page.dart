@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/calendar/presentation/bloc/calendar_bloc.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,79 +47,26 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
     return BlocProvider(
       create: (context) => CalendarBloc(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('calendarTitle'.tr()),
-          centerTitle: true,
-          actions: [
-            DropdownButtonHideUnderline(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12), // Circular borders
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: DropdownButton<CalendarView>(
-                  value: _calendarView,
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                  dropdownColor: Theme.of(context).colorScheme.surface,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 16,
-                  ),
-                  onChanged: (CalendarView? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        debugPrint(
-                            'Selected calendar view: $newValue'); // Debugging
-                        _calendarView = newValue;
-                      });
-                    }
-                  },
-                  items: <CalendarView>[
-                    CalendarView.day,
-                    CalendarView.week,
-                    CalendarView.workWeek,
-                    CalendarView.month,
-                    CalendarView.timelineDay,
-                    CalendarView.timelineWeek,
-                    CalendarView.timelineWorkWeek,
-                    CalendarView.timelineMonth,
-                  ].map<DropdownMenuItem<CalendarView>>((CalendarView value) {
-                    return DropdownMenuItem<CalendarView>(
-                      value: value,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                              'calendarView.${value.toString().split('.').last}'
-                                  .tr()),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+          title: InkWell(
+            borderRadius: BorderRadius.circular(6),
+            // onTap: () => _showCalendarViewSelection(context),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('calendarTitle'.tr()),
+                const SizedBox(width: 4),
+                Icon(Icons.arrow_drop_down,
+                    color: Theme.of(context).colorScheme.onPrimary),
+              ],
             ),
-          ],
-        ),
-        floatingActionButton: BlocBuilder<CalendarBloc, CalendarState>(
-          builder: (context, state) {
-            return FloatingActionButton(
-              onPressed: () {
-                _navigateToAddEvent(context);
-              },
-              tooltip: 'addEventTooltip'.tr(),
-              child: const Icon(Icons.add),
-            );
-          },
+          ),
+          leading: Icon(Icons.calendar_month_outlined),
+          actions: [navMenuButton ?? SizedBox()],
         ),
         body: Builder(
           builder: (context) {
@@ -138,6 +86,13 @@ class _CalendarPageState extends State<CalendarPage> {
                     view: _calendarView, // Ensure this is bound to the state
                     dataSource:
                         GoogleCalendarDataSource(events, calendarColors),
+                    onTap: (calendarTapDetails) {
+                      if (calendarTapDetails.targetElement ==
+                          CalendarElement.header) {
+                        // show modal bottom sheet
+                        _showCalendarViewSelection(context);
+                      }
+                    },
                     allowAppointmentResize: true,
                     allowDragAndDrop: true,
                     onViewChanged: (ViewChangedDetails details) {
@@ -160,6 +115,76 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
       ),
     );
+  }
+
+  // This method is used to show the modal bottom sheet for selecting calendar view
+  void _showCalendarViewSelection(BuildContext context) async {
+    final selected = await showModalBottomSheet<CalendarView>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final maxHeight = MediaQuery.of(context).size.height * 0.6;
+        return SafeArea(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: maxHeight,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(
+                      'calendarView.selectView'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  ...<CalendarView>[
+                    CalendarView.day,
+                    CalendarView.week,
+                    CalendarView.workWeek,
+                    CalendarView.month,
+                    CalendarView.timelineDay,
+                    CalendarView.timelineWeek,
+                    CalendarView.timelineWorkWeek,
+                    CalendarView.timelineMonth,
+                  ].map((view) => ListTile(
+                        leading: Icon(Icons.calendar_month_outlined,
+                            color: Theme.of(context).colorScheme.primary),
+                        title: Text(
+                          'calendarView.${view.toString().split('.').last}'
+                              .tr(),
+                          style: TextStyle(
+                            fontWeight: _calendarView == view
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _calendarView == view
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
+                        ),
+                        selected: _calendarView == view,
+                        onTap: () {
+                          Navigator.of(context).pop(view);
+                        },
+                      )),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    if (selected != null && selected != _calendarView) {
+      setState(() {
+        _calendarView = selected;
+      });
+    }
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/core/theme/theme.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -27,9 +28,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('settings'.tr()),
+        leading: Icon(Icons.settings),
+        actions: [navMenuButton ?? SizedBox()],
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0.5,
       ),
       body: Focus(
         focusNode: _focusNode,

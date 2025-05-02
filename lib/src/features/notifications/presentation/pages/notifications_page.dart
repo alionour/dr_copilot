@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -8,9 +9,14 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('notifications'.tr()),
+        title: Text('notifcations'.tr()),
+        leading: Icon(Icons.notifications_active_outlined),
+        actions: [navMenuButton ?? SizedBox()],
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0.5,
       ),
       body: ListView.builder(
         itemCount: 10, // Replace with the actual number of notifications

@@ -183,7 +183,7 @@ class _NavigationSideState extends State<NavigationSide> {
                       items: [
                         ...[
                           Destination.calendar,
-                          Destination.chat,
+                          // Destination.chat,
                           Destination.copilot,
                           Destination.patients,
                           Destination.settings,
