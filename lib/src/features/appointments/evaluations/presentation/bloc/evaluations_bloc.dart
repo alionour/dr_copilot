@@ -158,12 +158,14 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   Future<void> _onGetEvaluationsCount(
       GetEvaluationsCount event, Emitter<EvaluationsState> emit) async {
+        debugPrint('Fetching evaluations count...');
     final result = await _evaluationsUseCase.repository.getEvaluationsCount();
     result.fold(
       (failure) =>
           emit(EvaluationsError(state.evaluations, message: failure.message)),
       (count) => emit(EvaluationsCountLoaded(count, state.evaluations)),
     );
+    debugPrint('Evaluations count: $result');
   }
 
   String _mapFailureToMessage(Failure failure) {

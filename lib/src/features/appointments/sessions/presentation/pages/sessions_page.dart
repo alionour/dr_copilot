@@ -191,7 +191,6 @@ class _SessionsPageState extends State<SessionsPage> {
               ),
             ),
             if (navMenuButton != null) navMenuButton,
-          
           ],
         ),
       ),
@@ -213,6 +212,10 @@ class _SessionsPageState extends State<SessionsPage> {
                 SnackBar(content: Text(message)),
               );
             }
+          } else if (state is SessionsCountLoaded) {
+            setState(() {
+              _firestoreSessionsCount = state.count;
+            });
           }
         },
         child: BlocBuilder<SessionsBloc, SessionsState>(

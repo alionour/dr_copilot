@@ -109,7 +109,7 @@
   "filterByDate": "Filter By Date",
   "noEvaluationsMatch": "No evaluations match the applied filters.",
   "noSessionsMatch": "No sessions match the applied filters.",
-  "NoEvaluationsFound": "No evaluations found.",
+  "noEvaluations": "No evaluations found.",
   "noSessionsFound": "No sessions found.",
   "tapToViewDetails": "Tap to view details",
   "maximumAllowedDuration": "The maximum allowed duration is 4 hours.",

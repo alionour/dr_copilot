@@ -31,6 +31,7 @@ class _PatientsPageState extends State<PatientsPage> {
   int? _maxAge;
   String? _selectedAddress; // Add a variable to store the selected address
   bool _canLoadMore = true; // Add a flag to control loading more patients
+  int? _firestorePatientsCount;
 
   @override
   void initState() {
@@ -39,9 +40,8 @@ class _PatientsPageState extends State<PatientsPage> {
       debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
     });
     _scrollController.addListener(_onScroll);
-    context
-        .read<PatientsBloc>()
-        .add(const GetPatients()); // Fetch patients on init
+    context.read<PatientsBloc>().add(const GetPatients());
+    context.read<PatientsBloc>().add(GetPatientsCount());
   }
 
   @override
@@ -402,15 +402,11 @@ class _PatientsPageState extends State<PatientsPage> {
               ],
             ),
             if (navMenuButton != null) navMenuButton,
-          
           ],
         ),
       ),
       body: Column(
         children: [
-          if (isMobile)
-            const SizedBox(
-                height: 48, width: 48), // Reserve space for menu icon
           Expanded(
             child: BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, navState) {
@@ -433,6 +429,11 @@ class _PatientsPageState extends State<PatientsPage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(message)),
                       );
+                    }
+                    if (state is PatientsCountLoaded) {
+                      setState(() {
+                        _firestorePatientsCount = state.count;
+                      });
                     }
                   },
                   child: BlocBuilder<PatientsBloc, PatientsState>(
@@ -459,20 +460,24 @@ class _PatientsPageState extends State<PatientsPage> {
                             },
                           ),
                         );
-                      } else if (state is PatientsLoaded &&
-                          state.patients.isEmpty) {
-                        return Center(child: Text('noPatients'.tr()));
-                      } else if (state is PatientsLoaded) {
-                        final filteredPatients =
-                            state.patients.where((patient) {
-                          return patient.name
-                              .toLowerCase()
-                              .contains(query.toLowerCase());
-                        }).toList();
+                      } else if (state is PatientsLoaded ||
+                          state is PatientsLoadingMore ||
+                          state is PatientsCountLoaded) {
+                        final patients = (state is PatientsLoaded)
+                            ? state.patients
+                            : (state is PatientsLoadingMore)
+                                ? state.patients
+                                : (state as PatientsCountLoaded).patients;
+
+                        if (patients.isEmpty) {
+                          return Center(
+                            child: Text('noPatientsMatchsMatch'.tr()),
+                          );
+                        }
 
                         // Group patients by creation date
                         final groupedPatients = <String, List<PatientModel>>{};
-                        for (var patient in filteredPatients) {
+                        for (var patient in patients) {
                           if (patient.createdAt != null) {
                             final creationDate = DateFormat('yyyy-MM-dd')
                                 .format(patient.createdAt!.toDate());
@@ -486,7 +491,7 @@ class _PatientsPageState extends State<PatientsPage> {
                           }
                         }
 
-                        // Sort grouped patients by date in descending order
+                        // Sort grouped sessions by date in descending order
                         final sortedGroupedPatients = groupedPatients.entries
                             .toList()
                           ..sort((a, b) => b.key.compareTo(a.key));
@@ -503,7 +508,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                       size: 20, color: Colors.blue),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${filteredPatients.length} ',
+                                    '${patients.length} ',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge
@@ -517,6 +522,28 @@ class _PatientsPageState extends State<PatientsPage> {
                                     style:
                                         Theme.of(context).textTheme.bodyLarge,
                                   ),
+                                  if (_firestorePatientsCount != null) ...[
+                                    const SizedBox(width: 16),
+                                    Icon(Icons.cloud,
+                                        size: 18, color: Colors.deepPurple),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '$_firestorePatientsCount',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.deepPurple,
+                                          ),
+                                    ),
+                                    Text(
+                                      ' ${'storedPatients'.tr()} ',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
+                                    ),
+                                  ]
                                 ],
                               ),
                             ),
@@ -546,23 +573,21 @@ class _PatientsPageState extends State<PatientsPage> {
                                       ),
                                       ...patientsForDate.map((patient) {
                                         return Container(
-                                          color:
-                                              !navState.isNavigationFocused &&
-                                                      _selectedIndex ==
-                                                          filteredPatients
-                                                              .indexOf(patient)
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                      .withValues(alpha: 0.2)
-                                                  : Colors.transparent,
+                                          color: !navState
+                                                      .isNavigationFocused &&
+                                                  _selectedIndex ==
+                                                      patients.indexOf(patient)
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.2)
+                                              : Colors.transparent,
                                           child: PatientListItem(
                                             patientModel: patient,
                                             onTap: () {
                                               setState(() {
                                                 _selectedIndex =
-                                                    filteredPatients
-                                                        .indexOf(patient);
+                                                    patients.indexOf(patient);
                                               });
                                             },
                                           ),
@@ -573,7 +598,9 @@ class _PatientsPageState extends State<PatientsPage> {
                                 },
                               ),
                             ),
-                            if (state.isLoadingMore)
+                            if ((state is PatientsLoaded &&
+                                    state.isLoadingMore) ||
+                                state is PatientsLoadingMore)
                               Shimmer.fromColors(
                                 baseColor: Colors.grey[300]!,
                                 highlightColor: Colors.grey[100]!,

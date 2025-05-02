@@ -177,7 +177,6 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   /// - [emit]: The function used to emit new [SessionsState]s.
   void _onGetSessionsCount(
       GetSessionsCount event, Emitter<SessionsState> emit) async {
-    emit(SessionsLoading(state.sessions));
     final failureOrCount = await _sessionsUseCase.getSessionsCount();
     emit(failureOrCount.fold(
       (failure) =>

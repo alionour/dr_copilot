@@ -176,7 +176,6 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onGetPatientsCount(
       GetPatientsCount event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading(state.patients));
     final failureOrCount = await _patientsUseCase.getPatientsCount();
     emit(failureOrCount.fold(
       (failure) =>

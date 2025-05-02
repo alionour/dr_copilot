@@ -28,16 +28,12 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
   bool _canLoadMore = true; // Add a flag to control loading more evaluations
   int? _firestoreEvaluationsCount;
 
-  void _dispatchGetEvaluationsCount() {
-    context.read<EvaluationsBloc>().add(const GetEvaluationsCount());
-  }
-
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     context.read<EvaluationsBloc>().add(const GetEvaluations());
-    _dispatchGetEvaluationsCount();
+    context.read<EvaluationsBloc>().add(const GetEvaluationsCount());
   }
 
   @override
@@ -191,7 +187,6 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               ),
             ),
             if (navMenuButton != null) navMenuButton,
-          
           ],
         ),
       ),
@@ -270,25 +265,29 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           'evaluationsLoaded'.tr(),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        if (_firestoreEvaluationsCount != null) ...[
-                          const SizedBox(width: 16),
-                          Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
-                          const SizedBox(width: 2),
-                          Text(
-                            '$_firestoreEvaluationsCount',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
-                                ),
+                        if (_firestoreEvaluationsCount != null)
+                          Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              Icon(Icons.cloud,
+                                  size: 18, color: Colors.deepPurple),
+                              const SizedBox(width: 2),
+                              Text(
+                                '$_firestoreEvaluationsCount',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurple,
+                                    ),
+                              ),
+                              Text(
+                                ' ${'storedEvaluations'.tr()} ',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
                           ),
-                          Text(
-                            ' ${'storedEvaluations'.tr()} ',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ]
                       ],
                     ),
                   ),
