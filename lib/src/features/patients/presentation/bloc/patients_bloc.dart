@@ -127,6 +127,7 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onLoadMorePatients(
       LoadMorePatients event, Emitter<PatientsState> emit) async {
+        debugPrint('LoadMorePatients event triggered with lastDocumentId: ${event.lastDocumentId} and limit: ${event.limit}');
     if (state is PatientsLoaded) {
       final currentState = state as PatientsLoaded;
       if (currentState.isLoadingMore) return;

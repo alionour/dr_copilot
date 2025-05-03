@@ -29,11 +29,14 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   }
 
   /// Handles fetching all financial transactions.
-  Future<void> _onGetTransactions(
+  void _onGetTransactions(
       GetTransactions event, Emitter<TransactionsState> emit) async {
     emit(TransactionsLoading(state.transactions));
-    final result = await _transactionsUseCase.getTransactions();
-    emit(result.fold(
+    final failureOrTransactions = await _transactionsUseCase.getTransactions(
+      lastDocumentId: event.lastDocumentID,
+      limit: event.limit,
+    );
+    emit(failureOrTransactions.fold(
       (failure) => TransactionsError(state.transactions,
           message: _mapFailureToMessage(failure)),
       (transactions) => TransactionsLoaded(transactions),
@@ -117,9 +120,17 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
 
   Future<void> _onLoadMoreTransactions(
       LoadMoreTransactions event, Emitter<TransactionsState> emit) async {
+    debugPrint(
+        'Bloc: _onLoadMoreTransactions called with lastDocumentId: ${event.lastDocumentId}, limit: ${event.limit}');
+    debugPrint('Bloc: Current state is ${state.runtimeType}');
     if (state is TransactionsLoaded) {
       final currentState = state as TransactionsLoaded;
-      if (currentState.isLoadingMore) return;
+      debugPrint(
+          'Bloc: TransactionsLoaded, isLoadingMore: ${currentState.isLoadingMore}');
+      if (currentState.isLoadingMore) {
+        debugPrint('Bloc: Already loading more, returning');
+        return;
+      }
 
       emit(TransactionsLoaded(currentState.transactions, isLoadingMore: true));
       await Future.delayed(Duration(seconds: 1));
@@ -131,13 +142,13 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       result.fold(
         (failure) {
           debugPrint(
-              'LoadMoreSessions failed: ${_mapFailureToMessage(failure)}');
+              'LoadMoreTransactions failed: ${_mapFailureToMessage(failure)}');
           emit(TransactionsError(currentState.transactions,
               message: _mapFailureToMessage(failure)));
         },
         (newTransactions) {
           debugPrint(
-              'Fetched ${newTransactions.length} new sessions: ${newTransactions.map((s) => s.id).toList()}');
+              'Fetched ${newTransactions.length} new transactions: ${newTransactions.map((s) => s.id).toList()}');
           final updatedTransactions =
               List<TransactionModel>.from(currentState.transactions)
                 ..addAll(newTransactions.where((newSession) =>
@@ -148,6 +159,8 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
           emit(TransactionsLoaded(updatedTransactions));
         },
       );
+    } else {
+      debugPrint('Bloc: State is not TransactionsLoaded, skipping load more');
     }
   }
 
@@ -183,8 +196,10 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       (failure) => TransactionsError(state.transactions,
           message: _mapFailureToMessage(failure)),
       (count) {
-        debugPrint('Total sessions count: $count');
-        return TransactionsCountLoaded(count, state.transactions);
+        debugPrint('Total transactions count: $count');
+
+        emit(TransactionsCountLoaded(count, state.transactions));
+        return TransactionsLoaded(state.transactions);
       },
     ));
   }

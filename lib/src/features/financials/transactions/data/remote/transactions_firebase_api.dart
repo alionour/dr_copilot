@@ -39,7 +39,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Fetches transactions with optional pagination.
   @override
   Future<Either<Failure, List<TransactionModel>>> getTransactions({
-    String? lastDocumentID,
+    String? lastDocumentId,
     int limit = 20,
   }) async {
     try {
@@ -47,9 +47,9 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
           .orderBy('createdAt', descending: true)
           .limit(limit);
 
-      if (lastDocumentID != null) {
+      if (lastDocumentId != null) {
         final lastDocumentSnapshot =
-            await _transactionsCollection.doc(lastDocumentID).get();
+            await _transactionsCollection.doc(lastDocumentId).get();
         query = query.startAfterDocument(lastDocumentSnapshot);
       }
 
@@ -177,7 +177,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
             .limit(limit);
 
         if (lastDocumentID != null) {
-          final lastDocSnapshot = await _transactionsCollection.doc(lastDocumentID).get();
+          final lastDocSnapshot =
+              await _transactionsCollection.doc(lastDocumentID).get();
           queryRef = queryRef.startAfterDocument(lastDocSnapshot);
         }
 
@@ -202,8 +203,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     }
   }
 
-
-    /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
+  /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
   @override
   Future<Either<Failure, int>> getTransactionsCount() async {
     if (!await _isAuthenticated()) {

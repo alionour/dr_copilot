@@ -4,9 +4,9 @@ import 'package:dr_copilot/src/features/financials/transactions/domain/models/tr
 
 /// Abstract repository for financial transactions.
 abstract class AbstractTransactionsRepository {
-  /// Fetches all transactions. 
+  /// Fetches all transactions.
   Future<Either<Failure, List<TransactionModel>>> getTransactions({
-    String? lastDocumentID,
+    String? lastDocumentId,
     int limit = 20,
   });
 
@@ -21,9 +21,8 @@ abstract class AbstractTransactionsRepository {
   /// Deletes a transaction by its ID.
   Future<Either<Failure, void>> deleteTransaction(String id);
 
-    /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
+  /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
   Future<Either<Failure, int>> getTransactionsCount();
-
 
   /// Searches transactions based on criteria.
   Future<Either<Failure, List<TransactionModel>>> searchTransactions({
@@ -31,6 +30,8 @@ abstract class AbstractTransactionsRepository {
   });
 
   /// Gets transactions by a specific date.
-  Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(DateTime date,
-      {String? lastDocumentID, int limit = 20});
+  Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
+      DateTime date,
+      {String? lastDocumentID,
+      int limit = 20});
 }

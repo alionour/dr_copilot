@@ -289,7 +289,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                       color: Colors.deepPurple,
                                     ),
                               ),
-                              Text(
+                              Text( 
                                 ' ${'stored'.tr()} ',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),

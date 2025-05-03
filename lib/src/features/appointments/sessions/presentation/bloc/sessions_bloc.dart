@@ -33,7 +33,7 @@ class TransactionsBloc extends Bloc<SessionsEvent, SessionsState> {
       limit: event.limit,
     );
     emit(failureOrSessions.fold(
-      (failure) =>
+      (failure) => 
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
       (sessions) => SessionsLoaded(sessions),
     ));

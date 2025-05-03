@@ -15,7 +15,10 @@ class TransactionsUseCase {
     String? lastDocumentId, // Corrected parameter name
     int? limit = 20,
   }) {
-    return repository.getTransactions();
+    return repository.getTransactions(
+      lastDocumentId: lastDocumentId,
+      limit: limit ?? 20,
+    );
   }
 
   /// Adds a new transaction.
@@ -49,7 +52,7 @@ class TransactionsUseCase {
         lastDocumentID: lastDocumentID, limit: limit);
   }
 
-    /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
+  /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
   Future<Either<Failure, int>> getTransactionsCount() async {
     return await repository.getTransactionsCount();
   }

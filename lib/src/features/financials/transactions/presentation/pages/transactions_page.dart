@@ -28,6 +28,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   DateTime? _selectedDate;
   bool _canLoadMore = true; // Add a flag to control loading more sessions
   int? _firestoreTransactionsCount;
+  double _lastScrollPosition = 0;
 
   void _dispatchGetSessionsCount() {
     context.read<TransactionsBloc>().add(const GetTransactionsCount());
@@ -36,13 +37,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   void initState() {
     super.initState();
+    print('TransactionsPage: initState called');
     _scrollController.addListener(_onScroll);
+    print('TransactionsPage: Scroll listener added');
     context.read<TransactionsBloc>().add(const GetTransactions());
     _dispatchGetSessionsCount();
   }
 
   @override
   void dispose() {
+    print('TransactionsPage: dispose called');
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _listFocusNode.dispose();
@@ -50,22 +54,43 @@ class _TransactionsPageState extends State<TransactionsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    final currentPosition = _scrollController.position.pixels;
+    if (currentPosition > _lastScrollPosition &&
+        currentPosition >= _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<TransactionsBloc>().state;
-      if (state is TransactionsLoaded && !state.isLoadingMore) {
-        if (_canLoadMore) {
-          _canLoadMore = false;
-          context.read<TransactionsBloc>().add(LoadMoreTransactions(
-                lastDocumentId: state.transactions.last.id,
-                limit: 20,
-              ));
-          Future.delayed(const Duration(seconds: 1), () {
-            _canLoadMore = true;
-          });
+      print(
+          'TransactionsPage: _onScroll triggered. State: ${state.runtimeType}');
+      if (state is TransactionsLoaded || state is TransactionsCountLoaded) {
+        // Only TransactionsLoaded has isLoadingMore
+        final isLoadingMore =
+            state is TransactionsLoaded ? state.isLoadingMore : false;
+        print(
+            'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: ${isLoadingMore}');
+        if (!isLoadingMore) {
+          print('TransactionsPage: _canLoadMore is ${_canLoadMore}');
+          if (_canLoadMore) {
+            _canLoadMore = false;
+            final transactions = state is TransactionsLoaded
+                ? state.transactions
+                : (state as TransactionsCountLoaded).transactions;
+            print('TransactionsPage: Dispatching LoadMoreTransactions event');
+            context.read<TransactionsBloc>().add(LoadMoreTransactions(
+                  lastDocumentId: transactions.last.id,
+                  limit: 20,
+                ));
+            Future.delayed(const Duration(seconds: 1), () {
+              _canLoadMore = true;
+            });
+          }
+        } else {
+          print('TransactionsPage: isLoadingMore is true, not dispatching');
         }
+      } else {
+        print(
+            'TransactionsPage: State is not TransactionsLoaded/TransactionsCountLoaded, not dispatching');
       }
     }
+    _lastScrollPosition = currentPosition;
   }
 
   @override
@@ -317,6 +342,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       controller: _scrollController,
                       itemCount: sortedGroupedTransactions.length,
                       itemBuilder: (context, index) {
+                        print(
+                            'TransactionsPage: Building list item for group index: ${index}');
                         final dateKey = sortedGroupedTransactions[index].key;
                         final transactionsForDate =
                             sortedGroupedTransactions[index].value;

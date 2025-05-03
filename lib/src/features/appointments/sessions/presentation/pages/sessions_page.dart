@@ -381,7 +381,7 @@ class _SessionsPageState extends State<SessionsPage> {
           context.push('/sessions/new');
         },
         child: const Icon(Icons.add),
-      ),
+      ), 
     );
   }
 

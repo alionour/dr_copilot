@@ -12,9 +12,9 @@ class TransactionsRepositoryImpl extends AbstractTransactionsRepository {
   /// Gets a list of transactions.
   @override
   Future<Either<Failure, List<TransactionModel>>> getTransactions(
-      {String? lastDocumentID, int limit = 20}) {
+      {String? lastDocumentId, int limit = 20}) {
     return firebaseApi.getTransactions(
-        lastDocumentID: lastDocumentID, limit: limit);
+        lastDocumentId: lastDocumentId, limit: limit);
   }
 
   /// Adds a new transaction.
@@ -50,11 +50,10 @@ class TransactionsRepositoryImpl extends AbstractTransactionsRepository {
       DateTime date,
       {String? lastDocumentID,
       int limit = 20}) {
-    return firebaseApi.getTransactionsByDate(date,
-         limit: limit);
+    return firebaseApi.getTransactionsByDate(date, limit: limit);
   }
 
-    /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
+  /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
   @override
   Future<Either<Failure, int>> getTransactionsCount() {
     return firebaseApi.getTransactionsCount();
