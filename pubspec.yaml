@@ -1,3 +1,4 @@
+fl_chart: ^0.66.0
 name: dr_copilot
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
@@ -77,9 +78,10 @@ dependencies:
     sdk: flutter
   easy_localization: ^3.0.7+1
   markdown: ^7.3.0
-  syncfusion_flutter_charts: ^29.1.35
+  syncfusion_flutter_charts: ^29.1.40
   mockito: ^5.4.5
   flutter_secure_storage: ^9.2.4
+  fl_chart: ^0.71.0
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6

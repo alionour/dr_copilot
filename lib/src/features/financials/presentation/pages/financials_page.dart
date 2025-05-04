@@ -6,7 +6,7 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/pages/transactions_page.dart';
-import 'package:dr_copilot/src/features/financials/presentation/pages/wallet_page.dart';
+import 'package:dr_copilot/src/features/financials/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/bills_and_payments_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/reports_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/goals_page.dart';
@@ -30,7 +30,7 @@ class _FinancialsPageState extends State<FinancialsPage> {
         create: (context) => TransactionsBloc(TransactionsUseCase(
             TransactionsRepositoryImpl(TransactionsFirebaseApi()))),
         child: TransactionsPage()),
-    WalletPage(),
+    ChartsPage(),
     BillsAndPaymentsPage(),
     ReportsPage(),
     GoalsPage(),
