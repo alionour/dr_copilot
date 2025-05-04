@@ -266,14 +266,20 @@
   "colorOrange": "برتقالي",
   "revenueByMonth": "الإيرادات حسب الشهر",
   "sessionsRevenueByMonth": "الإيرادات من الجلسات حسب الشهر",
-  "totalRevenueByMonth": "Total Revenue by Month",
-  "expensesByMonth": "Expenses by Month",
-  "revenueVsExpensesByMonth": "Revenue vs Expenses by Month",
-  "revenueToExpensesRatio": "Revenue to Expenses Ratio",
-  "revenue": "Revenue",
-  "sessionsRevenue": "Sessions Revenue",
-  "totalRevenue": "Total Revenue",
-  "expenses": "Expenses"
+  "totalRevenueByMonth": "إجمالي الإيرادات حسب الشهر",
+  "expensesByMonth": "المصروفات حسب الشهر",
+  "revenueVsExpensesByMonth": "الإيرادات مقابل المصروفات حسب الشهر",
+  "revenueToExpensesRatio": "نسبة الإيرادات إلى المصروفات",
+  "revenue": "الإيرادات",
+  "sessionsRevenue": "إيرادات الجلسات",
+  "totalRevenue": "إجمالي الإيرادات",
+  "expenses": "المصروفات",
+  "billingCycleLeft": "{} متبقي في دورة الفوترة ({})",
+  "accountNumber": "الحساب {}",
+  "transactionDateStatus": "{} - {}",
+  "transactionUser": "{}",
+  "dashboardGreeting": "مرحباً، {}!",
+  "noTransactions": "لا توجد معاملات.",
+  "totalExpenses": "إجمالي المصروفات",
+  "financialCharts": "التقارير المالية"
 }
-
-

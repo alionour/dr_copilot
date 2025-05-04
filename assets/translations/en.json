@@ -282,5 +282,13 @@
   "revenue": "Revenue",
   "sessionsRevenue": "Sessions Revenue",
   "totalRevenue": "Total Revenue",
-  "expenses": "Expenses"
+  "expenses": "Expenses",
+  "billingCycleLeft": "{} left in billing cycle ({})",
+  "accountNumber": "Account {}",
+  "transactionDateStatus": "{} - {}",
+  "transactionUser": "{}",
+  "dashboardGreeting": "Welcome, {}!",
+  "noTransactions": "No transactions found.",
+  "totalExpenses": "Total Expenses",
+  "financialCharts": "Financials Charts"
 }

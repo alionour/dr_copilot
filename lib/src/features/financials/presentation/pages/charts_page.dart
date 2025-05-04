@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../widgets/revenue_by_month_chart.dart';
+import '../widgets/sessions_revenue_by_month_chart.dart';
+import '../widgets/total_revenue_by_month_chart.dart';
 
 class ChartsPage extends StatelessWidget {
   const ChartsPage({super.key});
@@ -65,9 +68,9 @@ class ChartsPage extends StatelessWidget {
       6100,
       4300
     ];
-    final List<_ChartData> chartData = List.generate(
+    final List<ChartData> chartData = List.generate(
       months.length,
-      (i) => _ChartData(months[i], revenue[i], expenses[i], sessionsRevenue[i],
+      (i) => ChartData(months[i], revenue[i], expenses[i], sessionsRevenue[i],
           totalRevenue[i]),
     );
 
@@ -83,68 +86,20 @@ class ChartsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _SectionTitle('revenueByMonth'.tr()),
-            _ChartCard(
+            RevenueByMonthChart(chartData: chartData),
+            const SizedBox(height: 24),
+            SessionsRevenueByMonthChart(chartData: chartData),
+            const SizedBox(height: 24),
+            TotalRevenueByMonthChart(chartData: chartData),
+            const SizedBox(height: 24),
+            SectionTitle('expensesByMonth'.tr()),
+            ChartCard(
               SfCartesianChart(
                 primaryXAxis: CategoryAxis(),
                 primaryYAxis: NumericAxis(),
                 tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<_ChartData, String>>[
-                  ColumnSeries<_ChartData, String>(
-                    name: 'revenue'.tr(),
-                    dataSource: chartData,
-                    xValueMapper: (d, _) => d.month,
-                    yValueMapper: (d, _) => d.revenue,
-                    color: Colors.green,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                  ),
-                ],
-              ),
-            ),
-            _SectionTitle('sessionsRevenueByMonth'.tr()),
-            _ChartCard(
-              SfCartesianChart(
-                primaryXAxis: CategoryAxis(),
-                primaryYAxis: NumericAxis(),
-                tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<_ChartData, String>>[
-                  ColumnSeries<_ChartData, String>(
-                    name: 'sessionsRevenue'.tr(),
-                    dataSource: chartData,
-                    xValueMapper: (d, _) => d.month,
-                    yValueMapper: (d, _) => d.sessionsRevenue,
-                    color: Colors.blue,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                  ),
-                ],
-              ),
-            ),
-            _SectionTitle('totalRevenueByMonth'.tr()),
-            _ChartCard(
-              SfCartesianChart(
-                primaryXAxis: CategoryAxis(),
-                primaryYAxis: NumericAxis(),
-                tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<_ChartData, String>>[
-                  ColumnSeries<_ChartData, String>(
-                    name: 'totalRevenue'.tr(),
-                    dataSource: chartData,
-                    xValueMapper: (d, _) => d.month,
-                    yValueMapper: (d, _) => d.totalRevenue,
-                    color: Colors.teal,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                  ),
-                ],
-              ),
-            ),
-            _SectionTitle('expensesByMonth'.tr()),
-            _ChartCard(
-              SfCartesianChart(
-                primaryXAxis: CategoryAxis(),
-                primaryYAxis: NumericAxis(),
-                tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<_ChartData, String>>[
-                  ColumnSeries<_ChartData, String>(
+                series: <CartesianSeries<ChartData, String>>[
+                  ColumnSeries<ChartData, String>(
                     name: 'expenses'.tr(),
                     dataSource: chartData,
                     xValueMapper: (d, _) => d.month,
@@ -155,16 +110,16 @@ class ChartsPage extends StatelessWidget {
                 ],
               ),
             ),
-            _SectionTitle('revenueVsExpensesByMonth'.tr()),
-            _ChartCard(
+            SectionTitle('revenueVsExpensesByMonth'.tr()),
+            ChartCard(
               SfCartesianChart(
                 legend:
                     Legend(isVisible: true, position: LegendPosition.bottom),
                 primaryXAxis: CategoryAxis(),
                 primaryYAxis: NumericAxis(),
                 tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<_ChartData, String>>[
-                  ColumnSeries<_ChartData, String>(
+                series: <CartesianSeries<ChartData, String>>[
+                  ColumnSeries<ChartData, String>(
                     name: 'revenue'.tr(),
                     dataSource: chartData,
                     xValueMapper: (d, _) => d.month,
@@ -172,7 +127,7 @@ class ChartsPage extends StatelessWidget {
                     color: Colors.green,
                     borderRadius: const BorderRadius.all(Radius.circular(6)),
                   ),
-                  ColumnSeries<_ChartData, String>(
+                  ColumnSeries<ChartData, String>(
                     name: 'expenses'.tr(),
                     dataSource: chartData,
                     xValueMapper: (d, _) => d.month,
@@ -183,7 +138,7 @@ class ChartsPage extends StatelessWidget {
                 ],
               ),
             ),
-            _SectionTitle('revenueToExpensesRatio'.tr()),
+            SectionTitle('revenueToExpensesRatio'.tr()),
             SizedBox(
               height: 260,
               child: Padding(
@@ -198,19 +153,19 @@ class ChartsPage extends StatelessWidget {
                     child: SfCircularChart(
                       legend: Legend(
                           isVisible: true, position: LegendPosition.bottom),
-                      series: <CircularSeries<_PieData, String>>[
-                        PieSeries<_PieData, String>(
+                      series: <CircularSeries<PieData, String>>[
+                        PieSeries<PieData, String>(
                           dataSource: [
-                            _PieData('revenue'.tr(),
+                            PieData('revenue'.tr(),
                                 revenue.reduce((a, b) => a + b), Colors.green),
-                            _PieData(
+                            PieData(
                                 'expenses'.tr(),
                                 expenses.reduce((a, b) => a + b),
                                 Colors.redAccent),
                           ],
-                          xValueMapper: (_PieData data, _) => data.label,
-                          yValueMapper: (_PieData data, _) => data.value,
-                          pointColorMapper: (_PieData data, _) => data.color,
+                          xValueMapper: (PieData data, _) => data.label,
+                          yValueMapper: (PieData data, _) => data.value,
+                          pointColorMapper: (PieData data, _) => data.color,
                           dataLabelSettings: const DataLabelSettings(
                             isVisible: true,
                             labelPosition: ChartDataLabelPosition.outside,
@@ -238,26 +193,26 @@ class ChartsPage extends StatelessWidget {
   }
 }
 
-class _ChartData {
+class ChartData {
   final String month;
   final double revenue;
   final double expenses;
   final double sessionsRevenue;
   final double totalRevenue;
-  _ChartData(this.month, this.revenue, this.expenses, this.sessionsRevenue,
+  ChartData(this.month, this.revenue, this.expenses, this.sessionsRevenue,
       this.totalRevenue);
 }
 
-class _PieData {
+class PieData {
   final String label;
   final double value;
   final Color color;
-  _PieData(this.label, this.value, this.color);
+  PieData(this.label, this.value, this.color);
 }
 
-class _SectionTitle extends StatelessWidget {
+class SectionTitle extends StatelessWidget {
   final String title;
-  const _SectionTitle(this.title);
+  const SectionTitle(this.title);
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -272,9 +227,9 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _ChartCard extends StatelessWidget {
+class ChartCard extends StatelessWidget {
   final Widget child;
-  const _ChartCard(this.child);
+  const ChartCard(this.child);
   @override
   Widget build(BuildContext context) {
     return SizedBox(
