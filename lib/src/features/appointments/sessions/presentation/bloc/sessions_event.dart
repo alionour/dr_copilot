@@ -84,7 +84,7 @@ class DetectSessionType extends SessionsEvent {
 
 /// Event to trigger fetching the count of sessions.
 ///
-/// This event can be dispatched to the [TransactionsBloc] to request
+/// This event can be dispatched to the [SessionsBloc] to request
 /// the current number of sessions available.
 class GetSessionsCount extends SessionsEvent {
   const GetSessionsCount();

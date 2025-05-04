@@ -1,6 +1,10 @@
 import 'package:dr_copilot/src/features/auth/data/remote/auth_firebase_api.dart';
 import 'package:dr_copilot/src/features/auth/data/repositories/auth_repositories_impl.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
+import 'package:dr_copilot/src/features/financials/transactions/data/repositories/transactions_repository_impl.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import '../../../features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
@@ -109,8 +113,8 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// The [create] function initializes the [SessionsBloc] using the provided
   /// [BuildContext].
-  BlocProvider<TransactionsBloc>(
-      create: (context) => TransactionsBloc(
+  BlocProvider<SessionsBloc>(
+      create: (context) => SessionsBloc(
             SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
           )),
 
@@ -143,4 +147,17 @@ final appBlocProviders = <BlocProvider<dynamic>>[
             FinancialsUseCase(
                 FinancialsRepositoryImpl(FinancialsFirebaseApi())),
           )),
+
+  /// Provides a [TransactionsBloc] instance to the widget tree.
+  /// 
+  /// The [TransactionsBloc] is created using a [TransactionsUseCase], which in turn
+  /// depends on a [TransactionsRepositoryImpl] that utilizes [TransactionsFirebaseApi]
+  /// for data operations related to transactions.
+  /// 
+  /// This provider enables descendant widgets to access and interact with the
+  /// transactions business logic and state management.
+  BlocProvider<TransactionsBloc>(
+    create: (context) => TransactionsBloc(TransactionsUseCase(
+        TransactionsRepositoryImpl(TransactionsFirebaseApi()))),
+  ),
 ];

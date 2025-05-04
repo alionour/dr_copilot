@@ -30,14 +30,14 @@ class _SessionsPageState extends State<SessionsPage> {
   int? _firestoreSessionsCount;
 
   void _dispatchGetSessionsCount() {
-    context.read<TransactionsBloc>().add(const GetSessionsCount());
+    context.read<SessionsBloc>().add(const GetSessionsCount());
   }
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context.read<TransactionsBloc>().add(const GetSessions());
+    context.read<SessionsBloc>().add(const GetSessions());
     _dispatchGetSessionsCount();
   }
 
@@ -52,11 +52,11 @@ class _SessionsPageState extends State<SessionsPage> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final state = context.read<TransactionsBloc>().state;
+      final state = context.read<SessionsBloc>().state;
       if (state is SessionsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
           _canLoadMore = false;
-          context.read<TransactionsBloc>().add(LoadMoreSessions(
+          context.read<SessionsBloc>().add(LoadMoreSessions(
                 lastDocumentId: state.sessions.last.id,
                 limit: 20,
               ));
@@ -100,7 +100,7 @@ class _SessionsPageState extends State<SessionsPage> {
                         query = newQuery;
                         _selectedIndex = 0; // Reset selection on new query
                       });
-                      context.read<TransactionsBloc>().add(
+                      context.read<SessionsBloc>().add(
                           SearchSessions(name: query)); // Trigger search event
                     },
                     onSubmitted: (_) {
@@ -118,7 +118,7 @@ class _SessionsPageState extends State<SessionsPage> {
                   query = '';
                   _selectedDate = null;
                 });
-                context.read<TransactionsBloc>().add(const GetSessions());
+                context.read<SessionsBloc>().add(const GetSessions());
               },
             ),
             Container(
@@ -185,7 +185,7 @@ class _SessionsPageState extends State<SessionsPage> {
                           if (!context.mounted) return;
 
                           context
-                              .read<TransactionsBloc>()
+                              .read<SessionsBloc>()
                               .add(GetSessionsByDate(date: selectedDate));
                         }
                       },
@@ -198,7 +198,7 @@ class _SessionsPageState extends State<SessionsPage> {
           ],
         ),
       ),
-      body: BlocListener<TransactionsBloc, SessionsState>(
+      body: BlocListener<SessionsBloc, SessionsState>(
         listener: (context, state) {
           if (state is SessionsSuccess) {
             final message = state.message;
@@ -222,7 +222,7 @@ class _SessionsPageState extends State<SessionsPage> {
             });
           }
         },
-        child: BlocBuilder<TransactionsBloc, SessionsState>(
+        child: BlocBuilder<SessionsBloc, SessionsState>(
           builder: (context, state) {
             if (state is SessionsLoading) {
               return Shimmer.fromColors(
@@ -381,7 +381,7 @@ class _SessionsPageState extends State<SessionsPage> {
           context.push('/sessions/new');
         },
         child: const Icon(Icons.add),
-      ), 
+      ),
     );
   }
 

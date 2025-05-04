@@ -11,10 +11,10 @@ import 'package:flutter/foundation.dart';
 part 'sessions_event.dart';
 part 'sessions_state.dart';
 
-class TransactionsBloc extends Bloc<SessionsEvent, SessionsState> {
+class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   final SessionsUseCase _sessionsUseCase;
 
-  TransactionsBloc(this._sessionsUseCase) : super(const SessionsInitial([])) {
+  SessionsBloc(this._sessionsUseCase) : super(const SessionsInitial([])) {
     on<GetSessions>(_onGetSessions);
     on<AddSession>(_onAddSession);
     on<UpdateSession>(_onUpdateSession);
@@ -33,7 +33,7 @@ class TransactionsBloc extends Bloc<SessionsEvent, SessionsState> {
       limit: event.limit,
     );
     emit(failureOrSessions.fold(
-      (failure) => 
+      (failure) =>
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
       (sessions) => SessionsLoaded(sessions),
     ));

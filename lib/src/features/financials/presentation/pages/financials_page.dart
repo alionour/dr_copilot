@@ -26,10 +26,7 @@ class _FinancialsPageState extends State<FinancialsPage> {
 
   final List<Widget> _pages = [
     DashboardPage(),
-    BlocProvider(
-        create: (context) => TransactionsBloc(TransactionsUseCase(
-            TransactionsRepositoryImpl(TransactionsFirebaseApi()))),
-        child: TransactionsPage()),
+    TransactionsPage(),
     ChartsPage(),
     BillsAndPaymentsPage(),
     ReportsPage(),
@@ -80,7 +77,7 @@ class _FinancialsPageState extends State<FinancialsPage> {
                         : null,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.account_balance_wallet),
+                    icon: const Icon(Icons.pie_chart),
                     onPressed: () => _onItemTapped(2),
                     color: _selectedIndex == 2
                         ? Theme.of(context).colorScheme.primary
@@ -123,8 +120,8 @@ class _FinancialsPageState extends State<FinancialsPage> {
                   label: 'Transactions',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.account_balance_wallet),
-                  label: 'Wallet',
+                  icon: Icon(Icons.pie_chart),
+                  label: 'Charts',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.receipt),

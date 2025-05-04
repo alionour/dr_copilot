@@ -84,7 +84,7 @@ class RoutingConfig {
         builder: (context, state) => const PrivacyPage(),
       ),
       GoRoute(
-        path: '/add_transaction',
+        path: '/transactions/new',
         name: 'add_transaction',
         builder: (context, state) => const AddTransactionPage(),
       ),
