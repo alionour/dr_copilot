@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../widgets/revenue_by_month_chart.dart';
 import 'charts_page.dart' show ChartData;
+import 'package:dr_copilot/src/features/financials/presentation/widgets/currency_profiles_section.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -106,6 +107,9 @@ class DashboardPage extends StatelessWidget {
           const SizedBox(height: 24),
           // Only show RevenueByMonthChart
           RevenueByMonthChart(chartData: chartData),
+          const SizedBox(height: 24),
+          // Currency Profiles Section
+          CurrencyProfilesSection(),
           const SizedBox(height: 24),
           // 4. Transactions Activity
           Text('transactionsActivity'.tr(),

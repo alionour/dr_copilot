@@ -281,5 +281,6 @@
   "dashboardGreeting": "مرحباً، {}!",
   "noTransactions": "لا توجد معاملات.",
   "totalExpenses": "إجمالي المصروفات",
-  "financialCharts": "التقارير المالية"
+  "financialCharts": "التقارير المالية",
+  "currencyProfiles": "ملفات تعريف العملات"
 }
