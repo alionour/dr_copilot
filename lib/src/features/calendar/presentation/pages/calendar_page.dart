@@ -34,6 +34,7 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+  // ignore: unused_element
   Future<void> _navigateToAddEvent(BuildContext context) async {
     final result = await context.push<Map<String, dynamic>>('/events/new');
     if (result != null) {

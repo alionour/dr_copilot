@@ -151,7 +151,7 @@ class _AddGoalSection extends StatelessWidget {
                         BorderRadius.vertical(top: Radius.circular(18)),
                   ),
                   builder: (context) {
-                    final _formKey = GlobalKey<FormState>();
+                    final formKey = GlobalKey<FormState>();
                     String title = '';
                     String goalType = 'sessions_year';
                     Color color = Colors.teal;
@@ -187,7 +187,7 @@ class _AddGoalSection extends StatelessWidget {
                           top: 24,
                         ),
                         child: Form(
-                          key: _formKey,
+                          key: formKey,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -362,8 +362,8 @@ class _AddGoalSection extends StatelessWidget {
                               const SizedBox(height: 20),
                               ElevatedButton(
                                 onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    _formKey.currentState!.save();
+                                  if (formKey.currentState!.validate()) {
+                                    formKey.currentState!.save();
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

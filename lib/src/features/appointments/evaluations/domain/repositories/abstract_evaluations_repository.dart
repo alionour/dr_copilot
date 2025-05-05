@@ -30,6 +30,13 @@ abstract class AbstractEvaluationsRepository {
   /// Gets the total count of evaluations in Firestore.
   Future<Either<Failure, int>> getEvaluationsCount();
 
+  /// Gets the count of evaluations for a specific month and year.
+  Future<Either<Failure, int>> getEvaluationsCountForMonth(
+      {required int year, required int month});
+
+  /// Gets the count of evaluations for a specific year.
+  Future<Either<Failure, int>> getEvaluationsCountForYear({required int year});
+
   /// Sums the total price of all evaluations in a specific month for the authenticated user.
   Future<Either<Failure, double>> sumEvaluationCostsForMonth(
       {required int year, required int month});

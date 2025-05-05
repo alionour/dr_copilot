@@ -1,14 +1,3 @@
-/// A helper class for retrieving various API keys from environment variables.
-///
-/// This class provides static getters to access API keys for different services,
-/// such as Vertex AI, GPT, Gemini, DeepSeek, Qwen, and Claude. The keys are
-/// fetched from the corresponding environment variables. If an environment
-/// variable is not set, an empty string is returned.
-///
-/// Example usage:
-/// ```dart
-/// final gptApiKey = ApiKeyHelper.gptKey;
-/// ```
 import 'dart:io';
 
 /// A helper class for managing and retrieving API keys used throughout the application.

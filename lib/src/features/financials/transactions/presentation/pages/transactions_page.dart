@@ -64,9 +64,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         final isLoadingMore =
             state is TransactionsLoaded ? state.isLoadingMore : false;
         debugPrint(
-            'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: ${isLoadingMore}');
+            'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: $isLoadingMore');
         if (!isLoadingMore) {
-          debugPrint('TransactionsPage: _canLoadMore is ${_canLoadMore}');
+          debugPrint('TransactionsPage: _canLoadMore is $_canLoadMore');
           if (_canLoadMore) {
             _canLoadMore = false;
             final transactions = state is TransactionsLoaded
@@ -342,7 +342,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       itemCount: sortedGroupedTransactions.length,
                       itemBuilder: (context, index) {
                         debugPrint(
-                            'TransactionsPage: Building list item for group index: ${index}');
+                            'TransactionsPage: Building list item for group index: $index');
                         final dateKey = sortedGroupedTransactions[index].key;
                         final transactionsForDate =
                             sortedGroupedTransactions[index].value;

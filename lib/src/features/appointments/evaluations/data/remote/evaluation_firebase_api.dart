@@ -381,6 +381,64 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
   }
 
+  /// Gets the count of evaluations for a specific month and year.
+  @override
+  Future<Either<Failure, int>> getEvaluationsCountForMonth(
+      {required int year, required int month}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final start = DateTime(year, month, 1);
+        final end = (month < 12)
+            ? DateTime(year, month + 1, 1)
+            : DateTime(year + 1, 1, 1);
+        final query = _evaluationsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end));
+        final aggregateQuerySnapshot = await query.count().get();
+        return Right(aggregateQuerySnapshot.count ?? 0);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching evaluation count for month: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Gets the count of evaluations for a specific year.
+  @override
+  Future<Either<Failure, int>> getEvaluationsCountForYear(
+      {required int year}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final start = DateTime(year, 1, 1);
+        final end = DateTime(year + 1, 1, 1);
+        final query = _evaluationsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end));
+        final aggregateQuerySnapshot = await query.count().get();
+        return Right(aggregateQuerySnapshot.count ?? 0);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching evaluation count for year: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
   /// Sums the total price of all evaluations in a specific month for the authenticated user.
   @override
   Future<Either<Failure, double>> sumEvaluationCostsForMonth(

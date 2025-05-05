@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../widgets/revenue_by_month_chart.dart';
-import '../widgets/total_revenue_by_month_chart.dart';
 import 'charts_page.dart' show ChartData;
 
 class DashboardPage extends StatelessWidget {
@@ -164,8 +163,7 @@ class _SummaryCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.icon,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

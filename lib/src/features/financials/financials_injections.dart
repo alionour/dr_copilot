@@ -34,6 +34,9 @@ void initFinancialsInjections() {
 
   // Data sources
   sl.registerLazySingleton<FinancialsFirebaseApi>(
-    () => FinancialsFirebaseApi(),
+    () => FinancialsFirebaseApi(
+      sessionsUseCase: sl(),
+      evaluationsUseCase: sl(),
+    ),
   );
 }

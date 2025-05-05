@@ -1,17 +1,3 @@
-/// An abstract class that defines the contract for session-related operations.
-///
-/// This repository provides methods for managing sessions, including:
-/// - Retrieving a paginated list of sessions.
-/// - Adding, updating, and deleting sessions.
-/// - Searching sessions by patient ID or date.
-/// - Detecting the session type for a given patient.
-/// - Getting the total count of sessions.
-///
-/// All methods return an [Either] type from the `dartz` package, encapsulating
-/// either a [Failure] or the expected result, to handle errors gracefully.
-
-library abstract_sessions_repository;
-
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
@@ -44,6 +30,13 @@ abstract class AbstractSessionsRepository {
 
   /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
   Future<Either<Failure, int>> getSessionsCount();
+
+  /// Returns the count of sessions for a specific month and year.
+  Future<Either<Failure, int>> getSessionsCountForMonth(
+      {required int year, required int month});
+
+  /// Returns the count of sessions for a specific year.
+  Future<Either<Failure, int>> getSessionsCountForYear({required int year});
 
   /// Sums the total price of all sessions in a specific month for the authenticated user.
   Future<Either<Failure, double>> sumSessionCostsForMonth(

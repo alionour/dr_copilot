@@ -61,6 +61,19 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
     return firebaseApi.getSessionsCount();
   }
 
+  /// Returns the count of sessions for a specific month and year.
+  @override
+  Future<Either<Failure, int>> getSessionsCountForMonth(
+      {required int year, required int month}) {
+    return firebaseApi.getSessionsCountForMonth(year: year, month: month);
+  }
+
+  /// Returns the count of sessions for a specific year.
+  @override
+  Future<Either<Failure, int>> getSessionsCountForYear({required int year}) {
+    return firebaseApi.getSessionsCountForYear(year: year);
+  }
+
   /// Sums the total price of all sessions in a specific month for the authenticated user.
   @override
   Future<Either<Failure, double>> sumSessionCostsForMonth(

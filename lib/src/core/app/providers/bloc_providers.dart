@@ -145,7 +145,13 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   BlocProvider<FinancialsBloc>(
       create: (context) => FinancialsBloc(
             FinancialsUseCase(
-                FinancialsRepositoryImpl(FinancialsFirebaseApi())),
+                FinancialsRepositoryImpl(FinancialsFirebaseApi(
+                    sessionsUseCase: SessionsUseCase(
+                        SessionsRepositoryImpl(SessionsFirebaseApi())),
+                    evaluationsUseCase: EvaluationsUseCase(
+                        EvaluationsRepositoryImpl(EvaluationsFirebaseApi())),
+                  
+                ))),
           )),
 
   /// Provides a [TransactionsBloc] instance to the widget tree.

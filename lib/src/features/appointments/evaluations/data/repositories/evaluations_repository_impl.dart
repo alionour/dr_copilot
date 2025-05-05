@@ -57,6 +57,19 @@ class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
     return firebaseApi.getEvaluationsCount();
   }
 
+  /// Gets the count of evaluations for a specific month and year.
+  @override
+  Future<Either<Failure, int>> getEvaluationsCountForMonth(
+      {required int year, required int month}) {
+    return firebaseApi.getEvaluationsCountForMonth(year: year, month: month);
+  }
+
+  /// Gets the count of evaluations for a specific year.
+  @override
+  Future<Either<Failure, int>> getEvaluationsCountForYear({required int year}) {
+    return firebaseApi.getEvaluationsCountForYear(year: year);
+  }
+
   /// Sums the total price of all evaluations in a specific month for the authenticated user.
   @override
   Future<Either<Failure, double>> sumEvaluationCostsForMonth(

@@ -481,6 +481,64 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
   }
 
+  /// Returns the count of sessions for a specific month and year.
+  @override
+  Future<Either<Failure, int>> getSessionsCountForMonth(
+      {required int year, required int month}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final start = DateTime(year, month, 1);
+        final end = (month < 12)
+            ? DateTime(year, month + 1, 1)
+            : DateTime(year + 1, 1, 1);
+        final query = _sessionsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end));
+        final aggregateQuerySnapshot = await query.count().get();
+        return Right(aggregateQuerySnapshot.count ?? 0);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching session count for month: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Returns the count of sessions for a specific year.
+  @override
+  Future<Either<Failure, int>> getSessionsCountForYear(
+      {required int year}) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final start = DateTime(year, 1, 1);
+        final end = DateTime(year + 1, 1, 1);
+        final query = _sessionsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('startDateTime',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end));
+        final aggregateQuerySnapshot = await query.count().get();
+        return Right(aggregateQuerySnapshot.count ?? 0);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching session count for year: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
   /// Sums the total price of all sessions in a specific month for the authenticated user.
   ///
   /// [year] is the year (e.g., 2025).
