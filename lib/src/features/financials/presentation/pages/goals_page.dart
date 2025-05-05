@@ -47,7 +47,7 @@ class GoalsPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ...goals.map((goal) => _GoalCard(goal: goal)).toList(),
+                ...goals.map((goal) => _GoalCard(goal: goal)),
               ],
             ),
           );
@@ -96,7 +96,7 @@ class _GoalCard extends StatelessWidget {
             LinearProgressIndicator(
               value: goal.progress,
               minHeight: 10,
-              backgroundColor: goal.color.withOpacity(0.15),
+              backgroundColor: goal.color.withValues(alpha:0.15),
               valueColor: AlwaysStoppedAnimation<Color>(goal.color),
               borderRadius: BorderRadius.circular(8),
             ),

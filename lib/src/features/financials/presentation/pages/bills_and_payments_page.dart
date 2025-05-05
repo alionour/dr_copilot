@@ -359,7 +359,7 @@ class _ScheduledBillsSection extends StatelessWidget {
         const SizedBox(height: 10),
         ...scheduledBills
             .map((bill) => _ScheduledBillCard(bill: bill))
-            .toList(),
+            ,
         const SizedBox(height: 18),
       ],
     );

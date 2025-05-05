@@ -37,16 +37,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   void initState() {
     super.initState();
-    print('TransactionsPage: initState called');
+    debugPrint('TransactionsPage: initState called');
     _scrollController.addListener(_onScroll);
-    print('TransactionsPage: Scroll listener added');
+    debugPrint('TransactionsPage: Scroll listener added');
     context.read<TransactionsBloc>().add(const GetTransactions());
     _dispatchGetSessionsCount();
   }
 
   @override
   void dispose() {
-    print('TransactionsPage: dispose called');
+    debugPrint('TransactionsPage: dispose called');
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _listFocusNode.dispose();
@@ -58,22 +58,22 @@ class _TransactionsPageState extends State<TransactionsPage> {
     if (currentPosition > _lastScrollPosition &&
         currentPosition >= _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<TransactionsBloc>().state;
-      print(
+      debugPrint(
           'TransactionsPage: _onScroll triggered. State: ${state.runtimeType}');
       if (state is TransactionsLoaded || state is TransactionsCountLoaded) {
         // Only TransactionsLoaded has isLoadingMore
         final isLoadingMore =
             state is TransactionsLoaded ? state.isLoadingMore : false;
-        print(
+        debugPrint(
             'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: ${isLoadingMore}');
         if (!isLoadingMore) {
-          print('TransactionsPage: _canLoadMore is ${_canLoadMore}');
+          debugPrint('TransactionsPage: _canLoadMore is ${_canLoadMore}');
           if (_canLoadMore) {
             _canLoadMore = false;
             final transactions = state is TransactionsLoaded
                 ? state.transactions
                 : (state as TransactionsCountLoaded).transactions;
-            print('TransactionsPage: Dispatching LoadMoreTransactions event');
+            debugPrint('TransactionsPage: Dispatching LoadMoreTransactions event');
             context.read<TransactionsBloc>().add(LoadMoreTransactions(
                   lastDocumentId: transactions.last.id,
                   limit: 20,
@@ -83,10 +83,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
             });
           }
         } else {
-          print('TransactionsPage: isLoadingMore is true, not dispatching');
+          debugPrint('TransactionsPage: isLoadingMore is true, not dispatching');
         }
       } else {
-        print(
+        debugPrint(
             'TransactionsPage: State is not TransactionsLoaded/TransactionsCountLoaded, not dispatching');
       }
     }
@@ -219,7 +219,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 ],
               ),
             ),
-            if (navMenuButton != null) navMenuButton,
+            // if (navMenuButton != null) navMenuButton,
           ],
         ),
       ),
@@ -342,7 +342,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       controller: _scrollController,
                       itemCount: sortedGroupedTransactions.length,
                       itemBuilder: (context, index) {
-                        print(
+                        debugPrint(
                             'TransactionsPage: Building list item for group index: ${index}');
                         final dateKey = sortedGroupedTransactions[index].key;
                         final transactionsForDate =

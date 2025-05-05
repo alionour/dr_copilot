@@ -4,16 +4,48 @@ class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
 
   final List<String> months = const [
-    'يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    'يناير',
+    'فبراير',
+    'مارس',
+    'إبريل',
+    'مايو',
+    'يونيو',
+    'يوليو',
+    'أغسطس',
+    'سبتمبر',
+    'أكتوبر',
+    'نوفمبر',
+    'ديسمبر'
   ];
 
   final List<int> revenue = const [
-    0, 0, 0, 0, 250, 480, 960, 0, 600, 1440, 600, 600
+    0,
+    0,
+    0,
+    0,
+    250,
+    480,
+    960,
+    0,
+    600,
+    1440,
+    600,
+    600
   ];
 
   final List<int> expenses = const [
-    0, 0, 2500, 2500, 4150, 4511, 4100, 4485, 3340, 7200, 6100, 4300
+    0,
+    0,
+    2500,
+    2500,
+    4150,
+    4511,
+    4100,
+    4485,
+    3340,
+    7200,
+    6100,
+    4300
   ];
 
   @override
@@ -24,7 +56,20 @@ class ReportsPage extends StatelessWidget {
       '2024': revenue,
     };
     final Map<String, List<int>> expensesByYear = {
-      '2023': [0, 0, 1000, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000],
+      '2023': [
+        0,
+        0,
+        1000,
+        1200,
+        1300,
+        1400,
+        1500,
+        1600,
+        1700,
+        1800,
+        1900,
+        2000
+      ],
       '2024': expenses,
     };
     final List<String> years = revenueByYear.keys.toList();
@@ -47,7 +92,7 @@ class ReportsPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.green.withOpacity(0.1),
+                      color: Colors.green.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -60,60 +105,78 @@ class ReportsPage extends StatelessWidget {
                       final isSmall = constraints.maxWidth < 700;
                       return Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('التقارير المالية لعام',
-                                  style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.teal)),
-                              const SizedBox(width: 12),
-                              // Beautiful dropdown using DropdownButtonFormField with custom style
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.teal.withOpacity(0.08),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                  border: Border.all(color: Colors.teal.shade100, width: 1.2),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: selectedYear,
-                                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.teal, size: 28),
-                                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
-                                    dropdownColor: Colors.white,
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('التقارير المالية لعام',
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.teal)),
+                                const SizedBox(width: 12),
+                                // Beautiful dropdown using DropdownButtonFormField with custom style
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
-                                    items: years.map((year) {
-                                      return DropdownMenuItem<String>(
-                                        value: year,
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.calendar_month, color: Colors.teal.shade300, size: 22),
-                                            const SizedBox(width: 8),
-                                            Text(year, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      if (value != null) {
-                                        setState(() {
-                                          selectedYear = value;
-                                        });
-                                      }
-                                    },
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Colors.teal.withValues(alpha: 0.08),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                    border: Border.all(
+                                        color: Colors.teal.shade100,
+                                        width: 1.2),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: selectedYear,
+                                      icon: const Icon(
+                                          Icons.keyboard_arrow_down_rounded,
+                                          color: Colors.teal,
+                                          size: 28),
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.teal),
+                                      dropdownColor: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      items: years.map((year) {
+                                        return DropdownMenuItem<String>(
+                                          value: year,
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.calendar_month,
+                                                  color: Colors.teal.shade300,
+                                                  size: 22),
+                                              const SizedBox(width: 8),
+                                              Text(year,
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          setState(() {
+                                            selectedYear = value;
+                                          });
+                                        }
+                                      },
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 32),
                           isSmall
@@ -193,8 +256,10 @@ class ReportsPage extends StatelessWidget {
   }) {
     // Use custom colors for expenses for better contrast
     final bool isExpenses = title == 'المصروفات';
-    final Color headerColor = isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
-    final Color totalRowColor = isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
+    final Color headerColor =
+        isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
+    final Color totalRowColor =
+        isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
     final Color tableBgColor = isExpenses ? const Color(0xFFFFE5E5) : color;
     final Color totalTextColor = isExpenses ? Colors.red[800]! : Colors.teal;
 
@@ -207,8 +272,8 @@ class ReportsPage extends StatelessWidget {
         child: Column(
           children: [
             Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 8),
             Text(year, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 16),
@@ -265,7 +330,9 @@ class ReportsPage extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(total.toString(),
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16, color: totalTextColor)),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: totalTextColor)),
                     ),
                   ],
                 ),

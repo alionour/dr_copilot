@@ -212,7 +212,7 @@ class PieData {
 
 class SectionTitle extends StatelessWidget {
   final String title;
-  const SectionTitle(this.title);
+  const SectionTitle(this.title, {super.key});
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -229,7 +229,7 @@ class SectionTitle extends StatelessWidget {
 
 class ChartCard extends StatelessWidget {
   final Widget child;
-  const ChartCard(this.child);
+  const ChartCard(this.child, {super.key});
   @override
   Widget build(BuildContext context) {
     return SizedBox(

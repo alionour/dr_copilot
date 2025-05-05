@@ -5,8 +5,7 @@ import '../pages/charts_page.dart';
 
 class RevenueByMonthChart extends StatelessWidget {
   final List<ChartData> chartData;
-  const RevenueByMonthChart({Key? key, required this.chartData})
-      : super(key: key);
+  const RevenueByMonthChart({super.key, required this.chartData});
 
   @override
   Widget build(BuildContext context) {
