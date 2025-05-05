@@ -22,8 +22,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   final _amountFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   Timestamp _transactionDate = Timestamp.fromDate(DateTime.now());
-  String _transactionType = 'Income'; // Default transaction type
-  final List<String> _transactionTypes = ['Income', 'Expense'];
+  String _transactionType = 'Invoice'; // Default transaction type
+  final List<String> _transactionTypes = ['Invoice', 'Expense'];
 
   // Define controllers for the new optional fields
   final _categoryController = TextEditingController();

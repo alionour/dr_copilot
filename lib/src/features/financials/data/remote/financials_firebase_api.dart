@@ -27,6 +27,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     throw UnimplementedError();
   }
 
+  /// Gets all transactions (financial records).
   @override
   Future<List<TransactionModel>> fetchFinancials() {
     // TODO: implement fetchFinancials
@@ -68,8 +69,31 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     return sessionsUseCase.getSessionsCount();
   }
 
+  /// Gets the count of sessions for a specific month and year.
+  Future<Either<Failure, int>> getSessionsCountForMonth(
+      {required int year, required int month}) {
+    return sessionsUseCase.getSessionsCountForMonth(year: year, month: month);
+  }
+
+  /// Gets the count of sessions for a specific year.
+  Future<Either<Failure, int>> getSessionsCountForYear({required int year}) {
+    return sessionsUseCase.getSessionsCountForYear(year: year);
+  }
+
   /// Gets the count of evaluations.
   Future<Either<Failure, int>> getEvaluationsCount() async {
     return await evaluationsUseCase.repository.getEvaluationsCount();
+  }
+
+  /// Gets the count of evaluations for a specific month and year.
+  Future<Either<Failure, int>> getEvaluationsCountForMonth(
+      {required int year, required int month}) {
+    return evaluationsUseCase.getEvaluationsCountForMonth(
+        year: year, month: month);
+  }
+
+  /// Gets the count of evaluations for a specific year.
+  Future<Either<Failure, int>> getEvaluationsCountForYear({required int year}) {
+    return evaluationsUseCase.getEvaluationsCountForYear(year: year);
   }
 }

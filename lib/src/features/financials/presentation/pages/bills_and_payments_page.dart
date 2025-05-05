@@ -216,103 +216,148 @@ class _ScheduleBillSection extends StatelessWidget {
                     final _formKey = GlobalKey<FormState>();
                     String title = '';
                     final dateController = TextEditingController();
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
-                        left: 24,
-                        right: 24,
-                        top: 24,
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Text('إضافة فاتورة/دفعة',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.teal)),
-                            const SizedBox(height: 18),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                  labelText: 'العنوان',
-                                  border: OutlineInputBorder()),
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? 'مطلوب' : null,
-                              onSaved: (v) => title = v ?? '',
+                    final currencies = ['EGP', 'SAR', 'USD', 'EUR'];
+                    String selectedCurrency = currencies[0];
+                    double? amount;
+                    return StatefulBuilder(
+                      builder: (context, setState) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                            left: 24,
+                            right: 24,
+                            top: 24,
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text('إضافة فاتورة/دفعة',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.teal)),
+                                const SizedBox(height: 18),
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                      labelText: 'العنوان',
+                                      border: OutlineInputBorder()),
+                                  validator: (v) =>
+                                      v == null || v.isEmpty ? 'مطلوب' : null,
+                                  onSaved: (v) => title = v ?? '',
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: dateController,
+                                  readOnly: true,
+                                  decoration: const InputDecoration(
+                                      labelText: 'تاريخ الاستحقاق (YYYY-MM-DD)',
+                                      border: OutlineInputBorder()),
+                                  validator: (v) =>
+                                      v == null || v.isEmpty ? 'مطلوب' : null,
+                                  onTap: () async {
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate:
+                                          DateTime(DateTime.now().year - 1),
+                                      lastDate:
+                                          DateTime(DateTime.now().year + 5),
+                                      locale: const Locale('ar'),
+                                    );
+                                    if (picked != null) {
+                                      dateController.text = picked
+                                          .toIso8601String()
+                                          .split('T')
+                                          .first;
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'المبلغ',
+                                    border: const OutlineInputBorder(),
+                                    suffixText: selectedCurrency,
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) return 'مطلوب';
+                                    final value =
+                                        double.tryParse(v.replaceAll(',', '.'));
+                                    if (value == null)
+                                      return 'أدخل رقماً صالحاً';
+                                    if (value <= 0)
+                                      return 'يجب أن يكون المبلغ أكبر من صفر';
+                                    if (value > 1000000)
+                                      return 'المبلغ كبير جداً';
+                                    return null;
+                                  },
+                                  onChanged: (v) {
+                                    final value =
+                                        double.tryParse(v.replaceAll(',', '.'));
+                                    if (value != null) {
+                                      amount = value;
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String>(
+                                  value: selectedCurrency,
+                                  decoration: const InputDecoration(
+                                    labelText: 'العملة',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: currencies
+                                      .map((currency) => DropdownMenuItem(
+                                            value: currency,
+                                            child: Text(currency),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        selectedCurrency = value;
+                                      });
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      _formKey.currentState!.save();
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'تمت جدولة الفاتورة/الدفعة: $title (${amount?.toStringAsFixed(2) ?? ''} $selectedCurrency)')),
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: const Text('جدولة'),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
                             ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: dateController,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                  labelText: 'تاريخ الاستحقاق (YYYY-MM-DD)',
-                                  border: OutlineInputBorder()),
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? 'مطلوب' : null,
-                              onTap: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(DateTime.now().year - 1),
-                                  lastDate: DateTime(DateTime.now().year + 5),
-                                  locale: const Locale('ar'),
-                                );
-                                if (picked != null) {
-                                  dateController.text =
-                                      picked.toIso8601String().split('T').first;
-                                }
-                              },
-                              // Removed onSaved for date
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'المبلغ (ر.س)',
-                                border: OutlineInputBorder(),
-                                suffixText: 'ر.س',
-                              ),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) return 'مطلوب';
-                                final value = double.tryParse(v.replaceAll(',', '.'));
-                                if (value == null) return 'أدخل رقماً صالحاً';
-                                if (value <= 0) return 'يجب أن يكون المبلغ أكبر من صفر';
-                                if (value > 1000000) return 'المبلغ كبير جداً';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            ElevatedButton(
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            'تمت جدولة الفاتورة/الدفعة: $title')),
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal,
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                                textStyle: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: const Text('جدولة'),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
@@ -357,9 +402,7 @@ class _ScheduledBillsSection extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
-        ...scheduledBills
-            .map((bill) => _ScheduledBillCard(bill: bill))
-            ,
+        ...scheduledBills.map((bill) => _ScheduledBillCard(bill: bill)),
         const SizedBox(height: 18),
       ],
     );
