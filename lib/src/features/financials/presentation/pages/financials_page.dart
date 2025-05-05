@@ -1,7 +1,3 @@
-import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
-import 'package:dr_copilot/src/features/financials/transactions/data/repositories/transactions_repository_impl.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
-import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +8,6 @@ import 'package:dr_copilot/src/features/financials/presentation/pages/reports_pa
 import 'package:dr_copilot/src/features/financials/presentation/pages/goals_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/dashboard_page.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FinancialsPage extends StatefulWidget {
   const FinancialsPage({super.key});

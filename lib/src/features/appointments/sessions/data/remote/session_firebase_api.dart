@@ -470,10 +470,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _sessionsCollection
-            .where('userId', isEqualTo: user.uid)
-            .get();
-        return Right(snapshot.docs.length);
+        final query = _sessionsCollection.where('userId', isEqualTo: user.uid);
+        final aggregateQuerySnapshot = await query.count().get();
+        return Right(aggregateQuerySnapshot.count ?? 0);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -501,25 +500,16 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        final querySnapshot = await _sessionsCollection
+        final query = _sessionsCollection
             .where('userId', isEqualTo: user.uid)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-            .where('startDateTime', isLessThan: Timestamp.fromDate(end))
-            .get();
-        double total = 0.0;
-        for (final doc in querySnapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data != null && data['price'] != null) {
-            final price = data['price'];
-            if (price is int) {
-              total += price.toDouble();
-            } else if (price is double) {
-              total += price;
-            }
-          }
-        }
-        return Right(total);
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end));
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
+        final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
+        return Right(
+            endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -544,25 +534,16 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        final querySnapshot = await _sessionsCollection
+        final query = _sessionsCollection
             .where('userId', isEqualTo: user.uid)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-            .where('startDateTime', isLessThan: Timestamp.fromDate(end))
-            .get();
-        double total = 0.0;
-        for (final doc in querySnapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data != null && data['price'] != null) {
-            final price = data['price'];
-            if (price is int) {
-              total += price.toDouble();
-            } else if (price is double) {
-              total += price;
-            }
-          }
-        }
-        return Right(total);
+            .where('startDateTime', isLessThan: Timestamp.fromDate(end));
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
+        final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
+        return Right(
+            endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -582,22 +563,12 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final querySnapshot = await _sessionsCollection
-            .where('userId', isEqualTo: user.uid)
-            .get();
-        double total = 0.0;
-        for (final doc in querySnapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data != null && data['price'] != null) {
-            final price = data['price'];
-            if (price is int) {
-              total += price.toDouble();
-            } else if (price is double) {
-              total += price;
-            }
-          }
-        }
-        return Right(total);
+        final query = _sessionsCollection.where('userId', isEqualTo: user.uid);
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
+        final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
+        return Right(
+            endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {

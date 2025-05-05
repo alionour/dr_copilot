@@ -8,6 +8,7 @@ part 'financials_state.dart';
 
 /// Bloc for managing financial transactions.
 class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
+  // ignore: unused_field
   final FinancialsUseCase _financialsUseCase;
 
   FinancialsBloc(FinancialsUseCase financialsUseCase)
@@ -16,6 +17,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
 
   /// Maps a [Failure] to a user-friendly error message.
+  // ignore: unused_element
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case ServerFailure _:
