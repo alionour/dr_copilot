@@ -15,7 +15,6 @@ class GoalTypeConverter implements JsonConverter<GoalType, String> {
   String toJson(GoalType object) => goalTypeToString(object);
 }
 
-
 enum GoalType {
   sessionsYear,
   sessionsMonth,
@@ -105,6 +104,8 @@ abstract class GoalModelBase {
   final int color;
   @TimestampConverter()
   final Timestamp createdAt;
+  final int? year; // Add this
+  final int? month; // Add this
 
   const GoalModelBase({
     required this.id,
@@ -113,6 +114,8 @@ abstract class GoalModelBase {
     required this.goalType,
     required this.color,
     required this.createdAt,
+    this.year,
+    this.month,
   });
 }
 
@@ -128,6 +131,8 @@ class CountGoalModel extends GoalModelBase {
     required this.targetCount,
     required super.color,
     required super.createdAt,
+    super.year,
+    super.month,
   });
 
   factory CountGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -142,6 +147,8 @@ class CountGoalModel extends GoalModelBase {
     int? targetCount,
     int? color,
     Timestamp? createdAt,
+    int? year,
+    int? month,
   }) {
     return CountGoalModel(
       id: id ?? this.id,
@@ -151,6 +158,8 @@ class CountGoalModel extends GoalModelBase {
       targetCount: targetCount ?? this.targetCount,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      year: year ?? this.year,
+      month: month ?? this.month,
     );
   }
 }
@@ -167,6 +176,8 @@ class AmountGoalModel extends GoalModelBase {
     required this.targetAmount,
     required super.color,
     required super.createdAt,
+    super.year,
+    super.month,
   });
 
   factory AmountGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -181,6 +192,8 @@ class AmountGoalModel extends GoalModelBase {
     double? targetAmount,
     int? color,
     Timestamp? createdAt,
+    int? year,
+    int? month,
   }) {
     return AmountGoalModel(
       id: id ?? this.id,
@@ -190,6 +203,8 @@ class AmountGoalModel extends GoalModelBase {
       targetAmount: targetAmount ?? this.targetAmount,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      year: year ?? this.year,
+      month: month ?? this.month,
     );
   }
 }
@@ -203,6 +218,10 @@ class CustomGoalModel extends GoalModelBase {
   /// The numeric target for the custom metric.
   final double targetValue;
 
+  /// Indicates if this custom goal is month-based, year-based, or neither.
+  final bool isMonthBased;
+  final bool isYearBased;
+
   const CustomGoalModel({
     required super.id,
     required super.title,
@@ -212,6 +231,10 @@ class CustomGoalModel extends GoalModelBase {
     required this.targetValue,
     required super.color,
     required super.createdAt,
+    super.year,
+    super.month,
+    this.isMonthBased = false,
+    this.isYearBased = false,
   });
 
   factory CustomGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -227,6 +250,10 @@ class CustomGoalModel extends GoalModelBase {
     double? targetValue,
     int? color,
     Timestamp? createdAt,
+    int? year,
+    int? month,
+    bool? isMonthBased,
+    bool? isYearBased,
   }) {
     return CustomGoalModel(
       id: id ?? this.id,
@@ -237,6 +264,10 @@ class CustomGoalModel extends GoalModelBase {
       targetValue: targetValue ?? this.targetValue,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      year: year ?? this.year,
+      month: month ?? this.month,
+      isMonthBased: isMonthBased ?? this.isMonthBased,
+      isYearBased: isYearBased ?? this.isYearBased,
     );
   }
 }

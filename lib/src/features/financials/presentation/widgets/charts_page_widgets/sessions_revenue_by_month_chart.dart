@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../pages/charts_page.dart';
+import '../../pages/charts_page.dart';
 
 class SessionsRevenueByMonthChart extends StatelessWidget {
   final List<ChartData> chartData;

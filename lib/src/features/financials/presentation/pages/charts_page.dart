@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../widgets/revenue_by_month_chart.dart';
-import '../widgets/sessions_revenue_by_month_chart.dart';
-import '../widgets/total_revenue_by_month_chart.dart';
+import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
+import '../widgets/charts_page_widgets/sessions_revenue_by_month_chart.dart';
+import '../widgets/charts_page_widgets/total_revenue_by_month_chart.dart';
 
 class ChartsPage extends StatelessWidget {
   const ChartsPage({super.key});

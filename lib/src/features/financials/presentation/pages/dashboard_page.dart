@@ -2,9 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../navigation_side/presentation/bloc/navigation_bloc.dart';
-import '../widgets/revenue_by_month_chart.dart';
+import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
 import 'charts_page.dart' show ChartData;
-import 'package:dr_copilot/src/features/financials/presentation/widgets/currency_profiles_section.dart';
+import 'package:dr_copilot/src/features/financials/presentation/widgets/dashbaord_page_widgets/currency_profiles_section.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});

@@ -15,6 +15,8 @@ CountGoalModel _$CountGoalModelFromJson(Map<String, dynamic> json) =>
       targetCount: (json['targetCount'] as num).toInt(),
       color: (json['color'] as num).toInt(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      year: (json['year'] as num?)?.toInt(),
+      month: (json['month'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$CountGoalModelToJson(CountGoalModel instance) =>
@@ -25,6 +27,8 @@ Map<String, dynamic> _$CountGoalModelToJson(CountGoalModel instance) =>
       'goalType': const GoalTypeConverter().toJson(instance.goalType),
       'color': instance.color,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'year': instance.year,
+      'month': instance.month,
       'targetCount': instance.targetCount,
     };
 
@@ -37,6 +41,8 @@ AmountGoalModel _$AmountGoalModelFromJson(Map<String, dynamic> json) =>
       targetAmount: (json['targetAmount'] as num).toDouble(),
       color: (json['color'] as num).toInt(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      year: (json['year'] as num?)?.toInt(),
+      month: (json['month'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$AmountGoalModelToJson(AmountGoalModel instance) =>
@@ -47,6 +53,8 @@ Map<String, dynamic> _$AmountGoalModelToJson(AmountGoalModel instance) =>
       'goalType': const GoalTypeConverter().toJson(instance.goalType),
       'color': instance.color,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'year': instance.year,
+      'month': instance.month,
       'targetAmount': instance.targetAmount,
     };
 
@@ -60,6 +68,10 @@ CustomGoalModel _$CustomGoalModelFromJson(Map<String, dynamic> json) =>
       targetValue: (json['targetValue'] as num).toDouble(),
       color: (json['color'] as num).toInt(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      year: (json['year'] as num?)?.toInt(),
+      month: (json['month'] as num?)?.toInt(),
+      isMonthBased: json['isMonthBased'] as bool? ?? false,
+      isYearBased: json['isYearBased'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$CustomGoalModelToJson(CustomGoalModel instance) =>
@@ -70,6 +82,10 @@ Map<String, dynamic> _$CustomGoalModelToJson(CustomGoalModel instance) =>
       'goalType': const GoalTypeConverter().toJson(instance.goalType),
       'color': instance.color,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'year': instance.year,
+      'month': instance.month,
       'metricName': instance.metricName,
       'targetValue': instance.targetValue,
+      'isMonthBased': instance.isMonthBased,
+      'isYearBased': instance.isYearBased,
     };

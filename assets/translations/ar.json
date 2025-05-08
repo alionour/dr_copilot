@@ -295,5 +295,17 @@
   "recurrence_weekly": "أسبوعي",
   "recurrence_monthly": "شهري",
   "recurrence_yearly": "سنوي",
-  "cost": "التكلفة"
+  "cost": "التكلفة",
+  "month": "شهر",
+  "year": "سنة",
+  "targetAmount": "المبلغ المستهدف",
+  "targetCount": "العدد المستهدف",
+  "monthBased": "حسب الشهر",
+  "yearBased": "حسب السنة",
+  "customMetricName":"اسم المقياس المخصص",
+  "customTargetValue":"قيمة الهدف المخصصة",
+  "goalTypeEvaluationsYear":"عدد التقييمات سنوياً",
+  "goalTypeEvaluationsMonth":"عدد التقييمات شهرياً",
+  "yearOptional":"سنة اختيارية",
+  "monthOptional":"شهر اختيارى"
 }

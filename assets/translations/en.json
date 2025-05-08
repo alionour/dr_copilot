@@ -304,5 +304,18 @@
   "recurrence_weekly": "Weekly",
   "recurrence_monthly": "Monthly",
   "recurrence_yearly": "Yearly",
-  "cost": "Cost"
+  "cost": "Cost",
+  "month": "Month",
+  "year": "Year",
+  "targetAmount": "Target Amount",
+  "targetCount": "Target Count",
+  "monthBased": "Month Based",
+  "yearBased": "Year Based",
+  "customMetricName":"Custom Metric Name",
+  "customTargetValue":"Custom Target Value",
+  "goalTypeEvaluationsYear":"Evaluations per Year",
+  "goalTypeEvaluationsMonth":"Evaluations per Month",
+  "yearOptional":"Year Optional",
+  "monthOptional":"Month Optional"
+
 }
