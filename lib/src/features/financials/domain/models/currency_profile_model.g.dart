@@ -12,9 +12,8 @@ CurrencyProfileModel _$CurrencyProfileModelFromJson(
       id: json['id'] as String,
       currency: json['currency'] as String,
       name: json['name'] as String,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
+      description: json['description'] as String?,
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
     );
 
 Map<String, dynamic> _$CurrencyProfileModelToJson(
@@ -23,5 +22,6 @@ Map<String, dynamic> _$CurrencyProfileModelToJson(
       'id': instance.id,
       'currency': instance.currency,
       'name': instance.name,
-      'createdAt': instance.createdAt?.toIso8601String(),
+      'description': instance.description,
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
     };

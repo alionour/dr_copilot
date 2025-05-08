@@ -1,80 +1,193 @@
 part of 'financials_bloc.dart';
 
-
 /// Base class for all financial states.
 abstract class FinancialsState extends Equatable {
-  const FinancialsState();
+  /// A list containing all scheduled bill models associated with the current financial state.
+  ///
+  /// Each [ScheduledBillModel] in the list represents a bill that has been scheduled
+  /// for payment or tracking within the application.
+  final List<ScheduledBillModel> scheduledBills;
+
+  /// A list of [GoalModelBase] objects representing the financial goals.
+  ///
+  /// This list contains all the goals associated with the current financial state.
+  final List<GoalModelBase> goals;
+
+  /// A list containing the currency profiles associated with the financials feature.
+  ///
+  /// Each item in the list is an instance of [CurrencyProfileModel], representing
+  /// the details of a specific currency profile.
+  final List<CurrencyProfileModel> currencyProfiles;
+
+  /// A list containing all bill models associated with the current financial state.
+  ///
+  /// Each [BillModel] in the list represents an individual bill with its details.
+  /// This list is typically used to display, manage, or process bills within the financials feature.
+  final List<BillModel> bills;
+  // ... add more as needed
+
+  const FinancialsState({
+    required this.scheduledBills,
+    required this.goals,
+    required this.currencyProfiles,
+    required this.bills,
+  });
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [
+        scheduledBills,
+        goals,
+        currencyProfiles,
+        bills,
+      ];
+
+  FinancialsState copyWith({
+    List<CurrencyProfileModel>? currencyProfiles,
+    List<ScheduledBillModel>? scheduledBills,
+    List<GoalModelBase>? goals,
+    List<BillModel>? bills,
+  });
 }
 
-/// Initial state of the FinancialsBloc.
+// --- copyWith for all concrete states ---
 class FinancialsInitial extends FinancialsState {
-  const FinancialsInitial();
+  const FinancialsInitial(
+      {required super.scheduledBills,
+      required super.goals,
+      required super.currencyProfiles,
+      required super.bills});
+
+  @override
+  FinancialsInitial copyWith({
+    List<CurrencyProfileModel>? currencyProfiles,
+    List<ScheduledBillModel>? scheduledBills,
+    List<GoalModelBase>? goals,
+    List<BillModel>? bills,
+  }) {
+    return FinancialsInitial(
+      currencyProfiles: currencyProfiles ?? this.currencyProfiles,
+      scheduledBills: scheduledBills ?? this.scheduledBills,
+      goals: goals ?? this.goals,
+      bills: bills ?? this.bills,
+    );
+  }
 }
 
 /// State when financial transactions are being loaded.
 class FinancialsLoading extends FinancialsState {
-  const FinancialsLoading();
+  const FinancialsLoading(
+      {required super.scheduledBills,
+      required super.goals,
+      required super.currencyProfiles,
+      required super.bills});
+
+  @override
+  FinancialsLoading copyWith({
+    List<ScheduledBillModel>? scheduledBills,
+    List<GoalModelBase>? goals,
+    List<CurrencyProfileModel>? currencyProfiles,
+    List<BillModel>? bills,
+  }) {
+    return FinancialsLoading(
+      scheduledBills: scheduledBills ?? this.scheduledBills,
+      goals: goals ?? this.goals,
+      currencyProfiles: currencyProfiles ?? this.currencyProfiles,
+      bills: bills ?? this.bills,
+    );
+  }
+}
+
+/// Represents the state when financial data has been successfully loaded.
+///
+/// This state contains the loaded financial information and is used to update
+/// the UI accordingly.
+class FinancialsLoaded extends FinancialsState {
+  const FinancialsLoaded({
+    required super.scheduledBills,
+    required super.goals,
+    required super.currencyProfiles,
+    required super.bills,
+  });
+
+  @override
+  FinancialsLoaded copyWith({
+    String? message,
+    List<CurrencyProfileModel>? currencyProfiles,
+    List<ScheduledBillModel>? scheduledBills,
+    List<GoalModelBase>? goals,
+    List<BillModel>? bills,
+  }) {
+    return FinancialsLoaded(
+      currencyProfiles: currencyProfiles ?? this.currencyProfiles,
+      scheduledBills: scheduledBills ?? this.scheduledBills,
+      goals: goals ?? this.goals,
+      bills: bills ?? this.bills,
+    );
+  }
 }
 
 /// State when a financial operation is successful.
 class FinancialsSuccess extends FinancialsState {
   final String message;
-  
-  const FinancialsSuccess({required this.message});
+
+  const FinancialsSuccess({
+    required this.message,
+    required super.scheduledBills,
+    required super.goals,
+    required super.currencyProfiles,
+    required super.bills,
+  });
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, ...super.props];
+
+  @override
+  FinancialsSuccess copyWith({
+    String? message,
+    List<CurrencyProfileModel>? currencyProfiles,
+    List<ScheduledBillModel>? scheduledBills,
+    List<GoalModelBase>? goals,
+    List<BillModel>? bills,
+  }) {
+    return FinancialsSuccess(
+      message: message ?? this.message,
+      scheduledBills: scheduledBills ?? this.scheduledBills,
+      goals: goals ?? this.goals,
+      currencyProfiles: currencyProfiles ?? this.currencyProfiles,
+      bills: bills ?? this.bills,
+    );
+  }
 }
 
 /// State when an error occurs in financial operations.
 class FinancialsError extends FinancialsState {
   final String message;
 
-  const FinancialsError({required this.message});
+  const FinancialsError({
+    required this.message,
+    required super.scheduledBills,
+    required super.goals,
+    required super.currencyProfiles,
+    required super.bills,
+  });
 
   @override
-  List<Object?> get props => [message];
-}
-
-/// State when currency profiles are loaded.
-class FinancialsCurrencyProfilesLoaded extends FinancialsState {
-  final List<CurrencyProfileModel> profiles;
-
-  const FinancialsCurrencyProfilesLoaded(this.profiles);
+  List<Object?> get props => [message, ...super.props];
 
   @override
-  List<Object?> get props => [profiles];
-}
-
-/// State when a currency profile is added.
-class FinancialsCurrencyProfileAdded extends FinancialsState {
-  final CurrencyProfileModel profile;
-
-  const FinancialsCurrencyProfileAdded(this.profile);
-
-  @override
-  List<Object?> get props => [profile];
-}
-
-/// State when a currency profile is deleted.
-class FinancialsCurrencyProfileDeleted extends FinancialsState {
-  final String id;
-
-  const FinancialsCurrencyProfileDeleted(this.id);
-
-  @override
-  List<Object?> get props => [id];
-}
-
-/// State when a currency profile is updated.
-class FinancialsCurrencyProfileUpdated extends FinancialsState {
-  final CurrencyProfileModel profile;
-
-  const FinancialsCurrencyProfileUpdated(this.profile);
-
-  @override
-  List<Object?> get props => [profile];
+  FinancialsError copyWith({
+    String? message,
+    List<CurrencyProfileModel>? currencyProfiles,
+    List<ScheduledBillModel>? scheduledBills,
+    List<GoalModelBase>? goals,
+    List<BillModel>? bills,
+  }) {
+    return FinancialsError(
+      message: message ?? this.message,
+      currencyProfiles: currencyProfiles ?? this.currencyProfiles,
+      scheduledBills: scheduledBills ?? this.scheduledBills,
+      goals: goals ?? this.goals,
+      bills: bills ?? this.bills,
+    );
+  }
 }

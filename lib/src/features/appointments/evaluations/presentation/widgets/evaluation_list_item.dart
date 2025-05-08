@@ -387,7 +387,7 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
             _updatedValues['patientName'] ?? widget.evaluationModel.patientName,
         price: double.tryParse(_updatedValues['price'] ?? '') ??
             widget.evaluationModel.price,
-        updatedAt: Timestamp.now(),
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
         startDateTime: _updatedValues['startDateTime'] != null
             ? Timestamp.fromDate(
                 DateTime.parse(_updatedValues['startDateTime']!))

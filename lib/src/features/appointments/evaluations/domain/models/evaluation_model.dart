@@ -93,6 +93,7 @@ class EvaluationModel {
 
   Map<String, dynamic> toJson() => _$EvaluationModelToJson(this);
 
+
   EvaluationModel copyWith({
     String? id,
     String? patientId,

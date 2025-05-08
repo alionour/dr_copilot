@@ -83,7 +83,7 @@ void main() {
 
     group('signOut', () {
       test('calls FirebaseAuth.signOut', () async {
-        when(mockAuth.signOut()).thenAnswer((_) async => null);
+        when(mockAuth.signOut()).thenAnswer((_) async {});
         // See note above about private _firebaseAuth.
       });
     });
@@ -111,9 +111,9 @@ void main() {
     group('updateProfile', () {
       test('updates displayName and photoURL', () async {
         when(mockAuth.currentUser).thenReturn(mockUser);
-        when(mockUser.updateDisplayName(any)).thenAnswer((_) async => null);
-        when(mockUser.updatePhotoURL(any)).thenAnswer((_) async => null);
-        when(mockUser.reload()).thenAnswer((_) async => null);
+        when(mockUser.updateDisplayName(any)).thenAnswer((_) async {});
+        when(mockUser.updatePhotoURL(any)).thenAnswer((_) async {});
+        when(mockUser.reload()).thenAnswer((_) async {});
         // See note above about private _firebaseAuth.
       });
 
@@ -143,7 +143,7 @@ void main() {
         when(mockStorage.write(
                 key: anyNamed('key') as String? ?? '',
                 value: anyNamed('value') as String? ?? ''))
-            .thenAnswer((_) async => null);
+            .thenAnswer((_) async {});
 
         // Can't inject storage into saveAuthentication, so this is a placeholder.
       });

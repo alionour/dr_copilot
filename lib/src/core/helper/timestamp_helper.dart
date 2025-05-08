@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'currency_profile_model.g.dart';
-
 class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
   const TimestampConverter();
 
@@ -43,42 +41,4 @@ class NullableTimestampConverter implements JsonConverter<Timestamp?, dynamic> {
 
   @override
   dynamic toJson(Timestamp? object) => object;
-}
-
-@JsonSerializable()
-class CurrencyProfileModel {
-  final String id;
-  final String currency;
-  final String name;
-  final String? description;
-  @TimestampConverter()
-  final Timestamp createdAt;
-
-  CurrencyProfileModel({
-    required this.id,
-    required this.currency,
-    required this.name,
-    this.description,
-    required this.createdAt,
-  });
-
-  factory CurrencyProfileModel.fromJson(Map<String, dynamic> json) =>
-      _$CurrencyProfileModelFromJson(json);
-  Map<String, dynamic> toJson() => _$CurrencyProfileModelToJson(this);
-
-  CurrencyProfileModel copyWith({
-    String? id,
-    String? currency,
-    String? name,
-    String? description,
-    Timestamp? createdAt,
-  }) {
-    return CurrencyProfileModel(
-      id: id ?? this.id,
-      currency: currency ?? this.currency,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
 }

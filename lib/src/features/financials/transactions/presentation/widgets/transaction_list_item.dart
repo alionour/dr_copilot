@@ -35,8 +35,8 @@ class TransactionListItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: color.withOpacity(0.15),
-                child: Icon(icon, color: color, size: 24),
                 radius: 24,
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(

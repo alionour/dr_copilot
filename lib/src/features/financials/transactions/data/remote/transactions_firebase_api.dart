@@ -87,7 +87,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
           if (userId == user.uid) {
             final updatedData = transaction.toJson();
             updatedData.remove('id'); // Exclude the `id` field from the update
-            updatedData['updatedAt'] = Timestamp.now(); // Add updatedAt field
+            updatedData['updatedAt'] = Timestamp.fromDate(
+                DateTime.now().toUtc()); // Add updatedAt field
             await _transactionsCollection.doc(id).update(updatedData);
 
             return Right(transaction.copyWith(id: id));

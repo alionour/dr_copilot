@@ -327,7 +327,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           id: uuid.v4(), // Generate a unique ID
           name: _nameController.text,
           age: int.tryParse(_ageController.text),
-          createdAt: Timestamp.now(),
+          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
           gender: _selectedGender,
           address: _addressController.text,
           userId: userId, // Get userId from AuthBloc

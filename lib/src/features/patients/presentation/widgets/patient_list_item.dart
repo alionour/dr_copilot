@@ -438,7 +438,7 @@ class _PatientListItemState extends State<PatientListItem> {
             widget.patientModel.age,
         address: _updatedValues['address'] ?? widget.patientModel.address,
         gender: _updatedValues['gender'] ?? widget.patientModel.gender,
-        updatedAt: Timestamp.now(),
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
         phoneNumber: _updatedValues['phoneNumber']?.isNotEmpty == true
             ? _updatedValues['phoneNumber']
             : null,

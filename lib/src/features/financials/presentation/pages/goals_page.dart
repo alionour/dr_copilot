@@ -1,72 +1,75 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
 
 class GoalsPage extends StatelessWidget {
   const GoalsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Example goals data
-    final List<_Goal> goals = [
-      _Goal('increaseRevenue'.tr(),
-          'achievePercentAnnualGrowth'.tr(args: ['20']), 0.65, Colors.green),
-      _Goal(
-          'decreaseExpenses'.tr(),
-          'reduceMonthlyExpensesPercent'.tr(args: ['10']),
-          0.4,
-          Colors.redAccent),
-      _Goal('sessionsCount'.tr(), 'reachSessionsYear'.tr(args: ['1000']), 0.8,
-          Colors.blue),
-      _Goal('improveNetProfit'.tr(),
-          'increaseNetProfitPercent'.tr(args: ['15']), 0.5, Colors.teal),
-    ];
+    // Add this to trigger fetching goals when the page is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FinancialsBloc>().add(FetchGoals());
+    });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('financialGoals'.tr()),
-        centerTitle: true,
-        backgroundColor: Colors.green[200],
-        elevation: 0,
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Add Goal Section
-                _AddGoalSection(),
-                const SizedBox(height: 24),
-                Text(
-                  'trackFinancialGoalsThisYear'.tr(),
-                  style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ...goals.map((goal) => _GoalCard(goal: goal)),
-              ],
-            ),
+    return BlocConsumer<FinancialsBloc, FinancialsState>(
+      listener: (context, state) {
+        if (state is FinancialsSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
           );
-        },
-      ),
+        } else if (state is FinancialsError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('financialGoals'.tr()),
+            centerTitle: true,
+            backgroundColor: Colors.green[200],
+            elevation: 0,
+          ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _AddGoalSection(),
+                    const SizedBox(height: 24),
+                    Text(
+                      'trackFinancialGoalsThisYear'.tr(),
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ...state.goals
+                        .whereType<GoalModelBase>()
+                        .map((goal) => _GoalCard(goal: goal)),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
 
-class _Goal {
-  final String title;
-  final String description;
-  final double progress; // 0.0 - 1.0
-  final Color color;
-  _Goal(this.title, this.description, this.progress, this.color);
-}
-
 class _GoalCard extends StatelessWidget {
-  final _Goal goal;
+  final GoalModelBase goal;
   const _GoalCard({required this.goal});
 
   @override
@@ -88,29 +91,41 @@ class _GoalCard extends StatelessWidget {
                   color: Colors.black87),
             ),
             const SizedBox(height: 8),
-            Text(
-              goal.description,
-              style: const TextStyle(fontSize: 15, color: Colors.black54),
-            ),
-            const SizedBox(height: 18),
-            LinearProgressIndicator(
-              value: goal.progress,
-              minHeight: 10,
-              backgroundColor: goal.color.withValues(alpha:0.15),
-              valueColor: AlwaysStoppedAnimation<Color>(goal.color),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'progressLabelWithPercent'
-                    .tr(args: [(goal.progress * 100).toStringAsFixed(0)]),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: goal.color,
-                    fontSize: 14),
+            if (goal.description?.isNotEmpty == true)
+              Text(
+                goal.description!,
+                style: const TextStyle(fontSize: 15, color: Colors.black54),
               ),
+            const SizedBox(height: 18),
+            Builder(
+              builder: (context) {
+                final bloc = BlocProvider.of<FinancialsBloc>(context);
+                final progress = bloc.calculateGoalProgress(goal);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 10,
+                      backgroundColor: Color(goal.color).withOpacity(0.15),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Color(goal.color)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'progressLabelWithPercent'
+                            .tr(args: [(progress * 100).toStringAsFixed(0)]),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(goal.color),
+                            fontSize: 14),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -153,8 +168,10 @@ class _AddGoalSection extends StatelessWidget {
                   builder: (context) {
                     final formKey = GlobalKey<FormState>();
                     String title = '';
+                    String? description;
                     String goalType = 'sessions_year';
                     Color color = Colors.teal;
+                    // double progress = 0;
                     final List<Map<String, String>> goalTypes = [
                       {
                         'key': 'sessions_year',
@@ -178,6 +195,10 @@ class _AddGoalSection extends StatelessWidget {
                       },
                       {'key': 'custom', 'label': 'goalTypeCustom'.tr()},
                     ];
+                    String customMetricName = '';
+                    String customTargetValue = '';
+                    String countTargetValue = '';
+                    String amountTargetValue = '';
                     return StatefulBuilder(
                       builder: (context, setState) => Padding(
                         padding: EdgeInsets.only(
@@ -229,66 +250,169 @@ class _AddGoalSection extends StatelessWidget {
                                 onSaved: (v) => title = v ?? '',
                               ),
                               const SizedBox(height: 12),
+
+                              if (goalType == 'custom') ...[
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'customMetricName'.tr(),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? 'required'.tr()
+                                      : null,
+                                  onSaved: (v) => customMetricName = v ?? '',
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'customTargetValue'.tr(),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^[0-9]+([.][0-9]{0,2})?')),
+                                    LengthLimitingTextInputFormatter(
+                                        11), // max 11 digits (up to 99,999,999,999)
+                                  ],
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) {
+                                      return 'required'.tr();
+                                    }
+                                    final n = num.tryParse(v);
+                                    if (n == null) {
+                                      return 'enterValidNumber'.tr();
+                                    }
+                                    if (n <= 0) {
+                                      return 'mustBeGreaterThanZero'.tr();
+                                    }
+                                    if (n > 10000) {
+                                      return 'valueTooLarge'.tr();
+                                    }
+                                    return null;
+                                  },
+                                  onSaved: (v) => customTargetValue = v ?? '',
+                                ),
+                                const SizedBox(height: 12),
+                              ] else if (goalType == 'sessions_year' ||
+                                  goalType == 'sessions_month') ...[
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'targetCount'.tr(),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(
+                                        9), // max 9 digits (up to 999,999,999)
+                                  ],
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) {
+                                      return 'required'.tr();
+                                    }
+                                    final n = int.tryParse(v);
+                                    if (n == null) {
+                                      return 'enterValidInteger'.tr();
+                                    }
+                                    if (n <= 0) {
+                                      return 'mustBeGreaterThanZero'.tr();
+                                    }
+                                    if (n > 100000000) {
+                                      return 'valueTooLarge'.tr();
+                                    }
+                                    return null;
+                                  },
+                                  onSaved: (v) => countTargetValue = v ?? '',
+                                ),
+                                const SizedBox(height: 12),
+                              ] else if (goalType == 'decrease_expenses' ||
+                                  goalType == 'increase_revenue' ||
+                                  goalType == 'increase_profit') ...[
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'targetAmount'.tr(),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^[0-9]+([.][0-9]{0,2})?')),
+                                  ],
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) {
+                                      return 'required'.tr();
+                                    }
+                                    final n = double.tryParse(v);
+                                    if (n == null) {
+                                      return 'enterValidNumber'.tr();
+                                    }
+                                    if (n <= 0) {
+                                      return 'mustBeGreaterThanZero'.tr();
+                                    }
+                                    if (n > 100000000) {
+                                      return 'valueTooLarge'.tr();
+                                    }
+                                    return null;
+                                  },
+                                  onSaved: (v) => amountTargetValue = v ?? '',
+                                ),
+                                const SizedBox(height: 12),
+                              ],
                               TextFormField(
                                 decoration: InputDecoration(
                                     labelText: 'goalDescription'.tr(),
                                     border: const OutlineInputBorder()),
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'required'.tr()
-                                    : null,
+                                validator: (v) =>
+                                    null, // Description is optional
+                                onSaved: (v) => description = v,
                               ),
                               const SizedBox(height: 12),
-                              // نسبة الإنجاز Slider
-                              StatefulBuilder(
-                                builder: (context, setState) {
-                                  double sliderValue = 0;
-                                  return StatefulBuilder(
-                                    builder: (context, setSliderState) {
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Text('progressLabel'.tr(),
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                  'progressLabelWithPercent'.tr(
-                                                      args: [
-                                                        sliderValue
-                                                            .toStringAsFixed(0)
-                                                      ]),
-                                                  style: const TextStyle(
-                                                      color: Colors.teal,
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                            ],
-                                          ),
-                                          Slider(
-                                            value: sliderValue,
-                                            min: 0,
-                                            max: 100,
-                                            divisions: 100,
-                                            label: 'progressLabelWithPercent'
-                                                .tr(args: [
-                                              sliderValue.toStringAsFixed(0)
-                                            ]),
-                                            onChanged: (v) {
-                                              setSliderState(
-                                                  () => sliderValue = v);
-                                            },
-                                            activeColor: Colors.teal,
-                                            inactiveColor: Colors.teal[100],
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
+                              // StatefulBuilder(
+                              //   builder: (context, setSliderState) {
+                              //     return Column(
+                              //       crossAxisAlignment:
+                              //           CrossAxisAlignment.start,
+                              //       children: [
+                              //         Row(
+                              //           children: [
+                              //             Text('progressLabel'.tr(),
+                              //                 style: const TextStyle(
+                              //                     fontWeight: FontWeight.bold)),
+                              //             const SizedBox(width: 8),
+                              //             Text(
+                              //                 'progressLabelWithPercent'.tr(
+                              //                     args: [
+                              //                       progress.toStringAsFixed(0)
+                              //                     ]),
+                              //                 style: const TextStyle(
+                              //                     color: Colors.teal,
+                              //                     fontWeight: FontWeight.bold)),
+                              //           ],
+                              //         ),
+                              //         Slider(
+                              //           value: progress,
+                              //           min: 0,
+                              //           max: 100,
+                              //           divisions: 100,
+                              //           label: 'progressLabelWithPercent'.tr(
+                              //               args: [
+                              //                 progress.toStringAsFixed(0)
+                              //               ]),
+                              //           onChanged: (v) {
+                              //             setSliderState(() => progress = v);
+                              //           },
+                              //           activeColor: Colors.teal,
+                              //           inactiveColor: Colors.teal[100],
+                              //         ),
+                              //       ],
+                              //     );
+                              //   },
+                              // ),
                               const SizedBox(height: 12),
                               DropdownButtonFormField<Color>(
                                 value: color,
@@ -364,12 +488,62 @@ class _AddGoalSection extends StatelessWidget {
                                 onPressed: () {
                                   if (formKey.currentState!.validate()) {
                                     formKey.currentState!.save();
+                                    final GoalType type =
+                                        goalTypeFromString(goalType);
+                                    GoalModelBase goal;
+                                    if (type == GoalType.custom) {
+                                      goal = CustomGoalModel(
+                                        id: '',
+                                        title: title,
+                                        description: (description == null ||
+                                                description!.trim().isEmpty)
+                                            ? null
+                                            : description!.trim(),
+                                        goalType: type,
+                                        metricName: customMetricName,
+                                        targetValue: double.tryParse(
+                                                customTargetValue) ??
+                                            1.0,
+                                        color: color.value,
+                                        createdAt: Timestamp.fromDate(
+                                            DateTime.now().toUtc()),
+                                      );
+                                    } else if (type.isCountBased) {
+                                      goal = CountGoalModel(
+                                        id: '',
+                                        title: title,
+                                        description: (description == null ||
+                                                description!.trim().isEmpty)
+                                            ? null
+                                            : description!.trim(),
+                                        goalType: type,
+                                        targetCount:
+                                            int.tryParse(countTargetValue) ?? 1,
+                                        color: color.value,
+                                        createdAt: Timestamp.fromDate(
+                                            DateTime.now().toUtc()),
+                                      );
+                                    } else {
+                                      goal = AmountGoalModel(
+                                        id: '',
+                                        title: title,
+                                        description: (description == null ||
+                                                description!.trim().isEmpty)
+                                            ? null
+                                            : description!.trim(),
+                                        goalType: type,
+                                        targetAmount: double.tryParse(
+                                                amountTargetValue) ??
+                                            1.0,
+                                        color: color.value,
+                                        createdAt: Timestamp.fromDate(
+                                            DateTime.now().toUtc()),
+                                      );
+                                    }
+                                    context
+                                        .read<FinancialsBloc>()
+                                        .add(AddGoal(goal));
                                     Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              'goalAdded'.tr(args: [title]))),
-                                    );
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

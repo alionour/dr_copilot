@@ -1,9 +1,15 @@
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 
 /// Abstract repository for financial transactions.
 abstract class AbstractFinancialsRepository {
+  /// Fetches suppressed due dates (yyyy-MM-dd) for a scheduled bill.
+  Future<Set<String>> fetchSuppressedDueDates(String scheduledBillId);
+
   /// Returns the number of sessions for the specified [year].
   ///
   /// Throws a [Failure] if the operation fails.
@@ -77,4 +83,25 @@ abstract class AbstractFinancialsRepository {
 
   /// Gets the count of evaluations.
   Future<Either<Failure, int>> getEvaluationsCount();
+
+  // --- Goal CRUD ---
+  Future<Either<Failure, GoalModelBase>> addGoal({required GoalModelBase goal});
+  Future<Either<Failure, GoalModelBase>> updateGoal(
+      {required GoalModelBase goal});
+  Future<Either<Failure, List<GoalModelBase>>> fetchGoals();
+  Future<Either<Failure, void>> deleteGoal(String id);
+
+  // --- Bill CRUD ---
+  Future<Either<Failure, BillModel>> addBill({required BillModel bill});
+  Future<Either<Failure, BillModel>> updateBill({required BillModel bill});
+  Future<Either<Failure, List<BillModel>>> fetchBills();
+  Future<Either<Failure, void>> deleteBill(String id);
+
+  // --- Scheduled Bill CRUD ---
+  Future<Either<Failure, ScheduledBillModel>> addScheduledBill(
+      {required ScheduledBillModel scheduledBill});
+  Future<Either<Failure, ScheduledBillModel>> updateScheduledBill(
+      {required ScheduledBillModel scheduledBill});
+  Future<Either<Failure, List<ScheduledBillModel>>> fetchScheduledBills();
+  Future<Either<Failure, void>> deleteScheduledBill(String id);
 }

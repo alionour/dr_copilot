@@ -115,7 +115,8 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           if (userId == user.uid) {
             final updatedData = patient.toJson();
             updatedData.remove('id'); // Exclude the `id` field from the update
-            updatedData['updatedAt'] = Timestamp.now(); // Add updatedAt field
+            updatedData['updatedAt'] = Timestamp.fromDate(
+                DateTime.now().toUtc()); // Add updatedAt field
             await _patientsCollection.doc(id).update(updatedData);
 
             return Right(patient.copyWith(id: id));
@@ -159,6 +160,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
+
   @override
   Future<Either<Failure, List<PatientModel>>> searchPatients({
     String? name,

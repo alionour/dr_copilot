@@ -186,7 +186,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
             _selectedPatient!.name, // Include the selected patient's name
         startDateTime: _startDate!,
         endDateTime: _endDate!,
-        createdAt: Timestamp.now(),
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
 
         sessionType: _selectedSessionType,
         price: double.parse(_actualPriceController.text),

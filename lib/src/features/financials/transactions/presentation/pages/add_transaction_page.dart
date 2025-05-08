@@ -114,7 +114,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           referenceId: _referenceIdController.text.isNotEmpty
               ? _referenceIdController.text
               : null,
-          createdAt: Timestamp.now(),
+          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
           createdBy: userId,
           userId: userId,
         );

@@ -291,5 +291,18 @@
   "noTransactions": "No transactions found.",
   "totalExpenses": "Total Expenses",
   "financialCharts": "Financials Charts",
-  "currencyProfiles": "Currency Profiles"
+  "currencyProfiles": "Currency Profiles",
+  "addCurrencyProfile": "Add Currency Profile",
+  "currencyProfile": "Currency Profile",
+  "currencyProfileName": "Currency Profile Name",
+  "currencyProfileAdded": "Currency profile added successfully",
+  "noCurrencyProfilesYet": "No currency profiles yet",
+  "billScheduledSuccessfully": "Bill scheduled sucessfully",
+  "paid": "Paid",
+  "unpaid": "Unpaid",
+  "recurrence_none": "No Recurrence",
+  "recurrence_weekly": "Weekly",
+  "recurrence_monthly": "Monthly",
+  "recurrence_yearly": "Yearly",
+  "cost": "Cost"
 }

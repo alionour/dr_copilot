@@ -1,11 +1,36 @@
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
 
 import '../repositories/abstract_financials_repository.dart';
+import '../models/bill_model.dart';
 
 /// Use case for managing financial transactions.
 class FinancialsUseCase {
+  /// Fetches suppressed due dates (yyyy-MM-dd) for a scheduled bill.
+  Future<Set<String>> fetchSuppressedDueDates(String scheduledBillId) {
+    return repository.fetchSuppressedDueDates(scheduledBillId);
+  }
+
+  // --- Bill CRUD ---
+  Future<Either<Failure, BillModel>> addBill({required BillModel bill}) {
+    return repository.addBill(bill: bill);
+  }
+
+  Future<Either<Failure, BillModel>> updateBill({required BillModel bill}) {
+    return repository.updateBill(bill: bill);
+  }
+
+  Future<Either<Failure, List<BillModel>>> fetchBills() {
+    return repository.fetchBills();
+  }
+
+  Future<Either<Failure, void>> deleteBill(String id) {
+    return repository.deleteBill(id);
+  }
+
   final AbstractFinancialsRepository repository;
 
   /// Constructor for [FinancialsUseCase].
@@ -73,5 +98,43 @@ class FinancialsUseCase {
 
   Future<Either<Failure, int>> getEvaluationsCount() {
     return repository.getEvaluationsCount();
+  }
+
+  // --- Goal CRUD ---
+  Future<Either<Failure, GoalModelBase>> addGoal(
+      {required GoalModelBase goal}) {
+    return repository.addGoal(goal: goal);
+  }
+
+  Future<Either<Failure, GoalModelBase>> updateGoal(
+      {required GoalModelBase goal}) {
+    return repository.updateGoal(goal: goal);
+  }
+
+  Future<Either<Failure, List<GoalModelBase>>> fetchGoals() {
+    return repository.fetchGoals();
+  }
+
+  Future<Either<Failure, void>> deleteGoal(String id) {
+    return repository.deleteGoal(id);
+  }
+
+  // --- Scheduled Bill CRUD ---
+  Future<Either<Failure, ScheduledBillModel>> addScheduledBill(
+      {required ScheduledBillModel scheduledBill}) {
+    return repository.addScheduledBill(scheduledBill: scheduledBill);
+  }
+
+  Future<Either<Failure, ScheduledBillModel>> updateScheduledBill(
+      {required ScheduledBillModel scheduledBill}) {
+    return repository.updateScheduledBill(scheduledBill: scheduledBill);
+  }
+
+  Future<Either<Failure, List<ScheduledBillModel>>> fetchScheduledBills() {
+    return repository.fetchScheduledBills();
+  }
+
+  Future<Either<Failure, void>> deleteScheduledBill(String id) {
+    return repository.deleteScheduledBill(id);
   }
 }

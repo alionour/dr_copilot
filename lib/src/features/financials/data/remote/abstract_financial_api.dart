@@ -1,7 +1,11 @@
+import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 
 /// An abstract class that defines the API for financial-related operations.
 abstract class AbstractFinancialApi {
@@ -16,6 +20,19 @@ abstract class AbstractFinancialApi {
 
   /// Deletes a financial by their ID.
   Future<void> deleteFinancial(String financialId);
+
+  // --- Bill CRUD ---
+  /// Adds a new bill for the user.
+  Future<Either<Failure, BillModel>> addBill({required BillModel bill});
+
+  /// Updates an existing bill for the user.
+  Future<Either<Failure, BillModel>> updateBill({required BillModel bill});
+
+  /// Fetches all bills for the user.
+  Future<Either<Failure, List<BillModel>>> fetchBills();
+
+  /// Deletes a bill by its document ID.
+  Future<Either<Failure, void>> deleteBill(String id);
 
   /// Adds a new currency profile for the user.
   Future<Either<Failure, CurrencyProfileModel>> addCurrencyProfile({
@@ -81,4 +98,36 @@ abstract class AbstractFinancialApi {
   Future<Either<Failure, int>> getEvaluationsCountForYear({
     required int year,
   });
+
+  /// Adds a new goal for the user.
+  Future<Either<Failure, GoalModelBase>> addGoal({
+    required GoalModelBase goal,
+  });
+
+  /// Updates an existing goal for the user.
+  Future<Either<Failure, GoalModelBase>> updateGoal({
+    required GoalModelBase goal,
+  });
+
+  /// Fetches all goals for the user.
+  Future<Either<Failure, List<GoalModelBase>>> fetchGoals();
+
+  /// Deletes a goal by its document ID.
+  Future<Either<Failure, void>> deleteGoal(String id);
+
+  /// Adds a new scheduled bill for the user.
+  Future<Either<Failure, ScheduledBillModel>> addScheduledBill({
+    required ScheduledBillModel scheduledBill,
+  });
+
+  /// Updates an existing scheduled bill for the user.
+  Future<Either<Failure, ScheduledBillModel>> updateScheduledBill({
+    required ScheduledBillModel scheduledBill,
+  });
+
+  /// Fetches all scheduled bills for the user.
+  Future<Either<Failure, List<ScheduledBillModel>>> fetchScheduledBills();
+
+  /// Deletes a scheduled bill by its document ID.
+  Future<Either<Failure, void>> deleteScheduledBill(String id);
 }
