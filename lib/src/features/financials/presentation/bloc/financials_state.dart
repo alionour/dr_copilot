@@ -24,13 +24,20 @@ abstract class FinancialsState extends Equatable {
   /// Each [BillModel] in the list represents an individual bill with its details.
   /// This list is typically used to display, manage, or process bills within the financials feature.
   final List<BillModel> bills;
-  // ... add more as needed
+
+  /// Map of session counts per month, keyed as 'YYYY-MM'.
+  final Map<String, int> sessionsCountPerMonth;
+
+  /// Map of evaluations counts per month, keyed as 'YYYY-MM'.
+  final Map<String, int> evaluationsCountPerMonth;
 
   const FinancialsState({
     required this.scheduledBills,
     required this.goals,
     required this.currencyProfiles,
     required this.bills,
+    required this.sessionsCountPerMonth,
+    required this.evaluationsCountPerMonth,
   });
 
   @override
@@ -39,6 +46,8 @@ abstract class FinancialsState extends Equatable {
         goals,
         currencyProfiles,
         bills,
+        sessionsCountPerMonth,
+        evaluationsCountPerMonth,
       ];
 
   FinancialsState copyWith({
@@ -46,6 +55,8 @@ abstract class FinancialsState extends Equatable {
     List<ScheduledBillModel>? scheduledBills,
     List<GoalModelBase>? goals,
     List<BillModel>? bills,
+    Map<String, int>? sessionsCountPerMonth,
+    Map<String, int>? evaluationsCountPerMonth,
   });
 }
 
@@ -55,7 +66,9 @@ class FinancialsInitial extends FinancialsState {
       {required super.scheduledBills,
       required super.goals,
       required super.currencyProfiles,
-      required super.bills});
+      required super.bills,
+      required super.sessionsCountPerMonth,
+      required super.evaluationsCountPerMonth});
 
   @override
   FinancialsInitial copyWith({
@@ -63,23 +76,32 @@ class FinancialsInitial extends FinancialsState {
     List<ScheduledBillModel>? scheduledBills,
     List<GoalModelBase>? goals,
     List<BillModel>? bills,
+    Map<String, int>? sessionsCountPerMonth,
+    Map<String, int>? evaluationsCountPerMonth,
   }) {
     return FinancialsInitial(
       currencyProfiles: currencyProfiles ?? this.currencyProfiles,
       scheduledBills: scheduledBills ?? this.scheduledBills,
       goals: goals ?? this.goals,
       bills: bills ?? this.bills,
+      sessionsCountPerMonth:
+          sessionsCountPerMonth ?? this.sessionsCountPerMonth,
+      evaluationsCountPerMonth:
+          evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
     );
   }
 }
 
 /// State when financial transactions are being loaded.
 class FinancialsLoading extends FinancialsState {
-  const FinancialsLoading(
-      {required super.scheduledBills,
-      required super.goals,
-      required super.currencyProfiles,
-      required super.bills});
+  const FinancialsLoading({
+    required super.scheduledBills,
+    required super.goals,
+    required super.currencyProfiles,
+    required super.bills,
+    required super.sessionsCountPerMonth,
+    required super.evaluationsCountPerMonth,
+  });
 
   @override
   FinancialsLoading copyWith({
@@ -87,12 +109,18 @@ class FinancialsLoading extends FinancialsState {
     List<GoalModelBase>? goals,
     List<CurrencyProfileModel>? currencyProfiles,
     List<BillModel>? bills,
+    Map<String, int>? sessionsCountPerMonth,
+    Map<String, int>? evaluationsCountPerMonth,
   }) {
     return FinancialsLoading(
       scheduledBills: scheduledBills ?? this.scheduledBills,
       goals: goals ?? this.goals,
       currencyProfiles: currencyProfiles ?? this.currencyProfiles,
       bills: bills ?? this.bills,
+      sessionsCountPerMonth:
+          sessionsCountPerMonth ?? this.sessionsCountPerMonth,
+      evaluationsCountPerMonth:
+          evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
     );
   }
 }
@@ -107,6 +135,8 @@ class FinancialsLoaded extends FinancialsState {
     required super.goals,
     required super.currencyProfiles,
     required super.bills,
+    required super.sessionsCountPerMonth,
+    required super.evaluationsCountPerMonth,
   });
 
   @override
@@ -116,12 +146,18 @@ class FinancialsLoaded extends FinancialsState {
     List<ScheduledBillModel>? scheduledBills,
     List<GoalModelBase>? goals,
     List<BillModel>? bills,
+    Map<String, int>? sessionsCountPerMonth,
+    Map<String, int>? evaluationsCountPerMonth,
   }) {
     return FinancialsLoaded(
       currencyProfiles: currencyProfiles ?? this.currencyProfiles,
       scheduledBills: scheduledBills ?? this.scheduledBills,
       goals: goals ?? this.goals,
       bills: bills ?? this.bills,
+      sessionsCountPerMonth:
+          sessionsCountPerMonth ?? this.sessionsCountPerMonth,
+      evaluationsCountPerMonth:
+          evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
     );
   }
 }
@@ -136,6 +172,8 @@ class FinancialsSuccess extends FinancialsState {
     required super.goals,
     required super.currencyProfiles,
     required super.bills,
+    required super.sessionsCountPerMonth,
+    required super.evaluationsCountPerMonth,
   });
 
   @override
@@ -148,6 +186,8 @@ class FinancialsSuccess extends FinancialsState {
     List<ScheduledBillModel>? scheduledBills,
     List<GoalModelBase>? goals,
     List<BillModel>? bills,
+    Map<String, int>? sessionsCountPerMonth,
+    Map<String, int>? evaluationsCountPerMonth,
   }) {
     return FinancialsSuccess(
       message: message ?? this.message,
@@ -155,6 +195,10 @@ class FinancialsSuccess extends FinancialsState {
       goals: goals ?? this.goals,
       currencyProfiles: currencyProfiles ?? this.currencyProfiles,
       bills: bills ?? this.bills,
+      sessionsCountPerMonth:
+          sessionsCountPerMonth ?? this.sessionsCountPerMonth,
+      evaluationsCountPerMonth:
+          evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
     );
   }
 }
@@ -169,6 +213,8 @@ class FinancialsError extends FinancialsState {
     required super.goals,
     required super.currencyProfiles,
     required super.bills,
+    required super.sessionsCountPerMonth,
+    required super.evaluationsCountPerMonth,
   });
 
   @override
@@ -181,6 +227,8 @@ class FinancialsError extends FinancialsState {
     List<ScheduledBillModel>? scheduledBills,
     List<GoalModelBase>? goals,
     List<BillModel>? bills,
+    Map<String, int>? sessionsCountPerMonth,
+    Map<String, int>? evaluationsCountPerMonth,
   }) {
     return FinancialsError(
       message: message ?? this.message,
@@ -188,6 +236,10 @@ class FinancialsError extends FinancialsState {
       scheduledBills: scheduledBills ?? this.scheduledBills,
       goals: goals ?? this.goals,
       bills: bills ?? this.bills,
+      sessionsCountPerMonth:
+          sessionsCountPerMonth ?? this.sessionsCountPerMonth,
+      evaluationsCountPerMonth:
+          evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
     );
   }
 }

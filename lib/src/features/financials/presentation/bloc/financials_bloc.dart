@@ -15,6 +15,38 @@ part 'financials_state.dart';
 
 /// Bloc for managing financial transactions.
 class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
+  /// Triggers fetching of session and evaluation counts for a given year and month.
+  /// Call this after adding/updating/deleting goals or bills to keep progress up-to-date.
+  void triggerCountsForGoal(GoalModelBase goal) {
+    if (goal is CountGoalModel) {
+      final year = goal.year ?? DateTime.now().year;
+      final month = goal.month ?? DateTime.now().month;
+      switch (goal.goalType) {
+        case GoalType.sessionsYear:
+          add(GetSessionsCountForYear(year));
+          break;
+        case GoalType.sessionsMonth:
+          add(GetSessionsCountForMonth(year, month));
+          break;
+        case GoalType.evaluationsYear:
+          add(GetEvaluationsCountForYear(year));
+          break;
+        case GoalType.evaluationsMonth:
+          add(GetEvaluationsCountForMonth(year, month));
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  /// Triggers fetching of all session and evaluation counts for all goals in state.
+  void triggerCountsForAllGoals() {
+    for (final goal in state.goals) {
+      triggerCountsForGoal(goal);
+    }
+  }
+
   /// Calculates the progress for a given goal based on its type.
   /// Returns a value between 0.0 and 1.0.
   /// Uses real data from the state if possible.
@@ -49,40 +81,50 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   // --- Real calculation methods using state data ---
   double _calculateSessionsYearProgress(CountGoalModel goal) {
-    // Example: count bills of type 'session' in this year
-    final now = DateTime.now();
-    final year = now.year;
-    final sessions = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.title.toLowerCase().contains('session') &&
-            b.status == BillStatus.paid)
-        .length;
+    // Use backend-driven state for year count
+    final year = goal.year ?? DateTime.now().year;
+    final key = year.toString().padLeft(4, '0');
+    final sessions = state.sessionsCountPerMonth[key] ?? 0;
     return goal.targetCount > 0
         ? (sessions / goal.targetCount).clamp(0.0, 1.0)
         : 0.0;
   }
 
   double _calculateSessionsMonthProgress(CountGoalModel goal) {
-    final now = DateTime.now();
-    final year = now.year;
-    final month = now.month;
-    final sessions = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.dueDate.toDate().month == month &&
-            b.title.toLowerCase().contains('session') &&
-            b.status == BillStatus.paid)
-        .length;
+    final year = goal.year ?? DateTime.now().year;
+    final month = goal.month ?? DateTime.now().month;
+    final key =
+        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
+    final sessions = state.sessionsCountPerMonth[key] ?? 0;
     return goal.targetCount > 0
         ? (sessions / goal.targetCount).clamp(0.0, 1.0)
         : 0.0;
   }
 
+  // Use state.evaluationsCountPerMonth for year/month progress
+  double _calculateEvaluationsYearProgress(CountGoalModel goal) {
+    final year = goal.year ?? DateTime.now().year;
+    final key = year.toString().padLeft(4, '0');
+    final evals = state.evaluationsCountPerMonth[key] ?? 0;
+    return goal.targetCount > 0
+        ? (evals / goal.targetCount).clamp(0.0, 1.0)
+        : 0.0;
+  }
+
+  double _calculateEvaluationsMonthProgress(CountGoalModel goal) {
+    final year = goal.year ?? DateTime.now().year;
+    final month = goal.month ?? DateTime.now().month;
+    final key =
+        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
+    final evals = state.evaluationsCountPerMonth[key] ?? 0;
+    return goal.targetCount > 0
+        ? (evals / goal.targetCount).clamp(0.0, 1.0)
+        : 0.0;
+  }
+
   double _calculateDecreaseExpensesProgress(AmountGoalModel goal) {
-    // Example: sum of paid bills of type 'expense' this year
-    final now = DateTime.now();
-    final year = now.year;
+    // Use the goal's year if set, otherwise current year
+    final year = goal.year ?? DateTime.now().year;
     final expenses = state.bills
         .where((b) =>
             b.dueDate.toDate().year == year &&
@@ -96,9 +138,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   double _calculateIncreaseRevenueProgress(AmountGoalModel goal) {
-    // Example: sum of paid bills of type 'revenue' this year
-    final now = DateTime.now();
-    final year = now.year;
+    // Use the goal's year if set, otherwise current year
+    final year = goal.year ?? DateTime.now().year;
     final revenue = state.bills
         .where((b) =>
             b.dueDate.toDate().year == year &&
@@ -112,9 +153,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   double _calculateIncreaseProfitProgress(AmountGoalModel goal) {
-    // Example: revenue - expenses for this year
-    final now = DateTime.now();
-    final year = now.year;
+    // Use the goal's year if set, otherwise current year
+    final year = goal.year ?? DateTime.now().year;
     final revenue = state.bills
         .where((b) =>
             b.dueDate.toDate().year == year &&
@@ -136,9 +176,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   double _calculateIncreaseSessionsRevenueProgress(AmountGoalModel goal) {
-    // Example: sum of paid session bills this year
-    final now = DateTime.now();
-    final year = now.year;
+    // Use the goal's year if set, otherwise current year
+    final year = goal.year ?? DateTime.now().year;
     final sessionRevenue = state.bills
         .where((b) =>
             b.dueDate.toDate().year == year &&
@@ -152,9 +191,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   double _calculateIncreaseEvaluationsRevenueProgress(AmountGoalModel goal) {
-    // Example: sum of paid evaluation bills this year
-    final now = DateTime.now();
-    final year = now.year;
+    // Use the goal's year if set, otherwise current year
+    final year = goal.year ?? DateTime.now().year;
     final evalRevenue = state.bills
         .where((b) =>
             b.dueDate.toDate().year == year &&
@@ -167,36 +205,6 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         : 0.0;
   }
 
-  double _calculateEvaluationsYearProgress(CountGoalModel goal) {
-    final now = DateTime.now();
-    final year = now.year;
-    final evals = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.title.toLowerCase().contains('evaluation') &&
-            b.status == BillStatus.paid)
-        .length;
-    return goal.targetCount > 0
-        ? (evals / goal.targetCount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateEvaluationsMonthProgress(CountGoalModel goal) {
-    final now = DateTime.now();
-    final year = now.year;
-    final month = now.month;
-    final evals = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.dueDate.toDate().month == month &&
-            b.title.toLowerCase().contains('evaluation') &&
-            b.status == BillStatus.paid)
-        .length;
-    return goal.targetCount > 0
-        ? (evals / goal.targetCount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
   final FinancialsUseCase _financialsUseCase;
 
   FinancialsBloc(FinancialsUseCase financialsUseCase)
@@ -206,6 +214,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           goals: const [],
           currencyProfiles: const [],
           bills: const [],
+          sessionsCountPerMonth: const {},
+          evaluationsCountPerMonth: const {},
         )) {
     on<GetSessionsCountForYear>(_onGetSessionsCountForYear);
     on<GetSessionsCountForMonth>(_onGetSessionsCountForMonth);
@@ -265,6 +275,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       goals: state.goals,
       currencyProfiles: state.currencyProfiles,
       bills: state.bills,
+      sessionsCountPerMonth: state.sessionsCountPerMonth,
+      evaluationsCountPerMonth: state.evaluationsCountPerMonth,
     );
   }
 
@@ -276,6 +288,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       goals: state.goals,
       currencyProfiles: state.currencyProfiles,
       bills: state.bills,
+      sessionsCountPerMonth: state.sessionsCountPerMonth,
+      evaluationsCountPerMonth: state.evaluationsCountPerMonth,
     );
   }
 
@@ -327,8 +341,19 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         await _financialsUseCase.getSessionsCountForYear(year: event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (count) =>
-          emit(successState(message: 'Sessions in ${event.year}: $count')),
+      (count) {
+        final key = event.year.toString().padLeft(4, '0');
+        final updatedMap = Map<String, int>.from(state.sessionsCountPerMonth);
+        updatedMap[key] = count;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: updatedMap,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        ));
+      },
     );
   }
 
@@ -338,8 +363,20 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         year: event.year, month: event.month);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (count) => emit(successState(
-          message: 'Sessions in ${event.year}-${event.month}: $count')),
+      (count) {
+        final key =
+            '${event.year.toString().padLeft(4, '0')}-${event.month.toString().padLeft(2, '0')}';
+        final updatedMap = Map<String, int>.from(state.sessionsCountPerMonth);
+        updatedMap[key] = count;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: updatedMap,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        ));
+      },
     );
   }
 
@@ -349,8 +386,20 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         await _financialsUseCase.getEvaluationsCountForYear(year: event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (count) =>
-          emit(successState(message: 'Evaluations in ${event.year}: $count')),
+      (count) {
+        final key = event.year.toString().padLeft(4, '0');
+        final updatedMap =
+            Map<String, int>.from(state.evaluationsCountPerMonth);
+        updatedMap[key] = count;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: updatedMap,
+        ));
+      },
     );
   }
 
@@ -362,9 +411,21 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       (failure) => emit(errorState(
         message: _mapFailureToMessage(failure),
       )),
-      (count) => emit(successState(
-        message: 'Evaluations in ${event.year}: $count',
-      )),
+      (count) {
+        final key =
+            '${event.year.toString().padLeft(4, '0')}-${event.month.toString().padLeft(2, '0')}';
+        final updatedMap =
+            Map<String, int>.from(state.evaluationsCountPerMonth);
+        updatedMap[key] = count;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: updatedMap,
+        ));
+      },
     );
   }
 
@@ -380,6 +441,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         goals: state.goals,
         currencyProfiles: profiles,
         bills: state.bills,
+        sessionsCountPerMonth: state.sessionsCountPerMonth,
+        evaluationsCountPerMonth: state.evaluationsCountPerMonth,
       )),
     );
   }
@@ -424,11 +487,18 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     final result = await _financialsUseCase.fetchGoals();
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (goals) => emit(FinancialsLoaded(
+      (goals) {
+        emit(FinancialsLoaded(
           scheduledBills: state.scheduledBills,
           bills: state.bills,
           currencyProfiles: state.currencyProfiles,
-          goals: goals)),
+          goals: goals,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        ));
+        // After loading goals, trigger fetching of counts for all goals
+        triggerCountsForAllGoals();
+      },
     );
   }
 
@@ -483,6 +553,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         currencyProfiles: state.currencyProfiles,
         goals: state.goals,
         scheduledBills: bills,
+        sessionsCountPerMonth: state.sessionsCountPerMonth,
+        evaluationsCountPerMonth: state.evaluationsCountPerMonth,
       )),
     );
   }

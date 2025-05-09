@@ -166,13 +166,7 @@ class _AddGoalBottomSheetState extends State<AddGoalBottomSheet> {
                   onMonthChanged: (v) => setState(() => selectedMonth = v),
                   onTargetAmountSaved: (v) => amountTargetValue = v ?? '',
                 ),
-              TextFormField(
-                // This is replaced by GoalDescriptionField below
-                enabled: false,
-                decoration: const InputDecoration(border: InputBorder.none),
-                style: const TextStyle(fontSize: 0),
-                validator: (_) => null,
-              ),
+              // Removed unnecessary disabled TextFormField that caused extra spacing
               GoalDescriptionField(
                 onSaved: (v) => description = v,
               ),
