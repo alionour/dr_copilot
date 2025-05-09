@@ -166,6 +166,8 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                 description: description,
                                 createdAt:
                                     Timestamp.fromDate(DateTime.now().toUtc()),
+                                createdBy:''
+                                
                               );
                               context
                                   .read<FinancialsBloc>()

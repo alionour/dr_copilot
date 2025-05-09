@@ -37,6 +37,7 @@ void initFinancialsInjections() {
     () => FinancialsFirebaseApi(
       sessionsUseCase: sl(),
       evaluationsUseCase: sl(),
+      transactionsUseCase: sl(),
     ),
   );
 }

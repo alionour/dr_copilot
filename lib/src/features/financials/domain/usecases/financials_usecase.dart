@@ -2,7 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 
 import '../repositories/abstract_financials_repository.dart';
 import '../models/bill_model.dart';
@@ -136,5 +138,43 @@ class FinancialsUseCase {
 
   Future<Either<Failure, void>> deleteScheduledBill(String id) {
     return repository.deleteScheduledBill(id);
+  }
+
+  // --- Invoice CRUD ---
+  Future<Either<Failure, InvoiceModel>> addInvoice(
+      {required InvoiceModel invoice}) {
+    return repository.addInvoice(invoice: invoice);
+  }
+
+  Future<Either<Failure, InvoiceModel>> updateInvoice(
+      {required InvoiceModel invoice}) {
+    return repository.updateInvoice(invoice: invoice);
+  }
+
+  Future<Either<Failure, List<InvoiceModel>>> fetchInvoices() {
+    return repository.fetchInvoices();
+  }
+
+  Future<Either<Failure, void>> deleteInvoice(String id) {
+    return repository.deleteInvoice(id);
+  }
+
+    // --- Transactions CRUD ---
+  Future<Either<Failure, void>> addTransaction(
+      {required TransactionModel transaction}) {
+    return repository.addTransaction(transaction: transaction);
+  }
+
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      {required TransactionModel transaction}) {
+    return repository.updateTransaction(transaction: transaction);
+  }
+
+  Future<Either<Failure, List<TransactionModel>>> fetchTransactions() {
+    return repository.fetchTransactions();
+  }
+
+  Future<Either<Failure, void>> deleteTransaction(String id) {
+    return repository.deleteTransaction(id);
   }
 }

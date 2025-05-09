@@ -160,3 +160,79 @@ class GenerateBillsFromScheduled extends FinancialsEvent {
   @override
   List<Object?> get props => [];
 }
+
+
+// Events for CRUD Invoices
+
+/// Event to trigger fetching of invoices in the financials feature.
+class FetchInvoices extends FinancialsEvent {}
+
+/// Event to add a new invoice in the financials feature.
+/// 
+/// This event should be dispatched when a new invoice needs to be created
+/// and added to the financial records. The associated data required to
+/// create the invoice should be provided as part of this event.
+class AddInvoice extends FinancialsEvent {
+  final InvoiceModel invoice;
+  const AddInvoice(this.invoice);
+  @override
+  List<Object?> get props => [invoice];
+}
+
+/// Event to update an existing invoice within the financials feature.
+/// 
+/// This event should be dispatched when an invoice needs to be updated,
+/// typically containing the updated invoice data as part of its payload.
+class UpdateInvoice extends FinancialsEvent {
+  final InvoiceModel invoice;
+  const UpdateInvoice(this.invoice);
+  @override
+  List<Object?> get props => [invoice];
+}
+
+/// Event to trigger the deletion of an invoice within the financials feature.
+/// 
+/// This event should be dispatched when an invoice needs to be removed.
+/// The associated handler should process the deletion logic accordingly.
+class DeleteInvoice extends FinancialsEvent {
+  final String id;
+  const DeleteInvoice(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
+
+// Events for CRUD Transactions
+/// Event to trigger fetching of transactions in the financials feature.
+class FetchTransactions extends FinancialsEvent {}
+
+/// Event to add a new transaction in the financials feature.
+/// This event should be dispatched when a new transaction needs to be created
+/// and added to the financial records. The associated data required to create
+/// the transaction should be provided as part of this event.
+class AddTransaction extends FinancialsEvent {
+  final TransactionModel transaction;
+  const AddTransaction(this.transaction);
+  @override
+  List<Object?> get props => [transaction];
+}
+
+/// Event to update an existing transaction within the financials feature.
+/// This event should be dispatched when an existing transaction needs to be updated,
+/// typically containing the updated transaction data as part of its payload.
+class UpdateTransaction extends FinancialsEvent {
+  final TransactionModel transaction;
+  const UpdateTransaction(this.transaction);
+  @override
+  List<Object?> get props => [transaction];
+}
+
+
+/// Event to trigger the deletion of a transaction within the financials feature.
+/// This event should be dispatched when an existing transaction needs to be removed.
+class DeleteTransaction extends FinancialsEvent {
+  final String id;
+  const DeleteTransaction(this.id);
+  @override
+  List<Object?> get props => [id];
+}

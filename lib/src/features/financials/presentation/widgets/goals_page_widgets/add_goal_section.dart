@@ -199,6 +199,7 @@ class _AddGoalBottomSheetState extends State<AddGoalBottomSheet> {
                         month: customMonth,
                         isMonthBased: customMonth != null,
                         isYearBased: customYear != null,
+                        createdBy:''
                       );
                     } else if (type.isCountBased) {
                       final isYearGoal = type == GoalType.sessionsYear ||
@@ -218,6 +219,8 @@ class _AddGoalBottomSheetState extends State<AddGoalBottomSheet> {
                         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
                         year: (isYearGoal || isMonthGoal) ? selectedYear : null,
                         month: isMonthGoal ? selectedMonth : null,
+                        createdBy:''
+
                       );
                     } else {
                       goal = AmountGoalModel(
@@ -233,6 +236,7 @@ class _AddGoalBottomSheetState extends State<AddGoalBottomSheet> {
                         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
                         year: selectedYear,
                         month: selectedMonth,
+                        createdBy:''
                       );
                     }
                     context.read<FinancialsBloc>().add(AddGoal(goal));

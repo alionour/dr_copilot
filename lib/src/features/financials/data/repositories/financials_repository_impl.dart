@@ -1,13 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/data/remote/financials_firebase_api.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/repositories/abstract_financials_repository.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
+  /// Returns the current authenticated user's UID, or null if not signed in.
+  @override
+  String? getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
+  }
+
   @override
   Future<Set<String>> fetchSuppressedDueDates(String scheduledBillId) {
     return firebaseApi.fetchSuppressedDueDates(scheduledBillId);
@@ -16,11 +28,31 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   // --- Bill CRUD ---
   @override
   Future<Either<Failure, BillModel>> addBill({required BillModel bill}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      bill = bill.copyWith(
+        userId: userId,
+        createdBy: userId,
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.addBill(bill: bill);
   }
 
   @override
   Future<Either<Failure, BillModel>> updateBill({required BillModel bill}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      bill = bill.copyWith(
+        updatedBy: userId,
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
+    // Ensure the userId is set before updating
     return firebaseApi.updateBill(bill: bill);
   }
 
@@ -29,6 +61,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     return firebaseApi.fetchBills();
   }
 
+  //TODO do not delete doc Mark as deleted flag
   @override
   Future<Either<Failure, void>> deleteBill(String id) {
     return firebaseApi.deleteBill(id);
@@ -91,6 +124,15 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   Future<Either<Failure, CurrencyProfileModel>> addCurrencyProfile({
     required CurrencyProfileModel currencyProfile,
   }) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      currencyProfile = currencyProfile.copyWith(
+        createdBy: userId,
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.addCurrencyProfile(currencyProfile: currencyProfile);
   }
 
@@ -104,6 +146,15 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   @override
   Future<Either<Failure, CurrencyProfileModel>> updateCurrencyProfile(
       CurrencyProfileModel profile) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      profile = profile.copyWith(
+        updatedBy: userId,
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.updateCurrencyProfile(profile);
   }
 
@@ -148,12 +199,58 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
 
   // --- Goal CRUD ---
   @override
-  Future<Either<Failure, GoalModelBase>> addGoal({required GoalModelBase goal}) {
+  Future<Either<Failure, GoalModelBase>> addGoal(
+      {required GoalModelBase goal}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      if (goal is CountGoalModel) {
+        goal = (goal).copyWith(
+          createdBy: userId,
+          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        );
+      } else if (goal is AmountGoalModel) {
+        goal = (goal).copyWith(
+          createdBy: userId,
+          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        );
+      } else if (goal is CustomGoalModel) {
+        goal = (goal).copyWith(
+          createdBy: userId,
+          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        );
+      }
+      // else: leave as is for other GoalModelBase types
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.addGoal(goal: goal);
   }
 
   @override
-  Future<Either<Failure, GoalModelBase>> updateGoal({required GoalModelBase goal}) {
+  Future<Either<Failure, GoalModelBase>> updateGoal(
+      {required GoalModelBase goal}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      if (goal is CountGoalModel) {
+        goal = (goal).copyWith(
+          updatedBy: userId,
+          updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        );
+      } else if (goal is AmountGoalModel) {
+        goal = (goal).copyWith(
+          updatedBy: userId,
+          updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        );
+      } else if (goal is CustomGoalModel) {
+        goal = (goal).copyWith(
+          updatedBy: userId,
+          updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        );
+      }
+      // else: leave as is for other GoalModelBase types
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.updateGoal(goal: goal);
   }
 
@@ -171,12 +268,30 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   @override
   Future<Either<Failure, ScheduledBillModel>> addScheduledBill(
       {required ScheduledBillModel scheduledBill}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      scheduledBill = scheduledBill.copyWith(
+        createdBy: userId,
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.addScheduledBill(scheduledBill: scheduledBill);
   }
 
   @override
   Future<Either<Failure, ScheduledBillModel>> updateScheduledBill(
       {required ScheduledBillModel scheduledBill}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      scheduledBill = scheduledBill.copyWith(
+        updatedBy: userId,
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
     return firebaseApi.updateScheduledBill(scheduledBill: scheduledBill);
   }
 
@@ -188,5 +303,90 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   @override
   Future<Either<Failure, void>> deleteScheduledBill(String id) {
     return firebaseApi.deleteScheduledBill(id);
+  }
+
+  // --- Invoice CRUD ---
+
+  @override
+  Future<Either<Failure, InvoiceModel>> addInvoice(
+      {required InvoiceModel invoice}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      invoice = invoice.copyWith(
+        userId: userId,
+        createdBy: userId,
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
+    return firebaseApi.addInvoice(invoice: invoice);
+  }
+
+  @override
+  Future<Either<Failure, InvoiceModel>> updateInvoice(
+      {required InvoiceModel invoice}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      invoice = invoice.copyWith(
+        updatedBy: userId,
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
+    return firebaseApi.updateInvoice(invoice: invoice);
+  }
+
+  @override
+  Future<Either<Failure, List<InvoiceModel>>> fetchInvoices() {
+    return firebaseApi.fetchInvoices();
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteInvoice(String id) {
+    return firebaseApi.deleteInvoice(id);
+  }
+
+  @override
+  @override
+  Future<Either<Failure, void>> addTransaction(
+      {required TransactionModel transaction}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      transaction = transaction.copyWith(
+        userId: userId,
+        createdBy: userId,
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
+    return firebaseApi.addTransaction(transaction: transaction);
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteTransaction(String id) {
+    return firebaseApi.deleteTransaction(id);
+  }
+
+  @override
+  Future<Either<Failure, List<TransactionModel>>> fetchTransactions() {
+    return firebaseApi.fetchTransactions();
+  }
+
+  @override
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      {required TransactionModel transaction}) {
+    final userId = getCurrentUserId();
+    if (userId != null) {
+      transaction = transaction.copyWith(
+        updatedBy: userId,
+        updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+      );
+    } else {
+      return Future.value(Left(ServerFailure('User not authenticated', 401)));
+    }
+    return firebaseApi.updateTransaction(transaction: transaction);
   }
 }

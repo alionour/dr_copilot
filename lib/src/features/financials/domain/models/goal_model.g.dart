@@ -15,8 +15,13 @@ CountGoalModel _$CountGoalModelFromJson(Map<String, dynamic> json) =>
       targetCount: (json['targetCount'] as num).toInt(),
       color: (json['color'] as num).toInt(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
+      deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
       year: (json['year'] as num?)?.toInt(),
       month: (json['month'] as num?)?.toInt(),
+      createdBy: json['createdBy'] as String,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
     );
 
 Map<String, dynamic> _$CountGoalModelToJson(CountGoalModel instance) =>
@@ -27,6 +32,13 @@ Map<String, dynamic> _$CountGoalModelToJson(CountGoalModel instance) =>
       'goalType': const GoalTypeConverter().toJson(instance.goalType),
       'color': instance.color,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt':
+          const NullableTimestampConverter().toJson(instance.updatedAt),
+      'deletedAt':
+          const NullableTimestampConverter().toJson(instance.deletedAt),
+      'createdBy': instance.createdBy,
+      'updatedBy': instance.updatedBy,
+      'deletedBy': instance.deletedBy,
       'year': instance.year,
       'month': instance.month,
       'targetCount': instance.targetCount,
@@ -41,8 +53,13 @@ AmountGoalModel _$AmountGoalModelFromJson(Map<String, dynamic> json) =>
       targetAmount: (json['targetAmount'] as num).toDouble(),
       color: (json['color'] as num).toInt(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
+      deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
       year: (json['year'] as num?)?.toInt(),
       month: (json['month'] as num?)?.toInt(),
+      createdBy: json['createdBy'] as String,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
     );
 
 Map<String, dynamic> _$AmountGoalModelToJson(AmountGoalModel instance) =>
@@ -53,6 +70,13 @@ Map<String, dynamic> _$AmountGoalModelToJson(AmountGoalModel instance) =>
       'goalType': const GoalTypeConverter().toJson(instance.goalType),
       'color': instance.color,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt':
+          const NullableTimestampConverter().toJson(instance.updatedAt),
+      'deletedAt':
+          const NullableTimestampConverter().toJson(instance.deletedAt),
+      'createdBy': instance.createdBy,
+      'updatedBy': instance.updatedBy,
+      'deletedBy': instance.deletedBy,
       'year': instance.year,
       'month': instance.month,
       'targetAmount': instance.targetAmount,
@@ -68,10 +92,15 @@ CustomGoalModel _$CustomGoalModelFromJson(Map<String, dynamic> json) =>
       targetValue: (json['targetValue'] as num).toDouble(),
       color: (json['color'] as num).toInt(),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
+      deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
       year: (json['year'] as num?)?.toInt(),
       month: (json['month'] as num?)?.toInt(),
       isMonthBased: json['isMonthBased'] as bool? ?? false,
       isYearBased: json['isYearBased'] as bool? ?? false,
+      createdBy: json['createdBy'] as String,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
     );
 
 Map<String, dynamic> _$CustomGoalModelToJson(CustomGoalModel instance) =>
@@ -82,6 +111,13 @@ Map<String, dynamic> _$CustomGoalModelToJson(CustomGoalModel instance) =>
       'goalType': const GoalTypeConverter().toJson(instance.goalType),
       'color': instance.color,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt':
+          const NullableTimestampConverter().toJson(instance.updatedAt),
+      'deletedAt':
+          const NullableTimestampConverter().toJson(instance.deletedAt),
+      'createdBy': instance.createdBy,
+      'updatedBy': instance.updatedBy,
+      'deletedBy': instance.deletedBy,
       'year': instance.year,
       'month': instance.month,
       'metricName': instance.metricName,

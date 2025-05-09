@@ -149,8 +149,11 @@ final appBlocProviders = <BlocProvider<dynamic>>[
                     sessionsUseCase: SessionsUseCase(
                         SessionsRepositoryImpl(SessionsFirebaseApi())),
                     evaluationsUseCase: EvaluationsUseCase(
-                        EvaluationsRepositoryImpl(EvaluationsFirebaseApi())),
-                  
+                        EvaluationsRepositoryImpl(EvaluationsFirebaseApi()),
+                        
+                        ),
+                    transactionsUseCase: TransactionsUseCase(
+                        TransactionsRepositoryImpl(TransactionsFirebaseApi())),
                 ))),
           )),
 

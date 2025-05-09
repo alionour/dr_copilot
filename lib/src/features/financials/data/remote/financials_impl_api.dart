@@ -12,6 +12,84 @@ import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart
 
 /// A class that implements the AbstractFinancialApi with real API data.
 class FinancialImplApi implements AbstractFinancialApi {
+  final String apiUrl;
+
+  FinancialImplApi(this.apiUrl);
+
+  // --- Transaction CRUD ---
+  @override
+  Future<Either<Failure, TransactionModel>> addTransaction(
+      {required TransactionModel transaction}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('[200~$apiUrl/transactions'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(transaction.toJson()),
+      );
+      if (response.statusCode == 201) {
+        return Right(TransactionModel.fromJson(json.decode(response.body)));
+      } else {
+        return Left(
+            ServerFailure('Failed to add transaction', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      {required TransactionModel transaction}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl/transactions/${transaction.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(transaction.toJson()),
+      );
+      if (response.statusCode == 200) {
+        return Right(TransactionModel.fromJson(json.decode(response.body)));
+      } else {
+        return Left(
+            ServerFailure('Failed to update transaction', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteTransaction(String id) async {
+    try {
+      final response = await http.delete(Uri.parse('$apiUrl/transactions/$id'));
+      if (response.statusCode == 204) {
+        return const Right(null);
+      } else {
+        return Left(
+            ServerFailure('Failed to delete transaction', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<TransactionModel>>> fetchTransactions() async {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl/transactions'));
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        final transactions =
+            data.map((json) => TransactionModel.fromJson(json)).toList();
+        return Right(List<TransactionModel>.from(transactions));
+      } else {
+        return Left(
+            ServerFailure('Failed to fetch transactions', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
   // --- Bill CRUD ---
   @override
   Future<Either<Failure, BillModel>> addBill({required BillModel bill}) async {
@@ -82,10 +160,6 @@ class FinancialImplApi implements AbstractFinancialApi {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
-
-  final String apiUrl;
-
-  FinancialImplApi(this.apiUrl);
 
   /// Fetches a list of financials from the API.
   @override

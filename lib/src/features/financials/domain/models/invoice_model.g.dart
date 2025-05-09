@@ -1,64 +1,48 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'bill_model.dart';
+part of 'invoice_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-BillModel _$BillModelFromJson(Map<String, dynamic> json) => BillModel(
+InvoiceModel _$InvoiceModelFromJson(Map<String, dynamic> json) => InvoiceModel(
       id: json['id'] as String,
       userId: json['userId'] as String,
-      scheduledBillId: json['scheduledBillId'] as String?,
       title: json['title'] as String,
       description: json['description'] as String,
       amount: (json['amount'] as num).toDouble(),
       currencyProfileId: json['currencyProfileId'] as String,
-      dueDate: const TimestampConverter().fromJson(json['dueDate']),
-      status: $enumDecodeNullable(_$BillStatusEnumMap, json['status']) ??
-          BillStatus.unpaid,
-      paymentMethod:
-          $enumDecodeNullable(_$PaymentMethodEnumMap, json['paymentMethod']),
-      payedAt: const NullableTimestampConverter().fromJson(json['payedAt']),
+      issuedAt: const TimestampConverter().fromJson(json['issuedAt']),
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
       createdBy: json['createdBy'] as String,
       updatedBy: json['updatedBy'] as String?,
       deletedBy: json['deletedBy'] as String?,
+      dueDate: const TimestampConverter().fromJson(json['dueDate']),
+      customerId: json['customerId'] as String?,
+      status: json['status'] as String?,
     );
 
-Map<String, dynamic> _$BillModelToJson(BillModel instance) => <String, dynamic>{
+Map<String, dynamic> _$InvoiceModelToJson(InvoiceModel instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'userId': instance.userId,
-      'scheduledBillId': instance.scheduledBillId,
       'title': instance.title,
       'description': instance.description,
       'amount': instance.amount,
       'currencyProfileId': instance.currencyProfileId,
-      'dueDate': const TimestampConverter().toJson(instance.dueDate),
-      'status': _$BillStatusEnumMap[instance.status]!,
-      'paymentMethod': _$PaymentMethodEnumMap[instance.paymentMethod],
-      'payedAt': const NullableTimestampConverter().toJson(instance.payedAt),
+      'issuedAt': const TimestampConverter().toJson(instance.issuedAt),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'createdBy': instance.createdBy,
+      'updatedBy': instance.updatedBy,
+      'deletedBy': instance.deletedBy,
       'updatedAt':
           const NullableTimestampConverter().toJson(instance.updatedAt),
       'deletedAt':
           const NullableTimestampConverter().toJson(instance.deletedAt),
-      'createdBy': instance.createdBy,
-      'updatedBy': instance.updatedBy,
-      'deletedBy': instance.deletedBy,
+      'dueDate': const TimestampConverter().toJson(instance.dueDate),
+      'customerId': instance.customerId,
+      'status': instance.status,
     };
-
-const _$BillStatusEnumMap = {
-  BillStatus.unpaid: 'unpaid',
-  BillStatus.paid: 'paid',
-  BillStatus.partiallyPaid: 'partiallyPaid',
-};
-
-const _$PaymentMethodEnumMap = {
-  PaymentMethod.cash: 'cash',
-  PaymentMethod.card: 'card',
-  PaymentMethod.bankTransfer: 'bankTransfer',
-  PaymentMethod.other: 'other',
-};

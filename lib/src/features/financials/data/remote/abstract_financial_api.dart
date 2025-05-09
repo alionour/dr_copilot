@@ -1,3 +1,4 @@
+
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
@@ -5,7 +6,6 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
-import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 
 /// An abstract class that defines the API for financial-related operations.
 abstract class AbstractFinancialApi {
@@ -20,6 +20,19 @@ abstract class AbstractFinancialApi {
 
   /// Deletes a financial by their ID.
   Future<void> deleteFinancial(String financialId);
+
+  // --- Transaction CRUD ---
+  /// Adds a new transaction for the user.
+  Future<Either<Failure, void>> addTransaction({required TransactionModel transaction});
+
+  /// Updates an existing transaction for the user.
+  Future<Either<Failure, TransactionModel>> updateTransaction({required TransactionModel transaction});
+
+  /// Deletes a transaction by its document ID.
+  Future<Either<Failure, void>> deleteTransaction(String id);
+
+  /// Fetches all transactions for the user.
+  Future<Either<Failure, List<TransactionModel>>> fetchTransactions();
 
   // --- Bill CRUD ---
   /// Adds a new bill for the user.

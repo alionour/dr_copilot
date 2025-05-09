@@ -14,6 +14,11 @@ CurrencyProfileModel _$CurrencyProfileModelFromJson(
       name: json['name'] as String,
       description: json['description'] as String?,
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
+      deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
+      createdBy: json['createdBy'] as String,
+      updatedBy: json['updatedBy'] as String?,
+      deletedBy: json['deletedBy'] as String?,
     );
 
 Map<String, dynamic> _$CurrencyProfileModelToJson(
@@ -24,4 +29,11 @@ Map<String, dynamic> _$CurrencyProfileModelToJson(
       'name': instance.name,
       'description': instance.description,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt':
+          const NullableTimestampConverter().toJson(instance.updatedAt),
+      'deletedAt':
+          const NullableTimestampConverter().toJson(instance.deletedAt),
+      'createdBy': instance.createdBy,
+      'updatedBy': instance.updatedBy,
+      'deletedBy': instance.deletedBy,
     };

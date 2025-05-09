@@ -51,6 +51,7 @@ enum PaymentMethod {
 @JsonSerializable(explicitToJson: true)
 class BillModel {
   final String id;
+  final String userId; // The parent user document this bill belongs to
   final String? scheduledBillId;
   final String title;
   final String description;
@@ -66,11 +67,25 @@ class BillModel {
   /// The timestamp when the bill was paid (nullable, only set if paid)
   @NullableTimestampConverter()
   final Timestamp? payedAt;
+
+  /// The date and time when the bill record was created in the system (audit meaning).
   @TimestampConverter()
   final Timestamp createdAt;
 
+  @NullableTimestampConverter()
+  final Timestamp? updatedAt; // Nullable, only set if updated
+
+  @NullableTimestampConverter()
+  final Timestamp? deletedAt; // Nullable, only set if deleted
+
+  /// The user ID or system that created this bill (should not be null).
+  final String createdBy; // Not nullable, always required
+  final String? updatedBy;
+  final String? deletedBy;
+
   BillModel({
     required this.id,
+    required this.userId,
     this.scheduledBillId,
     required this.title,
     required this.description,
@@ -81,6 +96,11 @@ class BillModel {
     this.paymentMethod,
     this.payedAt,
     required this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+    required this.createdBy,
+    this.updatedBy,
+    this.deletedBy,
   });
 
   factory BillModel.fromJson(Map<String, dynamic> json) =>
@@ -89,6 +109,7 @@ class BillModel {
 
   BillModel copyWith({
     String? id,
+    String? userId,
     String? scheduledBillId,
     String? title,
     String? description,
@@ -99,9 +120,15 @@ class BillModel {
     PaymentMethod? paymentMethod,
     Timestamp? payedAt,
     Timestamp? createdAt,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
+    String? createdBy,
+    String? updatedBy,
+    String? deletedBy,
   }) {
     return BillModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       scheduledBillId: scheduledBillId ?? this.scheduledBillId,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -112,6 +139,11 @@ class BillModel {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       payedAt: payedAt ?? this.payedAt,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
     );
   }
 }

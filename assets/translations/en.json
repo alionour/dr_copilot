@@ -260,6 +260,7 @@
   "decreaseExpenses": "Decrease Expenses",
   "reduceMonthlyExpensesPercent": "Reduce monthly expenses by {}%",
   "sessionsCount": "Sessions Count",
+  "evaluationsCount":"Evaluations Count",
   "reachSessionsYear": "Reach {} sessions this year",
   "improveNetProfit": "Improve Net Profit",
   "increaseNetProfitPercent": "Increase net profit by {}%",

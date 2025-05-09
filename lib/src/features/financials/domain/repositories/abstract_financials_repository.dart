@@ -4,9 +4,35 @@ import 'package:dr_copilot/src/features/financials/domain/models/currency_profil
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 
 /// Abstract repository for financial transactions.
 abstract class AbstractFinancialsRepository {
+  /// Returns the current user's ID from the authentication feature, or null if not authenticated.
+  String? getCurrentUserId();
+  // --- Invoice CRUD ---
+  Future<Either<Failure, InvoiceModel>> addInvoice(
+      {required InvoiceModel invoice});
+
+  Future<Either<Failure, InvoiceModel>> updateInvoice(
+      {required InvoiceModel invoice});
+
+  Future<Either<Failure, List<InvoiceModel>>> fetchInvoices();
+
+  Future<Either<Failure, void>> deleteInvoice(String id);
+
+  // --- Transaction CRUD ---
+  Future<Either<Failure, void>> addTransaction(
+      {required TransactionModel transaction});
+
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      {required TransactionModel transaction});
+
+  Future<Either<Failure, void>> deleteTransaction(String id);
+
+  Future<Either<Failure, List<TransactionModel>>> fetchTransactions();
+
   /// Fetches suppressed due dates (yyyy-MM-dd) for a scheduled bill.
   Future<Set<String>> fetchSuppressedDueDates(String scheduledBillId);
 
@@ -86,22 +112,31 @@ abstract class AbstractFinancialsRepository {
 
   // --- Goal CRUD ---
   Future<Either<Failure, GoalModelBase>> addGoal({required GoalModelBase goal});
+
   Future<Either<Failure, GoalModelBase>> updateGoal(
       {required GoalModelBase goal});
+
   Future<Either<Failure, List<GoalModelBase>>> fetchGoals();
+
   Future<Either<Failure, void>> deleteGoal(String id);
 
   // --- Bill CRUD ---
   Future<Either<Failure, BillModel>> addBill({required BillModel bill});
+
   Future<Either<Failure, BillModel>> updateBill({required BillModel bill});
+
   Future<Either<Failure, List<BillModel>>> fetchBills();
+
   Future<Either<Failure, void>> deleteBill(String id);
 
   // --- Scheduled Bill CRUD ---
   Future<Either<Failure, ScheduledBillModel>> addScheduledBill(
       {required ScheduledBillModel scheduledBill});
+
   Future<Either<Failure, ScheduledBillModel>> updateScheduledBill(
       {required ScheduledBillModel scheduledBill});
+
   Future<Either<Failure, List<ScheduledBillModel>>> fetchScheduledBills();
+
   Future<Either<Failure, void>> deleteScheduledBill(String id);
 }

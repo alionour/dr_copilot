@@ -256,6 +256,7 @@
   "decreaseExpenses": "تقليل المصروفات",
   "reduceMonthlyExpensesPercent": "تقليل المصروفات الشهرية بنسبة {}%",
   "sessionsCount": "عدد الجلسات",
+  "evaluationsCount": "عدد التقييمات",
   "reachSessionsYear": "الوصول إلى {} جلسة هذا العام",
   "improveNetProfit": "تحسين صافي الربح",
   "increaseNetProfitPercent": "زيادة صافي الربح بنسبة {}%",

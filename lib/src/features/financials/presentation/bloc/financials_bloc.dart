@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
@@ -666,7 +668,9 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
               currencyProfileId: scheduledBill.currencyProfileId,
               dueDate: Timestamp.fromDate(d),
               status: BillStatus.unpaid,
-              createdAt: Timestamp.now(),
+              createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+              createdBy: scheduledBill.createdBy,
+              userId:'',//will be added at repository layer
             ))
         .toList();
   }

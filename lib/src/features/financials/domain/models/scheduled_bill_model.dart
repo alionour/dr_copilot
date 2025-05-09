@@ -60,6 +60,13 @@ class ScheduledBillModel {
   final Timestamp scheduledAt;
   @TimestampConverter()
   final Timestamp createdAt;
+  @NullableTimestampConverter()
+  final Timestamp? updatedAt;
+  @NullableTimestampConverter()
+  final Timestamp? deletedAt;
+  final String createdBy;
+  final String? updatedBy;
+  final String? deletedBy;
   final ScheduledBillRecurrence recurrence;
 
   ScheduledBillModel({
@@ -71,6 +78,11 @@ class ScheduledBillModel {
     this.type = ScheduledBillType.expense,
     required this.scheduledAt,
     required this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+    required this.createdBy,
+    this.updatedBy,
+    this.deletedBy,
     this.recurrence = ScheduledBillRecurrence.none,
   });
 
@@ -88,7 +100,12 @@ class ScheduledBillModel {
     ScheduledBillType? type,
     Timestamp? scheduledAt,
     Timestamp? createdAt,
+    String? createdBy,
     ScheduledBillRecurrence? recurrence,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
+    String? updatedBy,
+    String? deletedBy,
   }) {
     return ScheduledBillModel(
       id: id ?? this.id,
@@ -99,7 +116,12 @@ class ScheduledBillModel {
       type: type ?? this.type,
       scheduledAt: scheduledAt ?? this.scheduledAt,
       createdAt: createdAt ?? this.createdAt,
+      createdBy: createdBy ?? this.createdBy,
       recurrence: recurrence ?? this.recurrence,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
     );
   }
 }

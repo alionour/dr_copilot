@@ -104,6 +104,13 @@ abstract class GoalModelBase {
   final int color;
   @TimestampConverter()
   final Timestamp createdAt;
+  @NullableTimestampConverter()
+  final Timestamp? updatedAt;
+  @NullableTimestampConverter()
+  final Timestamp? deletedAt;
+  final String createdBy;
+  final String? updatedBy;
+  final String? deletedBy;
   final int? year; // Add this
   final int? month; // Add this
 
@@ -114,6 +121,11 @@ abstract class GoalModelBase {
     required this.goalType,
     required this.color,
     required this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+    required this.createdBy,
+    this.updatedBy,
+    this.deletedBy,
     this.year,
     this.month,
   });
@@ -131,8 +143,13 @@ class CountGoalModel extends GoalModelBase {
     required this.targetCount,
     required super.color,
     required super.createdAt,
+    super.updatedAt,
+    super.deletedAt,
     super.year,
-    super.month,
+    super.month, 
+    required super.createdBy,
+    super.updatedBy,
+    super.deletedBy,
   });
 
   factory CountGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -147,6 +164,11 @@ class CountGoalModel extends GoalModelBase {
     int? targetCount,
     int? color,
     Timestamp? createdAt,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
+    String? createdBy,
+    String? updatedBy,
+    String? deletedBy,
     int? year,
     int? month,
   }) {
@@ -158,6 +180,11 @@ class CountGoalModel extends GoalModelBase {
       targetCount: targetCount ?? this.targetCount,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
       year: year ?? this.year,
       month: month ?? this.month,
     );
@@ -176,8 +203,13 @@ class AmountGoalModel extends GoalModelBase {
     required this.targetAmount,
     required super.color,
     required super.createdAt,
+    super.updatedAt,
+    super.deletedAt,
     super.year,
-    super.month,
+    super.month, 
+    required super.createdBy,
+    super.updatedBy,
+    super.deletedBy,
   });
 
   factory AmountGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -192,6 +224,10 @@ class AmountGoalModel extends GoalModelBase {
     double? targetAmount,
     int? color,
     Timestamp? createdAt,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
+    String? createdBy,
+    String? updatedBy,
     int? year,
     int? month,
   }) {
@@ -203,6 +239,11 @@ class AmountGoalModel extends GoalModelBase {
       targetAmount: targetAmount ?? this.targetAmount,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
       year: year ?? this.year,
       month: month ?? this.month,
     );
@@ -231,10 +272,15 @@ class CustomGoalModel extends GoalModelBase {
     required this.targetValue,
     required super.color,
     required super.createdAt,
+    super.updatedAt,
+    super.deletedAt,
     super.year,
     super.month,
     this.isMonthBased = false,
-    this.isYearBased = false,
+    this.isYearBased = false, 
+    required super.createdBy,
+    super.updatedBy,
+    super.deletedBy,
   });
 
   factory CustomGoalModel.fromJson(Map<String, dynamic> json) =>
@@ -250,6 +296,11 @@ class CustomGoalModel extends GoalModelBase {
     double? targetValue,
     int? color,
     Timestamp? createdAt,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
+    String? createdBy,
+    String? updatedBy,
+    String? deletedBy,
     int? year,
     int? month,
     bool? isMonthBased,
@@ -264,6 +315,11 @@ class CustomGoalModel extends GoalModelBase {
       targetValue: targetValue ?? this.targetValue,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
       year: year ?? this.year,
       month: month ?? this.month,
       isMonthBased: isMonthBased ?? this.isMonthBased,

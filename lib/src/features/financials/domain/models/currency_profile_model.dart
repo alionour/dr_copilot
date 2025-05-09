@@ -53,6 +53,13 @@ class CurrencyProfileModel {
   final String? description;
   @TimestampConverter()
   final Timestamp createdAt;
+  @NullableTimestampConverter()
+  final Timestamp? updatedAt;
+  @NullableTimestampConverter()
+  final Timestamp? deletedAt;
+  final String createdBy;
+  final String? updatedBy;
+  final String? deletedBy;
 
   CurrencyProfileModel({
     required this.id,
@@ -60,6 +67,11 @@ class CurrencyProfileModel {
     required this.name,
     this.description,
     required this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+    required this.createdBy,
+    this.updatedBy,
+    this.deletedBy,
   });
 
   factory CurrencyProfileModel.fromJson(Map<String, dynamic> json) =>
@@ -72,6 +84,11 @@ class CurrencyProfileModel {
     String? name,
     String? description,
     Timestamp? createdAt,
+    Timestamp? updatedAt,
+    Timestamp? deletedAt,
+    String? createdBy,
+    String? updatedBy,
+    String? deletedBy,
   }) {
     return CurrencyProfileModel(
       id: id ?? this.id,
@@ -79,6 +96,11 @@ class CurrencyProfileModel {
       name: name ?? this.name,
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      deletedBy: deletedBy ?? this.deletedBy,
     );
   }
 }

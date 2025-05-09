@@ -471,9 +471,12 @@ class _ScheduleBillSection extends StatelessWidget {
                                                     DateTime.parse(
                                                         dateController.text))
                                                 : Timestamp.now(),
-                                            createdAt: Timestamp.now(),
                                             recurrence: recurrence,
-                                          );
+                                            createdAt: Timestamp.fromDate(
+                                                DateTime.now()
+                                            ),
+                                            createdBy: '' // willbe added at repository layer
+                                          ); 
                                           context.read<FinancialsBloc>().add(
                                               AddScheduledBill(scheduledBill));
                                           Navigator.pop(context);

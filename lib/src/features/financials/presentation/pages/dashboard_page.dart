@@ -5,13 +5,24 @@ import '../../../navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
 import 'charts_page.dart' show ChartData;
 import 'package:dr_copilot/src/features/financials/presentation/widgets/dashbaord_page_widgets/currency_profiles_section.dart';
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mock data for chart
+    // Get real session/evaluation counts from FinancialsBloc state
+    final financialsState = context.watch<FinancialsBloc>().state;
+    final now = DateTime.now();
+    final yearKey = now.year.toString().padLeft(4, '0');
+    final monthKey =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+    final sessionsYear = financialsState.sessionsCountPerMonth[yearKey] ?? 0;
+    final sessionsMonth = financialsState.sessionsCountPerMonth[monthKey] ?? 0;
+    final evalsYear = financialsState.evaluationsCountPerMonth[yearKey] ?? 0;
+    final evalsMonth = financialsState.evaluationsCountPerMonth[monthKey] ?? 0;
+    // You can still use the mock chart data for the chart
     final List<ChartData> chartData = [
       ChartData('Jan', 1000, 0, 0, 0),
       ChartData('Feb', 1200, 0, 0, 0),
@@ -26,6 +37,16 @@ class DashboardPage extends StatelessWidget {
       ChartData('Nov', 900, 0, 0, 0),
       ChartData('Dec', 1400, 0, 0, 0),
     ];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bloc = context.read<FinancialsBloc>();
+      final year = now.year;
+      final month = now.month;
+      bloc.add(GetSessionsCountForYear(year));
+      bloc.add(GetSessionsCountForMonth(year, month));
+      bloc.add(GetEvaluationsCountForYear(year));
+      bloc.add(GetEvaluationsCountForMonth(year, month));
+    });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -67,42 +88,93 @@ class DashboardPage extends StatelessWidget {
             },
           ),
           const SizedBox(height: 18),
-          // 2. Summary cards
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 200,
-                  child: _SummaryCard(
-                    color: Colors.teal,
-                    title: 'totalRevenue'.tr(),
-                    value: '\u000024${12000.toStringAsFixed(2)}',
-                    icon: Icons.trending_up,
+          // 2. Summary cards (real session/evaluation counts)
+          // 2. Summary cards (real session/evaluation counts) with visible scrollbar
+          StatefulBuilder(
+            builder: (context, setState) {
+              final ScrollController _scrollController = ScrollController();
+              return SizedBox(
+                height: 160,
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  trackVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.teal,
+                            title: 'totalRevenue'.tr(),
+                            value: '\u000024${12000.toStringAsFixed(2)}',
+                            icon: Icons.trending_up,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.redAccent,
+                            title: 'totalExpenses'.tr(),
+                            value: '\u000024${8000.toStringAsFixed(2)}',
+                            icon: Icons.trending_down,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Sessions Year
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.blue,
+                            title: '${'sessionsCount'.tr()} (${now.year})',
+                            value: sessionsYear.toString(),
+                            icon: Icons.event,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Sessions Month
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.blue.shade700,
+                            title:
+                                '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                            value: sessionsMonth.toString(),
+                            icon: Icons.event_available,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Evaluations Year
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.purple,
+                            title: '${'evaluationsCount'.tr()} (${now.year})',
+                            value: evalsYear.toString(),
+                            icon: Icons.assignment,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Evaluations Month
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.purple.shade700,
+                            title:
+                                '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                            value: evalsMonth.toString(),
+                            icon: Icons.assignment_turned_in,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 200,
-                  child: _SummaryCard(
-                    color: Colors.redAccent,
-                    title: 'totalExpenses'.tr(),
-                    value: '\u000024${8000.toStringAsFixed(2)}',
-                    icon: Icons.trending_down,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 200,
-                  child: _SummaryCard(
-                    color: Colors.blue,
-                    title: 'sessionsCount'.tr(),
-                    value: 320.toString(),
-                    icon: Icons.event,
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 24),
           // Only show RevenueByMonthChart

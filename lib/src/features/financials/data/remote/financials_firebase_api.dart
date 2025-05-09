@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
@@ -12,8 +13,128 @@ import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:flutter/material.dart';
 
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+
 /// Handles Firebase operations for financial transactions.
 class FinancialsFirebaseApi extends AbstractFinancialApi {
+  // --- Transactions CRUD ---
+  final TransactionsUseCase transactionsUseCase;
+
+  // Add a transaction
+  @override
+  Future<Either<Failure, void>> addTransaction(
+      {required TransactionModel transaction}) async {
+    return await transactionsUseCase.addTransaction(transaction);
+  }
+
+  // Update a transaction
+  @override
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      {required TransactionModel transaction}) async {
+    return await transactionsUseCase.updateTransaction(
+        transaction.id, transaction);
+  }
+
+  // Delete a transaction
+  @override
+  Future<Either<Failure, void>> deleteTransaction(String id) async {
+    return await transactionsUseCase.deleteTransaction(id);
+  }
+
+  // Fetch all transactions
+  @override
+  Future<Either<Failure, List<TransactionModel>>> fetchTransactions(
+      {String? lastDocumentId, int? limit = 20}) async {
+    return await transactionsUseCase.getTransactions(
+      lastDocumentId: lastDocumentId,
+      limit: limit,
+    );
+  }
+
+  // --- Invoices CRUD ---
+  Future<Either<Failure, InvoiceModel>> addInvoice(
+      {required InvoiceModel invoice}) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final data = invoice.toJson();
+        data.remove('id');
+        final docRef =
+            await FirebaseFirestore.instance.collection('invoices').add(data);
+        final newInvoice = invoice.copyWith(id: docRef.id, userId: user.uid);
+        return Right(newInvoice);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error adding invoice: $e');
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  Future<Either<Failure, InvoiceModel>> updateInvoice(
+      {required InvoiceModel invoice}) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('invoices')
+            .doc(invoice.id)
+            .update(invoice.toJson());
+        return Right(invoice);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error updating invoice: $e');
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  Future<Either<Failure, List<InvoiceModel>>> fetchInvoices() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('invoices')
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        final invoices = snapshot.docs.map((doc) {
+          final data = doc.data();
+          final createdAt = data['createdAt'];
+          return InvoiceModel.fromJson({
+            ...data,
+            'id': doc.id,
+            'userId': user.uid,
+            'createdAt': (createdAt is Timestamp)
+                ? createdAt
+                : Timestamp.fromDate(DateTime.now().toUtc()),
+          });
+        }).toList();
+        return Right(invoices);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error fetching invoices: $e');
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  Future<Either<Failure, void>> deleteInvoice(String id) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('invoices')
+            .doc(id)
+            .delete();
+        return const Right(null);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error deleting invoice: $e');
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
   // --- Bill CRUD ---
   @override
   Future<Either<Failure, BillModel>> addBill({required BillModel bill}) async {
@@ -22,13 +143,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       if (user != null) {
         final data = bill.toJson();
         data.remove('id');
-        data['createdAt'] = Timestamp.fromDate(DateTime.now().toUtc());
-        final docRef = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('bills')
-            .add(data);
-        final newBill = bill.copyWith(id: docRef.id);
+        final docRef =
+            await FirebaseFirestore.instance.collection('bills').add(data);
+        final newBill = bill.copyWith(id: docRef.id, userId: user.uid);
         return Right(newBill);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -45,8 +162,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
             .collection('bills')
             .doc(bill.id)
             .update(bill.toJson());
@@ -65,9 +180,8 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
             .collection('bills')
+            .where('userId', isEqualTo: user.uid)
             .get();
         final bills = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -95,12 +209,8 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Get the bill before deleting
-        final billDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('bills')
-            .doc(id)
-            .get();
+        final billDoc =
+            await FirebaseFirestore.instance.collection('bills').doc(id).get();
         if (billDoc.exists) {
           final billData = billDoc.data()!;
           final scheduledBillId = billData['scheduledBillId'];
@@ -117,7 +227,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
                 .add({
               'scheduledBillId': scheduledBillId,
               'dueDate': dueDateStr,
-              'createdAt': Timestamp.now(),
             });
           }
         }
@@ -131,7 +240,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     }
   }
 
-  /// Fetches suppressed due dates for a scheduled bill (returns Set<String> of yyyy-MM-dd)
+  /// Fetches suppressed due dates for a scheduled bill (returns [Set<String>] of yyyy-MM-dd)
   Future<Set<String>> fetchSuppressedDueDates(String scheduledBillId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return {};
@@ -150,6 +259,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   FinancialsFirebaseApi({
     required this.sessionsUseCase,
     required this.evaluationsUseCase,
+    required this.transactionsUseCase,
   });
 
   @override
@@ -255,8 +365,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       if (user != null) {
         final data = currencyProfile.toJson();
         data.remove('id'); // Remove id before sending
-        data['createdAt'] = Timestamp.fromDate(
-            DateTime.now().toUtc()); // Always use Firestore timestamp
         final docRef = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -286,15 +394,10 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
             .get();
         final profiles = snapshot.docs.map((doc) {
           final data = doc.data();
-          final createdAt = data['createdAt'];
           return CurrencyProfileModel.fromJson({
             ...data,
             'id': doc.id,
-            'createdAt': (createdAt is Timestamp)
-                ? createdAt
-                : Timestamp.fromDate(
-                    DateTime.now().toUtc()), // fallback if missing
-          });
+        });
         }).toList();
         return Right(profiles);
       }
@@ -368,7 +471,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
           throw Exception('Unknown goal type');
         }
         data.remove('id');
-        data['createdAt'] = Timestamp.fromDate(DateTime.now().toUtc());
         final docRef = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -441,7 +543,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
           final base = {
             ...data,
             'id': doc.id,
-            'createdAt':  Timestamp.fromDate(DateTime.now().toUtc()),
           };
           if (goalType.isCountBased) {
             return CountGoalModel.fromJson(base);
@@ -493,7 +594,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       if (user != null) {
         final data = scheduledBill.toJson();
         data.remove('id');
-        data['createdAt'] = Timestamp.fromDate(DateTime.now().toUtc());
         final docRef = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -523,13 +623,10 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
             .get();
         final bills = snapshot.docs.map((doc) {
           final data = doc.data();
-          final createdAt = data['createdAt'];
           return ScheduledBillModel.fromJson({
             ...data,
             'id': doc.id,
-            'createdAt': (createdAt is Timestamp)
-                ? createdAt
-                : Timestamp.fromDate(DateTime.now().toUtc()),
+      
           });
         }).toList();
         return Right(bills);
