@@ -4,6 +4,59 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'invoice_model.g.dart';
 
+enum CustomerType { patient, organization, insurance }
+
+enum InvoiceSource { sessions, evaluations, other }
+
+// String converters for enums
+String customerTypeToString(CustomerType type) {
+  switch (type) {
+    case CustomerType.patient:
+      return 'patient';
+    case CustomerType.organization:
+      return 'organization';
+    case CustomerType.insurance:
+      return 'insurance';
+  }
+}
+
+CustomerType customerTypeFromString(String value) {
+  switch (value) {
+    case 'patient':
+      return CustomerType.patient;
+    case 'organization':
+      return CustomerType.organization;
+    case 'insurance':
+      return CustomerType.insurance;
+    default:
+      return CustomerType.patient;
+  }
+}
+
+String invoiceSourceToString(InvoiceSource source) {
+  switch (source) {
+    case InvoiceSource.sessions:
+      return 'sessions';
+    case InvoiceSource.evaluations:
+      return 'evaluations';
+    case InvoiceSource.other:
+      return 'other';
+  }
+}
+
+InvoiceSource invoiceSourceFromString(String value) {
+  switch (value) {
+    case 'sessions':
+      return InvoiceSource.sessions;
+    case 'evaluations':
+      return InvoiceSource.evaluations;
+    case 'other':
+      return InvoiceSource.other;
+    default:
+      return InvoiceSource.other;
+  }
+}
+
 @JsonSerializable(explicitToJson: true)
 class InvoiceModel {
   final String id;
@@ -34,6 +87,8 @@ class InvoiceModel {
   @TimestampConverter()
   final Timestamp dueDate;
   final String? customerId;
+  final CustomerType? customerType;
+  final InvoiceSource? source;
   final String? status; // e.g., 'unpaid', 'paid', 'overdue', etc.
 
   InvoiceModel({
@@ -52,6 +107,8 @@ class InvoiceModel {
     this.deletedBy,
     required this.dueDate,
     this.customerId,
+    this.customerType,
+    this.source,
     this.status,
   });
 
@@ -75,6 +132,8 @@ class InvoiceModel {
     String? deletedBy,
     Timestamp? dueDate,
     String? customerId,
+    CustomerType? customerType,
+    InvoiceSource? source,
     String? status,
   }) {
     return InvoiceModel(
@@ -93,6 +152,8 @@ class InvoiceModel {
       deletedBy: deletedBy ?? this.deletedBy,
       dueDate: dueDate ?? this.dueDate,
       customerId: customerId ?? this.customerId,
+      customerType: customerType ?? this.customerType,
+      source: source ?? this.source,
       status: status ?? this.status,
     );
   }

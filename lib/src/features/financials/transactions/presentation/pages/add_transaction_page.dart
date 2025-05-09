@@ -22,8 +22,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   final _amountFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   Timestamp _transactionDate = Timestamp.fromDate(DateTime.now());
-  String _transactionType = 'Invoice'; // Default transaction type
-  final List<String> _transactionTypes = ['Invoice', 'Expense'];
+  TransactionSource _transactionSource =
+      TransactionSource.invoice; // Default transaction source
+  final List<TransactionSource> _transactionSources = TransactionSource.values;
 
   // Define controllers for the new optional fields
   final _categoryController = TextEditingController();
@@ -103,7 +104,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           amount: double.parse(_amountController.text),
           description: _descriptionController.text,
           transactionDate: _transactionDate,
-          transactionType: _transactionType,
+          transactionSource: _transactionSource,
+          direction: TransactionDirection.fromString(_transactionSource.value),
           category: _categoryController.text.isNotEmpty
               ? _categoryController.text
               : null,
@@ -260,22 +262,24 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                             },
                           ),
                           const SizedBox(height: 16.0),
-                          DropdownButtonFormField<String>(
+                          DropdownButtonFormField<TransactionSource>(
                             focusNode: _transactionTypeFocusNode,
-                            value: _transactionType,
+                            value: _transactionSource,
                             decoration: InputDecoration(
-                              labelText: 'transactionType'.tr(),
+                              labelText: 'transactionSource'.tr(),
                               border: const OutlineInputBorder(),
                             ),
-                            items: _transactionTypes.map((String type) {
-                              return DropdownMenuItem<String>(
-                                value: type,
-                                child: Text(type.tr()),
+                            items: _transactionSources
+                                .map((TransactionSource source) {
+                              return DropdownMenuItem<TransactionSource>(
+                                value: source,
+                                child: Text(source.value.tr()),
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {
+                            onChanged: (TransactionSource? newValue) {
                               setState(() {
-                                _transactionType = newValue!;
+                                if (newValue != null)
+                                  _transactionSource = newValue;
                               });
                               FocusScope.of(context)
                                   .requestFocus(_transactionDateFocusNode);

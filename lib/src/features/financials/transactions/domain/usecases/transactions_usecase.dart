@@ -56,4 +56,41 @@ class TransactionsUseCase {
   Future<Either<Failure, int>> getTransactionsCount() async {
     return await repository.getTransactionsCount();
   }
+
+  /// Returns the total revenue (inwards) for a given year.
+  Future<Either<Failure, double>> getTotalRevenueForYear(int year) async {
+    return await repository.getTotalRevenueForYear(year);
+  }
+
+  /// Returns the total expenses (outwards) for a given year.
+  Future<Either<Failure, double>> getTotalExpensesForYear(int year) async {
+    return await repository.getTotalExpensesForYear(year);
+  }
+
+  /// Returns the total revenue (inwards) for a given month and year.
+  Future<Either<Failure, double>> getTotalRevenueForMonth(
+      int year, int month) async {
+    return await repository.getTotalRevenueForMonth(year, month);
+  }
+
+  /// Returns the total expenses (outwards) for a given month and year.
+  Future<Either<Failure, double>> getTotalExpensesForMonth(
+      int year, int month) async {
+    return await repository.getTotalExpensesForMonth(year, month);
+  }
+
+  /// Returns the total for a given direction (inwards/outwards) and optional source.
+  Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required TransactionDirection direction,
+    TransactionSource? source,
+    int? year,
+    int? month,
+  }) async {
+    return await repository.getTotalByDirectionAndSource(
+      direction: direction,
+      source: source,
+      year: year,
+      month: month,
+    );
+  }
 }

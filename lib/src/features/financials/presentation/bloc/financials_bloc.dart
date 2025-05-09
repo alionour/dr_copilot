@@ -5,9 +5,12 @@ import 'package:dr_copilot/src/features/financials/domain/models/currency_profil
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/financials_progress_utils.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/usecases/financials_usecase.dart';
 import '../../../../core/error/failures.dart';
@@ -53,171 +56,28 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   /// Returns a value between 0.0 and 1.0.
   /// Uses real data from the state if possible.
   double calculateGoalProgress(GoalModelBase goal) {
-    switch (goal.goalType) {
-      case GoalType.sessionsYear:
-        return _calculateSessionsYearProgress(goal as CountGoalModel);
-      case GoalType.sessionsMonth:
-        return _calculateSessionsMonthProgress(goal as CountGoalModel);
-      case GoalType.decreaseExpenses:
-        return _calculateDecreaseExpensesProgress(goal as AmountGoalModel);
-      case GoalType.increaseTotalRevenue:
-        return _calculateIncreaseRevenueProgress(goal as AmountGoalModel);
-      case GoalType.increaseTotalProfit:
-        return _calculateIncreaseProfitProgress(goal as AmountGoalModel);
-      case GoalType.increaseSessionsRevenue:
-        return _calculateIncreaseSessionsRevenueProgress(
-            goal as AmountGoalModel);
-      case GoalType.increaseEvaluationsRevenue:
-        return _calculateIncreaseEvaluationsRevenueProgress(
-            goal as AmountGoalModel);
-      case GoalType.evaluationsYear:
-        return _calculateEvaluationsYearProgress(goal as CountGoalModel);
-      case GoalType.evaluationsMonth:
-        return _calculateEvaluationsMonthProgress(goal as CountGoalModel);
-      case GoalType.custom:
-        // For custom, you may want to implement a custom progress calculation
-        // For now, always return 0.0
-        return 0.0;
-    }
+    return FinancialsProgressCalculator.calculateGoalProgress(
+      goal: goal,
+      sessionsCountPerMonth: state.sessionsCountPerMonth,
+      evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+      bills: state.bills,
+    );
   }
 
-  // --- Real calculation methods using state data ---
-  double _calculateSessionsYearProgress(CountGoalModel goal) {
-    // Use backend-driven state for year count
-    final year = goal.year ?? DateTime.now().year;
-    final key = year.toString().padLeft(4, '0');
-    final sessions = state.sessionsCountPerMonth[key] ?? 0;
-    return goal.targetCount > 0
-        ? (sessions / goal.targetCount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateSessionsMonthProgress(CountGoalModel goal) {
-    final year = goal.year ?? DateTime.now().year;
-    final month = goal.month ?? DateTime.now().month;
-    final key =
-        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
-    final sessions = state.sessionsCountPerMonth[key] ?? 0;
-    return goal.targetCount > 0
-        ? (sessions / goal.targetCount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  // Use state.evaluationsCountPerMonth for year/month progress
-  double _calculateEvaluationsYearProgress(CountGoalModel goal) {
-    final year = goal.year ?? DateTime.now().year;
-    final key = year.toString().padLeft(4, '0');
-    final evals = state.evaluationsCountPerMonth[key] ?? 0;
-    return goal.targetCount > 0
-        ? (evals / goal.targetCount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateEvaluationsMonthProgress(CountGoalModel goal) {
-    final year = goal.year ?? DateTime.now().year;
-    final month = goal.month ?? DateTime.now().month;
-    final key =
-        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
-    final evals = state.evaluationsCountPerMonth[key] ?? 0;
-    return goal.targetCount > 0
-        ? (evals / goal.targetCount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateDecreaseExpensesProgress(AmountGoalModel goal) {
-    // Use the goal's year if set, otherwise current year
-    final year = goal.year ?? DateTime.now().year;
-    final expenses = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.amount > 0 &&
-            b.status == BillStatus.paid &&
-            b.title.toLowerCase().contains('expense'))
-        .fold<double>(0.0, (sum, b) => sum + b.amount);
-    return goal.targetAmount > 0
-        ? (expenses / goal.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateIncreaseRevenueProgress(AmountGoalModel goal) {
-    // Use the goal's year if set, otherwise current year
-    final year = goal.year ?? DateTime.now().year;
-    final revenue = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.amount > 0 &&
-            b.status == BillStatus.paid &&
-            b.title.toLowerCase().contains('revenue'))
-        .fold<double>(0.0, (sum, b) => sum + b.amount);
-    return goal.targetAmount > 0
-        ? (revenue / goal.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateIncreaseProfitProgress(AmountGoalModel goal) {
-    // Use the goal's year if set, otherwise current year
-    final year = goal.year ?? DateTime.now().year;
-    final revenue = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.amount > 0 &&
-            b.status == BillStatus.paid &&
-            b.title.toLowerCase().contains('revenue'))
-        .fold<double>(0.0, (sum, b) => sum + b.amount);
-    final expenses = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.amount > 0 &&
-            b.status == BillStatus.paid &&
-            b.title.toLowerCase().contains('expense'))
-        .fold<double>(0.0, (sum, b) => sum + b.amount);
-    final profit = revenue - expenses;
-    return goal.targetAmount > 0
-        ? (profit / goal.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateIncreaseSessionsRevenueProgress(AmountGoalModel goal) {
-    // Use the goal's year if set, otherwise current year
-    final year = goal.year ?? DateTime.now().year;
-    final sessionRevenue = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.amount > 0 &&
-            b.status == BillStatus.paid &&
-            b.title.toLowerCase().contains('session'))
-        .fold<double>(0.0, (sum, b) => sum + b.amount);
-    return goal.targetAmount > 0
-        ? (sessionRevenue / goal.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  double _calculateIncreaseEvaluationsRevenueProgress(AmountGoalModel goal) {
-    // Use the goal's year if set, otherwise current year
-    final year = goal.year ?? DateTime.now().year;
-    final evalRevenue = state.bills
-        .where((b) =>
-            b.dueDate.toDate().year == year &&
-            b.amount > 0 &&
-            b.status == BillStatus.paid &&
-            b.title.toLowerCase().contains('evaluation'))
-        .fold<double>(0.0, (sum, b) => sum + b.amount);
-    return goal.targetAmount > 0
-        ? (evalRevenue / goal.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
-  }
-
-  final FinancialsUseCase _financialsUseCase;
-
-  FinancialsBloc(FinancialsUseCase financialsUseCase)
-      : _financialsUseCase = financialsUseCase,
-        super(FinancialsInitial(
+  final FinancialsUseCase financialsUseCase;
+  final TransactionsUseCase transactionsUseCase;
+  FinancialsBloc(this.financialsUseCase, this.transactionsUseCase)
+      : super(FinancialsInitial(
           scheduledBills: const [],
           goals: const [],
           currencyProfiles: const [],
           bills: const [],
           sessionsCountPerMonth: const {},
           evaluationsCountPerMonth: const {},
+          revenuePerYear: const {},
+          expensesPerYear: const {},
+          revenuePerMonth: const {},
+          expensesPerMonth: const {},
         )) {
     on<GetSessionsCountForYear>(_onGetSessionsCountForYear);
     on<GetSessionsCountForMonth>(_onGetSessionsCountForMonth);
@@ -241,6 +101,25 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     on<AddScheduledBill>(_onAddScheduledBill);
     on<UpdateScheduledBill>(_onUpdateScheduledBill);
     on<DeleteScheduledBill>(_onDeleteScheduledBill);
+
+    // Invoice Events
+    on<FetchInvoices>(_onFetchInvoices);
+    on<AddInvoice>(_onAddInvoice);
+    on<UpdateInvoice>(_onUpdateInvoice);
+    on<DeleteInvoice>(_onDeleteInvoice);
+
+    // Transaction Events
+    on<FetchTransactions>(_onFetchTransactions);
+    on<AddTransaction>(_onAddTransaction);
+    on<UpdateTransaction>(_onUpdateTransaction);
+    on<DeleteTransaction>(_onDeleteTransaction);
+
+    // --- Transaction Aggregation Events ---
+    on<FetchTotalRevenueForYear>(_onFetchTotalRevenueForYear);
+    on<FetchTotalExpensesForYear>(_onFetchTotalExpensesForYear);
+    on<GetTotalRevenueForMonth>(_onFetchTotalRevenueForMonth);
+    on<FetchTotalExpensesForMonth>(_onFetchTotalExpensesForMonth);
+    on<FetchTotalByDirectionAndSource>(_onFetchTotalByDirectionAndSource);
 
     // Generate bills from scheduled bills
     on<GenerateBillsFromScheduled>(_onGenerateBillsFromScheduled);
@@ -267,6 +146,32 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     /// Adds the [GenerateBillsFromScheduled] event to the bloc, triggering the process
     /// of generating bills based on scheduled data or criteria.
     add(GenerateBillsFromScheduled());
+
+    final DateTime now = DateTime.now();
+    final year = now.year;
+    final month = now.month;
+
+    add(GetSessionsCountForYear(year));
+    add(GetSessionsCountForMonth(year, month));
+    add(GetEvaluationsCountForYear(year));
+    add(GetEvaluationsCountForMonth(year, month));
+
+    /// Iterates through the next 12 months starting from the current month,
+    /// calculates the corresponding month and year for each iteration,
+    /// and dispatches two events for each month:
+    /// - `GetSessionsCountForMonth` to retrieve the session count for the month.
+    /// - `GetEvaluationsCountForMonth` to retrieve the evaluation count for the month.
+    ///
+    /// The calculation for the month uses modulo 12 to ensure it wraps around
+    /// correctly after December, and the year is adjusted accordingly based on
+    /// the overflow from the month calculation.
+    for (int i = 0; i < 12; i++) {
+      final month = (now.month + i) % 12;
+      final year = now.year + (now.month + i) ~/ 12;
+      add(GetSessionsCountForMonth(year, month));
+      add(GetEvaluationsCountForMonth(year, month));
+    }
+
   }
 
   /// Emits a [FinancialsSuccess] state with the provided [message].
@@ -279,6 +184,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       bills: state.bills,
       sessionsCountPerMonth: state.sessionsCountPerMonth,
       evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+      expensesPerMonth: state.expensesPerMonth,
+      revenuePerMonth: state.revenuePerMonth,
+      revenuePerYear: state.revenuePerYear,
+      expensesPerYear: state.expensesPerYear,
     );
   }
 
@@ -292,18 +201,22 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       bills: state.bills,
       sessionsCountPerMonth: state.sessionsCountPerMonth,
       evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+      expensesPerMonth: state.expensesPerMonth,
+      revenuePerMonth: state.revenuePerMonth,
+      revenuePerYear: state.revenuePerYear,
+      expensesPerYear: state.expensesPerYear,
     );
   }
 
   Future<void> _onGenerateBillsFromScheduled(
       GenerateBillsFromScheduled event, Emitter<FinancialsState> emit) async {
     // 1. Fetch all scheduled bills
-    final scheduledBillsResult = await _financialsUseCase.fetchScheduledBills();
+    final scheduledBillsResult = await financialsUseCase.fetchScheduledBills();
     if (scheduledBillsResult.isLeft()) return;
     final scheduledBills = scheduledBillsResult.getOrElse(() => []);
 
     // 2. Fetch all existing bills
-    final billsResult = await _financialsUseCase.fetchBills();
+    final billsResult = await financialsUseCase.fetchBills();
     if (billsResult.isLeft()) return;
     final bills = billsResult.getOrElse(() => []);
 
@@ -319,7 +232,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
       // Fetch suppressed due dates for this scheduled bill
       final suppressedDueDates =
-          await _financialsUseCase.fetchSuppressedDueDates(scheduledBill.id);
+          await financialsUseCase.fetchSuppressedDueDates(scheduledBill.id);
       final allSuppressed = existingDueDates.union(suppressedDueDates);
       final generated = generateMissingBills(
         scheduledBill: scheduledBill,
@@ -332,7 +245,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
     // 4. Add new bills to the backend (Firestore)
     for (final bill in newBills) {
-      await _financialsUseCase.addBill(bill: bill);
+      await financialsUseCase.addBill(bill: bill);
     }
     // Optionally, emit a state or refetch bills
   }
@@ -340,7 +253,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   Future<void> _onGetSessionsCountForYear(
       GetSessionsCountForYear event, Emitter<FinancialsState> emit) async {
     final result =
-        await _financialsUseCase.getSessionsCountForYear(year: event.year);
+        await financialsUseCase.getSessionsCountForYear(year: event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (count) {
@@ -354,6 +267,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           bills: state.bills,
           sessionsCountPerMonth: updatedMap,
           evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
         ));
       },
     );
@@ -361,7 +278,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onGetSessionsCountForMonth(
       GetSessionsCountForMonth event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.getSessionsCountForMonth(
+    final result = await financialsUseCase.getSessionsCountForMonth(
         year: event.year, month: event.month);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
@@ -377,6 +294,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           bills: state.bills,
           sessionsCountPerMonth: updatedMap,
           evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
         ));
       },
     );
@@ -385,7 +306,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   Future<void> _onGetEvaluationsCountForYear(
       GetEvaluationsCountForYear event, Emitter<FinancialsState> emit) async {
     final result =
-        await _financialsUseCase.getEvaluationsCountForYear(year: event.year);
+        await financialsUseCase.getEvaluationsCountForYear(year: event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (count) {
@@ -400,6 +321,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           bills: state.bills,
           sessionsCountPerMonth: state.sessionsCountPerMonth,
           evaluationsCountPerMonth: updatedMap,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
         ));
       },
     );
@@ -407,7 +332,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onGetEvaluationsCountForMonth(
       GetEvaluationsCountForMonth event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.getEvaluationsCountForMonth(
+    final result = await financialsUseCase.getEvaluationsCountForMonth(
         year: event.year, month: event.month);
     result.fold(
       (failure) => emit(errorState(
@@ -426,6 +351,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           bills: state.bills,
           sessionsCountPerMonth: state.sessionsCountPerMonth,
           evaluationsCountPerMonth: updatedMap,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
         ));
       },
     );
@@ -433,7 +362,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onFetchCurrencyProfiles(
       FetchCurrencyProfiles event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.fetchCurrencyProfiles();
+    final result = await financialsUseCase.fetchCurrencyProfiles();
     result.fold(
       (failure) => emit(errorState(
         message: _mapFailureToMessage(failure),
@@ -445,13 +374,17 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         bills: state.bills,
         sessionsCountPerMonth: state.sessionsCountPerMonth,
         evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        expensesPerMonth: state.expensesPerMonth,
+        revenuePerMonth: state.revenuePerMonth,
+        revenuePerYear: state.revenuePerYear,
+        expensesPerYear: state.expensesPerYear,
       )),
     );
   }
 
   Future<void> _onAddCurrencyProfile(
       AddCurrencyProfile event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.addCurrencyProfile(
+    final result = await financialsUseCase.addCurrencyProfile(
         currencyProfile: event.profile);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
@@ -463,7 +396,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onDeleteCurrencyProfile(
       DeleteCurrencyProfile event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.deleteCurrencyProfile(event.id);
+    final result = await financialsUseCase.deleteCurrencyProfile(event.id);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (_) => emit(successState(
@@ -474,8 +407,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onUpdateCurrencyProfile(
       UpdateCurrencyProfile event, Emitter<FinancialsState> emit) async {
-    final result =
-        await _financialsUseCase.updateCurrencyProfile(event.profile);
+    final result = await financialsUseCase.updateCurrencyProfile(event.profile);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (profile) => emit(successState(
@@ -486,7 +418,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onFetchGoals(
       FetchGoals event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.fetchGoals();
+    final result = await financialsUseCase.fetchGoals();
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (goals) {
@@ -497,6 +429,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           goals: goals,
           sessionsCountPerMonth: state.sessionsCountPerMonth,
           evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
         ));
         // After loading goals, trigger fetching of counts for all goals
         triggerCountsForAllGoals();
@@ -505,7 +441,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   }
 
   Future<void> _onAddGoal(AddGoal event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.addGoal(goal: event.goal);
+    final result = await financialsUseCase.addGoal(goal: event.goal);
     result.fold(
         (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
         (goal) {
@@ -521,7 +457,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onUpdateGoal(
       UpdateGoal event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.updateGoal(goal: event.goal);
+    final result = await financialsUseCase.updateGoal(goal: event.goal);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (goal) => emit(successState(
@@ -534,7 +470,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onDeleteGoal(
       DeleteGoal event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.deleteGoal(event.id);
+    final result = await financialsUseCase.deleteGoal(event.id);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (_) => emit(successState(
@@ -547,7 +483,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onFetchScheduledBills(
       FetchScheduledBills event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.fetchScheduledBills();
+    final result = await financialsUseCase.fetchScheduledBills();
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (bills) => emit(FinancialsLoaded(
@@ -557,13 +493,17 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         scheduledBills: bills,
         sessionsCountPerMonth: state.sessionsCountPerMonth,
         evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        expensesPerMonth: state.expensesPerMonth,
+        revenuePerMonth: state.revenuePerMonth,
+        revenuePerYear: state.revenuePerYear,
+        expensesPerYear: state.expensesPerYear,
       )),
     );
   }
 
   Future<void> _onAddScheduledBill(
       AddScheduledBill event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.addScheduledBill(
+    final result = await financialsUseCase.addScheduledBill(
         scheduledBill: event.scheduledBill);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
@@ -577,7 +517,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onUpdateScheduledBill(
       UpdateScheduledBill event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.updateScheduledBill(
+    final result = await financialsUseCase.updateScheduledBill(
         scheduledBill: event.scheduledBill);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
@@ -591,7 +531,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onDeleteScheduledBill(
       DeleteScheduledBill event, Emitter<FinancialsState> emit) async {
-    final result = await _financialsUseCase.deleteScheduledBill(event.id);
+    final result = await financialsUseCase.deleteScheduledBill(event.id);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (_) => emit(successState(
@@ -670,8 +610,257 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
               status: BillStatus.unpaid,
               createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
               createdBy: scheduledBill.createdBy,
-              userId:'',//will be added at repository layer
+              userId: '', //will be added at repository layer
             ))
         .toList();
+  }
+
+  // Invoice Events Handlers
+  Future<void> _onFetchInvoices(
+      FetchInvoices event, Emitter<FinancialsState> emit) async {
+    // final result = await financialsUseCase.fetchInvoices();
+    // result.fold(
+    //   (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+    //   (invoices) => emit(FinancialsLoaded(
+    //     scheduledBills: state.scheduledBills,
+    //     goals: state.goals,
+    //     currencyProfiles: state.currencyProfiles,
+    //     bills: state.bills,
+    //     sessionsCountPerMonth: state.sessionsCountPerMonth,
+    //     evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+    //     invoices: invoices,
+    //   )),
+    // );
+  }
+
+  Future<void> _onAddInvoice(
+      AddInvoice event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.addInvoice(invoice: event.invoice);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (invoice) => emit(successState(
+        message: 'invoiceAdded'.tr(
+          args: [invoice.title],
+        ),
+      )),
+    );
+  }
+
+  Future<void> _onUpdateInvoice(
+      UpdateInvoice event, Emitter<FinancialsState> emit) async {
+    final result =
+        await financialsUseCase.updateInvoice(invoice: event.invoice);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (invoice) => emit(successState(
+        message: 'invoiceUpdated'.tr(
+          args: [invoice.title],
+        ),
+      )),
+    );
+  }
+
+  Future<void> _onDeleteInvoice(
+      DeleteInvoice event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.deleteInvoice(event.id);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (_) => emit(successState(
+        message: 'invoiceDeleted'.tr(),
+      )),
+    );
+  }
+
+  // Transactions Events Handlers
+  Future<void> _onFetchTransactions(
+      FetchTransactions event, Emitter<FinancialsState> emit) async {
+    // final result = await financialsUseCase.fetchTransactions();
+    // result.fold(
+    //   (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+    //   (transactions) => emit(FinancialsLoaded(
+    //     scheduledBills: state.scheduledBills,
+    //     goals: state.goals,
+    //     currencyProfiles: state.currencyProfiles,
+    //     bills: state.bills,
+    //     sessionsCountPerMonth: state.sessionsCountPerMonth,
+    //     evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+    //     transactions: transactions,
+    //   )),
+    // );
+  }
+
+  Future<void> _onAddTransaction(
+      AddTransaction event, Emitter<FinancialsState> emit) async {
+    final result =
+        await financialsUseCase.addTransaction(transaction: event.transaction);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (transaction) => emit(successState(
+        message: 'transactionAdded'.tr(
+          args: [],
+        ),
+      )),
+    );
+  }
+
+  Future<void> _onUpdateTransaction(
+      UpdateTransaction event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.updateTransaction(
+        transaction: event.transaction);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (transaction) => emit(successState(
+        message: 'transactionUpdated'.tr(
+          args: [transaction.description],
+        ),
+      )),
+    );
+  }
+
+  Future<void> _onDeleteTransaction(
+      DeleteTransaction event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.deleteTransaction(event.id);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (_) => emit(successState(
+        message: 'transactionDeleted'.tr(),
+      )),
+    );
+  }
+
+  Future<void> _onFetchTotalRevenueForYear(
+      FetchTotalRevenueForYear event, Emitter<FinancialsState> emit) async {
+    final result = await transactionsUseCase.getTotalRevenueForYear(event.year);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (totalRevenue) {
+        final updatedRevenuePerYear =
+            Map<String, double>.from(state.revenuePerYear);
+        updatedRevenuePerYear[event.year.toString()] = totalRevenue;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerYear: updatedRevenuePerYear,
+          expensesPerYear: state.expensesPerYear,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onFetchTotalExpensesForYear(
+      FetchTotalExpensesForYear event, Emitter<FinancialsState> emit) async {
+    final result =
+        await transactionsUseCase.getTotalExpensesForYear(event.year);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (totalExpenses) {
+        final updatedExpensesPerYear =
+            Map<String, double>.from(state.expensesPerYear);
+        updatedExpensesPerYear[event.year.toString()] = totalExpenses;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: updatedExpensesPerYear,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onFetchTotalRevenueForMonth(
+      GetTotalRevenueForMonth event, Emitter<FinancialsState> emit) async {
+    final result = await transactionsUseCase.getTotalRevenueForMonth(
+        event.year, event.month);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (total) {
+        final key =
+            '${event.year.toString().padLeft(4, '0')}-${event.month.toString().padLeft(2, '0')}';
+        final updatedRevenueMap =
+            Map<String, double>.from(state.revenuePerMonth);
+        updatedRevenueMap[key] = total;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          revenuePerMonth: updatedRevenueMap,
+          expensesPerMonth: state.expensesPerMonth,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onFetchTotalExpensesForMonth(
+      FetchTotalExpensesForMonth event, Emitter<FinancialsState> emit) async {
+    final result = await transactionsUseCase.getTotalExpensesForMonth(
+        event.year, event.month);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (total) {
+        final key =
+            '${event.year.toString().padLeft(4, '0')}-${event.month.toString().padLeft(2, '0')}';
+        final updatedExpensesMap =
+            Map<String, double>.from(state.expensesPerMonth);
+        updatedExpensesMap[key] = total;
+        emit(FinancialsLoaded(
+          scheduledBills: state.scheduledBills,
+          goals: state.goals,
+          currencyProfiles: state.currencyProfiles,
+          bills: state.bills,
+          sessionsCountPerMonth: state.sessionsCountPerMonth,
+          evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+          revenuePerMonth: state.revenuePerMonth,
+          expensesPerMonth: updatedExpensesMap,
+          revenuePerYear: state.revenuePerYear,
+          expensesPerYear: state.expensesPerYear,
+        ));
+        debugPrint(
+          'Updated expenses for ${updatedExpensesMap}',
+        );
+      },
+    );
+  }
+
+  Future<void> _onFetchTotalByDirectionAndSource(
+      FetchTotalByDirectionAndSource event,
+      Emitter<FinancialsState> emit) async {
+    final result = await transactionsUseCase.getTotalByDirectionAndSource(
+      direction: event.direction,
+      source: event.source,
+      year: event.year,
+      month: event.month,
+    );
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (total) => emit(FinancialsLoaded(
+        scheduledBills: state.scheduledBills,
+        goals: state.goals,
+        currencyProfiles: state.currencyProfiles,
+        bills: state.bills,
+        sessionsCountPerMonth: state.sessionsCountPerMonth,
+        evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        revenuePerMonth: state.revenuePerMonth,
+        expensesPerMonth: state.expensesPerMonth,
+        revenuePerYear: state.revenuePerYear,
+        expensesPerYear: state.expensesPerYear,
+      )),
+    );
   }
 }

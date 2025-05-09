@@ -31,6 +31,18 @@ abstract class FinancialsState extends Equatable {
   /// Map of evaluations counts per month, keyed as 'YYYY-MM'.
   final Map<String, int> evaluationsCountPerMonth;
 
+  /// Map of revenue per month, keyed as 'YYYY-MM'.
+  final Map<String, double> revenuePerMonth;
+
+  /// Map of expenses per month, keyed as 'YYYY-MM'.
+  final Map<String, double> expensesPerMonth;
+
+  /// Map of revenue per year, keyed as 'YYYY'.
+  final Map<String, double> revenuePerYear;
+
+  /// Map of expenses per year, keyed as 'YYYY'.
+  final Map<String, double> expensesPerYear;
+
   const FinancialsState({
     required this.scheduledBills,
     required this.goals,
@@ -38,6 +50,10 @@ abstract class FinancialsState extends Equatable {
     required this.bills,
     required this.sessionsCountPerMonth,
     required this.evaluationsCountPerMonth,
+    required this.revenuePerMonth,
+    required this.expensesPerMonth,
+    required this.revenuePerYear,
+    required this.expensesPerYear,
   });
 
   @override
@@ -48,6 +64,10 @@ abstract class FinancialsState extends Equatable {
         bills,
         sessionsCountPerMonth,
         evaluationsCountPerMonth,
+        revenuePerMonth,
+        expensesPerMonth,
+        revenuePerYear,
+        expensesPerYear,
       ];
 
   FinancialsState copyWith({
@@ -57,18 +77,27 @@ abstract class FinancialsState extends Equatable {
     List<BillModel>? bills,
     Map<String, int>? sessionsCountPerMonth,
     Map<String, int>? evaluationsCountPerMonth,
+    Map<String, double>? revenuePerMonth,
+    Map<String, double>? expensesPerMonth,
+    Map<String, double>? revenuePerYear,
+    Map<String, double>? expensesPerYear,
   });
 }
 
 // --- copyWith for all concrete states ---
 class FinancialsInitial extends FinancialsState {
-  const FinancialsInitial(
-      {required super.scheduledBills,
-      required super.goals,
-      required super.currencyProfiles,
-      required super.bills,
-      required super.sessionsCountPerMonth,
-      required super.evaluationsCountPerMonth});
+  const FinancialsInitial({
+    required super.scheduledBills,
+    required super.goals,
+    required super.currencyProfiles,
+    required super.bills,
+    required super.sessionsCountPerMonth,
+    required super.evaluationsCountPerMonth,
+    required super.revenuePerMonth,
+    required super.expensesPerMonth,
+    required super.revenuePerYear,
+    required super.expensesPerYear,
+  });
 
   @override
   FinancialsInitial copyWith({
@@ -78,6 +107,10 @@ class FinancialsInitial extends FinancialsState {
     List<BillModel>? bills,
     Map<String, int>? sessionsCountPerMonth,
     Map<String, int>? evaluationsCountPerMonth,
+    Map<String, double>? revenuePerMonth,
+    Map<String, double>? expensesPerMonth,
+    Map<String, double>? revenuePerYear,
+    Map<String, double>? expensesPerYear,
   }) {
     return FinancialsInitial(
       currencyProfiles: currencyProfiles ?? this.currencyProfiles,
@@ -88,6 +121,10 @@ class FinancialsInitial extends FinancialsState {
           sessionsCountPerMonth ?? this.sessionsCountPerMonth,
       evaluationsCountPerMonth:
           evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
+      revenuePerMonth: revenuePerMonth ?? this.revenuePerMonth,
+      expensesPerMonth: expensesPerMonth ?? this.expensesPerMonth,
+      revenuePerYear: revenuePerYear ?? this.revenuePerYear,
+      expensesPerYear: expensesPerYear ?? this.expensesPerYear,
     );
   }
 }
@@ -101,6 +138,10 @@ class FinancialsLoading extends FinancialsState {
     required super.bills,
     required super.sessionsCountPerMonth,
     required super.evaluationsCountPerMonth,
+    required super.revenuePerMonth,
+    required super.expensesPerMonth,
+    required super.revenuePerYear,
+    required super.expensesPerYear,
   });
 
   @override
@@ -111,6 +152,10 @@ class FinancialsLoading extends FinancialsState {
     List<BillModel>? bills,
     Map<String, int>? sessionsCountPerMonth,
     Map<String, int>? evaluationsCountPerMonth,
+    Map<String, double>? revenuePerMonth,
+    Map<String, double>? expensesPerMonth,
+    Map<String, double>? revenuePerYear,
+    Map<String, double>? expensesPerYear,
   }) {
     return FinancialsLoading(
       scheduledBills: scheduledBills ?? this.scheduledBills,
@@ -121,6 +166,10 @@ class FinancialsLoading extends FinancialsState {
           sessionsCountPerMonth ?? this.sessionsCountPerMonth,
       evaluationsCountPerMonth:
           evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
+      revenuePerMonth: revenuePerMonth ?? this.revenuePerMonth,
+      expensesPerMonth: expensesPerMonth ?? this.expensesPerMonth,
+      revenuePerYear: revenuePerYear ?? this.revenuePerYear,
+      expensesPerYear: expensesPerYear ?? this.expensesPerYear,
     );
   }
 }
@@ -137,6 +186,10 @@ class FinancialsLoaded extends FinancialsState {
     required super.bills,
     required super.sessionsCountPerMonth,
     required super.evaluationsCountPerMonth,
+    required super.revenuePerMonth,
+    required super.expensesPerMonth,
+    required super.revenuePerYear,
+    required super.expensesPerYear,
   });
 
   @override
@@ -148,6 +201,10 @@ class FinancialsLoaded extends FinancialsState {
     List<BillModel>? bills,
     Map<String, int>? sessionsCountPerMonth,
     Map<String, int>? evaluationsCountPerMonth,
+    Map<String, double>? revenuePerMonth,
+    Map<String, double>? expensesPerMonth,
+    Map<String, double>? revenuePerYear,
+    Map<String, double>? expensesPerYear,
   }) {
     return FinancialsLoaded(
       currencyProfiles: currencyProfiles ?? this.currencyProfiles,
@@ -158,6 +215,10 @@ class FinancialsLoaded extends FinancialsState {
           sessionsCountPerMonth ?? this.sessionsCountPerMonth,
       evaluationsCountPerMonth:
           evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
+      revenuePerMonth: revenuePerMonth ?? this.revenuePerMonth,
+      expensesPerMonth: expensesPerMonth ?? this.expensesPerMonth,
+      revenuePerYear: revenuePerYear ?? this.revenuePerYear,
+      expensesPerYear: expensesPerYear ?? this.expensesPerYear,
     );
   }
 }
@@ -174,6 +235,10 @@ class FinancialsSuccess extends FinancialsState {
     required super.bills,
     required super.sessionsCountPerMonth,
     required super.evaluationsCountPerMonth,
+    required super.revenuePerMonth,
+    required super.expensesPerMonth,
+    required super.revenuePerYear,
+    required super.expensesPerYear,
   });
 
   @override
@@ -188,6 +253,10 @@ class FinancialsSuccess extends FinancialsState {
     List<BillModel>? bills,
     Map<String, int>? sessionsCountPerMonth,
     Map<String, int>? evaluationsCountPerMonth,
+    Map<String, double>? revenuePerMonth,
+    Map<String, double>? expensesPerMonth,
+    Map<String, double>? revenuePerYear,
+    Map<String, double>? expensesPerYear,
   }) {
     return FinancialsSuccess(
       message: message ?? this.message,
@@ -199,6 +268,10 @@ class FinancialsSuccess extends FinancialsState {
           sessionsCountPerMonth ?? this.sessionsCountPerMonth,
       evaluationsCountPerMonth:
           evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
+      revenuePerMonth: revenuePerMonth ?? this.revenuePerMonth,
+      expensesPerMonth: expensesPerMonth ?? this.expensesPerMonth,
+      revenuePerYear: revenuePerYear ?? this.revenuePerYear,
+      expensesPerYear: expensesPerYear ?? this.expensesPerYear,
     );
   }
 }
@@ -215,6 +288,10 @@ class FinancialsError extends FinancialsState {
     required super.bills,
     required super.sessionsCountPerMonth,
     required super.evaluationsCountPerMonth,
+    required super.revenuePerMonth,
+    required super.expensesPerMonth,
+    required super.revenuePerYear,
+    required super.expensesPerYear,
   });
 
   @override
@@ -229,6 +306,10 @@ class FinancialsError extends FinancialsState {
     List<BillModel>? bills,
     Map<String, int>? sessionsCountPerMonth,
     Map<String, int>? evaluationsCountPerMonth,
+    Map<String, double>? revenuePerMonth,
+    Map<String, double>? expensesPerMonth,
+    Map<String, double>? revenuePerYear,
+    Map<String, double>? expensesPerYear,
   }) {
     return FinancialsError(
       message: message ?? this.message,
@@ -240,6 +321,10 @@ class FinancialsError extends FinancialsState {
           sessionsCountPerMonth ?? this.sessionsCountPerMonth,
       evaluationsCountPerMonth:
           evaluationsCountPerMonth ?? this.evaluationsCountPerMonth,
+      revenuePerMonth: revenuePerMonth ?? this.revenuePerMonth,
+      expensesPerMonth: expensesPerMonth ?? this.expensesPerMonth,
+      revenuePerYear: revenuePerYear ?? this.revenuePerYear,
+      expensesPerYear: expensesPerYear ?? this.expensesPerYear,
     );
   }
 }

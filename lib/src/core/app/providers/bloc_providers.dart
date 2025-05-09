@@ -144,25 +144,26 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// using `BlocProvider.of<FinancialsBloc>(context)`.
   BlocProvider<FinancialsBloc>(
       create: (context) => FinancialsBloc(
-            FinancialsUseCase(
-                FinancialsRepositoryImpl(FinancialsFirebaseApi(
-                    sessionsUseCase: SessionsUseCase(
-                        SessionsRepositoryImpl(SessionsFirebaseApi())),
-                    evaluationsUseCase: EvaluationsUseCase(
-                        EvaluationsRepositoryImpl(EvaluationsFirebaseApi()),
-                        
-                        ),
-                    transactionsUseCase: TransactionsUseCase(
-                        TransactionsRepositoryImpl(TransactionsFirebaseApi())),
-                ))),
-          )),
+          FinancialsUseCase(
+            FinancialsRepositoryImpl(FinancialsFirebaseApi(
+              sessionsUseCase: SessionsUseCase(
+                  SessionsRepositoryImpl(SessionsFirebaseApi())),
+              evaluationsUseCase: EvaluationsUseCase(
+                EvaluationsRepositoryImpl(EvaluationsFirebaseApi()),
+              ),
+              transactionsUseCase: TransactionsUseCase(
+                  TransactionsRepositoryImpl(TransactionsFirebaseApi())),
+            )),
+          ),
+          TransactionsUseCase(
+              TransactionsRepositoryImpl(TransactionsFirebaseApi())))),
 
   /// Provides a [TransactionsBloc] instance to the widget tree.
-  /// 
+  ///
   /// The [TransactionsBloc] is created using a [TransactionsUseCase], which in turn
   /// depends on a [TransactionsRepositoryImpl] that utilizes [TransactionsFirebaseApi]
   /// for data operations related to transactions.
-  /// 
+  ///
   /// This provider enables descendant widgets to access and interact with the
   /// transactions business logic and state management.
   BlocProvider<TransactionsBloc>(

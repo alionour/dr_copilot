@@ -289,6 +289,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
 
   /// Gets the sum of session costs for a given month and year.
   @override
+  @Deprecated('Sessions Costs will be calculated from Invoices and Bills')
   Future<Either<Failure, double>> getSessionsSumForMonth(
       {required int year, required int month}) {
     return sessionsUseCase.sumSessionCostsForMonth(year: year, month: month);
@@ -296,12 +297,14 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
 
   /// Gets the sum of session costs for a given year.
   @override
+  @Deprecated('Sessions Costs will be calculated from Invoices and Bills')
   Future<Either<Failure, double>> getSessionsSumForYear({required int year}) {
     return sessionsUseCase.sumSessionCostsForYear(year: year);
   }
 
   /// Gets the sum of evaluation costs for a given month and year.
   @override
+  @Deprecated('Evaluations Costs will be calculated from Invoices and Bills')
   Future<Either<Failure, double>> getEvaluationsSumForMonth(
       {required int year, required int month}) {
     return evaluationsUseCase.sumEvaluationCostsForMonth(
@@ -310,6 +313,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
 
   /// Gets the sum of evaluation costs for a given year.
   @override
+  @Deprecated('Evaluations Costs will be calculated from Invoices and Bills')
   Future<Either<Failure, double>> getEvaluationsSumForYear(
       {required int year}) {
     return evaluationsUseCase.sumEvaluationCostsForYear(year: year);

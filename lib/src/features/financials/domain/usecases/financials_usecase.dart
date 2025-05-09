@@ -5,7 +5,6 @@ import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
-
 import '../repositories/abstract_financials_repository.dart';
 import '../models/bill_model.dart';
 
@@ -36,7 +35,7 @@ class FinancialsUseCase {
   final AbstractFinancialsRepository repository;
 
   /// Constructor for [FinancialsUseCase].
-  FinancialsUseCase(this.repository);
+  FinancialsUseCase(this.repository,);
 
   Future<Either<Failure, int>> getSessionsCountForYear({required int year}) {
     return repository.getSessionsCountForYear(year: year);
@@ -159,7 +158,7 @@ class FinancialsUseCase {
     return repository.deleteInvoice(id);
   }
 
-    // --- Transactions CRUD ---
+  // --- Transactions CRUD ---
   Future<Either<Failure, void>> addTransaction(
       {required TransactionModel transaction}) {
     return repository.addTransaction(transaction: transaction);

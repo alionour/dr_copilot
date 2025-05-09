@@ -161,14 +161,13 @@ class GenerateBillsFromScheduled extends FinancialsEvent {
   List<Object?> get props => [];
 }
 
-
 // Events for CRUD Invoices
 
 /// Event to trigger fetching of invoices in the financials feature.
 class FetchInvoices extends FinancialsEvent {}
 
 /// Event to add a new invoice in the financials feature.
-/// 
+///
 /// This event should be dispatched when a new invoice needs to be created
 /// and added to the financial records. The associated data required to
 /// create the invoice should be provided as part of this event.
@@ -180,7 +179,7 @@ class AddInvoice extends FinancialsEvent {
 }
 
 /// Event to update an existing invoice within the financials feature.
-/// 
+///
 /// This event should be dispatched when an invoice needs to be updated,
 /// typically containing the updated invoice data as part of its payload.
 class UpdateInvoice extends FinancialsEvent {
@@ -191,7 +190,7 @@ class UpdateInvoice extends FinancialsEvent {
 }
 
 /// Event to trigger the deletion of an invoice within the financials feature.
-/// 
+///
 /// This event should be dispatched when an invoice needs to be removed.
 /// The associated handler should process the deletion logic accordingly.
 class DeleteInvoice extends FinancialsEvent {
@@ -200,7 +199,6 @@ class DeleteInvoice extends FinancialsEvent {
   @override
   List<Object?> get props => [id];
 }
-
 
 // Events for CRUD Transactions
 /// Event to trigger fetching of transactions in the financials feature.
@@ -227,7 +225,6 @@ class UpdateTransaction extends FinancialsEvent {
   List<Object?> get props => [transaction];
 }
 
-
 /// Event to trigger the deletion of a transaction within the financials feature.
 /// This event should be dispatched when an existing transaction needs to be removed.
 class DeleteTransaction extends FinancialsEvent {
@@ -235,4 +232,56 @@ class DeleteTransaction extends FinancialsEvent {
   const DeleteTransaction(this.id);
   @override
   List<Object?> get props => [id];
+}
+
+// Events for transaction aggregations and summaries
+
+/// Event to fetch total revenue (inwards) for a given year.
+class FetchTotalRevenueForYear extends FinancialsEvent {
+  final int year;
+  const FetchTotalRevenueForYear(this.year);
+  @override
+  List<Object?> get props => [year];
+}
+
+/// Event to fetch total expenses (outwards) for a given year.
+class FetchTotalExpensesForYear extends FinancialsEvent {
+  final int year;
+  const FetchTotalExpensesForYear(this.year);
+  @override
+  List<Object?> get props => [year];
+}
+
+/// Event to fetch total revenue (inwards) for a given month and year.
+class GetTotalRevenueForMonth extends FinancialsEvent {
+  final int year;
+  final int month;
+  const GetTotalRevenueForMonth(this.year, this.month);
+  @override
+  List<Object?> get props => [year, month];
+}
+
+/// Event to fetch total expenses (outwards) for a given month and year.
+class FetchTotalExpensesForMonth extends FinancialsEvent {
+  final int year;
+  final int month;
+  const FetchTotalExpensesForMonth(this.year, this.month);
+  @override
+  List<Object?> get props => [year, month];
+}
+
+/// Event to fetch total for a given direction and optional source, year, and month.
+class FetchTotalByDirectionAndSource extends FinancialsEvent {
+  final TransactionDirection direction;
+  final TransactionSource? source;
+  final int? year;
+  final int? month;
+  const FetchTotalByDirectionAndSource({
+    required this.direction,
+    this.source,
+    this.year,
+    this.month,
+  });
+  @override
+  List<Object?> get props => [direction, source, year, month];
 }

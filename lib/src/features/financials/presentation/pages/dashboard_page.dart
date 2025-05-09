@@ -22,6 +22,10 @@ class DashboardPage extends StatelessWidget {
     final sessionsMonth = financialsState.sessionsCountPerMonth[monthKey] ?? 0;
     final evalsYear = financialsState.evaluationsCountPerMonth[yearKey] ?? 0;
     final evalsMonth = financialsState.evaluationsCountPerMonth[monthKey] ?? 0;
+    final revenueMonth =
+        financialsState.revenuePerMonth[monthKey]?.toStringAsFixed(2) ?? '...';
+    final expensesMonth =
+        financialsState.expensesPerMonth[monthKey]?.toStringAsFixed(2) ?? '...';
     // You can still use the mock chart data for the chart
     final List<ChartData> chartData = [
       ChartData('Jan', 1000, 0, 0, 0),
@@ -38,15 +42,17 @@ class DashboardPage extends StatelessWidget {
       ChartData('Dec', 1400, 0, 0, 0),
     ];
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bloc = context.read<FinancialsBloc>();
-      final year = now.year;
-      final month = now.month;
-      bloc.add(GetSessionsCountForYear(year));
-      bloc.add(GetSessionsCountForMonth(year, month));
-      bloc.add(GetEvaluationsCountForYear(year));
-      bloc.add(GetEvaluationsCountForMonth(year, month));
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final bloc = context.read<FinancialsBloc>();
+    //   final year = now.year;
+    //   final month = now.month;
+    //   bloc.add(GetSessionsCountForYear(year));
+    //   bloc.add(GetSessionsCountForMonth(year, month));
+    //   bloc.add(GetEvaluationsCountForYear(year));
+    //   bloc.add(GetEvaluationsCountForMonth(year, month));
+    //   // bloc.add(GetTotalRevenueForMonth(year, month));
+    //   // bloc.add(FetchTotalExpensesForMonth(year, month));
+    // });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -109,7 +115,7 @@ class DashboardPage extends StatelessWidget {
                           child: _SummaryCard(
                             color: Colors.teal,
                             title: 'totalRevenue'.tr(),
-                            value: '\u000024${12000.toStringAsFixed(2)}',
+                            value: '\u000024$revenueMonth',
                             icon: Icons.trending_up,
                           ),
                         ),
@@ -119,7 +125,7 @@ class DashboardPage extends StatelessWidget {
                           child: _SummaryCard(
                             color: Colors.redAccent,
                             title: 'totalExpenses'.tr(),
-                            value: '\u000024${8000.toStringAsFixed(2)}',
+                            value: '\u000024$expensesMonth',
                             icon: Icons.trending_down,
                           ),
                         ),

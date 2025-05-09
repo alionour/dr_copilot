@@ -58,4 +58,45 @@ class TransactionsRepositoryImpl extends AbstractTransactionsRepository {
   Future<Either<Failure, int>> getTransactionsCount() {
     return firebaseApi.getTransactionsCount();
   }
+
+  /// Returns the total revenue (inwards) for a given year.
+  @override
+  Future<Either<Failure, double>> getTotalRevenueForYear(int year) {
+    return firebaseApi.getTotalRevenueForYear(year);
+  }
+
+  /// Returns the total expenses (outwards) for a given year.
+  @override
+  Future<Either<Failure, double>> getTotalExpensesForYear(int year) {
+    return firebaseApi.getTotalExpensesForYear(year);
+  }
+
+  /// Returns the total revenue (inwards) for a given month and year.
+  @override
+  Future<Either<Failure, double>> getTotalRevenueForMonth(int year, int month) {
+    return firebaseApi.getTotalRevenueForMonth(year, month);
+  }
+
+  /// Returns the total expenses (outwards) for a given month and year.
+  @override
+  Future<Either<Failure, double>> getTotalExpensesForMonth(
+      int year, int month) {
+    return firebaseApi.getTotalExpensesForMonth(year, month);
+  }
+
+  /// Returns the total for a given direction (inwards/outwards) and optional source.
+  @override
+  Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required TransactionDirection direction,
+    TransactionSource? source,
+    int? year,
+    int? month,
+  }) {
+    return firebaseApi.getTotalByDirectionAndSource(
+      direction: direction,
+      source: source,
+      year: year,
+      month: month,
+    );
+  }
 }

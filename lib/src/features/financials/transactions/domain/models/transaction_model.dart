@@ -1,7 +1,31 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'transaction_model.g.dart';
+
+
+/// JsonConverter for TransactionSource enum
+class TransactionSourceConverter implements JsonConverter<TransactionSource, String> {
+  const TransactionSourceConverter();
+
+  @override
+  TransactionSource fromJson(String json) => TransactionSource.fromString(json);
+
+  @override
+  String toJson(TransactionSource object) => object.value;
+}
+
+/// JsonConverter for TransactionDirection enum
+class TransactionDirectionConverter implements JsonConverter<TransactionDirection, String> {
+  const TransactionDirectionConverter();
+
+  @override
+  TransactionDirection fromJson(String json) => TransactionDirection.fromString(json);
+
+  @override
+  String toJson(TransactionDirection object) => object.value;
+}
 
 /// A custom converter for Firestore [Timestamp] to JSON and vice versa.
 class TimestampConverter implements JsonConverter<Timestamp, Object> {
@@ -18,6 +42,48 @@ class TimestampConverter implements JsonConverter<Timestamp, Object> {
   }
 }
 
+/// Enum for transaction direction.
+enum TransactionDirection {
+  inwards('in'),
+  outwards('out');
+
+  final String value;
+  const TransactionDirection(this.value);
+
+  @override
+  String toString() => value;
+
+  static TransactionDirection fromString(String value) {
+    return TransactionDirection.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => TransactionDirection.inwards,
+    );
+  }
+}
+
+/// Enum for transaction source with unique string values.
+enum TransactionSource {
+  manual('manual'),
+  invoice('invoice'),
+  bill('bill'),
+  transfer('transfer'),
+  refund('refund'),
+  adjustment('adjustment');
+
+  final String value;
+  const TransactionSource(this.value);
+
+  @override
+  String toString() => value;
+
+  static TransactionSource fromString(String value) {
+    return TransactionSource.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => TransactionSource.manual,
+    );
+  }
+}
+
 /// Represents a financial transaction, such as an income or expense.
 @JsonSerializable()
 class TransactionModel {
@@ -29,8 +95,10 @@ class TransactionModel {
   @TimestampConverter()
   final Timestamp
       transactionDate; // The date and time when the transaction occurred.
-  final String
-      transactionType; // Type of transaction, e.g., "Income" or "Expense".
+  @TransactionSourceConverter()
+  final TransactionSource transactionSource; // Source of transaction, e.g., "invoice", "bill", etc.
+  @TransactionDirectionConverter()
+  final TransactionDirection direction; // 'in' or 'out', explicit field
   @TimestampConverter()
   final Timestamp
       createdAt; // The timestamp when the transaction was created in the system.
@@ -63,7 +131,8 @@ class TransactionModel {
     required this.amount,
     required this.description,
     required this.transactionDate,
-    required this.transactionType,
+    required this.transactionSource,
+    required this.direction,
     required this.createdAt,
     this.updatedAt,
     this.category,
@@ -81,16 +150,39 @@ class TransactionModel {
   // Converts a [TransactionModel] to a JSON map for Firestore.
   Map<String, dynamic> toJson() => _$TransactionModelToJson(this);
 
+
   /// Creates a [TransactionModel] from a Firestore document.
-  factory TransactionModel.fromJson(Map<String, dynamic> json) =>
-      _$TransactionModelFromJson(json);
+  factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    // If direction is missing, infer from source
+    final map = Map<String, dynamic>.from(json);
+    if (map['direction'] == null && map['transactionSource'] != null) {
+      map['direction'] = _directionForSource(map['transactionSource'] as String).value;
+    }
+    return _$TransactionModelFromJson(map);
+  }
+
+  /// Helper to infer direction from transaction source string if not present in JSON.
+  static TransactionDirection _directionForSource(String source) {
+    switch (source) {
+      case 'invoice':
+      case 'refund':
+        return TransactionDirection.inwards;
+      case 'bill':
+      case 'transfer':
+      case 'adjustment':
+        return TransactionDirection.outwards;
+      default:
+        return TransactionDirection.inwards;
+    }
+  }
 
   TransactionModel copyWith({
     String? id,
     double? amount,
     String? description,
     Timestamp? transactionDate,
-    String? transactionType,
+    TransactionSource? transactionSource,
+    TransactionDirection? direction,
     Timestamp? createdAt,
     Timestamp? deletedAt,
     Timestamp? updatedAt,
@@ -109,7 +201,8 @@ class TransactionModel {
       amount: amount ?? this.amount,
       description: description ?? this.description,
       transactionDate: transactionDate ?? this.transactionDate,
-      transactionType: transactionType ?? this.transactionType,
+      transactionSource: transactionSource ?? this.transactionSource,
+      direction: direction ?? this.direction,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       updatedAt: updatedAt ?? this.updatedAt,

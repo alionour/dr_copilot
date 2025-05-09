@@ -34,4 +34,24 @@ abstract class AbstractTransactionsRepository {
       DateTime date,
       {String? lastDocumentID,
       int limit = 20});
+
+  /// Returns the total revenue (inwards) for a given year.
+  Future<Either<Failure, double>> getTotalRevenueForYear(int year);
+
+  /// Returns the total expenses (outwards) for a given year.
+  Future<Either<Failure, double>> getTotalExpensesForYear(int year);
+
+  /// Returns the total revenue (inwards) for a given month and year.
+  Future<Either<Failure, double>> getTotalRevenueForMonth(int year, int month);
+
+  /// Returns the total expenses (outwards) for a given month and year.
+  Future<Either<Failure, double>> getTotalExpensesForMonth(int year, int month);
+
+  /// Returns the total for a given direction (inwards/outwards) and optional source.
+  Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required TransactionDirection direction,
+    TransactionSource? source,
+    int? year,
+    int? month,
+  });
 }

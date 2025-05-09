@@ -14,7 +14,8 @@ class TransactionListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = (transaction.transactionType.toLowerCase() == 'in' || transaction.transactionType.toLowerCase() == 'income');
+    final isIncome = (transaction.direction == TransactionDirection.inwards ||
+        transaction.direction == TransactionDirection.outwards);
     final color = isIncome ? Colors.green : Colors.red;
     final icon = isIncome ? Icons.arrow_downward : Icons.arrow_upward;
     final currency = transaction.currency ?? '';
@@ -35,8 +36,8 @@ class TransactionListItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: color.withOpacity(0.15),
-                radius: 24,
                 child: Icon(icon, color: color, size: 24),
+                radius: 24,
               ),
               const SizedBox(width: 16),
               Expanded(

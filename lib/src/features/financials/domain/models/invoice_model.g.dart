@@ -22,6 +22,9 @@ InvoiceModel _$InvoiceModelFromJson(Map<String, dynamic> json) => InvoiceModel(
       deletedBy: json['deletedBy'] as String?,
       dueDate: const TimestampConverter().fromJson(json['dueDate']),
       customerId: json['customerId'] as String?,
+      customerType:
+          $enumDecodeNullable(_$CustomerTypeEnumMap, json['customerType']),
+      source: $enumDecodeNullable(_$InvoiceSourceEnumMap, json['source']),
       status: json['status'] as String?,
     );
 
@@ -44,5 +47,19 @@ Map<String, dynamic> _$InvoiceModelToJson(InvoiceModel instance) =>
           const NullableTimestampConverter().toJson(instance.deletedAt),
       'dueDate': const TimestampConverter().toJson(instance.dueDate),
       'customerId': instance.customerId,
+      'customerType': _$CustomerTypeEnumMap[instance.customerType],
+      'source': _$InvoiceSourceEnumMap[instance.source],
       'status': instance.status,
     };
+
+const _$CustomerTypeEnumMap = {
+  CustomerType.patient: 'patient',
+  CustomerType.organization: 'organization',
+  CustomerType.insurance: 'insurance',
+};
+
+const _$InvoiceSourceEnumMap = {
+  InvoiceSource.sessions: 'sessions',
+  InvoiceSource.evaluations: 'evaluations',
+  InvoiceSource.other: 'other',
+};

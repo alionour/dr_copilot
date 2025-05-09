@@ -5,6 +5,8 @@ import 'package:dr_copilot/src/features/financials/transactions/domain/models/tr
 import 'package:dr_copilot/src/features/financials/transactions/domain/repositories/abstract_financials_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 /// Handles Firebase operations for financial transactions.
 class TransactionsFirebaseApi extends AbstractTransactionsRepository {
@@ -223,6 +225,265 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     } catch (e) {
       debugPrint('Error fetching session count: $e');
       return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Aggregates and returns the total revenue for a given year using Firestore aggregation.
+  @override
+  Future<Either<Failure, double>> getTotalRevenueForYear(int year) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      final start = DateTime(year, 1, 1);
+      final end = DateTime(year + 1, 1, 1);
+      final query = _transactionsCollection
+          .where('userId', isEqualTo: user.uid)
+          .where('transactionDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('transactionDate', isLessThan: Timestamp.fromDate(end))
+          .where('direction', isEqualTo: 'in');
+
+      // Attempt Firestore aggregation query on mobile platforms
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        try {
+          final aggregate = await query.aggregate(sum('amount')).get();
+          final sumValue = aggregate.getSum('amount');
+          if (sumValue != null) {
+            return Right(sumValue);
+          }
+        } catch (e) {
+          debugPrint('Aggregation query failed: $e');
+        }
+      }
+
+      // Fallback to manual summation for unsupported platforms
+      final snapshot = await query.get();
+      double total = snapshot.docs.fold(0.0, (sum, doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final amount = data?['amount'];
+        if (amount is num) {
+          return sum + amount.toDouble();
+        }
+        return sum;
+      });
+
+      return Right(total);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  /// Aggregates and returns the total expenses for a given year using Firestore aggregation.
+  @override
+  Future<Either<Failure, double>> getTotalExpensesForYear(int year) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      final start = DateTime(year, 1, 1);
+      final end = DateTime(year + 1, 1, 1);
+      final query = _transactionsCollection
+          .where('userId', isEqualTo: user.uid)
+          .where('transactionDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('transactionDate', isLessThan: Timestamp.fromDate(end))
+          .where('direction', isEqualTo: 'out');
+
+      // Attempt Firestore aggregation query on mobile platforms
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        try {
+          final aggregate = await query.aggregate(sum('amount')).get();
+          final sumValue = aggregate.getSum('amount');
+          if (sumValue != null) {
+            return Right(sumValue);
+          }
+        } catch (e) {
+          debugPrint('Aggregation query failed: $e');
+        }
+      }
+
+      // Fallback to manual summation for unsupported platforms
+      final snapshot = await query.get();
+      double total = snapshot.docs.fold(0.0, (sum, doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final amount = data?['amount'];
+        if (amount is num) {
+          return sum + amount.toDouble();
+        }
+        return sum;
+      });
+
+      return Right(total);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  /// Aggregates and returns the total revenue for a given year and month using Firestore aggregation.
+  @override
+  Future<Either<Failure, double>> getTotalRevenueForMonth(
+      int year, int month) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      final start = DateTime(year, month, 1);
+      final end = (month == 12)
+          ? DateTime(year + 1, 1, 1)
+          : DateTime(year, month + 1, 1);
+      final query = _transactionsCollection
+          .where('userId', isEqualTo: user.uid)
+          .where('transactionDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('transactionDate', isLessThan: Timestamp.fromDate(end))
+          .where('direction', isEqualTo: 'in');
+
+      // Attempt Firestore aggregation query on mobile platforms
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        try {
+          final aggregate = await query.aggregate(sum('amount')).get();
+          final sumValue = aggregate.getSum('amount');
+          if (sumValue != null) {
+            return Right(sumValue);
+          }
+        } catch (e) {
+          debugPrint('Aggregation query failed: $e');
+        }
+      }
+
+      // Fallback to manual summation for unsupported platforms
+      final snapshot = await query.get();
+      double total = snapshot.docs.fold(0.0, (sum, doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final amount = data?['amount'];
+        if (amount is num) {
+          return sum + amount.toDouble();
+        }
+        return sum;
+      });
+
+      return Right(total);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  /// Aggregates and returns the total expenses for a given year and month using Firestore aggregation.
+  @override
+  Future<Either<Failure, double>> getTotalExpensesForMonth(
+      int year, int month) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      final start = DateTime(year, month, 1);
+      final end = (month == 12)
+          ? DateTime(year + 1, 1, 1)
+          : DateTime(year, month + 1, 1);
+      final query = _transactionsCollection
+          .where('userId', isEqualTo: user.uid)
+          .where('transactionDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('transactionDate', isLessThan: Timestamp.fromDate(end))
+          .where('direction', isEqualTo: 'out');
+
+      // Attempt Firestore aggregation query on mobile platforms
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        try {
+          final aggregate = await query.aggregate(sum('amount')).get();
+          final sumValue = aggregate.getSum('amount');
+          if (sumValue != null) {
+            return Right(sumValue);
+          }
+        } catch (e) {
+          debugPrint('Aggregation query failed: $e');
+        }
+      }
+
+      // Fallback to manual summation for unsupported platforms
+      final snapshot = await query.get();
+      double total = snapshot.docs.fold(0.0, (sum, doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final amount = data?['amount'];
+        if (amount is num) {
+          return sum + amount.toDouble();
+        }
+        return sum;
+      });
+
+      return Right(total);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  /// Aggregates and returns the total for a given direction and optional source, year, and month.
+  @override
+  Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required TransactionDirection direction,
+    TransactionSource? source,
+    int? year,
+    int? month,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      Query query = _transactionsCollection.where('userId', isEqualTo: user.uid);
+
+      if (year != null) {
+        final start = DateTime(year, month ?? 1, 1);
+        final end = (month != null)
+            ? ((month == 12) ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1))
+            : DateTime(year + 1, 1, 1);
+        query = query
+            .where('transactionDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('transactionDate', isLessThan: Timestamp.fromDate(end));
+      }
+
+      query = query.where('direction',
+          isEqualTo: direction == TransactionDirection.inwards ? 'in' : 'out');
+
+      if (source != null) {
+        query = query.where('transactionSource', isEqualTo: source.name);
+      }
+
+      // Attempt Firestore aggregation query on mobile platforms
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        try {
+          final aggregate = await query.aggregate(sum('amount')).get();
+          final sumValue = aggregate.getSum('amount');
+          if (sumValue != null) {
+            return Right(sumValue);
+          }
+        } catch (e) {
+          debugPrint('Aggregation query failed: $e');
+        }
+      }
+
+      // Fallback to manual summation for unsupported platforms
+      final snapshot = await query.get();
+      double total = snapshot.docs.fold(0.0, (sum, doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final amount = data?['amount'];
+        if (amount is num) {
+          return sum + amount.toDouble();
+        }
+        return sum;
+      });
+
+      return Right(total);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
     }
   }
 }

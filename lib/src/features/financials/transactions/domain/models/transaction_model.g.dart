@@ -13,7 +13,10 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       transactionDate: const TimestampConverter()
           .fromJson(json['transactionDate'] as Object),
-      transactionType: json['transactionType'] as String,
+      transactionSource: const TransactionSourceConverter()
+          .fromJson(json['transactionSource'] as String),
+      direction: const TransactionDirectionConverter()
+          .fromJson(json['direction'] as String),
       createdAt:
           const TimestampConverter().fromJson(json['createdAt'] as Object),
       updatedAt: _$JsonConverterFromJson<Object, Timestamp>(
@@ -38,7 +41,10 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
       'description': instance.description,
       'transactionDate':
           const TimestampConverter().toJson(instance.transactionDate),
-      'transactionType': instance.transactionType,
+      'transactionSource':
+          const TransactionSourceConverter().toJson(instance.transactionSource),
+      'direction':
+          const TransactionDirectionConverter().toJson(instance.direction),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'deletedAt': _$JsonConverterToJson<Object, Timestamp>(
           instance.deletedAt, const TimestampConverter().toJson),
