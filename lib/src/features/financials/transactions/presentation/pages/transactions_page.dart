@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
@@ -29,7 +30,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   int? _firestoreTransactionsCount;
   double _lastScrollPosition = 0;
 
-  void _dispatchGetSessionsCount() {
+  void _dispatchGetTransactionsCount() {
     context.read<TransactionsBloc>().add(const GetTransactionsCount());
   }
 
@@ -40,7 +41,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _scrollController.addListener(_onScroll);
     debugPrint('TransactionsPage: Scroll listener added');
     context.read<TransactionsBloc>().add(const GetTransactions());
-    _dispatchGetSessionsCount();
+    _dispatchGetTransactionsCount();
   }
 
   @override
@@ -72,7 +73,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
             final transactions = state is TransactionsLoaded
                 ? state.transactions
                 : (state as TransactionsCountLoaded).transactions;
-            debugPrint('TransactionsPage: Dispatching LoadMoreTransactions event');
+            debugPrint(
+                'TransactionsPage: Dispatching LoadMoreTransactions event');
             context.read<TransactionsBloc>().add(LoadMoreTransactions(
                   lastDocumentId: transactions.last.id,
                   limit: 20,
@@ -82,7 +84,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
             });
           }
         } else {
-          debugPrint('TransactionsPage: isLoadingMore is true, not dispatching');
+          debugPrint(
+              'TransactionsPage: isLoadingMore is true, not dispatching');
         }
       } else {
         debugPrint(
@@ -278,12 +281,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
               // Group transactions by creation date
               final groupedTransactions = <String, List<TransactionModel>>{};
-              for (var session in transactions) {
+              for (var transaction in transactions) {
                 final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(session.transactionDate.toDate());
+                    .format(transaction.transactionDate.toDate());
                 groupedTransactions
                     .putIfAbsent(creationDate, () => [])
-                    .add(session);
+                    .add(transaction);
               }
 
               // Sort grouped transactions by date in descending order
@@ -359,14 +362,19 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                     Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
-                            ...transactionsForDate.map((session) {
+                            ...transactionsForDate.map((transaction) {
                               return TransactionListItem(
-                                transaction: session,
+                                transaction: transaction,
                                 onTap: () {
                                   setState(() {
                                     _selectedIndex =
-                                        transactions.indexOf(session);
+                                        transactions.indexOf(transaction);
                                   });
+                                  context
+                                      .read<TransactionsBloc>()
+                                      .add(DeleteTransactionEvent(
+                                        transaction.id,
+                                      ));
                                 },
                               );
                             }),

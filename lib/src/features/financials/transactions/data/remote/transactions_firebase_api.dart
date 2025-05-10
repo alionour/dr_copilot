@@ -241,7 +241,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       final end = DateTime(year + 1, 1, 1);
       final query = _transactionsCollection
           .where('userId', isEqualTo: user.uid)
-          .where('transactionDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('transactionDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
           .where('direction', isEqualTo: 'in');
 
@@ -288,7 +289,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       final end = DateTime(year + 1, 1, 1);
       final query = _transactionsCollection
           .where('userId', isEqualTo: user.uid)
-          .where('transactionDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('transactionDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
           .where('direction', isEqualTo: 'out');
 
@@ -438,15 +440,19 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
         return Left(ServerFailure('User not authenticated', 401));
       }
 
-      Query query = _transactionsCollection.where('userId', isEqualTo: user.uid);
+      Query query =
+          _transactionsCollection.where('userId', isEqualTo: user.uid);
 
       if (year != null) {
         final start = DateTime(year, month ?? 1, 1);
         final end = (month != null)
-            ? ((month == 12) ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1))
+            ? ((month == 12)
+                ? DateTime(year + 1, 1, 1)
+                : DateTime(year, month + 1, 1))
             : DateTime(year + 1, 1, 1);
         query = query
-            .where('transactionDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('transactionDate',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('transactionDate', isLessThan: Timestamp.fromDate(end));
       }
 
@@ -484,6 +490,31 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       return Right(total);
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  /// Added a method to validate and fetch the linked document based on the transactionSource and referenceId
+  Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({
+    required String referenceId,
+    required TransactionSource transactionSource,
+  }) async {
+    final collection =
+        transactionSource == TransactionSource.invoice ? 'invoices' : 'bills';
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection(collection)
+          .doc(referenceId)
+          .get();
+
+      if (!doc.exists) {
+        return Left(
+            ServerFailure('Reference ID not found in $collection', 404));
+      }
+
+      return Right(doc);
+    } catch (e) {
+      return Left(ServerFailure('Error fetching reference ID: $e', 500));
     }
   }
 }

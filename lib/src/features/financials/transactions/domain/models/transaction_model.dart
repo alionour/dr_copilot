@@ -1,12 +1,11 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'transaction_model.g.dart';
 
-
 /// JsonConverter for TransactionSource enum
-class TransactionSourceConverter implements JsonConverter<TransactionSource, String> {
+class TransactionSourceConverter
+    implements JsonConverter<TransactionSource, String> {
   const TransactionSourceConverter();
 
   @override
@@ -17,11 +16,13 @@ class TransactionSourceConverter implements JsonConverter<TransactionSource, Str
 }
 
 /// JsonConverter for TransactionDirection enum
-class TransactionDirectionConverter implements JsonConverter<TransactionDirection, String> {
+class TransactionDirectionConverter
+    implements JsonConverter<TransactionDirection, String> {
   const TransactionDirectionConverter();
 
   @override
-  TransactionDirection fromJson(String json) => TransactionDirection.fromString(json);
+  TransactionDirection fromJson(String json) =>
+      TransactionDirection.fromString(json);
 
   @override
   String toJson(TransactionDirection object) => object.value;
@@ -53,22 +54,41 @@ enum TransactionDirection {
   @override
   String toString() => value;
 
+  /// Converts a string value to a [TransactionDirection] enum.
+  ///
+  /// This method attempts to find the first [TransactionDirection] enum value
+  /// that matches the provided [value]. If no match is found, it defaults to
+  /// [TransactionDirection.inwards].
+  ///
+  /// - Parameter [value]: The string representation of a transaction direction.
+  /// - Returns: The corresponding [TransactionDirection] enum value, or
+  ///   [TransactionDirection.inwards] if no match is found.
   static TransactionDirection fromString(String value) {
     return TransactionDirection.values.firstWhere(
       (e) => e.value == value,
       orElse: () => TransactionDirection.inwards,
     );
   }
+
+  /// Added a method in TransactionDirection to infer direction from TransactionSource
+  static TransactionDirection fromSource(TransactionSource source) {
+    if (source == TransactionSource.invoice) {
+      return TransactionDirection.inwards;
+    } else if (source == TransactionSource.bill) {
+      return TransactionDirection.outwards;
+    }
+    return TransactionDirection.inwards;
+  }
 }
 
 /// Enum for transaction source with unique string values.
 enum TransactionSource {
-  manual('manual'),
+  // manual('manual'),
   invoice('invoice'),
-  bill('bill'),
-  transfer('transfer'),
-  refund('refund'),
-  adjustment('adjustment');
+  bill('bill');
+  // transfer('transfer'),
+  // refund('refund'),
+  // adjustment('adjustment');
 
   final String value;
   const TransactionSource(this.value);
@@ -79,7 +99,7 @@ enum TransactionSource {
   static TransactionSource fromString(String value) {
     return TransactionSource.values.firstWhere(
       (e) => e.value == value,
-      orElse: () => TransactionSource.manual,
+      orElse: () => TransactionSource.invoice,
     );
   }
 }
@@ -96,7 +116,8 @@ class TransactionModel {
   final Timestamp
       transactionDate; // The date and time when the transaction occurred.
   @TransactionSourceConverter()
-  final TransactionSource transactionSource; // Source of transaction, e.g., "invoice", "bill", etc.
+  final TransactionSource
+      transactionSource; // Source of transaction, e.g., "invoice", "bill", etc.
   @TransactionDirectionConverter()
   final TransactionDirection direction; // 'in' or 'out', explicit field
   @TimestampConverter()
@@ -108,8 +129,6 @@ class TransactionModel {
   @TimestampConverter()
   final Timestamp?
       updatedAt; // (Optional) The timestamp when the transaction was last updated.
-  final String?
-      category; // (Optional) The category of the transaction, e.g., "Rent", "Salary".
   final String userId; //  The ID of the user associated with the transaction.
   final String?
       createdBy; //  The ID of the user associated with the transaction.
@@ -118,71 +137,49 @@ class TransactionModel {
   final String?
       updatedBy; //  The ID of the user associated with the transaction.
   final String?
-      currency; // (Optional) The currency of the transaction, e.g., "USD".
+      currencyProfileId; // (Optional) The currency of the transaction, e.g., "USD".
   final String?
       notes; // (Optional) Additional notes or comments about the transaction.
   final String?
       status; // (Optional) The status of the transaction, e.g., "Pending", "Completed".
-  final String?
-      referenceId; // (Optional) A reference to an external system or invoice.
+  final String
+      referenceId; // A reference to an external system or invoice.
 
+  // Removed 'direction' from the constructor and ensured it is derived from 'transactionSource'
   TransactionModel({
     required this.id,
     required this.amount,
     required this.description,
     required this.transactionDate,
     required this.transactionSource,
-    required this.direction,
     required this.createdAt,
     this.updatedAt,
-    this.category,
     this.createdBy,
     this.deletedBy,
     this.updatedBy,
     this.deletedAt,
     required this.userId,
-    this.currency,
+    required this.currencyProfileId,
     this.notes,
     this.status,
-    this.referenceId,
-  });
+    required this.referenceId,
+  }) : direction = TransactionDirection.fromSource(transactionSource);
 
   // Converts a [TransactionModel] to a JSON map for Firestore.
   Map<String, dynamic> toJson() => _$TransactionModelToJson(this);
 
-
   /// Creates a [TransactionModel] from a Firestore document.
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
-    // If direction is missing, infer from source
-    final map = Map<String, dynamic>.from(json);
-    if (map['direction'] == null && map['transactionSource'] != null) {
-      map['direction'] = _directionForSource(map['transactionSource'] as String).value;
-    }
-    return _$TransactionModelFromJson(map);
+    return _$TransactionModelFromJson(json);
   }
 
-  /// Helper to infer direction from transaction source string if not present in JSON.
-  static TransactionDirection _directionForSource(String source) {
-    switch (source) {
-      case 'invoice':
-      case 'refund':
-        return TransactionDirection.inwards;
-      case 'bill':
-      case 'transfer':
-      case 'adjustment':
-        return TransactionDirection.outwards;
-      default:
-        return TransactionDirection.inwards;
-    }
-  }
-
+  // Removed 'direction' from the copyWith method as it is now derived from 'transactionSource'
   TransactionModel copyWith({
     String? id,
     double? amount,
     String? description,
     Timestamp? transactionDate,
     TransactionSource? transactionSource,
-    TransactionDirection? direction,
     Timestamp? createdAt,
     Timestamp? deletedAt,
     Timestamp? updatedAt,
@@ -191,7 +188,7 @@ class TransactionModel {
     String? createdBy,
     String? deletedBy,
     String? updatedBy,
-    String? currency,
+    String? currencyProfileId,
     String? notes,
     String? status,
     String? referenceId,
@@ -202,16 +199,14 @@ class TransactionModel {
       description: description ?? this.description,
       transactionDate: transactionDate ?? this.transactionDate,
       transactionSource: transactionSource ?? this.transactionSource,
-      direction: direction ?? this.direction,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      category: category ?? this.category,
       userId: userId ?? this.userId,
       createdBy: createdBy ?? this.createdBy,
       deletedBy: deletedBy ?? this.deletedBy,
       updatedBy: updatedBy ?? this.updatedBy,
-      currency: currency ?? this.currency,
+      currencyProfileId: currencyProfileId ?? this.currencyProfileId,
       notes: notes ?? this.notes,
       status: status ?? this.status,
       referenceId: referenceId ?? this.referenceId,

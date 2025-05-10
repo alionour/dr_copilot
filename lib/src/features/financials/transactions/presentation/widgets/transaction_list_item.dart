@@ -18,8 +18,9 @@ class TransactionListItem extends StatelessWidget {
         transaction.direction == TransactionDirection.outwards);
     final color = isIncome ? Colors.green : Colors.red;
     final icon = isIncome ? Icons.arrow_downward : Icons.arrow_upward;
-    final currency = transaction.currency ?? '';
-    final dateStr = transaction.transactionDate.toDate().toLocal().toString().split(' ')[0];
+    final currency = transaction.currencyProfileId ?? '';
+    final dateStr =
+        transaction.transactionDate.toDate().toLocal().toString().split(' ')[0];
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -57,10 +58,11 @@ class TransactionListItem extends StatelessWidget {
                       children: [
                         Text(
                           '${transaction.amount.toStringAsFixed(2)} $currency',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: color,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: color,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(width: 12),
                         Container(
@@ -72,10 +74,11 @@ class TransactionListItem extends StatelessWidget {
                           ),
                           child: Text(
                             isIncome ? 'دخل' : 'مصروف',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: color,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: color,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                           ),
                         ),
                       ],
@@ -96,12 +99,13 @@ class TransactionListItem extends StatelessWidget {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child:  Text('delete'.tr()),
+                child: Text('delete'.tr()),
               ),
             ],
           ),

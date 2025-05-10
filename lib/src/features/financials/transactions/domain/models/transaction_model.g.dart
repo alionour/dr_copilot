@@ -15,23 +15,20 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
           .fromJson(json['transactionDate'] as Object),
       transactionSource: const TransactionSourceConverter()
           .fromJson(json['transactionSource'] as String),
-      direction: const TransactionDirectionConverter()
-          .fromJson(json['direction'] as String),
       createdAt:
           const TimestampConverter().fromJson(json['createdAt'] as Object),
       updatedAt: _$JsonConverterFromJson<Object, Timestamp>(
           json['updatedAt'], const TimestampConverter().fromJson),
-      category: json['category'] as String?,
       createdBy: json['createdBy'] as String?,
       deletedBy: json['deletedBy'] as String?,
       updatedBy: json['updatedBy'] as String?,
       deletedAt: _$JsonConverterFromJson<Object, Timestamp>(
           json['deletedAt'], const TimestampConverter().fromJson),
       userId: json['userId'] as String,
-      currency: json['currency'] as String?,
+      currencyProfileId: json['currencyProfileId'] as String?,
       notes: json['notes'] as String?,
       status: json['status'] as String?,
-      referenceId: json['referenceId'] as String?,
+      referenceId: json['referenceId'] as String,
     );
 
 Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
@@ -43,19 +40,16 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
           const TimestampConverter().toJson(instance.transactionDate),
       'transactionSource':
           const TransactionSourceConverter().toJson(instance.transactionSource),
-      'direction':
-          const TransactionDirectionConverter().toJson(instance.direction),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'deletedAt': _$JsonConverterToJson<Object, Timestamp>(
           instance.deletedAt, const TimestampConverter().toJson),
       'updatedAt': _$JsonConverterToJson<Object, Timestamp>(
           instance.updatedAt, const TimestampConverter().toJson),
-      'category': instance.category,
       'userId': instance.userId,
       'createdBy': instance.createdBy,
       'deletedBy': instance.deletedBy,
       'updatedBy': instance.updatedBy,
-      'currency': instance.currency,
+      'currencyProfileId': instance.currencyProfileId,
       'notes': instance.notes,
       'status': instance.status,
       'referenceId': instance.referenceId,
