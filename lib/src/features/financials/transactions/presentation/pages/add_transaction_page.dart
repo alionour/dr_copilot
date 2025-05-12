@@ -117,6 +117,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           description: _descriptionController.text,
           transactionDate: _transactionDate,
           transactionSource: _transactionSource,
+          direction: TransactionDirection.fromSource(_transactionSource),
           currencyProfileId: _selectedCurrencyProfile,
           notes:
               _notesController.text.isNotEmpty ? _notesController.text : null,
@@ -125,6 +126,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
           createdBy: userId,
           userId: userId,
+
         );
         // Dispatch AddTransactionEvent
         context

@@ -118,7 +118,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     on<FetchTotalRevenueForYear>(_onFetchTotalRevenueForYear);
     on<FetchTotalExpensesForYear>(_onFetchTotalExpensesForYear);
     on<GetTotalRevenueForMonth>(_onFetchTotalRevenueForMonth);
-    on<FetchTotalExpensesForMonth>(_onFetchTotalExpensesForMonth);
+    on<GetTotalExpensesForMonth>(_onFetchTotalExpensesForMonth);
     on<FetchTotalByDirectionAndSource>(_onFetchTotalByDirectionAndSource);
 
     // Generate bills from scheduled bills
@@ -168,10 +168,11 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     for (int i = 0; i < 12; i++) {
       final month = (now.month + i) % 12;
       final year = now.year + (now.month + i) ~/ 12;
-      add(GetSessionsCountForMonth(year, month));
-      add(GetEvaluationsCountForMonth(year, month));
+      // add(GetSessionsCountForMonth(year, month));
+      // add(GetEvaluationsCountForMonth(year, month));
+      add(GetTotalRevenueForMonth(year, month));
+      add(GetTotalExpensesForMonth(year, month));
     }
-
   }
 
   /// Emits a [FinancialsSuccess] state with the provided [message].
@@ -803,12 +804,15 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           revenuePerYear: state.revenuePerYear,
           expensesPerYear: state.expensesPerYear,
         ));
+        debugPrint(
+          'Updated revenue for $updatedRevenueMap',
+        );
       },
     );
   }
 
   Future<void> _onFetchTotalExpensesForMonth(
-      FetchTotalExpensesForMonth event, Emitter<FinancialsState> emit) async {
+      GetTotalExpensesForMonth event, Emitter<FinancialsState> emit) async {
     final result = await transactionsUseCase.getTotalExpensesForMonth(
         event.year, event.month);
     result.fold(
@@ -832,7 +836,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           expensesPerYear: state.expensesPerYear,
         ));
         debugPrint(
-          'Updated expenses for ${updatedExpensesMap}',
+          'Updated expenses for $updatedExpensesMap',
         );
       },
     );

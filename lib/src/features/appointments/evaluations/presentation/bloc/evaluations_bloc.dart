@@ -189,6 +189,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
             id: const Uuid().v4(),
             currencyProfileId: invoice.currencyProfileId,
             transactionSource: TransactionSource.invoice,
+                                direction: TransactionDirection.fromSource(TransactionSource.invoice),
+
             status: TransactionStatus.completed,
             transactionDate: invoice.createdAt,
             referenceId: invoice.id,
@@ -207,6 +209,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
               id: const Uuid().v4(),
               currencyProfileId: invoice.currencyProfileId,
               transactionSource: TransactionSource.invoice,
+                                  direction: TransactionDirection.fromSource(TransactionSource.invoice),
+
               status: TransactionStatus.completed,
               transactionDate: invoice.createdAt,
               referenceId: invoice.id,

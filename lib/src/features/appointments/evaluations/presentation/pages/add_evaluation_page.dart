@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -214,106 +217,66 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     super.dispose();
   }
 
+  Future<void> _updateAllTransactionDirections() async {
+    try {
+      debugPrint('Fetching all transactions to update direction...');
+      final transactionsUseCase =
+          TransactionsUseCase(TransactionsFirebaseApi());
+      final failureOrTransactions =
+          await transactionsUseCase.getTransactions(limit: 1000);
+
+      failureOrTransactions.fold(
+        (failure) {
+          debugPrint(
+              'Failed to fetch transactions: [31m${failure.message}[0m');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Failed to fetch transactions: ${failure.message}'.tr())),
+          );
+        },
+        (transactions) async {
+          debugPrint('Fetched ${transactions.length} transactions');
+          int updatedCount = 0;
+          for (final transaction in transactions) {
+            final correctDirection =
+                TransactionDirection.fromSource(transaction.transactionSource);
+            if (transaction.direction != correctDirection) {
+              // Create a copy with the correct direction
+              final updatedTransaction =
+                  transaction.copyWith(direction: correctDirection);
+              debugPrint(
+                  'Updating direction for transaction ${transaction.id} to $correctDirection');
+              await transactionsUseCase.updateTransaction(
+                  updatedTransaction.id, updatedTransaction);
+              updatedCount++;
+            }
+          }
+          debugPrint(
+              'All transaction directions updated. Updated $updatedCount transactions.');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text('Updated $updatedCount transaction directions'.tr())),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Error in finding and adding missing transactions: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Failed to find and add missing transactions'.tr())),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-  //     floatingActionButton: FloatingActionButton(
-  //       onPressed: ()async {
-  //   try {
-  //     debugPrint('Starting processEvaluations function');
-  //     final EvaluationsUseCase _evaluationUseCase = EvaluationsUseCase(
-  //       EvaluationsFirebaseApi()
-  //     );
-
-  //     final FinancialsUseCase _financialsUseCase = FinancialsUseCase(
-  //       FinancialsRepositoryImpl(
-          
-  //         FinancialsFirebaseApi(
-  //         evaluationsUseCase: _evaluationUseCase,
-  //         transactionsUseCase: TransactionsUseCase(TransactionsFirebaseApi()),
-  //         sessionsUseCase: SessionsUseCase(SessionsRepositoryImpl(
-  //            SessionsFirebaseApi()
-  //         ))
-  //       ))
-  //     );
-  //     // Step 1: Fetch all evaluations
-  //     debugPrint('Fetching all evaluations');
-  
-  //   debugPrint('Starting to find and add missing transactions');
-
-  //   // Step 1: Fetch all transactions
-  //   final transactionsUseCase = TransactionsUseCase(TransactionsFirebaseApi());
-  //   final failureOrTransactions = await transactionsUseCase.getTransactions(limit: 1000);
-
-  //   failureOrTransactions.fold(
-  //     (failure) {
-  //       debugPrint('Failed to fetch transactions: ${failure.message}');
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Failed to fetch transactions: ${failure.message}'.tr())),
-  //       );
-  //     },
-  //     (transactions) async {
-  //       debugPrint('Fetched ${transactions.length} transactions');
-
-  //       // Step 2: Fetch all invoices
-  //       final failureOrInvoices = await _financialsUseCase.fetchInvoices();
-
-  //       failureOrInvoices.fold(
-  //         (failure) {
-  //           debugPrint('Failed to fetch invoices: ${failure.message}');
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(content: Text('Failed to fetch invoices: ${failure.message}'.tr())),
-  //           );
-  //         },
-  //         (invoices) async {
-  //           debugPrint('Fetched ${invoices.length} invoices');
-
-  //           // Step 3: Compare transactions and invoices
-  //           final transactionReferenceIds = transactions.map((transaction) => transaction.referenceId).toSet();
-  //           final missingInvoices = invoices.where((invoice) => !transactionReferenceIds.contains(invoice.id)).toList();
-
-  //           debugPrint('Found ${missingInvoices.length} missing transactions');
-
-  //           // Step 4: Add missing transactions
-  //           for (final invoice in missingInvoices) {
-  //             final transaction = TransactionModel(
-  //               id: const Uuid().v4(),
-  //               currencyProfileId: invoice.currencyProfileId,
-  //               transactionSource: TransactionSource.invoice,
-  //               status: TransactionStatus.completed,
-  //               transactionDate: invoice.createdAt,
-  //               referenceId: invoice.id,
-  //               userId: invoice.userId,
-  //               amount: invoice.amount,
-  //               createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-  //               createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
-  //               description: 'Transaction for missing invoice ${invoice.id}',
-  //             );
-
-  //             debugPrint('Adding transaction for missing invoice ID: ${invoice.id}');
-  //             await transactionsUseCase.addTransaction(transaction);
-  //             debugPrint('Transaction added for missing invoice ID: ${invoice.id}');
-  //           }
-
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(content: Text('Added missing transactions successfully!'.tr())),
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // } catch (e) {
-  //   debugPrint('Error in finding and adding missing transactions: $e');
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(content: Text('Failed to find and add missing transactions'.tr())),
-  //   );
-  // }
-
-
-  //       },
-  //       child: const Icon(Icons.keyboard_hide),
-  //     ),
-      
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _updateAllTransactionDirections,
+      //   child: const Icon(Icons.keyboard_hide),
+      // ),
       appBar: AppBar(
         title: Text('addEvaluation'.tr()),
         leading: IconButton(
@@ -758,7 +721,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             const SizedBox(height: 8.0),
                             const SizedBox(height: 8.0),
                             Card(
-                              color: Colors.blue.shade50, // Light blue background for the invoice section
+                              color: Colors.blue
+                                  .shade50, // Light blue background for the invoice section
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -770,32 +734,45 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                   children: [
                                     Text(
                                       'invoice'.tr(),
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.blue.shade900, // Darker blue for the title
+                                            color: Colors.blue
+                                                .shade900, // Darker blue for the title
                                           ),
                                     ),
                                     const SizedBox(height: 8.0),
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: DropdownButtonFormField<CurrencyProfileModel>(
+                                          child: DropdownButtonFormField<
+                                              CurrencyProfileModel>(
                                             value: _selectedCurrencyProfile,
                                             decoration: InputDecoration(
                                               labelText: 'currencyProfile'.tr(),
-                                              labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              labelStyle: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
-                                            items: _currencyProfiles.map((CurrencyProfileModel profile) {
-                                              return DropdownMenuItem<CurrencyProfileModel>(
+                                            items: _currencyProfiles.map(
+                                                (CurrencyProfileModel profile) {
+                                              return DropdownMenuItem<
+                                                  CurrencyProfileModel>(
                                                 value: profile,
-                                                child: Text(profile.currency.tr()),
+                                                child:
+                                                    Text(profile.currency.tr()),
                                               );
                                             }).toList(),
-                                            onChanged: (CurrencyProfileModel? newValue) {
+                                            onChanged: (CurrencyProfileModel?
+                                                newValue) {
                                               setState(() {
-                                                _selectedCurrencyProfile = newValue;
+                                                _selectedCurrencyProfile =
+                                                    newValue;
                                               });
                                             },
                                           ),
@@ -803,7 +780,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                         IconButton(
                                           icon: const Icon(Icons.refresh),
                                           onPressed: _fetchCurrencyProfiles,
-                                          tooltip: 'refreshCurrencyProfiles'.tr(),
+                                          tooltip:
+                                              'refreshCurrencyProfiles'.tr(),
                                         ),
                                       ],
                                     ),
@@ -811,23 +789,33 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: DropdownButtonFormField<InvoiceStatus>(
+                                          child: DropdownButtonFormField<
+                                              InvoiceStatus>(
                                             value: _selectedInvoiceStatus,
                                             decoration: InputDecoration(
                                               labelText: 'invoiceStatus'.tr(),
-                                              labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              labelStyle: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
-                                            items: InvoiceStatus.values.map((InvoiceStatus status) {
-                                              return DropdownMenuItem<InvoiceStatus>(
+                                            items: InvoiceStatus.values
+                                                .map((InvoiceStatus status) {
+                                              return DropdownMenuItem<
+                                                  InvoiceStatus>(
                                                 value: status,
-                                                child: Text('invoiceStatus.${status.name}'.tr()), // Display localized name
+                                                child: Text(
+                                                    'invoiceStatus.${status.name}'
+                                                        .tr()), // Display localized name
                                               );
                                             }).toList(),
-                                            onChanged: (InvoiceStatus? newValue) {
+                                            onChanged:
+                                                (InvoiceStatus? newValue) {
                                               setState(() {
-                                                _selectedInvoiceStatus = newValue;
+                                                _selectedInvoiceStatus =
+                                                    newValue;
                                               });
                                             },
                                           ),
@@ -835,11 +823,13 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       ],
                                     ),
                                     const SizedBox(height: 8.0),
-                                    if (_selectedInvoiceStatus == InvoiceStatus.partiallyPaid)
+                                    if (_selectedInvoiceStatus ==
+                                        InvoiceStatus.partiallyPaid)
                                       TextFormField(
                                         controller: _partialPaymentController,
                                         inputFormatters: [
-                                          FilteringTextInputFormatter.digitsOnly,
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
                                         ],
                                         decoration: InputDecoration(
                                           labelText: 'amount'.tr(),
@@ -851,10 +841,12 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                           }
                                           final amount = double.tryParse(value);
                                           if (amount == null || amount <= 0) {
-                                            return 'enterValidAmountGreaterThanZero'.tr();
+                                            return 'enterValidAmountGreaterThanZero'
+                                                .tr();
                                           }
                                           if (amount > 1000000) {
-                                            return 'amountCannotExceedOneMillion'.tr();
+                                            return 'amountCannotExceedOneMillion'
+                                                .tr();
                                           }
                                           return null;
                                         },

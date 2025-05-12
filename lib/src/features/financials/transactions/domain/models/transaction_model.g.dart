@@ -26,6 +26,8 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
           json['deletedAt'], const TimestampConverter().fromJson),
       userId: json['userId'] as String,
       currencyProfileId: json['currencyProfileId'] as String?,
+      direction: const TransactionDirectionConverter()
+          .fromJson(json['direction'] as String),
       notes: json['notes'] as String?,
       status: _$JsonConverterFromJson<String, TransactionStatus>(
           json['status'], const TransactionStatusConverter().fromJson),
@@ -41,6 +43,8 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
           const TimestampConverter().toJson(instance.transactionDate),
       'transactionSource':
           const TransactionSourceConverter().toJson(instance.transactionSource),
+      'direction':
+          const TransactionDirectionConverter().toJson(instance.direction),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'deletedAt': _$JsonConverterToJson<Object, Timestamp>(
           instance.deletedAt, const TimestampConverter().toJson),

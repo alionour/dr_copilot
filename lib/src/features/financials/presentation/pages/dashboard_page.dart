@@ -105,78 +105,83 @@ class DashboardPage extends StatelessWidget {
                   controller: _scrollController,
                   thumbVisibility: true,
                   trackVisibility: true,
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 200,
-                          child: _SummaryCard(
-                            color: Colors.teal,
-                            title: 'totalRevenue'.tr(),
-                            value: '\u000024$revenueMonth',
-                            icon: Icons.trending_up,
-                          ),
+                  child: BlocBuilder<FinancialsBloc, FinancialsState>(
+                    builder: (context, state) {
+                      return SingleChildScrollView(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 10,),
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.teal,
+                                title: 'totalRevenue'.tr(),
+                                value: state.revenuePerMonth[monthKey]?.toStringAsFixed(2) ?? '...',
+                                icon: Icons.trending_up,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.redAccent,
+                                title: 'totalExpenses'.tr(),
+                                value: state.expensesPerMonth[monthKey]?.toStringAsFixed(2) ?? '...',
+                                icon: Icons.trending_down,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Sessions Year
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.blue,
+                                title: '${'sessionsCount'.tr()} (${now.year})',
+                                value: sessionsYear.toString(),
+                                icon: Icons.event,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Sessions Month
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.blue.shade700,
+                                title:
+                                    '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                                value: sessionsMonth.toString(),
+                                icon: Icons.event_available,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Evaluations Year
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.purple,
+                                title: '${'evaluationsCount'.tr()} (${now.year})',
+                                value: evalsYear.toString(),
+                                icon: Icons.assignment,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Evaluations Month
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.purple.shade700,
+                                title:
+                                    '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                                value: evalsMonth.toString(),
+                                icon: Icons.assignment_turned_in,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        SizedBox(
-                          width: 200,
-                          child: _SummaryCard(
-                            color: Colors.redAccent,
-                            title: 'totalExpenses'.tr(),
-                            value: '\u000024$expensesMonth',
-                            icon: Icons.trending_down,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Sessions Year
-                        SizedBox(
-                          width: 200,
-                          child: _SummaryCard(
-                            color: Colors.blue,
-                            title: '${'sessionsCount'.tr()} (${now.year})',
-                            value: sessionsYear.toString(),
-                            icon: Icons.event,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Sessions Month
-                        SizedBox(
-                          width: 200,
-                          child: _SummaryCard(
-                            color: Colors.blue.shade700,
-                            title:
-                                '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
-                            value: sessionsMonth.toString(),
-                            icon: Icons.event_available,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Evaluations Year
-                        SizedBox(
-                          width: 200,
-                          child: _SummaryCard(
-                            color: Colors.purple,
-                            title: '${'evaluationsCount'.tr()} (${now.year})',
-                            value: evalsYear.toString(),
-                            icon: Icons.assignment,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Evaluations Month
-                        SizedBox(
-                          width: 200,
-                          child: _SummaryCard(
-                            color: Colors.purple.shade700,
-                            title:
-                                '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
-                            value: evalsMonth.toString(),
-                            icon: Icons.assignment_turned_in,
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    }
                   ),
                 ),
               );

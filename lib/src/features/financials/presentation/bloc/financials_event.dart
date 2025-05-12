@@ -262,10 +262,10 @@ class GetTotalRevenueForMonth extends FinancialsEvent {
 }
 
 /// Event to fetch total expenses (outwards) for a given month and year.
-class FetchTotalExpensesForMonth extends FinancialsEvent {
+class GetTotalExpensesForMonth extends FinancialsEvent {
   final int year;
   final int month;
-  const FetchTotalExpensesForMonth(this.year, this.month);
+  const GetTotalExpensesForMonth(this.year, this.month);
   @override
   List<Object?> get props => [year, month];
 }

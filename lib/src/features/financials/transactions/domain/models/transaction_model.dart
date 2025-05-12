@@ -153,6 +153,7 @@ class TransactionModel {
       transactionSource; // Source of transaction, e.g., "invoice", "bill", etc.
   @TransactionDirectionConverter()
   final TransactionDirection direction; // 'in' or 'out', explicit field
+
   @TimestampConverter()
   final Timestamp
       createdAt; // The timestamp when the transaction was created in the system.
@@ -193,10 +194,11 @@ class TransactionModel {
     this.deletedAt,
     required this.userId,
     required this.currencyProfileId,
+    required this.direction,
     this.notes,
     this.status,
     required this.referenceId,
-  }) : direction = TransactionDirection.fromSource(transactionSource);
+  });
 
   // Converts a [TransactionModel] to a JSON map for Firestore.
   Map<String, dynamic> toJson() => _$TransactionModelToJson(this);
@@ -213,6 +215,7 @@ class TransactionModel {
     String? description,
     Timestamp? transactionDate,
     TransactionSource? transactionSource,
+    TransactionDirection? direction,
     Timestamp? createdAt,
     Timestamp? deletedAt,
     Timestamp? updatedAt,
@@ -243,6 +246,7 @@ class TransactionModel {
       notes: notes ?? this.notes,
       status: status ?? this.status,
       referenceId: referenceId ?? this.referenceId,
+      direction: direction ?? this.direction,
     );
   }
 }

@@ -116,6 +116,7 @@ class TransactionsRepositoryImpl extends AbstractTransactionsRepository {
   /// - Returns: A [Future] containing an [Either] with a [Failure] on the 
   ///   left side if an error occurs, or a [DocumentSnapshot?] on the right 
   ///   side if the operation is successful.
+  @override
   Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({   required String referenceId,
     required TransactionSource transactionSource,
   }){
