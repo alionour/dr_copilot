@@ -80,8 +80,8 @@ class SessionModel {
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
 
-  @NullableTimestampConverter()
-  final Timestamp? createdAt;
+  @TimestampConverter()
+  final Timestamp createdAt;
 
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
@@ -99,7 +99,7 @@ class SessionModel {
     this.updatedBy,
     this.deletedBy,
     this.deletedAt,
-    this.createdAt,
+    required this.createdAt,
     this.updatedAt,
   });
 

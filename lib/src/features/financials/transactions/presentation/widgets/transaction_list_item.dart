@@ -30,15 +30,14 @@ class TransactionListItem extends StatelessWidget {
       elevation: 3,
       child: InkWell(
         borderRadius: BorderRadius.circular(16.0),
-        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: color.withOpacity(0.15),
-                child: Icon(icon, color: color, size: 24),
+                backgroundColor: color.withAlpha((0.15 * 255).toInt()),
                 radius: 24,
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(

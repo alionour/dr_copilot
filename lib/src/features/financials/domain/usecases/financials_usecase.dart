@@ -35,7 +35,9 @@ class FinancialsUseCase {
   final AbstractFinancialsRepository repository;
 
   /// Constructor for [FinancialsUseCase].
-  FinancialsUseCase(this.repository,);
+  FinancialsUseCase(
+    this.repository,
+  );
 
   Future<Either<Failure, int>> getSessionsCountForYear({required int year}) {
     return repository.getSessionsCountForYear(year: year);

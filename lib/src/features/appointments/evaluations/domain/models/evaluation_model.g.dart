@@ -15,10 +15,10 @@ EvaluationModel _$EvaluationModelFromJson(Map<String, dynamic> json) =>
       startDateTime: const TimestampConverter().fromJson(json['startDateTime']),
       endDateTime: const TimestampConverter().fromJson(json['endDateTime']),
       userId: json['userId'] as String,
-      createdBy: json['createdBy'] as String?,
+      createdBy: json['createdBy'] as String,
       updatedBy: json['updatedBy'] as String?,
       deletedBy: json['deletedBy'] as String?,
-      createdAt: const NullableTimestampConverter().fromJson(json['createdAt']),
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
     );
@@ -36,8 +36,7 @@ Map<String, dynamic> _$EvaluationModelToJson(EvaluationModel instance) =>
       'createdBy': instance.createdBy,
       'updatedBy': instance.updatedBy,
       'deletedBy': instance.deletedBy,
-      'createdAt':
-          const NullableTimestampConverter().toJson(instance.createdAt),
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'updatedAt':
           const NullableTimestampConverter().toJson(instance.updatedAt),
       'deletedAt':

@@ -4,57 +4,73 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'invoice_model.g.dart';
 
-enum CustomerType { patient, organization, insurance }
+enum CustomerType {
+  patient,
+  organization,
+  insurance;
 
-enum InvoiceSource { sessions, evaluations, other }
-
-// String converters for enums
-String customerTypeToString(CustomerType type) {
-  switch (type) {
-    case CustomerType.patient:
-      return 'patient';
-    case CustomerType.organization:
-      return 'organization';
-    case CustomerType.insurance:
-      return 'insurance';
+  // Getter to return a user-friendly string
+  String get displayName {
+    switch (this) {
+      case CustomerType.patient:
+        return 'Patient';
+      case CustomerType.organization:
+        return 'Organization';
+      case CustomerType.insurance:
+        return 'Insurance';
+    }
   }
+
+  // Overriding toString for custom string representation
+  @override
+  String toString() => displayName;
 }
 
-CustomerType customerTypeFromString(String value) {
-  switch (value) {
-    case 'patient':
-      return CustomerType.patient;
-    case 'organization':
-      return CustomerType.organization;
-    case 'insurance':
-      return CustomerType.insurance;
-    default:
-      return CustomerType.patient;
+enum InvoiceSource {
+  sessions,
+  evaluations,
+  other;
+
+  // Getter to return a user-friendly string
+  String get displayName {
+    switch (this) {
+      case InvoiceSource.sessions:
+        return 'Sessions';
+      case InvoiceSource.evaluations:
+        return 'Evaluations';
+      case InvoiceSource.other:
+        return 'Other';
+    }
   }
+
+  // Overriding toString for custom string representation
+  @override
+  String toString() => displayName;
 }
 
-String invoiceSourceToString(InvoiceSource source) {
-  switch (source) {
-    case InvoiceSource.sessions:
-      return 'sessions';
-    case InvoiceSource.evaluations:
-      return 'evaluations';
-    case InvoiceSource.other:
-      return 'other';
-  }
-}
+enum InvoiceStatus {
+  unpaid,
+  paid,
+  partiallyPaid;
 
-InvoiceSource invoiceSourceFromString(String value) {
-  switch (value) {
-    case 'sessions':
-      return InvoiceSource.sessions;
-    case 'evaluations':
-      return InvoiceSource.evaluations;
-    case 'other':
-      return InvoiceSource.other;
-    default:
-      return InvoiceSource.other;
+  // Method to check if the status is unpaid
+  bool isUnpaid() => this == InvoiceStatus.unpaid;
+
+  // Getter to return a user-friendly string
+  String get displayName {
+    switch (this) {
+      case InvoiceStatus.unpaid:
+        return 'Unpaid';
+      case InvoiceStatus.paid:
+        return 'Paid';
+      case InvoiceStatus.partiallyPaid:
+        return 'Partially Paid';
+    }
   }
+
+  // Overriding toString for custom string representation
+  @override
+  String toString() => displayName;
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -89,7 +105,7 @@ class InvoiceModel {
   final String? customerId;
   final CustomerType? customerType;
   final InvoiceSource? source;
-  final String? status; // e.g., 'unpaid', 'paid', 'overdue', etc.
+  final InvoiceStatus? status; // Changed from String? to InvoiceStatus?
 
   InvoiceModel({
     required this.id,
@@ -134,7 +150,7 @@ class InvoiceModel {
     String? customerId,
     CustomerType? customerType,
     InvoiceSource? source,
-    String? status,
+    InvoiceStatus? status,
   }) {
     return InvoiceModel(
       id: id ?? this.id,

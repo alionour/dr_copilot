@@ -34,6 +34,18 @@ import '../../../features/patients/data/remote/patient_firebase_api.dart';
 import '../../../features/settings/presentation/bloc/settings_bloc.dart';
 import '../../helper/api_key_helper.dart';
 
+final _financialsUseCase = FinancialsUseCase(
+  FinancialsRepositoryImpl(FinancialsFirebaseApi(
+    sessionsUseCase:
+        SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
+    evaluationsUseCase: EvaluationsUseCase(
+      EvaluationsRepositoryImpl(EvaluationsFirebaseApi()),
+    ),
+    transactionsUseCase: TransactionsUseCase(
+        TransactionsRepositoryImpl(TransactionsFirebaseApi())),
+  )),
+);
+
 /// A list of [BlocProvider]s used to provide various BLoC instances throughout the app.
 ///
 /// This includes providers for authentication, navigation, patients, copilot AI services,
@@ -115,8 +127,8 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// [BuildContext].
   BlocProvider<SessionsBloc>(
       create: (context) => SessionsBloc(
-            SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
-          )),
+          SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
+          _financialsUseCase)),
 
   /// Provides an instance of [EvaluationsBloc] to the widget tree.
   ///
@@ -144,17 +156,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// using `BlocProvider.of<FinancialsBloc>(context)`.
   BlocProvider<FinancialsBloc>(
       create: (context) => FinancialsBloc(
-          FinancialsUseCase(
-            FinancialsRepositoryImpl(FinancialsFirebaseApi(
-              sessionsUseCase: SessionsUseCase(
-                  SessionsRepositoryImpl(SessionsFirebaseApi())),
-              evaluationsUseCase: EvaluationsUseCase(
-                EvaluationsRepositoryImpl(EvaluationsFirebaseApi()),
-              ),
-              transactionsUseCase: TransactionsUseCase(
-                  TransactionsRepositoryImpl(TransactionsFirebaseApi())),
-            )),
-          ),
+          _financialsUseCase,
           TransactionsUseCase(
               TransactionsRepositoryImpl(TransactionsFirebaseApi())))),
 

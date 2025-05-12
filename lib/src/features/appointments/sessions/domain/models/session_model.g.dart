@@ -20,7 +20,7 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       updatedBy: json['updatedBy'] as String?,
       deletedBy: json['deletedBy'] as String?,
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
-      createdAt: const NullableTimestampConverter().fromJson(json['createdAt']),
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
     );
 
@@ -40,8 +40,7 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'deletedBy': instance.deletedBy,
       'deletedAt':
           const NullableTimestampConverter().toJson(instance.deletedAt),
-      'createdAt':
-          const NullableTimestampConverter().toJson(instance.createdAt),
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'updatedAt':
           const NullableTimestampConverter().toJson(instance.updatedAt),
     };

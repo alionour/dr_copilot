@@ -27,7 +27,8 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
       userId: json['userId'] as String,
       currencyProfileId: json['currencyProfileId'] as String?,
       notes: json['notes'] as String?,
-      status: json['status'] as String?,
+      status: _$JsonConverterFromJson<String, TransactionStatus>(
+          json['status'], const TransactionStatusConverter().fromJson),
       referenceId: json['referenceId'] as String,
     );
 
@@ -51,7 +52,8 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
       'updatedBy': instance.updatedBy,
       'currencyProfileId': instance.currencyProfileId,
       'notes': instance.notes,
-      'status': instance.status,
+      'status': _$JsonConverterToJson<String, TransactionStatus>(
+          instance.status, const TransactionStatusConverter().toJson),
       'referenceId': instance.referenceId,
     };
 

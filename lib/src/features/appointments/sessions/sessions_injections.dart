@@ -8,7 +8,7 @@ final sl = GetIt.instance;
 
 void initSessionsInjections() {
   // Bloc
-  sl.registerFactory(() => SessionsBloc(sl()));
+  sl.registerFactory(() => SessionsBloc(sl(),sl()));
 
   // Use cases
   sl.registerLazySingleton(() => SessionsUseCase(sl()));

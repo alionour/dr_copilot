@@ -1,7 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/data/repositories/sessions_repository_impl.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
+import 'package:dr_copilot/src/features/financials/data/remote/financials_firebase_api.dart';
+import 'package:dr_copilot/src/features/financials/data/repositories/financials_repository_impl.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
+import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -188,6 +201,103 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+  //     floatingActionButton: FloatingActionButton(
+  //       onPressed: ()async {
+  //   try {
+  //     debugPrint('Starting processEvaluations function');
+  //     final EvaluationsUseCase _evaluationUseCase = EvaluationsUseCase(
+  //       EvaluationsFirebaseApi()
+  //     );
+
+  //     final FinancialsUseCase _financialsUseCase = FinancialsUseCase(
+  //       FinancialsRepositoryImpl(
+          
+  //         FinancialsFirebaseApi(
+  //         evaluationsUseCase: _evaluationUseCase,
+  //         transactionsUseCase: TransactionsUseCase(TransactionsFirebaseApi()),
+  //         sessionsUseCase: SessionsUseCase(SessionsRepositoryImpl(
+  //            SessionsFirebaseApi()
+  //         ))
+  //       ))
+  //     );
+  //     // Step 1: Fetch all evaluations
+  //     debugPrint('Fetching all evaluations');
+  
+  //   debugPrint('Starting to find and add missing transactions');
+
+  //   // Step 1: Fetch all transactions
+  //   final transactionsUseCase = TransactionsUseCase(TransactionsFirebaseApi());
+  //   final failureOrTransactions = await transactionsUseCase.getTransactions(limit: 1000);
+
+  //   failureOrTransactions.fold(
+  //     (failure) {
+  //       debugPrint('Failed to fetch transactions: ${failure.message}');
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Failed to fetch transactions: ${failure.message}'.tr())),
+  //       );
+  //     },
+  //     (transactions) async {
+  //       debugPrint('Fetched ${transactions.length} transactions');
+
+  //       // Step 2: Fetch all invoices
+  //       final failureOrInvoices = await _financialsUseCase.fetchInvoices();
+
+  //       failureOrInvoices.fold(
+  //         (failure) {
+  //           debugPrint('Failed to fetch invoices: ${failure.message}');
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(content: Text('Failed to fetch invoices: ${failure.message}'.tr())),
+  //           );
+  //         },
+  //         (invoices) async {
+  //           debugPrint('Fetched ${invoices.length} invoices');
+
+  //           // Step 3: Compare transactions and invoices
+  //           final transactionReferenceIds = transactions.map((transaction) => transaction.referenceId).toSet();
+  //           final missingInvoices = invoices.where((invoice) => !transactionReferenceIds.contains(invoice.id)).toList();
+
+  //           debugPrint('Found ${missingInvoices.length} missing transactions');
+
+  //           // Step 4: Add missing transactions
+  //           for (final invoice in missingInvoices) {
+  //             final transaction = TransactionModel(
+  //               id: const Uuid().v4(),
+  //               currencyProfileId: invoice.currencyProfileId,
+  //               transactionSource: TransactionSource.invoice,
+  //               status: TransactionStatus.completed,
+  //               transactionDate: invoice.createdAt,
+  //               referenceId: invoice.id,
+  //               userId: invoice.userId,
+  //               amount: invoice.amount,
+  //               createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+  //               createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
+  //               description: 'Transaction for missing invoice ${invoice.id}',
+  //             );
+
+  //             debugPrint('Adding transaction for missing invoice ID: ${invoice.id}');
+  //             await transactionsUseCase.addTransaction(transaction);
+  //             debugPrint('Transaction added for missing invoice ID: ${invoice.id}');
+  //           }
+
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(content: Text('Added missing transactions successfully!'.tr())),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // } catch (e) {
+  //   debugPrint('Error in finding and adding missing transactions: $e');
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text('Failed to find and add missing transactions'.tr())),
+  //   );
+  // }
+
+
+  //       },
+  //       child: const Icon(Icons.keyboard_hide),
+  //     ),
+      
       appBar: AppBar(
         title: Text('addEvaluation'.tr()),
         leading: IconButton(

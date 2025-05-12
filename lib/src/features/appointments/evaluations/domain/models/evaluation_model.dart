@@ -59,12 +59,12 @@ class EvaluationModel {
   final Timestamp endDateTime;
 
   final String userId;
-  final String? createdBy;
+  final String createdBy;
   final String? updatedBy;
   final String? deletedBy;
 
-  @NullableTimestampConverter()
-  final Timestamp? createdAt;
+  @TimestampConverter()
+  final Timestamp createdAt;
 
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
@@ -80,10 +80,10 @@ class EvaluationModel {
     required this.startDateTime,
     required this.endDateTime,
     required this.userId,
-    this.createdBy,
+    required this.createdBy,
     this.updatedBy,
     this.deletedBy,
-    this.createdAt,
+   required this.createdAt,
     this.updatedAt,
     this.deletedAt,
   });

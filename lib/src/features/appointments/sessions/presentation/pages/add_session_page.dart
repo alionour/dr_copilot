@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
@@ -40,15 +44,57 @@ class _AddSessionPageState extends State<AddSessionPage> {
       SessionType.standard.basePrice; // Default estimated price for 'Standard'
   final _actualPriceController = TextEditingController();
 
+  CurrencyProfileModel? _selectedCurrencyProfile;
+
+  List<CurrencyProfileModel> _currencyProfiles = [];
+
+  InvoiceStatus?
+      _selectedInvoiceStatus; // Add a field to store the selected invoice status
+
+  // Add a TextEditingController for the partial payment amount
+  final _partialPaymentController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
+      _fetchCurrencyProfiles(); // Fetch currency profiles on init
     });
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
+  }
+
+  Future<void> _fetchCurrencyProfiles() async {
+    try {
+      final failureOrProfiles =
+          await context.read<SessionsBloc>().getCurrencyProfiles();
+      failureOrProfiles.fold(
+        (failure) {
+          debugPrint('Failed to fetch currency profiles: ${failure.message}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+          );
+        },
+        (profiles) {
+          debugPrint(
+              'Fetched currency profiles: ${profiles.map((p) => p.name).toList()}');
+          setState(() {
+            _currencyProfiles = profiles.map((profile) => profile).toList();
+          });
+        },
+      );
+    } catch (e) {
+      debugPrint('Error in _fetchCurrencyProfiles: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+      );
+    }
+    if (_currencyProfiles.isNotEmpty) {
+      _selectedCurrencyProfile ??= _currencyProfiles
+          .first; // Set the first profile as default if none is selected
+    }
   }
 
   String? _validateTime() {
@@ -179,26 +225,66 @@ class _AddSessionPageState extends State<AddSessionPage> {
         return;
       }
 
-      final sessionData = SessionModel(
+      // Ensure `_selectedCurrencyProfile` is non-null before proceeding
+      if (_selectedCurrencyProfile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Please select a currency profile before adding a session.')),
+        );
+        return;
+      }
+
+      final now = Timestamp.fromDate(DateTime.now().toUtc());
+
+      final session = SessionModel(
         id: const Uuid().v4(),
         patientId: _selectedPatient!.id, // Use the selected patient's ID
         patientName:
             _selectedPatient!.name, // Include the selected patient's name
         startDateTime: _startDate!,
         endDateTime: _endDate!,
-        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-
+        createdAt: now,
         sessionType: _selectedSessionType,
         price: double.parse(_actualPriceController.text),
         userId: FirebaseAuth.instance.currentUser?.uid ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
       );
-      context.read<SessionsBloc>().add(AddSession(sessionData));
+
+      context.read<SessionsBloc>().add(AddSession(session));
+
+      final invoice = InvoiceModel(
+        id: const Uuid().v4(),
+        customerId: _selectedPatient!.id,
+        amount: double.parse(_actualPriceController.text),
+        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
+        title: 'Session Invoice',
+        description:
+            'Invoice for session with ${_selectedPatient!.name} at ${now.toDate()}',
+        currencyProfileId: _selectedCurrencyProfile!
+            .id, // Pass `_selectedCurrencyProfile!` to ensure it's non-null
+        issuedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        dueDate:
+            Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))),
+        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        customerType: CustomerType.patient,
+        source: InvoiceSource.sessions,
+        status: _selectedInvoiceStatus ??
+            InvoiceStatus.unpaid, // Store as `InvoiceStatus`
+      );
+      context.read<SessionsBloc>().add(AddInvoice(invoice));
+
+      // Convert to English name when saving to the database
+      final invoiceData = invoice.toJson();
+      invoiceData['status'] =
+          _selectedInvoiceStatus?.name ?? 'unpaid'; // Convert to English name
     }
   }
 
   @override
   void dispose() {
+    _partialPaymentController.dispose();
     _patientNameFocusNode.dispose();
     _patientNameController.dispose();
     _actualPriceFocusNode.dispose();
@@ -208,7 +294,21 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    // if (_currencyProfiles.isEmpty) {
+    //   return Center(
+    //     child: Text(
+    //       'No currency profiles available. Please create one.',
+    //       style: Theme.of(context)
+    //           .textTheme
+    //           .bodyMedium
+    //           ?.copyWith(color: Colors.red),
+    //     ),
+    //   );
+    // }
     return Scaffold(
+      // floatingActionButton: FloatingActionButton(onPressed: () {
+      //   context.read<SessionsBloc>().processSessions(context);
+      // }),
       appBar: AppBar(
         title: Text('addSession'.tr()),
         leading: IconButton(
@@ -526,13 +626,19 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                     '${'estimatedPrice'.tr()}: \$${_estimatedPrice.toStringAsFixed(2)}',
                                 border: const OutlineInputBorder(),
                               ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'enterValidPrice'.tr();
+                                  return 'enterValidAmount'.tr();
                                 }
-                                final price = double.tryParse(value);
-                                if (price == null || price <= 0) {
-                                  return 'enterValidPriceGreaterThanZero'.tr();
+                                final amount = double.tryParse(value);
+                                if (amount == null || amount <= 0) {
+                                  return 'enterValidAmountGreaterThanZero'.tr();
+                                }
+                                if (amount > 1000000) {
+                                  return 'amountCannotExceedOneMillion'.tr();
                                 }
                                 return null;
                               },
@@ -562,6 +668,20 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   _selectedCalendar = newValue!;
                                 });
                               },
+                            ),
+                            const SizedBox(height: 8.0),
+                            Container(
+                              alignment: AlignmentDirectional
+                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+                              child: Text(
+                                'sessionType'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 8.0),
                             Container(
@@ -599,6 +719,144 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       ),
                                     );
                                   }).toList(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            const SizedBox(height: 8.0),
+                            const SizedBox(height: 8.0),
+                            Card(
+                              color: Colors.blue
+                                  .shade50, // Light blue background for the invoice section
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'invoice'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue
+                                                .shade900, // Darker blue for the title
+                                          ),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: DropdownButtonFormField<
+                                              CurrencyProfileModel>(
+                                            value: _selectedCurrencyProfile,
+                                            decoration: InputDecoration(
+                                              labelText: 'currencyProfile'.tr(),
+                                              labelStyle: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                            ),
+                                            items: _currencyProfiles.map(
+                                                (CurrencyProfileModel profile) {
+                                              return DropdownMenuItem<
+                                                  CurrencyProfileModel>(
+                                                value: profile,
+                                                child:
+                                                    Text(profile.currency.tr()),
+                                              );
+                                            }).toList(),
+                                            onChanged: (CurrencyProfileModel?
+                                                newValue) {
+                                              setState(() {
+                                                _selectedCurrencyProfile =
+                                                    newValue;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.refresh),
+                                          onPressed: _fetchCurrencyProfiles,
+                                          tooltip:
+                                              'refreshCurrencyProfiles'.tr(),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: DropdownButtonFormField<
+                                              InvoiceStatus>(
+                                            value: _selectedInvoiceStatus,
+                                            decoration: InputDecoration(
+                                              labelText: 'invoiceStatus'.tr(),
+                                              labelStyle: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                            ),
+                                            items: InvoiceStatus.values
+                                                .map((InvoiceStatus status) {
+                                              return DropdownMenuItem<
+                                                  InvoiceStatus>(
+                                                value: status,
+                                                child: Text(
+                                                    'invoiceStatus.${status.name}'
+                                                        .tr()), // Display localized name
+                                              );
+                                            }).toList(),
+                                            onChanged:
+                                                (InvoiceStatus? newValue) {
+                                              setState(() {
+                                                _selectedInvoiceStatus =
+                                                    newValue;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    if (_selectedInvoiceStatus ==
+                                        InvoiceStatus.partiallyPaid)
+                                      TextFormField(
+                                        controller: _partialPaymentController,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        decoration: InputDecoration(
+                                          labelText: 'amount'.tr(),
+                                          border: const OutlineInputBorder(),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'enterValidAmount'.tr();
+                                          }
+                                          final amount = double.tryParse(value);
+                                          if (amount == null || amount <= 0) {
+                                            return 'enterValidAmountGreaterThanZero'
+                                                .tr();
+                                          }
+                                          if (amount > 1000000) {
+                                            return 'amountCannotExceedOneMillion'
+                                                .tr();
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),

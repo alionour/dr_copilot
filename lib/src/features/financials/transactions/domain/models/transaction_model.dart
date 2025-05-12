@@ -104,6 +104,39 @@ enum TransactionSource {
   }
 }
 
+/// Enum for transaction status.
+enum TransactionStatus {
+  pending('Pending'),
+  completed('Completed'),
+  failed('Failed');
+
+  final String value;
+  const TransactionStatus(this.value);
+
+  @override
+  String toString() => value;
+
+  static TransactionStatus fromString(String value) {
+    return TransactionStatus.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => TransactionStatus.pending,
+    );
+  }
+}
+
+/// JsonConverter for TransactionStatus enum
+class TransactionStatusConverter
+    implements JsonConverter<TransactionStatus, String> {
+  const TransactionStatusConverter();
+
+  @override
+  TransactionStatus fromJson(String json) =>
+      TransactionStatus.fromString(json);
+
+  @override
+  String toJson(TransactionStatus object) => object.value;
+}
+
 /// Represents a financial transaction, such as an income or expense.
 @JsonSerializable()
 class TransactionModel {
@@ -140,8 +173,8 @@ class TransactionModel {
       currencyProfileId; // (Optional) The currency of the transaction, e.g., "USD".
   final String?
       notes; // (Optional) Additional notes or comments about the transaction.
-  final String?
-      status; // (Optional) The status of the transaction, e.g., "Pending", "Completed".
+  @TransactionStatusConverter()
+  final TransactionStatus? status; // Updated to use enum
   final String
       referenceId; // A reference to an external system or invoice.
 
@@ -190,7 +223,7 @@ class TransactionModel {
     String? updatedBy,
     String? currencyProfileId,
     String? notes,
-    String? status,
+    TransactionStatus? status,
     String? referenceId,
   }) {
     return TransactionModel(

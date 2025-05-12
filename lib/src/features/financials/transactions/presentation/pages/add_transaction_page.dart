@@ -33,9 +33,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   final _statusController = TextEditingController();
   final _referenceIdController = TextEditingController();
 
-  // Define a list of statuses for the dropdown
-  final List<String> _statuses = ['Pending', 'Completed', 'Cancelled'];
-  String? _selectedStatus = 'Completed'; // Default status value
+
+  TransactionStatus _selectedStatus = TransactionStatus.completed; // Default status value
 
   // Define focus nodes for the form fields
   final FocusNode _notesFocusNode = FocusNode();
@@ -367,23 +366,25 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                             },
                           ),
                           const SizedBox(height: 16.0),
-                          DropdownButtonFormField<String>(
+                          DropdownButtonFormField<TransactionStatus>(
                             focusNode: _statusFocusNode,
                             value: _selectedStatus,
                             decoration: InputDecoration(
                               labelText: 'status'.tr(),
                               border: const OutlineInputBorder(),
                             ),
-                            items: _statuses.map((String status) {
-                              return DropdownMenuItem<String>(
+                            items: TransactionStatus.values.map((TransactionStatus status) {
+                              return DropdownMenuItem<TransactionStatus>(
                                 value: status,
-                                child: Text(status.tr()),
+                                child: Text(status.name.tr()),
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                _selectedStatus = newValue;
-                              });
+                            onChanged: (TransactionStatus? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedStatus = newValue;
+                                });
+                              }
                               FocusScope.of(context)
                                   .requestFocus(_referenceIdFocusNode);
                             },
