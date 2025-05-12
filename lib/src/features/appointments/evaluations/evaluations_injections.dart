@@ -8,7 +8,7 @@ final sl = GetIt.instance;
 
 void initEvaluationsInjections() {
   // Bloc
-  sl.registerFactory(() => EvaluationsBloc(sl()));
+  sl.registerFactory(() => EvaluationsBloc(sl(), sl()));
 
   // Use cases
   sl.registerLazySingleton(() => EvaluationsUseCase(sl()));

@@ -79,3 +79,36 @@ class GetEvaluationsCount extends EvaluationsEvent {
   @override
   List<Object?> get props => [];
 }
+
+
+
+/// Event to add an invoice in the sessions feature.
+///
+/// This event is part of the `SessionsEvent` hierarchy and is used to trigger
+/// the addition of a new invoice within the appointments or sessions context.
+class AddInvoice extends EvaluationsEvent {
+  final InvoiceModel invoice;
+
+  final double? partialAmount;
+
+  /// Constructor for the [AddInvoice] event.
+  /// Takes an [InvoiceModel] object as a parameter.
+  const AddInvoice(this.invoice, {this.partialAmount});
+
+  @override
+  List<Object?> get props => [invoice];
+}
+
+/// Event to add a transaction in the sessions feature.
+///
+/// This event is part of the `SessionsEvent` hierarchy and is used to
+/// trigger the addition of a new transaction within the appointments
+/// sessions context.
+class AddTransaction extends EvaluationsEvent {
+  final TransactionModel transaction;
+
+  const AddTransaction(this.transaction);
+
+  @override
+  List<Object?> get props => [transaction];
+}

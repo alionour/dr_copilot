@@ -143,6 +143,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
       create: (context) => EvaluationsBloc(
             EvaluationsUseCase(
                 EvaluationsRepositoryImpl(EvaluationsFirebaseApi())),
+                _financialsUseCase
           )),
 
   /// Provides an instance of [FinancialsBloc] to the widget tree.

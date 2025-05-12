@@ -1,18 +1,25 @@
 import 'package:bloc/bloc.dart';
+import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'evaluations_event.dart';
 part 'evaluations_state.dart';
 
 class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
   final EvaluationsUseCase _evaluationsUseCase;
+  final FinancialsUseCase _financialsUseCase;
 
-  EvaluationsBloc(this._evaluationsUseCase)
+  EvaluationsBloc(this._evaluationsUseCase, this._financialsUseCase)
       : super(const EvaluationsInitial([])) {
     on<GetEvaluations>(_onGetEvaluations);
     on<AddEvaluation>(_onAddEvaluation);
@@ -158,7 +165,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   Future<void> _onGetEvaluationsCount(
       GetEvaluationsCount event, Emitter<EvaluationsState> emit) async {
-        debugPrint('Fetching evaluations count...');
+    debugPrint('Fetching evaluations count...');
     final result = await _evaluationsUseCase.repository.getEvaluationsCount();
     result.fold(
       (failure) =>
@@ -166,6 +173,78 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       (count) => emit(EvaluationsCountLoaded(count, state.evaluations)),
     );
     debugPrint('Evaluations count: $result');
+  }
+
+  void _onAddInvoice(AddInvoice event, Emitter<EvaluationsState> emit) async {
+    try {
+      final failureOrInvoice =
+          await _financialsUseCase.addInvoice(invoice: event.invoice);
+      failureOrInvoice.fold(
+          (failure) => emit(EvaluationsError(state.evaluations,
+              message: _mapFailureToMessage(failure))), (invoice) {
+        emit(EvaluationsSuccess(state.evaluations,
+            message: 'invoiceAddedSuccessfully'.tr()));
+        if (invoice.status == InvoiceStatus.paid) {
+          final transaction = TransactionModel(
+            id: const Uuid().v4(),
+            currencyProfileId: invoice.currencyProfileId,
+            transactionSource: TransactionSource.invoice,
+            status: TransactionStatus.completed,
+            transactionDate: invoice.createdAt,
+            referenceId: invoice.id,
+            userId: invoice.userId,
+            amount: invoice.amount,
+            createdAt: invoice.createdAt,
+            createdBy: invoice.createdBy,
+            description: 'Full payment for invoice ${invoice.id}',
+          );
+
+          add(AddTransaction(transaction));
+        } else if (invoice.status == InvoiceStatus.partiallyPaid) {
+          final partialPaymentAmount = event.partialAmount ?? 0.0;
+          if (partialPaymentAmount > 0) {
+            final transaction = TransactionModel(
+              id: const Uuid().v4(),
+              currencyProfileId: invoice.currencyProfileId,
+              transactionSource: TransactionSource.invoice,
+              status: TransactionStatus.completed,
+              transactionDate: invoice.createdAt,
+              referenceId: invoice.id,
+              userId: invoice.userId,
+              amount: invoice.amount,
+              createdAt: invoice.createdAt,
+              createdBy: invoice.createdBy,
+              description: 'Partial payment for invoice ${invoice.id}',
+            );
+            add(AddTransaction(transaction));
+          }
+        }
+      });
+    } catch (e) {
+      emit(EvaluationsError(state.evaluations, message: 'failedToAddInvoice'.tr()));
+    }
+  }
+
+  void _onAddTransaction(
+      AddTransaction event, Emitter<EvaluationsState> emit) async {
+    try {
+      await _financialsUseCase.addTransaction(transaction: event.transaction);
+      emit(EvaluationsSuccess(state.evaluations,
+          message: 'transactionAddedSuccessfully'.tr()));
+    } catch (e) {
+      emit(EvaluationsError(state.evaluations,
+          message: 'failedToAddTransaction'.tr()));
+    }
+  }
+
+  /// Fetches the currency profiles
+  Future<Either<Failure, List<CurrencyProfileModel>>>
+      getCurrencyProfiles() async {
+    final failureOrProfiles = await _financialsUseCase.fetchCurrencyProfiles();
+    return failureOrProfiles.fold(
+      (failure) => Left(ServerFailure(_mapFailureToMessage(failure), 404)),
+      (profiles) => Right(profiles),
+    );
   }
 
   String _mapFailureToMessage(Failure failure) {

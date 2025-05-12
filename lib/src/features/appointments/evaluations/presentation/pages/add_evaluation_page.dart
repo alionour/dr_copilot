@@ -1,20 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/data/repositories/sessions_repository_impl.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-import 'package:dr_copilot/src/features/financials/data/remote/financials_firebase_api.dart';
-import 'package:dr_copilot/src/features/financials/data/repositories/financials_repository_impl.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
-import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
-import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +10,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/services.dart';
+
+// Mock class for CurrencyProfileModel (replace with actual implementation)
+class CurrencyProfileModel {
+  final String currency;
+  CurrencyProfileModel(this.currency);
+}
+
+// Define the missing variables
+List<CurrencyProfileModel> _currencyProfiles = [
+  CurrencyProfileModel('USD'),
+  CurrencyProfileModel('EUR'),
+  CurrencyProfileModel('GBP'),
+];
+
+CurrencyProfileModel? _selectedCurrencyProfile;
+InvoiceStatus? _selectedInvoiceStatus;
+final TextEditingController _partialPaymentController = TextEditingController();
+
+// Mock function for fetching currency profiles (replace with actual implementation)
+void _fetchCurrencyProfiles() {
+  // Simulate fetching currency profiles
+  _currencyProfiles = [
+    CurrencyProfileModel('USD'),
+    CurrencyProfileModel('EUR'),
+    CurrencyProfileModel('GBP'),
+  ];
+}
 
 class AddEvaluationPage extends StatefulWidget {
   const AddEvaluationPage({super.key});
@@ -738,6 +754,114 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                   _selectedCalendar = newValue!;
                                 });
                               },
+                            ),
+                            const SizedBox(height: 8.0),
+                            const SizedBox(height: 8.0),
+                            Card(
+                              color: Colors.blue.shade50, // Light blue background for the invoice section
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'invoice'.tr(),
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue.shade900, // Darker blue for the title
+                                          ),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: DropdownButtonFormField<CurrencyProfileModel>(
+                                            value: _selectedCurrencyProfile,
+                                            decoration: InputDecoration(
+                                              labelText: 'currencyProfile'.tr(),
+                                              labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                            items: _currencyProfiles.map((CurrencyProfileModel profile) {
+                                              return DropdownMenuItem<CurrencyProfileModel>(
+                                                value: profile,
+                                                child: Text(profile.currency.tr()),
+                                              );
+                                            }).toList(),
+                                            onChanged: (CurrencyProfileModel? newValue) {
+                                              setState(() {
+                                                _selectedCurrencyProfile = newValue;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.refresh),
+                                          onPressed: _fetchCurrencyProfiles,
+                                          tooltip: 'refreshCurrencyProfiles'.tr(),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: DropdownButtonFormField<InvoiceStatus>(
+                                            value: _selectedInvoiceStatus,
+                                            decoration: InputDecoration(
+                                              labelText: 'invoiceStatus'.tr(),
+                                              labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                            items: InvoiceStatus.values.map((InvoiceStatus status) {
+                                              return DropdownMenuItem<InvoiceStatus>(
+                                                value: status,
+                                                child: Text('invoiceStatus.${status.name}'.tr()), // Display localized name
+                                              );
+                                            }).toList(),
+                                            onChanged: (InvoiceStatus? newValue) {
+                                              setState(() {
+                                                _selectedInvoiceStatus = newValue;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    if (_selectedInvoiceStatus == InvoiceStatus.partiallyPaid)
+                                      TextFormField(
+                                        controller: _partialPaymentController,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly,
+                                        ],
+                                        decoration: InputDecoration(
+                                          labelText: 'amount'.tr(),
+                                          border: const OutlineInputBorder(),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'enterValidAmount'.tr();
+                                          }
+                                          final amount = double.tryParse(value);
+                                          if (amount == null || amount <= 0) {
+                                            return 'enterValidAmountGreaterThanZero'.tr();
+                                          }
+                                          if (amount > 1000000) {
+                                            return 'amountCannotExceedOneMillion'.tr();
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 8.0),
                             SizedBox(
