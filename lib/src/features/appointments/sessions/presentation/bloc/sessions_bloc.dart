@@ -289,7 +289,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         return 'Unexpected Error: ${failure.message}';
     }
   }
-
+  
   // void processSessions(BuildContext context) async {
   //   try {
   //     debugPrint('Starting processSessions function');
@@ -345,6 +345,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   //                   id: const Uuid().v4(),
   //                   currencyProfileId: addedInvoice.currencyProfileId,
   //                   transactionSource: TransactionSource.invoice,
+  //                   direction: TransactionDirection.fromSource(TransactionSource.invoice),
   //                   status: TransactionStatus.completed,
   //                   transactionDate: addedInvoice.createdAt,
   //                   referenceId: addedInvoice.id,
@@ -364,6 +365,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   //                   currencyProfileId: addedInvoice.currencyProfileId,
   //                   transactionSource: TransactionSource.invoice,
   //                   status: TransactionStatus.completed,
+  //                   direction: TransactionDirection.fromSource(TransactionSource.invoice),
   //                   transactionDate: addedInvoice.createdAt,
   //                   referenceId: addedInvoice.id,
   //                   userId: addedInvoice.userId,

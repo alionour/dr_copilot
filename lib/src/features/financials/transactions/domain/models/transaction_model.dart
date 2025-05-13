@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/helper/timestamp_helper.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'transaction_model.g.dart';
@@ -29,18 +30,32 @@ class TransactionDirectionConverter
 }
 
 /// A custom converter for Firestore [Timestamp] to JSON and vice versa.
-class TimestampConverter implements JsonConverter<Timestamp, Object> {
+class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
   const TimestampConverter();
 
   @override
-  Timestamp fromJson(Object json) {
-    return Timestamp.fromMillisecondsSinceEpoch(json as int);
+  Timestamp fromJson(dynamic json) {
+    // Debug: print type and value for every conversion attempt
+    // ignore: avoid_print
+    print('[TimestampConverter] fromJson: type=${json == null ? 'null' : json.runtimeType.toString()}, value=$json');
+    if (json is Timestamp) {
+      return json;
+    } else if (json is int) {
+      return Timestamp.fromMillisecondsSinceEpoch(json);
+    } else if (json is String) {
+      return Timestamp.fromDate(DateTime.parse(json));
+    } else {
+      // Extra debug for unexpected types
+      // ignore: avoid_print
+      print(
+          '[TimestampConverter] ERROR: Invalid type for Timestamp conversion: type=${json == null ? 'null' : json.runtimeType.toString()}, value=$json');
+      throw Exception(
+          'Invalid type for Timestamp conversion: ${json.runtimeType}');
+    }
   }
 
   @override
-  Object toJson(Timestamp object) {
-    return object.millisecondsSinceEpoch;
-  }
+  dynamic toJson(Timestamp? object) => object;
 }
 
 /// Enum for transaction direction.
@@ -130,8 +145,7 @@ class TransactionStatusConverter
   const TransactionStatusConverter();
 
   @override
-  TransactionStatus fromJson(String json) =>
-      TransactionStatus.fromString(json);
+  TransactionStatus fromJson(String json) => TransactionStatus.fromString(json);
 
   @override
   String toJson(TransactionStatus object) => object.value;
@@ -157,10 +171,10 @@ class TransactionModel {
   @TimestampConverter()
   final Timestamp
       createdAt; // The timestamp when the transaction was created in the system.
-  @TimestampConverter()
+  @NullableTimestampConverter()
   final Timestamp?
       deletedAt; // The timestamp when the transaction was deleted in the system.
-  @TimestampConverter()
+  @NullableTimestampConverter()
   final Timestamp?
       updatedAt; // (Optional) The timestamp when the transaction was last updated.
   final String userId; //  The ID of the user associated with the transaction.
@@ -176,8 +190,7 @@ class TransactionModel {
       notes; // (Optional) Additional notes or comments about the transaction.
   @TransactionStatusConverter()
   final TransactionStatus? status; // Updated to use enum
-  final String
-      referenceId; // A reference to an external system or invoice.
+  final String referenceId; // A reference to an external system or invoice.
 
   // Removed 'direction' from the constructor and ensured it is derived from 'transactionSource'
   TransactionModel({

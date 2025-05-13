@@ -29,6 +29,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     on<GetEvaluationsByDate>(_onGetEvaluationsByDate);
     on<LoadMoreEvaluations>(_onLoadMoreEvaluations);
     on<GetEvaluationsCount>(_onGetEvaluationsCount);
+        on<AddInvoice>(_onAddInvoice);
+    on<AddTransaction>(_onAddTransaction);
   }
 
   void _onGetEvaluations(

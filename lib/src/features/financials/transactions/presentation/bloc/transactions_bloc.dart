@@ -39,8 +39,13 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       limit: event.limit,
     );
     emit(failureOrTransactions.fold(
-      (failure) => TransactionsError(state.transactions,
-          message: _mapFailureToMessage(failure)),
+      (failure) {
+        debugPrint(
+            'Bloc: _onGetTransactions failed: ${_mapFailureToMessage(failure)}');
+
+       return TransactionsError(state.transactions,
+            message: _mapFailureToMessage(failure));
+      },
       (transactions) => TransactionsLoaded(transactions),
     ));
   }
@@ -240,7 +245,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       case CacheFailure _:
         return 'Cache error occurred';
       default:
-        return 'An unexpected error occurred';
+        return 'An unexpected error occurred ${failure.message}';
     }
   }
 }

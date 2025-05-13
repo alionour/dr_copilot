@@ -56,6 +56,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       }
 
       final querySnapshot = await query.get();
+      
+
       final transactions = querySnapshot.docs
           .map((doc) =>
               TransactionModel.fromJson(doc.data() as Map<String, dynamic>))

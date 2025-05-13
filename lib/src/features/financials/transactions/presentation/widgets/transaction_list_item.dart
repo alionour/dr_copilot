@@ -92,20 +92,20 @@ class TransactionListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              ElevatedButton(
-                onPressed: onTap,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text('delete'.tr()),
-              ),
+              // ElevatedButton(
+              //   onPressed: onTap,
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: Colors.red,
+              //     foregroundColor: Colors.white,
+              //     textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              //     padding:
+              //         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(8),
+              //     ),
+              //   ),
+              //   child: Text('delete'.tr()),
+              // ),
             ],
           ),
         ),

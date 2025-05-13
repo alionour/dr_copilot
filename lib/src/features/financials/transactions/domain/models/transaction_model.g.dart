@@ -11,19 +11,16 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       amount: (json['amount'] as num).toDouble(),
       description: json['description'] as String,
-      transactionDate: const TimestampConverter()
-          .fromJson(json['transactionDate'] as Object),
+      transactionDate:
+          const TimestampConverter().fromJson(json['transactionDate']),
       transactionSource: const TransactionSourceConverter()
           .fromJson(json['transactionSource'] as String),
-      createdAt:
-          const TimestampConverter().fromJson(json['createdAt'] as Object),
-      updatedAt: _$JsonConverterFromJson<Object, Timestamp>(
-          json['updatedAt'], const TimestampConverter().fromJson),
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
       createdBy: json['createdBy'] as String?,
       deletedBy: json['deletedBy'] as String?,
       updatedBy: json['updatedBy'] as String?,
-      deletedAt: _$JsonConverterFromJson<Object, Timestamp>(
-          json['deletedAt'], const TimestampConverter().fromJson),
+      deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
       userId: json['userId'] as String,
       currencyProfileId: json['currencyProfileId'] as String?,
       direction: const TransactionDirectionConverter()
@@ -46,10 +43,10 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
       'direction':
           const TransactionDirectionConverter().toJson(instance.direction),
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
-      'deletedAt': _$JsonConverterToJson<Object, Timestamp>(
-          instance.deletedAt, const TimestampConverter().toJson),
-      'updatedAt': _$JsonConverterToJson<Object, Timestamp>(
-          instance.updatedAt, const TimestampConverter().toJson),
+      'deletedAt':
+          const NullableTimestampConverter().toJson(instance.deletedAt),
+      'updatedAt':
+          const NullableTimestampConverter().toJson(instance.updatedAt),
       'userId': instance.userId,
       'createdBy': instance.createdBy,
       'deletedBy': instance.deletedBy,
