@@ -12,6 +12,10 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   final CollectionReference _transactionsCollection =
       FirebaseFirestore.instance.collection('transactions');
 
+  /// Ensures all queries are scoped to the current user.
+  Query _userScopedQuery() => _transactionsCollection.where('userId',
+      isEqualTo: FirebaseAuth.instance.currentUser?.uid);
+
   /// Checks if the user is authenticated.
   ///
   /// Returns `true` if the user is authenticated, otherwise `false`.
@@ -44,8 +48,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     int limit = 20,
   }) async {
     try {
-      Query query = _transactionsCollection
-          .orderBy('createdAt', descending: false)
+      Query query = _userScopedQuery()
+          .orderBy('transactionDate', descending: true)
           .limit(limit);
 
       if (lastDocumentId != null) {
@@ -55,7 +59,6 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       }
 
       final querySnapshot = await query.get();
-      
 
       final transactions = querySnapshot.docs
           .map((doc) =>
@@ -74,10 +77,13 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await _transactionsCollection.doc(id).get();
+        final doc =
+            _userScopedQuery().where(FieldPath.documentId, isEqualTo: id);
+        // The rest of the logic remains the same
+        final docSnapshot = await _transactionsCollection.doc(id).get();
 
-        if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
+        if (docSnapshot.exists) {
+          final data = docSnapshot.data() as Map<String, dynamic>?;
           if (data == null) {
             return Left(ServerFailure('Document data is null', 400));
           }
@@ -93,7 +99,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
             updatedData['updatedAt'] = Timestamp.fromDate(
                 DateTime.now().toUtc()); // Add updatedAt field
             await _transactionsCollection.doc(id).update(updatedData);
-
+            _userScopedQuery();
             return Right(transaction.copyWith(id: id));
           } else {
             return Left(ServerFailure('Unauthorized', 403));
@@ -127,8 +133,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef =
-            _transactionsCollection.where('userId', isEqualTo: user.uid);
+        Query queryRef = _userScopedQuery();
 
         if (description != null && description.isNotEmpty) {
           queryRef = queryRef
@@ -170,8 +175,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef = _transactionsCollection
-            .where('userId', isEqualTo: user.uid)
+        Query queryRef = _userScopedQuery()
             .where('transactionDate',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -217,9 +221,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _transactionsCollection
-            .where('userId', isEqualTo: user.uid)
-            .get();
+        final snapshot = await _userScopedQuery().get();
         return Right(snapshot.docs.length);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -240,8 +242,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       final start = DateTime(year, 1, 1);
       final end = DateTime(year + 1, 1, 1);
-      final query = _transactionsCollection
-          .where('userId', isEqualTo: user.uid)
+      final query = _userScopedQuery()
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -288,8 +289,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       final start = DateTime(year, 1, 1);
       final end = DateTime(year + 1, 1, 1);
-      final query = _transactionsCollection
-          .where('userId', isEqualTo: user.uid)
+      final query = _userScopedQuery()
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -339,8 +339,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       final end = (month == 12)
           ? DateTime(year + 1, 1, 1)
           : DateTime(year, month + 1, 1);
-      final query = _transactionsCollection
-          .where('userId', isEqualTo: user.uid)
+      final query = _userScopedQuery()
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -376,6 +375,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     }
   }
 
+
+
   /// Aggregates and returns the total expenses for a given year and month using Firestore aggregation.
   @override
   Future<Either<Failure, double>> getTotalExpensesForMonth(
@@ -390,8 +391,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       final end = (month == 12)
           ? DateTime(year + 1, 1, 1)
           : DateTime(year, month + 1, 1);
-      final query = _transactionsCollection
-          .where('userId', isEqualTo: user.uid)
+      final query = _userScopedQuery()
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -441,8 +441,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
         return Left(ServerFailure('User not authenticated', 401));
       }
 
-      Query query =
-          _transactionsCollection.where('userId', isEqualTo: user.uid);
+      Query query = _userScopedQuery();
 
       if (year != null) {
         final start = DateTime(year, month ?? 1, 1);
@@ -525,7 +524,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
       String referenceId) async {
     try {
-      final querySnapshot = await _transactionsCollection
+      final querySnapshot = await _userScopedQuery()
           .where('referenceId', isEqualTo: referenceId)
           .get();
 

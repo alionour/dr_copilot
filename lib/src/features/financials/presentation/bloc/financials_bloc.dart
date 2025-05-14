@@ -165,11 +165,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     /// The calculation for the month uses modulo 12 to ensure it wraps around
     /// correctly after December, and the year is adjusted accordingly based on
     /// the overflow from the month calculation.
-    for (int i = 0; i < 12; i++) {
-      final month = ((now.month - 1 + i) % 12) + 1; // always 1..12
-      final year = now.year + ((now.month - 1 + i) ~/ 12);
-      add(GetTotalRevenueForMonth(year, month));
-      add(GetTotalExpensesForMonth(year, month));
+    // Always fetch data for all months in the current year (January to December)
+    for (int m = 1; m <= 12; m++) {
+      add(GetTotalRevenueForMonth(year, m));
+      add(GetTotalExpensesForMonth(year, m));
     }
   }
 
@@ -780,6 +779,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onFetchTotalRevenueForMonth(
       GetTotalRevenueForMonth event, Emitter<FinancialsState> emit) async {
+    debugPrint(
+      'Fetching total revenue for ${event.year}-${event.month}',
+    );
+    // Fetch the total revenue for the specified month and year
     final result = await transactionsUseCase.getTotalRevenueForMonth(
         event.year, event.month);
     result.fold(
