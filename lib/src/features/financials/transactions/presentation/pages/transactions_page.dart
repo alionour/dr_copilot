@@ -1,4 +1,3 @@
-import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';

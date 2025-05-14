@@ -255,10 +255,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         await financialsUseCase.getSessionsCountForYear(year: event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (count) {
+      (acc) {
         final key = event.year.toString().padLeft(4, '0');
         final updatedMap = Map<String, int>.from(state.sessionsCountPerMonth);
-        updatedMap[key] = count;
+        updatedMap[key] = acc;
         emit(FinancialsLoaded(
           scheduledBills: state.scheduledBills,
           goals: state.goals,
@@ -281,11 +281,11 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         year: event.year, month: event.month);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (count) {
+      (acc) {
         final key =
             '${event.year.toString().padLeft(4, '0')}-${event.month.toString().padLeft(2, '0')}';
         final updatedMap = Map<String, int>.from(state.sessionsCountPerMonth);
-        updatedMap[key] = count;
+        updatedMap[key] = acc;
         emit(FinancialsLoaded(
           scheduledBills: state.scheduledBills,
           goals: state.goals,
@@ -308,11 +308,11 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         await financialsUseCase.getEvaluationsCountForYear(year: event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (count) {
+      (acc) {
         final key = event.year.toString().padLeft(4, '0');
         final updatedMap =
             Map<String, int>.from(state.evaluationsCountPerMonth);
-        updatedMap[key] = count;
+        updatedMap[key] = acc;
         emit(FinancialsLoaded(
           scheduledBills: state.scheduledBills,
           goals: state.goals,
@@ -337,12 +337,12 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       (failure) => emit(errorState(
         message: _mapFailureToMessage(failure),
       )),
-      (count) {
+      (acc) {
         final key =
             '${event.year.toString().padLeft(4, '0')}-${event.month.toString().padLeft(2, '0')}';
         final updatedMap =
             Map<String, int>.from(state.evaluationsCountPerMonth);
-        updatedMap[key] = count;
+        updatedMap[key] = acc;
         emit(FinancialsLoaded(
           scheduledBills: state.scheduledBills,
           goals: state.goals,

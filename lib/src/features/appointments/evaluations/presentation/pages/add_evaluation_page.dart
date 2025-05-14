@@ -1,18 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/data/remote/session_firebase_api.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/data/repositories/sessions_repository_impl.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-import 'package:dr_copilot/src/features/financials/data/remote/financials_firebase_api.dart';
-import 'package:dr_copilot/src/features/financials/data/repositories/financials_repository_impl.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
-import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
-import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -225,74 +214,77 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     super.dispose();
   }
 
-  Future<void> _addTransactionsFromInvoices() async {
-  try {
-    debugPrint('Fetching all invoices to add as transactions...');
-                final EvaluationsUseCase _evaluationUseCase =
-                EvaluationsUseCase(EvaluationsFirebaseApi());
+//   Future<void> _addTransactionsFromInvoices() async {
+//   try {
+//     debugPrint('Fetching all invoices to add as transactions...');
+//                 final EvaluationsUseCase _evaluationUseCase =
+//                 EvaluationsUseCase(EvaluationsFirebaseApi());
 
-                final FinancialsUseCase financialsUseCase = FinancialsUseCase(
-                FinancialsRepositoryImpl(FinancialsFirebaseApi(
-                    evaluationsUseCase: _evaluationUseCase,
-                    transactionsUseCase:
-                        TransactionsUseCase(TransactionsFirebaseApi()),
-                    sessionsUseCase: SessionsUseCase(
-                        SessionsRepositoryImpl(SessionsFirebaseApi())))));// Make sure to import and initialize properly
-    final transactionsUseCase = TransactionsUseCase(TransactionsFirebaseApi());
+//                 final FinancialsUseCase financialsUseCase = FinancialsUseCase(
+//                 FinancialsRepositoryImpl(FinancialsFirebaseApi(
+//                     evaluationsUseCase: _evaluationUseCase,
+//                     transactionsUseCase:
+//                         TransactionsUseCase(TransactionsFirebaseApi()),
+//                     sessionsUseCase: SessionsUseCase(
+//                         SessionsRepositoryImpl(SessionsFirebaseApi())))));// Make sure to import and initialize properly
+//     final transactionsUseCase = TransactionsUseCase(TransactionsFirebaseApi());
 
-    final failureOrInvoices = await financialsUseCase.fetchInvoices();
-    failureOrInvoices.fold(
-      (failure) {
-        debugPrint('Failed to fetch invoices: ${failure.message}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch invoices: ${failure.message}'.tr())),
-        );
-      },
-      (invoices) async {
-        debugPrint('Fetched ${invoices.length} invoices');
-        int addedCount = 0;
-        for (final invoice in invoices) {
-          // Only add transactions for paid or partially paid invoices
-          if (invoice.status == InvoiceStatus.paid || invoice.status == InvoiceStatus.partiallyPaid) {
-            final transaction = TransactionModel(
-              id: const Uuid().v4(),
-              amount: invoice.amount,
-              description: invoice.description ,
-              transactionDate: invoice.createdAt,
-              transactionSource: TransactionSource.invoice,
-              direction: TransactionDirection.fromSource(TransactionSource.invoice),
-              createdAt: invoice.createdAt,
-              createdBy: invoice.createdBy,
-              userId: invoice.userId,
-              currencyProfileId: invoice.currencyProfileId,
-              referenceId: invoice.id,
-              status: TransactionStatus.completed,
-              
-            );
-            await transactionsUseCase.addTransaction(transaction);
-            addedCount++;
-          }
-        }
-        debugPrint('Added $addedCount transactions from invoices.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added $addedCount transactions from invoices'.tr())),
-        );
-      },
-    );
-  } catch (e) {
-    debugPrint('Error adding transactions from invoices: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to add transactions from invoices'.tr())),
-    );
-  }
-}
+//     final failureOrInvoices = await financialsUseCase.fetchInvoices();
+//     failureOrInvoices.fold(
+//       (failure) {
+//         debugPrint('Failed to fetch invoices: ${failure.message}');
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text('Failed to fetch invoices: ${failure.message}'.tr())),
+//         );
+//       },
+//       (invoices) async {
+//         debugPrint('Fetched ${invoices.length} invoices');
+//         int addedCount = 0;
+//         for (final invoice in invoices) {
+//           // Only add transactions for paid or partially paid invoices
+//           if (invoice.status == InvoiceStatus.paid || invoice.status == InvoiceStatus.partiallyPaid) {
+//             final transaction = TransactionModel(
+//               id: const Uuid().v4(),
+//               amount: invoice.amount,
+//               description: invoice.description ,
+//               transactionDate: invoice.createdAt,
+//               transactionSource: TransactionSource.invoice,
+//               direction: TransactionDirection.fromSource(TransactionSource.invoice),
+//               createdAt: invoice.createdAt,
+//               createdBy: invoice.createdBy,
+//               userId: invoice.userId,
+//               currencyProfileId: invoice.currencyProfileId,
+//               referenceId: invoice.id,
+//               status: TransactionStatus.completed,
+
+//             );
+//             await transactionsUseCase.addTransaction(transaction);
+//             addedCount++;
+//           }
+//         }
+//         debugPrint('Added $addedCount transactions from invoices.');
+//         if (!mounted) return; // Ensure context is still valid after async gap
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text('Added $addedCount transactions from invoices'.tr())),
+//         );
+//       },
+//     );
+//   } catch (e) {
+//     debugPrint('Error adding transactions from invoices: $e');
+//     if (!mounted) return; // Ensure context is still valid after async gap
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(content: Text('Failed to add transactions from invoices'.tr())),
+//     );
+//   }
+// }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTransactionsFromInvoices,
-        child: const Icon(Icons.keyboard_hide),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _addTransactionsFromInvoices,
+      //   child: const Icon(Icons.keyboard_hide),
+      // ),
       appBar: AppBar(
         title: Text('addEvaluation'.tr()),
         leading: IconButton(

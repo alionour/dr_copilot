@@ -7,7 +7,6 @@ import 'charts_page.dart' show ChartData;
 import 'package:dr_copilot/src/features/financials/presentation/widgets/dashbaord_page_widgets/currency_profiles_section.dart';
 import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
-import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -25,10 +24,6 @@ class DashboardPage extends StatelessWidget {
     final sessionsMonth = financialsState.sessionsCountPerMonth[monthKey] ?? 0;
     final evalsYear = financialsState.evaluationsCountPerMonth[yearKey] ?? 0;
     final evalsMonth = financialsState.evaluationsCountPerMonth[monthKey] ?? 0;
-    final revenueMonth =
-        financialsState.revenuePerMonth[monthKey]?.toStringAsFixed(2) ?? '...';
-    final expensesMonth =
-        financialsState.expensesPerMonth[monthKey]?.toStringAsFixed(2) ?? '...';
 
     final int year = now.year;
     final List<ChartData> chartData = List.generate(12, (i) {
@@ -99,17 +94,17 @@ class DashboardPage extends StatelessWidget {
           // 2. Summary cards (real session/evaluation counts) with visible scrollbar
           StatefulBuilder(
             builder: (context, setState) {
-              final ScrollController _scrollController = ScrollController();
+              final ScrollController scrollController = ScrollController();
               return SizedBox(
                 height: 160,
                 child: Scrollbar(
-                  controller: _scrollController,
+                  controller: scrollController,
                   thumbVisibility: true,
                   trackVisibility: true,
                   child: BlocBuilder<FinancialsBloc, FinancialsState>(
                       builder: (context, state) {
                     return SingleChildScrollView(
-                      controller: _scrollController,
+                      controller: scrollController,
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [

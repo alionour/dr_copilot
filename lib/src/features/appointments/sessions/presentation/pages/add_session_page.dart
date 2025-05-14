@@ -3,7 +3,6 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -87,6 +86,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       );
     } catch (e) {
       debugPrint('Error in _fetchCurrencyProfiles: $e');
+      if (!mounted) return; // Ensure context is still valid after async gap
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
       );

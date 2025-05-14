@@ -212,10 +212,10 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     emit(failureOrCount.fold(
       (failure) => TransactionsError(state.transactions,
           message: _mapFailureToMessage(failure)),
-      (count) {
+      (acc) {
         debugPrint('Total transactions count: $count');
 
-        emit(TransactionsCountLoaded(count, state.transactions));
+        emit(TransactionsCountLoaded(acc, state.transactions));
         return TransactionsLoaded(state.transactions);
       },
     ));

@@ -262,31 +262,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     required this.transactionsUseCase,
   });
 
-  @override
-  Future<TransactionModel> addFinancial(TransactionModel financial) {
-    // TODO: implement addFinancial
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteFinancial(String financialId) {
-    // TODO: implement deleteFinancial
-    throw UnimplementedError();
-  }
-
-  /// Gets all transactions (financial records).
-  @override
-  Future<List<TransactionModel>> fetchFinancials() {
-    // TODO: implement fetchFinancials
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<TransactionModel> updateFinancial(TransactionModel financial) {
-    // TODO: implement updateFinancial
-    throw UnimplementedError();
-  }
-
+  
   /// Gets the sum of session costs for a given month and year.
   @override
   @Deprecated('Sessions Costs will be calculated from Invoices and Bills')

@@ -4,7 +4,6 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/repositories/abstract_financials_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 
@@ -263,7 +262,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       // Fallback to manual summation for unsupported platforms
       final snapshot = await query.get();
-      double total = snapshot.docs.fold(0.0, (sum, doc) {
+      double total = snapshot.docs.fold(0.0, (double sum, doc) {
         final data = doc.data() as Map<String, dynamic>?;
         final amount = data?['amount'];
         if (amount is num) {
@@ -311,13 +310,13 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       // Fallback to manual summation for unsupported platforms
       final snapshot = await query.get();
-      double total = snapshot.docs.fold(0.0, (sum, doc) {
+      double total = snapshot.docs.fold(0.0, (acc, doc) {
         final data = doc.data() as Map<String, dynamic>?;
         final amount = data?['amount'];
         if (amount is num) {
-          return sum + amount.toDouble();
+          return acc + amount.toDouble();
         }
-        return sum;
+        return acc;
       });
 
       return Right(total);
@@ -362,13 +361,13 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       // Fallback to manual summation for unsupported platforms
       final snapshot = await query.get();
-      double total = snapshot.docs.fold(0.0, (sum, doc) {
+      double total = snapshot.docs.fold(0.0, (acc, doc) {
         final data = doc.data() as Map<String, dynamic>?;
         final amount = data?['amount'];
         if (amount is num) {
-          return sum + amount.toDouble();
+          return acc + amount.toDouble();
         }
-        return sum;
+        return acc;
       });
 
       return Right(total);
@@ -413,13 +412,13 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       // Fallback to manual summation for unsupported platforms
       final snapshot = await query.get();
-      double total = snapshot.docs.fold(0.0, (sum, doc) {
+      double total = snapshot.docs.fold(0.0, (acc, doc) {
         final data = doc.data() as Map<String, dynamic>?;
         final amount = data?['amount'];
         if (amount is num) {
-          return sum + amount.toDouble();
+          return acc + amount.toDouble();
         }
-        return sum;
+        return acc;
       });
 
       return Right(total);
@@ -480,13 +479,13 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       // Fallback to manual summation for unsupported platforms
       final snapshot = await query.get();
-      double total = snapshot.docs.fold(0.0, (sum, doc) {
+      double total = snapshot.docs.fold(0.0, (acc, doc) {
         final data = doc.data() as Map<String, dynamic>?;
         final amount = data?['amount'];
         if (amount is num) {
-          return sum + amount.toDouble();
+          return acc + amount.toDouble();
         }
-        return sum;
+        return acc;
       });
 
       return Right(total);
@@ -496,6 +495,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   }
 
   /// Added a method to validate and fetch the linked document based on the transactionSource and referenceId
+  @override
   Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({
     required String referenceId,
     required TransactionSource transactionSource,

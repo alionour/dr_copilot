@@ -129,10 +129,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
         );
         // Dispatch AddTransactionEvent
+      if (!mounted) return; // Ensure context is still valid after async gap
+
         context
             .read<TransactionsBloc>()
             .add(AddTransactionEvent(transactionData));
       } else {
+      if (!mounted) return; // Ensure context is still valid after async gap
+
         _showSnackBar(context, 'userIdCannotBeNull');
       }
     }
@@ -299,9 +303,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                             }).toList(),
                             onChanged: (TransactionSource? newValue) {
                               setState(() {
-                                if (newValue != null)
+                                if (newValue != null) {
                                   _transactionSource = newValue;
+                                }
                               });
+      if (!mounted) return; // Ensure context is still valid after async gap
+
                               FocusScope.of(context)
                                   .requestFocus(_transactionDateFocusNode);
                             },

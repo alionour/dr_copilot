@@ -13,7 +13,6 @@ import 'package:dr_copilot/src/features/financials/domain/usecases/financials_us
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
@@ -22,6 +21,7 @@ part 'sessions_event.dart';
 part 'sessions_state.dart';
 
 class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
+
   final SessionsUseCase _sessionsUseCase;
   final FinancialsUseCase _financialsUseCase;
 
@@ -195,9 +195,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     emit(failureOrCount.fold(
       (failure) =>
           SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (count) {
+      (acc) {
         debugPrint('Total sessions count: $count');
-        return SessionsCountLoaded(count, state.sessions);
+        return SessionsCountLoaded(acc, state.sessions);
       },
     ));
   }
@@ -398,6 +398,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           }
 
           debugPrint('All sessions processed successfully');
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('Processed all sessions successfully!'.tr())),
@@ -406,9 +407,11 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       );
     } catch (e) {
       debugPrint('Error in processSessions: $e');
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to process sessions'.tr())),
       );
+
     }
   }
 
@@ -531,9 +534,11 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       );
     } catch (e) {
       debugPrint('Error in processSessions: $e');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to process sessions'.tr())),
       );
+      
     }
   }
 }

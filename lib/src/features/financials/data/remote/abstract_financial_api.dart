@@ -9,18 +9,7 @@ import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_
 
 /// An abstract class that defines the API for financial-related operations.
 abstract class AbstractFinancialApi {
-  /// Fetches a list of financials.
-  Future<List<TransactionModel>> fetchFinancials();
-
-  /// Adds a new financial.
-  Future<TransactionModel> addFinancial(TransactionModel financial);
-
-  /// Updates an existing financial.
-  Future<TransactionModel> updateFinancial(TransactionModel financial);
-
-  /// Deletes a financial by their ID.
-  Future<void> deleteFinancial(String financialId);
-
+  
   // --- Transaction CRUD ---
   /// Adds a new transaction for the user.
   Future<Either<Failure, void>> addTransaction({required TransactionModel transaction});

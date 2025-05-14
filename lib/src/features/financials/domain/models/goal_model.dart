@@ -226,6 +226,7 @@ class AmountGoalModel extends GoalModelBase {
     Timestamp? createdAt,
     Timestamp? updatedAt,
     Timestamp? deletedAt,
+    String? deletedBy,
     String? createdBy,
     String? updatedBy,
     int? year,
