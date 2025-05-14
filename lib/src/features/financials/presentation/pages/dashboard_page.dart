@@ -6,6 +6,9 @@ import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
 import 'charts_page.dart' show ChartData;
 import 'package:dr_copilot/src/features/financials/presentation/widgets/dashbaord_page_widgets/currency_profiles_section.dart';
 import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -26,21 +29,19 @@ class DashboardPage extends StatelessWidget {
         financialsState.revenuePerMonth[monthKey]?.toStringAsFixed(2) ?? '...';
     final expensesMonth =
         financialsState.expensesPerMonth[monthKey]?.toStringAsFixed(2) ?? '...';
-    // You can still use the mock chart data for the chart
-    final List<ChartData> chartData = [
-      ChartData('Jan', 1000, 0, 0, 0),
-      ChartData('Feb', 1200, 0, 0, 0),
-      ChartData('Mar', 900, 0, 0, 0),
-      ChartData('Apr', 1500, 0, 0, 0),
-      ChartData('May', 1100, 0, 0, 0),
-      ChartData('Jun', 1300, 0, 0, 0),
-      ChartData('Jul', 1400, 0, 0, 0),
-      ChartData('Aug', 1200, 0, 0, 0),
-      ChartData('Sep', 1000, 0, 0, 0),
-      ChartData('Oct', 1600, 0, 0, 0),
-      ChartData('Nov', 900, 0, 0, 0),
-      ChartData('Dec', 1400, 0, 0, 0),
-    ];
+
+    final int year = now.year;
+    final List<ChartData> chartData = List.generate(12, (i) {
+      final monthNum = i + 1;
+      final key =
+          '${year.toString().padLeft(4, '0')}-${monthNum.toString().padLeft(2, '0')}';
+      final revenue = financialsState.revenuePerMonth[key] ?? 0.0;
+      final expenses = financialsState.expensesPerMonth[key] ?? 0.0;
+      final sessionsRevenue =
+          0.0; // TODO: Replace with real sessions revenue if available
+      final totalRevenue = revenue + sessionsRevenue;
+      return ChartData(key, revenue, expenses, sessionsRevenue, totalRevenue);
+    });
 
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   final bloc = context.read<FinancialsBloc>();
@@ -106,133 +107,147 @@ class DashboardPage extends StatelessWidget {
                   thumbVisibility: true,
                   trackVisibility: true,
                   child: BlocBuilder<FinancialsBloc, FinancialsState>(
-                    builder: (context, state) {
-                      return SingleChildScrollView(
-                        controller: _scrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            SizedBox(width: 10,),
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.teal,
-                                title: 'totalRevenue'.tr(),
-                                value: state.revenuePerMonth[monthKey]?.toStringAsFixed(2) ?? '...',
-                                icon: Icons.trending_up,
-                              ),
+                      builder: (context, state) {
+                    return SingleChildScrollView(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 10,
+                          ),
+                          SizedBox(
+                            width: 200,
+                            child: _SummaryCard(
+                              color: Colors.teal,
+                              title: 'totalRevenue'.tr(),
+                              value: state.revenuePerMonth[monthKey]
+                                      ?.toStringAsFixed(2) ??
+                                  '...',
+                              icon: Icons.trending_up,
                             ),
-                            const SizedBox(width: 12),
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.redAccent,
-                                title: 'totalExpenses'.tr(),
-                                value: state.expensesPerMonth[monthKey]?.toStringAsFixed(2) ?? '...',
-                                icon: Icons.trending_down,
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 200,
+                            child: _SummaryCard(
+                              color: Colors.redAccent,
+                              title: 'totalExpenses'.tr(),
+                              value: state.expensesPerMonth[monthKey]
+                                      ?.toStringAsFixed(2) ??
+                                  '...',
+                              icon: Icons.trending_down,
                             ),
-                            const SizedBox(width: 12),
-                            // Sessions Year
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.blue,
-                                title: '${'sessionsCount'.tr()} (${now.year})',
-                                value: sessionsYear.toString(),
-                                icon: Icons.event,
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Sessions Year
+                          SizedBox(
+                            width: 200,
+                            child: _SummaryCard(
+                              color: Colors.blue,
+                              title: '${'sessionsCount'.tr()} (${now.year})',
+                              value: sessionsYear.toString(),
+                              icon: Icons.event,
                             ),
-                            const SizedBox(width: 12),
-                            // Sessions Month
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.blue.shade700,
-                                title:
-                                    '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
-                                value: sessionsMonth.toString(),
-                                icon: Icons.event_available,
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Sessions Month
+                          SizedBox(
+                            width: 200,
+                            child: _SummaryCard(
+                              color: Colors.blue.shade700,
+                              title:
+                                  '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                              value: sessionsMonth.toString(),
+                              icon: Icons.event_available,
                             ),
-                            const SizedBox(width: 12),
-                            // Evaluations Year
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.purple,
-                                title: '${'evaluationsCount'.tr()} (${now.year})',
-                                value: evalsYear.toString(),
-                                icon: Icons.assignment,
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Evaluations Year
+                          SizedBox(
+                            width: 200,
+                            child: _SummaryCard(
+                              color: Colors.purple,
+                              title: '${'evaluationsCount'.tr()} (${now.year})',
+                              value: evalsYear.toString(),
+                              icon: Icons.assignment,
                             ),
-                            const SizedBox(width: 12),
-                            // Evaluations Month
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.purple.shade700,
-                                title:
-                                    '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
-                                value: evalsMonth.toString(),
-                                icon: Icons.assignment_turned_in,
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Evaluations Month
+                          SizedBox(
+                            width: 200,
+                            child: _SummaryCard(
+                              color: Colors.purple.shade700,
+                              title:
+                                  '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                              value: evalsMonth.toString(),
+                              icon: Icons.assignment_turned_in,
                             ),
-                          ],
-                        ),
-                      );
-                    }
-                  ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
               );
             },
           ),
           const SizedBox(height: 24),
-          // Only show RevenueByMonthChart
+          // Only show RevenueByMonthChart (reusable)
           RevenueByMonthChart(chartData: chartData),
           const SizedBox(height: 24),
           // Currency Profiles Section
           CurrencyProfilesSection(),
           const SizedBox(height: 24),
-          // 4. Transactions Activity
+          // 4. Transactions Activity (real implementation)
           Text('transactionsActivity'.tr(),
               style:
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          if (false) // Replace with transactions.isEmpty in real code
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 12),
-                  Text('noTransactions'.tr(),
-                      style: const TextStyle(fontSize: 18, color: Colors.grey)),
-                ],
-              ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3, // Replace with transactions.length
-              itemBuilder: (context, index) {
-                // Replace with real transaction data
-                final tx = {
-                  'account': '1234',
-                  'date': 'Feb 18, 2025',
-                  'status': 'Completed',
-                  'user': 'Jane Doe'
-                };
-                return ListTile(
-                  leading: CircleAvatar(child: Text(tx['account']![0])),
-                  title: Text('accountNumber'.tr(args: [tx['account']!])),
-                  subtitle: Text('transactionDateStatus'
-                      .tr(args: [tx['date']!, tx['status']!])),
-                  trailing: Text('transactionUser'.tr(args: [tx['user']!])),
+          BlocBuilder<TransactionsBloc, dynamic>(
+            builder: (context, state) {
+              if (state is TransactionsLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is TransactionsLoaded ||
+                  state is TransactionsCountLoaded) {
+                final transactions = (state is TransactionsLoaded)
+                    ? state.transactions
+                    : (state as TransactionsCountLoaded).transactions;
+                if (transactions.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox, size: 48, color: Colors.grey[400]),
+                        const SizedBox(height: 12),
+                        Text('noTransactions'.tr(),
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.grey)),
+                      ],
+                    ),
+                  );
+                }
+                // Show only the latest 3 transactions
+                final latestTransactions = transactions.take(3).toList();
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: latestTransactions.length,
+                  itemBuilder: (context, index) {
+                    final tx = latestTransactions[index];
+                    return TransactionListItem(
+                      transaction: tx,
+                      onTap: () {},
+                    );
+                  },
                 );
-              },
-            ),
+              } else if (state is TransactionsError) {
+                return Center(child: Text('Error: ${state.message}'));
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );

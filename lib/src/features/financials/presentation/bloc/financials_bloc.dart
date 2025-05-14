@@ -166,10 +166,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     /// correctly after December, and the year is adjusted accordingly based on
     /// the overflow from the month calculation.
     for (int i = 0; i < 12; i++) {
-      final month = (now.month + i) % 12;
-      final year = now.year + (now.month + i) ~/ 12;
-      // add(GetSessionsCountForMonth(year, month));
-      // add(GetEvaluationsCountForMonth(year, month));
+      final month = ((now.month - 1 + i) % 12) + 1; // always 1..12
+      final year = now.year + ((now.month - 1 + i) ~/ 12);
       add(GetTotalRevenueForMonth(year, month));
       add(GetTotalExpensesForMonth(year, month));
     }

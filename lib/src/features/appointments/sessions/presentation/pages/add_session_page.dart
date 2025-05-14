@@ -307,7 +307,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
     // }
     return Scaffold(
       // floatingActionButton: FloatingActionButton(onPressed: () {
-      //   context.read<SessionsBloc>().processSessions(context);
+      //   context.read<SessionsBloc>().processEvaluations(context);
       // }),
       appBar: AppBar(
         title: Text('addSession'.tr()),

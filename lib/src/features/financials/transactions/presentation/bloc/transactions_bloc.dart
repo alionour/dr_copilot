@@ -28,6 +28,16 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     on<LoadMoreTransactions>(_onLoadMoreTransactions);
     on<UpdateTransactionEvent>(_onUpdateTransaction);
     on<GetTransactionsCount>(_onGetTransactionsCount);
+
+    /// Initial event to fetch transactions when the bloc is created.
+    /// Used in [DashboardPage].
+    /// Adds a [GetTransactions] event to the bloc with the following parameters:
+    /// - [lastDocumentID]: `null`, indicating that transactions should be fetched from the beginning.
+    /// - [limit]: `3`, specifying the maximum number of transactions to retrieve.
+    add(GetTransactions(
+      lastDocumentID: null,
+      limit: 3,
+    ));
   }
 
   /// Handles fetching all financial transactions.

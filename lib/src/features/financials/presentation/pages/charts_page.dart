@@ -1,4 +1,6 @@
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
@@ -10,185 +12,151 @@ class ChartsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> months = [
-      'يناير',
-      'فبراير',
-      'مارس',
-      'إبريل',
-      'مايو',
-      'يونيو',
-      'يوليو',
-      'أغسطس',
-      'سبتمبر',
-      'أكتوبر',
-      'نوفمبر',
-      'ديسمبر'
-    ];
-    final List<double> revenue = [
-      0,
-      0,
-      0,
-      0,
-      250,
-      480,
-      960,
-      0,
-      600,
-      1440,
-      600,
-      600
-    ];
-    final List<double> sessionsRevenue = [
-      0,
-      0,
-      0,
-      0,
-      100,
-      200,
-      400,
-      0,
-      300,
-      700,
-      300,
-      300
-    ]; // Mock data
-    final List<double> totalRevenue =
-        List.generate(months.length, (i) => revenue[i] + sessionsRevenue[i]);
-    final List<double> expenses = [
-      0,
-      0,
-      2500,
-      2500,
-      4150,
-      4511,
-      4100,
-      4485,
-      3340,
-      7200,
-      6100,
-      4300
-    ];
-    final List<ChartData> chartData = List.generate(
-      months.length,
-      (i) => ChartData(months[i], revenue[i], expenses[i], sessionsRevenue[i],
-          totalRevenue[i]),
-    );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('financialCharts').tr(),
-        centerTitle: true,
-        backgroundColor: Colors.green[200],
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RevenueByMonthChart(chartData: chartData),
-            const SizedBox(height: 24),
-            SessionsRevenueByMonthChart(chartData: chartData),
-            const SizedBox(height: 24),
-            TotalRevenueByMonthChart(chartData: chartData),
-            const SizedBox(height: 24),
-            SectionTitle('expensesByMonth'.tr()),
-            ChartCard(
-              SfCartesianChart(
-                primaryXAxis: CategoryAxis(),
-                primaryYAxis: NumericAxis(),
-                tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<ChartData, String>>[
-                  ColumnSeries<ChartData, String>(
-                    name: 'expenses'.tr(),
-                    dataSource: chartData,
-                    xValueMapper: (d, _) => d.month,
-                    yValueMapper: (d, _) => d.expenses,
-                    color: Colors.redAccent,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+
+    return BlocBuilder<FinancialsBloc, FinancialsState>(
+      builder: (context, state) {
+        final now = DateTime.now();
+        final year = now.year;
+        // Prepare chart data for each month in the current year
+        final List<ChartData> chartData = List.generate(12, (i) {
+          final monthNum = i + 1;
+          final key =
+              '${year.toString().padLeft(4, '0')}-${monthNum.toString().padLeft(2, '0')}';
+          final revenue = state.revenuePerMonth[key] ?? 0.0;
+          final expenses = state.expensesPerMonth[key] ?? 0.0;
+          // If you have sessionsRevenue per month, use it; else set to 0.0
+          final sessionsRevenue =
+              0.0; // TODO: Replace with real sessions revenue if available
+          final totalRevenue = revenue + sessionsRevenue;
+          return ChartData(
+              key, revenue, expenses, sessionsRevenue, totalRevenue);
+        });
+
+        // Calculate total revenue and expenses for the pie chart
+        final totalRevenue =
+            chartData.fold<double>(0.0, (sum, d) => sum + d.revenue);
+        final totalExpenses =
+            chartData.fold<double>(0.0, (sum, d) => sum + d.expenses);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('financialCharts').tr(),
+            centerTitle: true,
+            backgroundColor: Colors.green[200],
+            elevation: 0,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                RevenueByMonthChart(chartData: chartData),
+                const SizedBox(height: 24),
+                SessionsRevenueByMonthChart(chartData: chartData),
+                const SizedBox(height: 24),
+                TotalRevenueByMonthChart(chartData: chartData),
+                const SizedBox(height: 24),
+                SectionTitle('expensesByMonth'.tr()),
+                ChartCard(
+                  SfCartesianChart(
+                    primaryXAxis: CategoryAxis(),
+                    primaryYAxis: NumericAxis(),
+                    tooltipBehavior: TooltipBehavior(enable: true),
+                    series: <CartesianSeries<ChartData, String>>[
+                      ColumnSeries<ChartData, String>(
+                        name: 'expenses'.tr(),
+                        dataSource: chartData,
+                        xValueMapper: (d, _) => d.month,
+                        yValueMapper: (d, _) => d.expenses,
+                        color: Colors.redAccent,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6)),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            SectionTitle('revenueVsExpensesByMonth'.tr()),
-            ChartCard(
-              SfCartesianChart(
-                legend:
-                    Legend(isVisible: true, position: LegendPosition.bottom),
-                primaryXAxis: CategoryAxis(),
-                primaryYAxis: NumericAxis(),
-                tooltipBehavior: TooltipBehavior(enable: true),
-                series: <CartesianSeries<ChartData, String>>[
-                  ColumnSeries<ChartData, String>(
-                    name: 'revenue'.tr(),
-                    dataSource: chartData,
-                    xValueMapper: (d, _) => d.month,
-                    yValueMapper: (d, _) => d.revenue,
-                    color: Colors.green,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+                ),
+                SectionTitle('revenueVsExpensesByMonth'.tr()),
+                ChartCard(
+                  SfCartesianChart(
+                    legend: Legend(
+                        isVisible: true, position: LegendPosition.bottom),
+                    primaryXAxis: CategoryAxis(),
+                    primaryYAxis: NumericAxis(),
+                    tooltipBehavior: TooltipBehavior(enable: true),
+                    series: <CartesianSeries<ChartData, String>>[
+                      ColumnSeries<ChartData, String>(
+                        name: 'revenue'.tr(),
+                        dataSource: chartData,
+                        xValueMapper: (d, _) => d.month,
+                        yValueMapper: (d, _) => d.revenue,
+                        color: Colors.green,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6)),
+                      ),
+                      ColumnSeries<ChartData, String>(
+                        name: 'expenses'.tr(),
+                        dataSource: chartData,
+                        xValueMapper: (d, _) => d.month,
+                        yValueMapper: (d, _) => d.expenses,
+                        color: Colors.redAccent,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6)),
+                      ),
+                    ],
                   ),
-                  ColumnSeries<ChartData, String>(
-                    name: 'expenses'.tr(),
-                    dataSource: chartData,
-                    xValueMapper: (d, _) => d.month,
-                    yValueMapper: (d, _) => d.expenses,
-                    color: Colors.redAccent,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                  ),
-                ],
-              ),
-            ),
-            SectionTitle('revenueToExpensesRatio'.tr()),
-            SizedBox(
-              height: 260,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0), // Increased horizontal padding
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                ),
+                SectionTitle('revenueToExpensesRatio'.tr()),
+                SizedBox(
+                  height: 260,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: SfCircularChart(
-                      legend: Legend(
-                          isVisible: true, position: LegendPosition.bottom),
-                      series: <CircularSeries<PieData, String>>[
-                        PieSeries<PieData, String>(
-                          dataSource: [
-                            PieData('revenue'.tr(),
-                                revenue.reduce((a, b) => a + b), Colors.green),
-                            PieData(
-                                'expenses'.tr(),
-                                expenses.reduce((a, b) => a + b),
-                                Colors.redAccent),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0), // Increased horizontal padding
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: SfCircularChart(
+                          legend: Legend(
+                              isVisible: true, position: LegendPosition.bottom),
+                          series: <CircularSeries<PieData, String>>[
+                            PieSeries<PieData, String>(
+                              dataSource: [
+                                PieData(
+                                    'revenue'.tr(), totalRevenue, Colors.green),
+                                PieData('expenses'.tr(), totalExpenses,
+                                    Colors.redAccent),
+                              ],
+                              xValueMapper: (PieData data, _) => data.label,
+                              yValueMapper: (PieData data, _) => data.value,
+                              pointColorMapper: (PieData data, _) => data.color,
+                              dataLabelSettings: const DataLabelSettings(
+                                isVisible: true,
+                                labelPosition: ChartDataLabelPosition.outside,
+                                textStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13),
+                                connectorLineSettings: ConnectorLineSettings(
+                                    type: ConnectorType.curve, length: '15%'),
+                              ),
+                              radius: '75%', // Reduced radius for more space
+                              explode: true,
+                              explodeIndex: 1,
+                            ),
                           ],
-                          xValueMapper: (PieData data, _) => data.label,
-                          yValueMapper: (PieData data, _) => data.value,
-                          pointColorMapper: (PieData data, _) => data.color,
-                          dataLabelSettings: const DataLabelSettings(
-                            isVisible: true,
-                            labelPosition: ChartDataLabelPosition.outside,
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 13),
-                            connectorLineSettings: ConnectorLineSettings(
-                                type: ConnectorType.curve, length: '15%'),
-                          ),
-                          radius: '75%', // Reduced radius for more space
-                          explode: true,
-                          explodeIndex: 1,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
