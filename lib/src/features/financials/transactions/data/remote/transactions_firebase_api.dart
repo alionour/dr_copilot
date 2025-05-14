@@ -45,7 +45,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   }) async {
     try {
       Query query = _transactionsCollection
-          .orderBy('createdAt', descending: true)
+          .orderBy('createdAt', descending: false)
           .limit(limit);
 
       if (lastDocumentId != null) {
