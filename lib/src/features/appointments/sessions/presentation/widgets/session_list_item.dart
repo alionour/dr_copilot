@@ -208,12 +208,64 @@ class _SessionListItemState extends State<SessionListItem> {
                       const SizedBox(width: 8.0),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            context
-                                .read<SessionsBloc>()
-                                .add(DeleteSession(widget.sessionModel.id));
-                            debugPrint(
-                                'Dispatched DeleteSession event for ID: ${widget.sessionModel.id}');
+                          onPressed: () async {
+                            bool deleteInvoiceAndTransaction = true;
+                            final result =
+                                await showDialog<_DeleteSessionDialogResult>(
+                              context: context,
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return AlertDialog(
+                                      title: Text('deleteSessionTitle'.tr()),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text('deleteSessionConfirm'.tr()),
+                                          const SizedBox(height: 16),
+                                          CheckboxListTile(
+                                            value: deleteInvoiceAndTransaction,
+                                            onChanged: (val) {
+                                              setState(() {
+                                                deleteInvoiceAndTransaction =
+                                                    val ?? true;
+                                              });
+                                            },
+                                            title: Text(
+                                                'deleteCorrespondingInvoiceAndTransaction'
+                                                    .tr()),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          child: Text('cancel'.tr()),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(_DeleteSessionDialogResult(
+                                              deleteInvoiceAndTransaction:
+                                                  deleteInvoiceAndTransaction,
+                                            ));
+                                          },
+                                          child: Text('delete'.tr()),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                            if (result != null) {
+                              context.read<SessionsBloc>().add(DeleteSession(
+                                  widget.sessionModel.id,
+                                  deleteInvoiceAndTransaction:
+                                      result.deleteInvoiceAndTransaction));
+                              // TODO: If you want to delete invoice/transactions, dispatch events here using result.deleteInvoice/result.deleteTransactions
+                            }
                           },
                           icon: const Icon(
                             Icons.delete,
@@ -504,4 +556,9 @@ class _SessionListItemState extends State<SessionListItem> {
       }
     }
   }
+}
+
+class _DeleteSessionDialogResult {
+  final bool deleteInvoiceAndTransaction;
+  _DeleteSessionDialogResult({required this.deleteInvoiceAndTransaction});
 }

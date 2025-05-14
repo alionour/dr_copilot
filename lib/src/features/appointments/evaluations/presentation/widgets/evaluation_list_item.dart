@@ -168,11 +168,63 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                       const SizedBox(width: 8.0),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            context.read<EvaluationsBloc>().add(
-                                DeleteEvaluation(widget.evaluationModel.id));
-                            debugPrint(
-                                'Dispatched DeleteEvaluation event for ID: ${widget.evaluationModel.id}');
+                          onPressed: () async {
+                            bool deleteEvaluationAndTransaction = true;
+                            final result =
+                                await showDialog<_DeleteEvaluationDialogResult>(
+                              context: context,
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return AlertDialog(
+                                      title: Text('deleteEvaluationTitle'.tr()),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text('deleteEvaluationConfirm'.tr()),
+                                          const SizedBox(height: 16),
+                                          CheckboxListTile(
+                                            value:
+                                                deleteEvaluationAndTransaction,
+                                            onChanged: (val) {
+                                              setState(() {
+                                                deleteEvaluationAndTransaction =
+                                                    val ?? true;
+                                              });
+                                            },
+                                            title: Text(
+                                                'deleteCorrespondingInvoiceAndTransaction'
+                                                    .tr()),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          child: Text('cancel'.tr()),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(
+                                                _DeleteEvaluationDialogResult(
+                                              deleteEvaluationAndTransaction:
+                                                  deleteEvaluationAndTransaction,
+                                            ));
+                                          },
+                                          child: Text('delete'.tr()),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                            if (result != null) {
+                              context.read<EvaluationsBloc>().add(
+                                  DeleteEvaluation(widget.evaluationModel.id));
+                              // TODO: If you want to delete invoice/transactions, dispatch events here using result.deleteEvaluationAndTransaction
+                            }
                           },
                           icon: const Icon(
                             Icons.delete,
@@ -421,4 +473,9 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
       }
     }
   }
+}
+
+class _DeleteEvaluationDialogResult {
+  final bool deleteEvaluationAndTransaction;
+  _DeleteEvaluationDialogResult({required this.deleteEvaluationAndTransaction});
 }

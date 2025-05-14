@@ -21,7 +21,6 @@ part 'sessions_event.dart';
 part 'sessions_state.dart';
 
 class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
-
   final SessionsUseCase _sessionsUseCase;
   final FinancialsUseCase _financialsUseCase;
 
@@ -98,13 +97,39 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     emit(SessionsLoading(state.sessions));
     final failureOrSession =
         await _sessionsUseCase.deleteSession(event.sessionId);
-    emit(failureOrSession.fold(
+    emit(await failureOrSession.fold(
         (failure) => SessionsError(state.sessions,
-            message: _mapFailureToMessage(failure)), (deletedSession) {
+            message: _mapFailureToMessage(failure)), (deletedSession) async {
       debugPrint('Delete successful: ${event.sessionId}');
       final sessions = state.sessions
         ..removeWhere((session) => session.id == event.sessionId);
       emit(SessionsSuccess(sessions, message: 'sessionDeleted'.tr()));
+      // If the invoice and transaction should be deleted, handle that here
+      if (event.deleteInvoiceAndTransaction) {
+        final failureOrInvoice =
+            await _financialsUseCase.deleteInvoice(event.sessionId);
+        return await failureOrInvoice.fold(
+          (failure) {
+            return SessionsError(state.sessions,
+                message: _mapFailureToMessage(failure));
+          },
+          (deletedInvoice) async {
+            debugPrint('Invoice Delete successful: ${event.sessionId}');
+            // Now delete the transaction associated with this invoice/session
+            final failureOrTransaction =
+                await _financialsUseCase.deleteTransaction(event.sessionId);
+            return failureOrTransaction.fold(
+              (failure) => SessionsError(state.sessions,
+                  message: _mapFailureToMessage(failure)),
+              (deletedTransaction) {
+                debugPrint('Transaction Delete successful: ${event.sessionId}');
+                return SessionsSuccess(sessions,
+                    message: 'invoiceAndTransactionDeleted'.tr());
+              },
+            );
+          },
+        );
+      }
       return SessionsLoaded(sessions);
     }));
   }
@@ -398,7 +423,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           }
 
           debugPrint('All sessions processed successfully');
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('Processed all sessions successfully!'.tr())),
@@ -407,11 +432,10 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       );
     } catch (e) {
       debugPrint('Error in processSessions: $e');
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to process sessions'.tr())),
       );
-
     }
   }
 
@@ -538,7 +562,6 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to process sessions'.tr())),
       );
-      
     }
   }
 }

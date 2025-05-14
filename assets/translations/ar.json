@@ -311,10 +311,16 @@
   "userIdCannotBeNull": "لا يمكن أن يكون معرف المستخدم فارغًا",
   "version": "الإصدار 1.0.0",
   "welcomeBack": "مرحبًا بعودتك",
+  "deleteSessionTitle": "حذف الجلسة",
+  "deleteSessionConfirm": "هل أنت متأكد أنك تريد حذف هذه الجلسة؟",
+  "deleteCorrespondingInvoiceAndTransaction": "أيضًا حذف الفاتورة والمعاملات المقابلة",
+  "deleteEvaluationTitle": "حذف التقييم",
+  "deleteEvaluationConfirm": "هل أنت متأكد أنك تريد حذف هذا التقييم؟",
   "year": "سنة",
   "yearBased": "حسب السنة",
   "yearOptional": "سنة اختيارية",
   "yesterday": "أمس",
   "yourRights": "حقوقك",
   "yourRightsDescription": "لديك الحق في الوصول إلى معلوماتك الشخصية وتحديثها وحذفها. إذا كانت لديك أي أسئلة أو مخاوف بشأن ممارسات الخصوصية لدينا، يرجى الاتصال بنا على privacy@drcopilot.com."
+
 }

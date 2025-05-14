@@ -47,11 +47,12 @@ class UpdateEvaluation extends EvaluationsEvent {
 
 class DeleteEvaluation extends EvaluationsEvent {
   final String evaluationId;
+  final bool deleteInvoiceAndTransaction;
 
-  const DeleteEvaluation(this.evaluationId);
+  const DeleteEvaluation(this.evaluationId, {this.deleteInvoiceAndTransaction = false});
 
   @override
-  List<Object> get props => [evaluationId];
+  List<Object> get props => [evaluationId, deleteInvoiceAndTransaction];
 }
 
 class GetEvaluationsByDate extends EvaluationsEvent {

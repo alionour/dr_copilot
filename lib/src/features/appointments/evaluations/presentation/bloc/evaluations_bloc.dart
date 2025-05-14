@@ -29,7 +29,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     on<GetEvaluationsByDate>(_onGetEvaluationsByDate);
     on<LoadMoreEvaluations>(_onLoadMoreEvaluations);
     on<GetEvaluationsCount>(_onGetEvaluationsCount);
-        on<AddInvoice>(_onAddInvoice);
+    on<AddInvoice>(_onAddInvoice);
     on<AddTransaction>(_onAddTransaction);
   }
 
@@ -92,17 +92,52 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
   Future<void> _onDeleteEvaluation(
       DeleteEvaluation event, Emitter<EvaluationsState> emit) async {
     emit(EvaluationsLoading(state.evaluations));
+    // Always delete the evaluation itself
     final failureOrEvaluation =
         await _evaluationsUseCase.deleteEvaluation(event.evaluationId);
-    emit(failureOrEvaluation.fold(
-        (failure) => EvaluationsError(state.evaluations,
-            message: _mapFailureToMessage(failure)), (deletedEvaluation) {
-      debugPrint('Delete successful: ${event.evaluationId}');
-      final evaluations = state.evaluations
-        ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
-      emit(EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr()));
-      return EvaluationsLoaded(evaluations);
-    }));
+    await failureOrEvaluation.fold(
+      (failure) {
+        emit(EvaluationsError(state.evaluations,
+            message: _mapFailureToMessage(failure)));
+        return;
+      },
+      (deletedEvaluation) async {
+        debugPrint('Delete successful: ${event.evaluationId}');
+        var evaluations = List<EvaluationModel>.from(state.evaluations)
+          ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
+        emit(
+            EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr()));
+        emit(EvaluationsLoaded(evaluations));
+
+        // If requested, also delete the corresponding invoice and transactions
+        if (event.deleteInvoiceAndTransaction) {
+          final failureOrInvoice =
+              await _financialsUseCase.deleteInvoice(event.evaluationId);
+          return await failureOrInvoice.fold(
+            (failure) {
+              return EvaluationsError(state.evaluations,
+                  message: _mapFailureToMessage(failure));
+            },
+            (deletedInvoice) async {
+              debugPrint('Invoice Delete successful: ${event.evaluationId}');
+              // Now delete the transaction associated with this invoice/session
+              final failureOrTransaction = await _financialsUseCase
+                  .deleteTransaction(event.evaluationId);
+              return failureOrTransaction.fold(
+                (failure) => EvaluationsError(state.evaluations,
+                    message: _mapFailureToMessage(failure)),
+                (deletedTransaction) {
+                  debugPrint(
+                      'Transaction Delete successful: ${event.evaluationId}');
+                  return EvaluationsSuccess(state.evaluations,
+                      message: 'invoiceAndTransactionDeleted'.tr());
+                },
+              );
+            },
+          );
+        }
+      },
+    );
   }
 
   Future<void> _onSearchEvaluations(
@@ -191,8 +226,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
             id: const Uuid().v4(),
             currencyProfileId: invoice.currencyProfileId,
             transactionSource: TransactionSource.invoice,
-                                direction: TransactionDirection.fromSource(TransactionSource.invoice),
-
+            direction:
+                TransactionDirection.fromSource(TransactionSource.invoice),
             status: TransactionStatus.completed,
             transactionDate: invoice.createdAt,
             referenceId: invoice.id,
@@ -211,8 +246,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
               id: const Uuid().v4(),
               currencyProfileId: invoice.currencyProfileId,
               transactionSource: TransactionSource.invoice,
-                                  direction: TransactionDirection.fromSource(TransactionSource.invoice),
-
+              direction:
+                  TransactionDirection.fromSource(TransactionSource.invoice),
               status: TransactionStatus.completed,
               transactionDate: invoice.createdAt,
               referenceId: invoice.id,
@@ -227,7 +262,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         }
       });
     } catch (e) {
-      emit(EvaluationsError(state.evaluations, message: 'failedToAddInvoice'.tr()));
+      emit(EvaluationsError(state.evaluations,
+          message: 'failedToAddInvoice'.tr()));
     }
   }
 
