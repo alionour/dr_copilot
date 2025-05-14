@@ -22,6 +22,9 @@ abstract class AbstractFinancialsRepository {
 
   Future<Either<Failure, void>> deleteInvoice(String id);
 
+  /// Deletes an invoice by its reference ID.
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId);
+  
   // --- Transaction CRUD ---
   Future<Either<Failure, void>> addTransaction(
       {required TransactionModel transaction});
@@ -30,6 +33,10 @@ abstract class AbstractFinancialsRepository {
       {required TransactionModel transaction});
 
   Future<Either<Failure, void>> deleteTransaction(String id);
+
+  /// Deletes a transaction by its reference ID.
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId);
 
   Future<Either<Failure, List<TransactionModel>>> fetchTransactions();
 

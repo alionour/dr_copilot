@@ -118,4 +118,10 @@ class TransactionsUseCase {
       transactionSource: transactionSource,
     );
   }
+
+  /// Deletes a transaction by its reference ID.
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) async {
+    return await repository.deleteTransactionByReferenceId(referenceId);
+  }
 }

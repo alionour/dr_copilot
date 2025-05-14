@@ -32,23 +32,27 @@ abstract class AbstractTransactionApi {
   /// Aggregates and returns the total expenses for a given year and month.
   Future<double> getTotalExpensesForMonth(int year, int month);
 
-  /// Validates the provided reference ID and fetches the corresponding 
+  /// Validates the provided reference ID and fetches the corresponding
   /// document snapshot from the remote data source.
   ///
-  /// This method checks if the given [referenceId] is valid and attempts 
-  /// to retrieve the associated document. If the operation is successful, 
-  /// it returns a [DocumentSnapshot] wrapped in a [Right]. If there is a 
+  /// This method checks if the given [referenceId] is valid and attempts
+  /// to retrieve the associated document. If the operation is successful,
+  /// it returns a [DocumentSnapshot] wrapped in a [Right]. If there is a
   /// failure, it returns a [Failure] wrapped in a [Left].
   ///
   /// - Parameters:
-  ///   - referenceId: The unique identifier of the reference to validate 
+  ///   - referenceId: The unique identifier of the reference to validate
   ///     and fetch.
   ///
-  /// - Returns: A [Future] containing an [Either] with a [Failure] on the 
-  ///   left side if an error occurs, or a [DocumentSnapshot?] on the right 
+  /// - Returns: A [Future] containing an [Either] with a [Failure] on the
+  ///   left side if an error occurs, or a [DocumentSnapshot?] on the right
   ///   side if the operation is successful.
-  Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({   required String referenceId,
+  Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({
+    required String referenceId,
     required TransactionSource transactionSource,
   });
 
+  /// Deletes a transaction by its reference ID.
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId);
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dr_copilot/src/features/financials/data/remote/abstract_financial_api.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
@@ -61,6 +62,24 @@ class FinancialImplApi implements AbstractFinancialApi {
   Future<Either<Failure, void>> deleteTransaction(String id) async {
     try {
       final response = await http.delete(Uri.parse('$apiUrl/transactions/$id'));
+      if (response.statusCode == 204) {
+        return const Right(null);
+      } else {
+        return Left(
+            ServerFailure('Failed to delete transaction', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) async {
+    try {
+      /// Delete transaction by reference ID
+      final response =
+          await http.delete(Uri.parse('$apiUrl/transactions/$referenceId'));
       if (response.statusCode == 204) {
         return const Right(null);
       } else {
@@ -593,4 +612,95 @@ class FinancialImplApi implements AbstractFinancialApi {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
+
+  /// Invoice CRUD
+  @override
+  Future<Either<Failure, InvoiceModel>> addInvoice(
+      {required InvoiceModel invoice}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiUrl/invoices'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(invoice.toJson()),
+      );
+      if (response.statusCode == 201) {
+        return Right(InvoiceModel.fromJson(json.decode(response.body)));
+      } else {
+        return Left(ServerFailure('Failed to add invoice', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, InvoiceModel>> updateInvoice(
+      {required InvoiceModel invoice}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl/invoices/${invoice.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(invoice.toJson()),
+      );
+      if (response.statusCode == 200) {
+        return Right(InvoiceModel.fromJson(json.decode(response.body)));
+      } else {
+        return Left(
+            ServerFailure('Failed to update invoice', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<InvoiceModel>>> fetchInvoices() async {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl/invoices'));
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        final invoices =
+            data.map((json) => InvoiceModel.fromJson(json)).toList();
+        return Right(List<InvoiceModel>.from(invoices));
+      } else {
+        return Left(
+            ServerFailure('Failed to fetch invoices', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+  
+  @override
+  Future<Either<Failure, void>> deleteInvoice(String id) async {
+    try {
+      final response = await http.delete(Uri.parse('$apiUrl/invoices/$id'));
+      if (response.statusCode == 204) {
+        return const Right(null);
+      } else {
+        return Left(
+            ServerFailure('Failed to delete invoice', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  /// Deletes an invoice by its reference ID.
+  @override
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId) async {
+    try {
+      final response =
+          await http.delete(Uri.parse('$apiUrl/invoices/$referenceId'));
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return Right(InvoiceModel.fromJson(json.decode(response.body)));
+      } else {
+        return Left(
+            ServerFailure('Failed to delete invoice', response.statusCode));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
 }

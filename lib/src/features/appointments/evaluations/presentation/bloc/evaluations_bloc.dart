@@ -112,7 +112,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         // If requested, also delete the corresponding invoice and transactions
         if (event.deleteInvoiceAndTransaction) {
           final failureOrInvoice =
-              await _financialsUseCase.deleteInvoice(event.evaluationId);
+              await _financialsUseCase.deleteInvoiceByReferenceId(event.evaluationId);
           return await failureOrInvoice.fold(
             (failure) {
               return EvaluationsError(state.evaluations,
@@ -122,7 +122,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
               debugPrint('Invoice Delete successful: ${event.evaluationId}');
               // Now delete the transaction associated with this invoice/session
               final failureOrTransaction = await _financialsUseCase
-                  .deleteTransaction(event.evaluationId);
+                  .deleteTransactionByReferenceId(event.evaluationId);
               return failureOrTransaction.fold(
                 (failure) => EvaluationsError(state.evaluations,
                     message: _mapFailureToMessage(failure)),

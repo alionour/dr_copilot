@@ -41,6 +41,14 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     return await transactionsUseCase.deleteTransaction(id);
   }
 
+  // Delete a transaction by reference ID
+  @override
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) async {
+    return await transactionsUseCase.deleteTransactionByReferenceId(referenceId);
+  }
+
+
   // Fetch all transactions
   @override
   Future<Either<Failure, List<TransactionModel>>> fetchTransactions(
@@ -52,6 +60,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   }
 
   // --- Invoices CRUD ---
+  @override
   Future<Either<Failure, InvoiceModel>> addInvoice(
       {required InvoiceModel invoice}) async {
     try {
@@ -71,6 +80,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     }
   }
 
+  @override
   Future<Either<Failure, InvoiceModel>> updateInvoice(
       {required InvoiceModel invoice}) async {
     try {
@@ -89,6 +99,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     }
   }
 
+  @override
   Future<Either<Failure, List<InvoiceModel>>> fetchInvoices() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -118,6 +129,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     }
   }
 
+  @override
   Future<Either<Failure, void>> deleteInvoice(String id) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -134,6 +146,33 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
+
+  /// Deletes an invoice by its reference ID.
+  @override
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('invoices')
+            .where('referenceId', isEqualTo: referenceId)
+            .get();
+        for (var doc in snapshot.docs) {
+          // Get the invoice before deleting
+          await doc.reference.delete();
+        }
+        /// Returns [InvoiceModel]
+        return Right(InvoiceModel.fromJson(snapshot.docs.first.data()));
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error deleting invoice by reference ID: $e');
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+
 
   // --- Bill CRUD ---
   @override

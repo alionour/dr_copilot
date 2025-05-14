@@ -519,4 +519,23 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       return Left(ServerFailure('Error fetching reference ID: $e', 500));
     }
   }
+
+  /// Deletes transactions by their reference ID.
+  @override
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) async {
+    try {
+      final querySnapshot = await _transactionsCollection
+          .where('referenceId', isEqualTo: referenceId)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
 }

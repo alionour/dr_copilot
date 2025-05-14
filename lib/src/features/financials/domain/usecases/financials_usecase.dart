@@ -160,6 +160,12 @@ class FinancialsUseCase {
     return repository.deleteInvoice(id);
   }
 
+  // Delete invoice by reference ID
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId) {
+    return repository.deleteInvoiceByReferenceId(referenceId);
+  }
+
   // --- Transactions CRUD ---
   Future<Either<Failure, void>> addTransaction(
       {required TransactionModel transaction}) {
@@ -177,5 +183,10 @@ class FinancialsUseCase {
 
   Future<Either<Failure, void>> deleteTransaction(String id) {
     return repository.deleteTransaction(id);
+  }
+
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) {
+    return repository.deleteTransactionByReferenceId(referenceId);
   }
 }

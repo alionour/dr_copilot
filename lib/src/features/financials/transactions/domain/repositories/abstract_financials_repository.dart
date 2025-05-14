@@ -74,4 +74,8 @@ abstract class AbstractTransactionsRepository {
   Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({   required String referenceId,
     required TransactionSource transactionSource,
   });
+
+  /// Deletes a transaction by its reference ID.
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId);
 }

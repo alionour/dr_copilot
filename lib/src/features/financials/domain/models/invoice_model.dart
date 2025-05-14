@@ -107,6 +107,9 @@ class InvoiceModel {
   final InvoiceSource? source;
   final InvoiceStatus? status; // Changed from String? to InvoiceStatus?
 
+  /// The ID of the session or evaluation this invoice is for (if applicable).
+  final String referenceId;
+
   InvoiceModel({
     required this.id,
     required this.userId,
@@ -126,6 +129,7 @@ class InvoiceModel {
     this.customerType,
     this.source,
     this.status,
+    required this.referenceId,
   });
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) =>
@@ -151,6 +155,7 @@ class InvoiceModel {
     CustomerType? customerType,
     InvoiceSource? source,
     InvoiceStatus? status,
+    String? referenceId,
   }) {
     return InvoiceModel(
       id: id ?? this.id,
@@ -171,6 +176,7 @@ class InvoiceModel {
       customerType: customerType ?? this.customerType,
       source: source ?? this.source,
       status: status ?? this.status,
+      referenceId: referenceId ?? this.referenceId,
     );
   }
 }

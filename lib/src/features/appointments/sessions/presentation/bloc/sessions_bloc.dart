@@ -55,10 +55,12 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   void _onAddSession(AddSession event, Emitter<SessionsState> emit) async {
     emit(SessionsLoading(state.sessions));
     final failureOrSession = await _sessionsUseCase.addSession(event.model);
-    emit(failureOrSession.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (addedSession) {
+    await failureOrSession.fold(
+      (failure) {
+        emit(SessionsError(state.sessions,
+            message: _mapFailureToMessage(failure)));
+      },
+      (addedSession) async {
         debugPrint('Add successful: $addedSession');
         // Insert the new session in the correct sorted position (descending by startDateTime)
         final sessions = List<SessionModel>.from(state.sessions)
@@ -66,9 +68,33 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         emit(SessionsSuccess(sessions,
             message: 'sessionAddedSuccessfully'.tr()));
-        return SessionsLoaded(sessions);
+        emit(SessionsLoaded(sessions));
+
+        // After session is added, create the invoice with referenceId = sessionId
+        final invoice = InvoiceModel(
+          id: const Uuid().v4(),
+          customerId: addedSession.patientId,
+          amount: addedSession.price,
+          createdAt: addedSession.createdAt,
+          createdBy: addedSession.createdBy,
+          title: 'Session Invoice',
+          description:
+              'Invoice for session with ${addedSession.patientName} at ${addedSession.startDateTime.toDate()}',
+          currencyProfileId:
+              '', // You may want to pass this from the UI or event
+          issuedAt: addedSession.createdAt,
+          dueDate: Timestamp.fromDate(addedSession.startDateTime
+              .toDate()
+              .add(const Duration(days: 30))),
+          userId: addedSession.userId,
+          customerType: CustomerType.patient,
+          source: InvoiceSource.sessions,
+          status: InvoiceStatus.unpaid,
+          referenceId: addedSession.id,
+        );
+        add(AddInvoice(invoice));
       },
-    ));
+    );
   }
 
   void _onUpdateSession(
@@ -107,7 +133,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       // If the invoice and transaction should be deleted, handle that here
       if (event.deleteInvoiceAndTransaction) {
         final failureOrInvoice =
-            await _financialsUseCase.deleteInvoice(event.sessionId);
+            await _financialsUseCase.deleteInvoiceByReferenceId(event.sessionId);
         return await failureOrInvoice.fold(
           (failure) {
             return SessionsError(state.sessions,
@@ -116,8 +142,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           (deletedInvoice) async {
             debugPrint('Invoice Delete successful: ${event.sessionId}');
             // Now delete the transaction associated with this invoice/session
-            final failureOrTransaction =
-                await _financialsUseCase.deleteTransaction(event.sessionId);
+            final failureOrTransaction = await _financialsUseCase
+                .deleteTransactionByReferenceId(event.sessionId);
             return failureOrTransaction.fold(
               (failure) => SessionsError(state.sessions,
                   message: _mapFailureToMessage(failure)),
@@ -341,6 +367,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
             final invoice = InvoiceModel(
               id: const Uuid().v4(),
               customerId: session.patientId,
+              referenceId: session.id,
               amount: session.price,
               createdAt: session.startDateTime,
               createdBy: session.createdBy,
@@ -468,6 +495,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
             final invoice = InvoiceModel(
               id: const Uuid().v4(),
               customerId: session.patientId,
+              referenceId: session.id,
               amount: session.price,
               createdAt: session.startDateTime,
               createdBy: session.createdBy,

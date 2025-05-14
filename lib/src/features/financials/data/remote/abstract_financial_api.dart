@@ -1,5 +1,6 @@
 
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
@@ -22,6 +23,9 @@ abstract class AbstractFinancialApi {
 
   /// Fetches all transactions for the user.
   Future<Either<Failure, List<TransactionModel>>> fetchTransactions();
+
+  /// Deletes a transaction by its reference ID.
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(String referenceId);
 
   // --- Bill CRUD ---
   /// Adds a new bill for the user.
@@ -132,4 +136,17 @@ abstract class AbstractFinancialApi {
 
   /// Deletes a scheduled bill by its document ID.
   Future<Either<Failure, void>> deleteScheduledBill(String id);
+
+
+  // Invoice CRUD
+  Future<Either<Failure, void>> addInvoice({required InvoiceModel invoice});
+
+  Future<Either<Failure, void>> updateInvoice({required InvoiceModel invoice});
+
+  Future<Either<Failure, List<InvoiceModel>>> fetchInvoices();
+
+  Future<Either<Failure, void>> deleteInvoice(String id);
+
+  /// Deletes invoice by its reference ID.
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId);
 }

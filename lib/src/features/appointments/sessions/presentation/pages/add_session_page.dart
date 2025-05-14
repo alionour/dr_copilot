@@ -252,33 +252,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
       );
 
       context.read<SessionsBloc>().add(AddSession(session));
-
-      final invoice = InvoiceModel(
-        id: const Uuid().v4(),
-        customerId: _selectedPatient!.id,
-        amount: double.parse(_actualPriceController.text),
-        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-        createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
-        title: 'Session Invoice',
-        description:
-            'Invoice for session with ${_selectedPatient!.name} at ${now.toDate()}',
-        currencyProfileId: _selectedCurrencyProfile!
-            .id, // Pass `_selectedCurrencyProfile!` to ensure it's non-null
-        issuedAt: Timestamp.fromDate(DateTime.now().toUtc()),
-        dueDate:
-            Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))),
-        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-        customerType: CustomerType.patient,
-        source: InvoiceSource.sessions,
-        status: _selectedInvoiceStatus ??
-            InvoiceStatus.unpaid, // Store as `InvoiceStatus`
-      );
-      context.read<SessionsBloc>().add(AddInvoice(invoice));
-
-      // Convert to English name when saving to the database
-      final invoiceData = invoice.toJson();
-      invoiceData['status'] =
-          _selectedInvoiceStatus?.name ?? 'unpaid'; // Convert to English name
     }
   }
 
@@ -307,6 +280,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
     // }
     return Scaffold(
       // floatingActionButton: FloatingActionButton(onPressed: () {
+      //   context.read<SessionsBloc>().processSessions(context);
       //   context.read<SessionsBloc>().processEvaluations(context);
       // }),
       appBar: AppBar(

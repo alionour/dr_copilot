@@ -26,6 +26,7 @@ InvoiceModel _$InvoiceModelFromJson(Map<String, dynamic> json) => InvoiceModel(
           $enumDecodeNullable(_$CustomerTypeEnumMap, json['customerType']),
       source: $enumDecodeNullable(_$InvoiceSourceEnumMap, json['source']),
       status: $enumDecodeNullable(_$InvoiceStatusEnumMap, json['status']),
+      referenceId: json['referenceId'] as String,
     );
 
 Map<String, dynamic> _$InvoiceModelToJson(InvoiceModel instance) =>
@@ -50,6 +51,7 @@ Map<String, dynamic> _$InvoiceModelToJson(InvoiceModel instance) =>
       'customerType': _$CustomerTypeEnumMap[instance.customerType],
       'source': _$InvoiceSourceEnumMap[instance.source],
       'status': _$InvoiceStatusEnumMap[instance.status],
+      'referenceId': instance.referenceId,
     };
 
 const _$CustomerTypeEnumMap = {

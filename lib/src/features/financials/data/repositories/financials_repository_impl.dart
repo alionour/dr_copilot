@@ -348,7 +348,12 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     return firebaseApi.deleteInvoice(id);
   }
 
+  /// Deletes an invoice by its reference ID.
   @override
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId) {
+    return firebaseApi.deleteInvoiceByReferenceId(referenceId);
+  }
+
   @override
   Future<Either<Failure, void>> addTransaction(
       {required TransactionModel transaction}) {
@@ -368,6 +373,12 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
   @override
   Future<Either<Failure, void>> deleteTransaction(String id) {
     return firebaseApi.deleteTransaction(id);
+  }
+
+  /// Deletes a transaction by its reference ID.
+  @override
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(String referenceId) {
+    return firebaseApi.deleteTransactionByReferenceId(referenceId);
   }
 
   @override
