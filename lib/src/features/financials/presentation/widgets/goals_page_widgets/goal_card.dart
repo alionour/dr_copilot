@@ -43,7 +43,7 @@ class GoalCard extends StatelessWidget {
                     LinearProgressIndicator(
                       value: progress,
                       minHeight: 10,
-                      backgroundColor: Color(goal.color).withOpacity(0.15),
+                      backgroundColor: Color(goal.color).withValues(alpha: (0.15 * 255).toDouble()),
                       valueColor:
                           AlwaysStoppedAnimation<Color>(Color(goal.color)),
                     ),

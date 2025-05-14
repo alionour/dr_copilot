@@ -115,7 +115,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                               .textTheme
                               .bodyLarge
                               ?.color
-                              ?.withOpacity(0.7)),
+                              ?.withValues(alpha: (0.7 * 255).toDouble())),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(

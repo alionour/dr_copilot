@@ -88,7 +88,7 @@ class ReportsPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.1),
+                          color: Colors.green.withValues(alpha: (0.1 * 255).toDouble(),),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -119,7 +119,7 @@ class ReportsPage extends StatelessWidget {
                                         boxShadow: [
                                           BoxShadow(
                                             color:
-                                                Colors.teal.withOpacity(0.08),
+                                                Colors.teal.withValues(alpha: (0.08 * 255).toDouble()),
                                             blurRadius: 8,
                                             offset: const Offset(0, 2),
                                           ),
