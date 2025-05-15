@@ -4,23 +4,45 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class ChartsPage extends StatelessWidget {
+class ChartsPage extends StatefulWidget {
   const ChartsPage({super.key});
+
+  @override
+  State<ChartsPage> createState() => _ChartsPageState();
+}
+
+class _ChartsPageState extends State<ChartsPage> {
+  late String selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    selectedYear = now.year.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FinancialsBloc, FinancialsState>(
       builder: (context, state) {
-        final now = DateTime.now();
-        final year = now.year;
-        // Prepare chart data for each month in the current year
+        // Collect all years from revenue and expenses
+        final allKeys = <String>{}
+          ..addAll(state.revenuePerMonth.keys)
+          ..addAll(state.expensesPerMonth.keys);
+        final years = allKeys.map((k) => k.split('-')[0]).toSet().toList()
+          ..sort();
+        if (!years.contains(selectedYear)) {
+          selectedYear =
+              years.isNotEmpty ? years.last : DateTime.now().year.toString();
+        }
+
+        // Prepare chart data for each month in the selected year
         final List<ChartData> chartData = List.generate(12, (i) {
           final monthNum = i + 1;
           final key =
-              '${year.toString().padLeft(4, '0')}-${monthNum.toString().padLeft(2, '0')}';
+              '${selectedYear.padLeft(4, '0')}-${monthNum.toString().padLeft(2, '0')}';
           final revenue = state.revenuePerMonth[key] ?? 0.0;
           final expenses = state.expensesPerMonth[key] ?? 0.0;
-          // If you have sessionsRevenue per month, use it; else set to 0.0
           final sessionsRevenue =
               0.0; // TODO: Replace with real sessions revenue if available
           final totalRevenue = revenue + sessionsRevenue;
@@ -34,10 +56,80 @@ class ChartsPage extends StatelessWidget {
         final totalExpenses =
             chartData.fold<double>(0.0, (sum, d) => sum + d.expenses);
 
-        return _BarLineChartSwitcher(
+        return Scaffold(
+          appBar: AppBar(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('financial_reports_for_year'.tr(),
+                    style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal)),
+                const SizedBox(width: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.teal.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.teal.shade100, width: 1.2),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedYear,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                          color: Colors.teal, size: 28),
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      items: years.map((year) {
+                        return DropdownMenuItem<String>(
+                          value: year,
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_month,
+                                  color: Colors.teal.shade300, size: 22),
+                              const SizedBox(width: 8),
+                              Text(year,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedYear = value;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            centerTitle: false,
+            backgroundColor: Colors.green[50],
+            elevation: 0,
+          ),
+          body: _BarLineChartSwitcher(
             chartData: chartData,
             totalRevenue: totalRevenue,
-            totalExpenses: totalExpenses);
+            totalExpenses: totalExpenses,
+          ),
+        );
       },
     );
   }
@@ -63,12 +155,12 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('financialCharts').tr(),
-        centerTitle: true,
-        backgroundColor: Colors.green[200],
-        elevation: 0,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('financialCharts').tr(),
+      //   centerTitle: true,
+      //   backgroundColor: Colors.green[200],
+      //   elevation: 0,
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
