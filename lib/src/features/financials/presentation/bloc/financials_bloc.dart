@@ -20,6 +20,60 @@ part 'financials_state.dart';
 
 /// Bloc for managing financial transactions.
 class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
+  
+  // --- Bill CRUD Handlers ---
+  Future<void> _onFetchBills(
+      FetchBills event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.fetchBills();
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (bills) => emit(FinancialsLoaded(
+        scheduledBills: state.scheduledBills,
+        goals: state.goals,
+        currencyProfiles: state.currencyProfiles,
+        bills: bills,
+        sessionsCountPerMonth: state.sessionsCountPerMonth,
+        evaluationsCountPerMonth: state.evaluationsCountPerMonth,
+        expensesPerMonth: state.expensesPerMonth,
+        revenuePerMonth: state.revenuePerMonth,
+        revenuePerYear: state.revenuePerYear,
+        expensesPerYear: state.expensesPerYear,
+      )),
+    );
+  }
+
+  Future<void> _onAddBill(AddBill event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.addBill(bill: event.bill);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (bill) => emit(successState(
+        message: 'billAdded'.tr(args: [bill.title]),
+      )),
+    );
+  }
+
+  Future<void> _onUpdateBill(
+      UpdateBill event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.updateBill(bill: event.bill);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (bill) => emit(successState(
+        message: 'billUpdated'.tr(args: [bill.title]),
+      )),
+    );
+  }
+
+  Future<void> _onDeleteBill(
+      DeleteBill event, Emitter<FinancialsState> emit) async {
+    final result = await financialsUseCase.deleteBill(event.id);
+    result.fold(
+      (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
+      (_) => emit(successState(
+        message: 'billDeleted'.tr(args: [event.id]),
+      )),
+    );
+  }
+
   /// Triggers fetching of session and evaluation counts for a given year and month.
   /// Call this after adding/updating/deleting goals or bills to keep progress up-to-date.
   void triggerCountsForGoal(GoalModelBase goal) {
@@ -101,6 +155,15 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     on<AddScheduledBill>(_onAddScheduledBill);
     on<UpdateScheduledBill>(_onUpdateScheduledBill);
     on<DeleteScheduledBill>(_onDeleteScheduledBill);
+
+    // Scheduled Bill Events
+    on<FetchBills>(_onFetchBills);
+    on<AddBill>(_onAddBill);
+    on<UpdateBill>(_onUpdateBill);
+    on<DeleteBill>(_onDeleteBill);
+
+    // Bill Payment Event
+    on<PayBill>(_onPayBill);
 
     // Invoice Events
     on<FetchInvoices>(_onFetchInvoices);
@@ -866,6 +929,65 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
         revenuePerYear: state.revenuePerYear,
         expensesPerYear: state.expensesPerYear,
       )),
+    );
+  }
+
+  // Handler for PayBill event
+  Future<void> _onPayBill(PayBill event, Emitter<FinancialsState> emit) async {
+    final bill = event.bill; // Get the bill to be paid from the event
+
+    // 1. Create a transaction for this bill
+    final transaction = TransactionModel(
+      id: const Uuid().v4(), // Generate a unique ID for the transaction
+      amount: bill.amount, // Set the transaction amount to the bill amount
+      description:
+          'Payment for bill: ${bill.id}', // Description for the transaction
+      transactionDate:
+          Timestamp.fromDate(DateTime.now()), // Set the transaction date to now
+      transactionSource: TransactionSource.bill, // Mark the source as a bill
+      direction: TransactionDirection.fromSource(
+          TransactionSource.bill), // Set the direction based on the source
+      createdAt: Timestamp.fromDate(
+          DateTime.now().toUtc()), // Set creation time to now (UTC)
+      userId: bill.userId, // Associate the transaction with the bill's user
+      createdBy: bill.createdBy, // Set who created the transaction
+      currencyProfileId:
+          bill.currencyProfileId, // Use the bill's currency profile
+      notes: null, // No additional notes
+      status: TransactionStatus.completed, // Mark the transaction as completed
+      referenceId: bill.id, // Reference the bill ID
+    );
+
+    // Add the transaction to the backend
+    final transactionResult =
+        await financialsUseCase.addTransaction(transaction: transaction);
+
+    // Handle the result of adding the transaction
+    transactionResult.fold(
+      (failure) => emit(errorState(
+          message: _mapFailureToMessage(
+              failure))), // Emit error if transaction fails
+      (_) async {
+        // 2. Mark the bill as paid
+        final paidBill = bill.copyWith(
+          status: BillStatus.paid, // Update the bill status to paid
+          payedAt:
+              Timestamp.fromDate(DateTime.now()), // Set the payment time to now
+        );
+
+        // Update the bill in the backend
+        final billResult = await financialsUseCase.updateBill(bill: paidBill);
+
+        // Handle the result of updating the bill
+        billResult.fold(
+          (failure) => emit(errorState(
+              message:
+                  _mapFailureToMessage(failure))), // Emit error if update fails
+          (_) => emit(successState(
+              message: 'billHasPaid'
+                  .tr(args: [bill.title]))), // Emit success if bill is paid
+        );
+      },
     );
   }
 }

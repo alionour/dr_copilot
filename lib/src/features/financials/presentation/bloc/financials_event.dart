@@ -154,6 +154,35 @@ class DeleteScheduledBill extends FinancialsEvent {
   List<Object?> get props => [id];
 }
 
+
+/// Event to fetch all  bills.
+class FetchBills extends FinancialsEvent {}
+
+/// Event to add a new  bill.
+class AddBill extends FinancialsEvent {
+  final BillModel bill;
+  const AddBill(this.bill);
+  @override
+  List<Object?> get props => [bill];
+}
+
+/// Event to update an existing  bill.
+class UpdateBill extends FinancialsEvent {
+  final BillModel bill;
+  const UpdateBill(this.bill);
+  @override
+  List<Object?> get props => [bill];
+}
+
+/// Event to delete a  bill.
+class DeleteBill extends FinancialsEvent {
+  final String id;
+  const DeleteBill(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
+
 /// Event to generate missing bills from scheduled bills (should be dispatched on app start or tab open)
 class GenerateBillsFromScheduled extends FinancialsEvent {
   const GenerateBillsFromScheduled();
@@ -284,4 +313,13 @@ class FetchTotalByDirectionAndSource extends FinancialsEvent {
   });
   @override
   List<Object?> get props => [direction, source, year, month];
+}
+
+
+///Event to pay a bill
+class PayBill extends FinancialsEvent {
+  final BillModel bill;
+  const PayBill(this.bill);
+  @override
+  List<Object?> get props => [bill];
 }

@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class BillsAndPaymentsPage extends StatelessWidget {
     // Trigger fetch of scheduled bills on first build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FinancialsBloc>().add(FetchScheduledBills());
+      context.read<FinancialsBloc>().add(FetchBills());
     });
     return BlocConsumer<FinancialsBloc, FinancialsState>(
       listener: (context, state) {
@@ -30,20 +32,10 @@ class BillsAndPaymentsPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        // Use scheduled bills from bloc state for the main bills list
-        final List<_BillPayment> bills = state.scheduledBills
-            .map((sb) => _BillPayment(
-                  sb.title,
-                  sb.scheduledAt.toDate().toString().split(' ')[0],
-                  sb.amount,
-                  false, // Default to unpaid; update if you have a paid status
-                  'unpaid'.tr(), // Update if you have a status field
-                ))
-            .toList();
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('الفواتير والمدفوعات'),
+            title: Text('billsAndPayments'.tr()),
             centerTitle: true,
             backgroundColor: Colors.green[200],
             elevation: 0,
@@ -67,8 +59,8 @@ class BillsAndPaymentsPage extends StatelessWidget {
                   _ScheduleBillSection(),
                   const SizedBox(height: 16),
                   _ScheduledBillsSection(scheduledBills: state.scheduledBills),
-                  const Text(
-                    'قائمة الفواتير والمدفوعات',
+                   Text(
+                    'billsAndPayments'.tr(),
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -76,10 +68,10 @@ class BillsAndPaymentsPage extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  if (bills.isEmpty)
-                    const Center(child: Text('لا توجد فواتير حالياً'))
+                  if (state.bills.isEmpty)
+                     Center(child: Text('noBills'.tr()))
                   else ...[
-                    ...bills.map((b) => Padding(
+                    ...state.bills.map((b) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _BillCard(bill: b),
                         )),
@@ -94,21 +86,15 @@ class BillsAndPaymentsPage extends StatelessWidget {
   }
 }
 
-class _BillPayment {
-  final String title;
-  final String date;
-  final double amount;
-  final bool isPaid;
-  final String status;
-  _BillPayment(this.title, this.date, this.amount, this.isPaid, this.status);
-}
+
 
 class _BillCard extends StatelessWidget {
-  final _BillPayment bill;
+  final BillModel bill;
   const _BillCard({required this.bill});
 
   @override
   Widget build(BuildContext context) {
+    final bool isPaid =  bill.status == BillStatus.paid;
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -117,8 +103,8 @@ class _BillCard extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              bill.isPaid ? Icons.check_circle : Icons.error_outline,
-              color: bill.isPaid ? Colors.green : Colors.redAccent,
+             isPaid ? Icons.check_circle : Icons.error_outline,
+              color: isPaid ? Colors.green : Colors.redAccent,
               size: 32,
             ),
             const SizedBox(width: 16),
@@ -133,12 +119,12 @@ class _BillCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'تاريخ الاستحقاق: ${bill.date}',
+                    '${'dueDate'.tr()}: ${bill.dueDate}',
                     style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'المبلغ: ${bill.amount.toStringAsFixed(2)} ر.س',
+                    '${'price'.tr()}: ${bill.amount.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 15, color: Colors.teal),
                   ),
                 ],
@@ -151,19 +137,19 @@ class _BillCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: bill.isPaid ? Colors.green[100] : Colors.red[100],
+                    color: isPaid ? Colors.green[100] : Colors.red[100],
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    bill.status,
+                    bill.status.name,
                     style: TextStyle(
-                      color: bill.isPaid ? Colors.green[800] : Colors.red[800],
+                      color: isPaid ? Colors.green[800] : Colors.red[800],
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
                   ),
                 ),
-                if (!bill.isPaid) ...[
+                if (!isPaid) ...[
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -171,13 +157,13 @@ class _BillCard extends StatelessWidget {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('تأكيد الدفع'),
+                          title:  Text('confirm'.tr()),
                           content:
-                              Text('هل تريد دفع هذه الفاتورة: ${bill.title}؟'),
+                              Text('${'doYouWantPayThisBill'.tr()}: ${bill.title}؟'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text('إلغاء'),
+                              child: Text('cancel'.tr()),
                             ),
                             ElevatedButton(
                               onPressed: () {
@@ -185,17 +171,17 @@ class _BillCard extends StatelessWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                       content: Text(
-                                          'تم دفع الفاتورة: ${bill.title}')),
+                                          '${'billHasPaid'.tr()}: ${bill.title}')),
                                 );
                               },
-                              child: const Text('دفع'),
+                              child: Text('pay'.tr()),
                             ),
                           ],
                         ),
                       );
                     },
                     icon: const Icon(Icons.payment, size: 18),
-                    label: const Text('دفع'),
+                    label: Text('pay'.tr()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal,
                       foregroundColor: Colors.white,
@@ -233,9 +219,9 @@ class _ScheduleBillSection extends StatelessWidget {
               children: [
                 const Icon(Icons.schedule, color: Colors.teal, size: 28),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'جدولة فاتورة أو دفعة جديدة',
+                    'addNewBill'.tr(),
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -288,25 +274,25 @@ class _ScheduleBillSection extends StatelessWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    const Text('إضافة فاتورة/دفعة',
+                                    Text('addNewBill'.tr(),
                                         style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.teal)),
                                     const SizedBox(height: 18),
                                     TextFormField(
-                                      decoration: const InputDecoration(
-                                          labelText: 'العنوان',
+                                      decoration: InputDecoration(
+                                          labelText: 'title'.tr(),
                                           border: OutlineInputBorder()),
                                       validator: (v) => v == null || v.isEmpty
-                                          ? 'مطلوب'
+                                          ? 'required'.tr()
                                           : null,
                                       onSaved: (v) => title = v ?? '',
                                     ),
                                     const SizedBox(height: 12),
                                     TextFormField(
-                                      decoration: const InputDecoration(
-                                          labelText: 'الوصف',
+                                      decoration: InputDecoration(
+                                          labelText: 'description'.tr(),
                                           border: OutlineInputBorder()),
                                       onSaved: (v) => description = v ?? '',
                                     ),
@@ -314,12 +300,12 @@ class _ScheduleBillSection extends StatelessWidget {
                                     TextFormField(
                                       controller: dateController,
                                       readOnly: true,
-                                      decoration: const InputDecoration(
+                                      decoration: InputDecoration(
                                           labelText:
-                                              'تاريخ الاستحقاق (YYYY-MM-DD)',
+                                              '${'dueDate'.tr()} (YYYY-MM-DD)',
                                           border: OutlineInputBorder()),
                                       validator: (v) => v == null || v.isEmpty
-                                          ? 'مطلوب'
+                                          ? 'required'.tr()
                                           : null,
                                       onTap: () async {
                                         final picked = await showDatePicker(
@@ -377,18 +363,18 @@ class _ScheduleBillSection extends StatelessWidget {
                                       ],
                                       validator: (v) {
                                         if (v == null || v.isEmpty) {
-                                          return 'مطلوب';
+                                          return 'required'.tr();
                                         }
                                         final value = double.tryParse(
                                             v.replaceAll(',', '.'));
                                         if (value == null) {
-                                          return 'أدخل رقماً صالحاً';
+                                          return 'enterValidNumber'.tr();
                                         }
                                         if (value < 0) {
-                                          return 'يجب أن يكون المبلغ أكبر أو يساوي صفر';
+                                          return 'amountShouldBeMoreThanZero';
                                         }
                                         if (value > 100000) {
-                                          return 'المبلغ كبير جداً (الحد الأقصى 100,000)';
+                                          return 'amountTooHigh'.tr();
                                         }
                                         return null;
                                       },
@@ -401,17 +387,18 @@ class _ScheduleBillSection extends StatelessWidget {
                                     const SizedBox(height: 12),
                                     DropdownButtonFormField<ScheduledBillType>(
                                       value: type,
-                                      decoration: const InputDecoration(
-                                          labelText: 'النوع',
+                                      decoration: InputDecoration(
+                                          labelText: 'type'.tr(),
                                           border: OutlineInputBorder()),
                                       items: ScheduledBillType.values
                                           .map((t) => DropdownMenuItem(
                                                 value: t,
                                                 child: Text(t ==
-                                                        ScheduledBillType
-                                                            .expense
-                                                    ? 'مصروف'
-                                                    : 'دخل'),
+                                                            ScheduledBillType
+                                                                .expense
+                                                        ? 'expenses'
+                                                        : 'income')
+                                                    .tr(),
                                               ))
                                           .toList(),
                                       onChanged: (v) => setState(() => type =
@@ -421,8 +408,8 @@ class _ScheduleBillSection extends StatelessWidget {
                                     DropdownButtonFormField<
                                         ScheduledBillRecurrence>(
                                       value: recurrence,
-                                      decoration: const InputDecoration(
-                                          labelText: 'التكرار',
+                                      decoration: InputDecoration(
+                                          labelText: 'recurrence'.tr(),
                                           border: OutlineInputBorder()),
                                       items: ScheduledBillRecurrence.values
                                           .map((r) => DropdownMenuItem(
@@ -437,12 +424,15 @@ class _ScheduleBillSection extends StatelessWidget {
                                                                   .weekly
                                                           ? 'recurrence_weekly'
                                                               .tr()
+                                                              .tr()
                                                           : r ==
                                                                   ScheduledBillRecurrence
                                                                       .monthly
                                                               ? 'recurrence_monthly'
                                                                   .tr()
+                                                                  .tr()
                                                               : 'recurrence_yearly'
+                                                                  .tr()
                                                                   .tr(),
                                                 ),
                                               ))
@@ -456,27 +446,26 @@ class _ScheduleBillSection extends StatelessWidget {
                                       onPressed: () {
                                         if (formKey.currentState!.validate()) {
                                           formKey.currentState!.save();
-                                          final scheduledBill =
-                                              ScheduledBillModel(
-                                            id: Uuid().v4(),
-                                            title: title,
-                                            description: description,
-                                            amount: amount ?? 0,
-                                            currencyProfileId:
-                                                selectedProfileId,
-                                            type: type,
-                                            scheduledAt: dateController
-                                                    .text.isNotEmpty
-                                                ? Timestamp.fromDate(
-                                                    DateTime.parse(
-                                                        dateController.text))
-                                                : Timestamp.now(),
-                                            recurrence: recurrence,
-                                            createdAt: Timestamp.fromDate(
-                                                DateTime.now()
-                                            ),
-                                            createdBy: '' // willbe added at repository layer
-                                          ); 
+                                          final scheduledBill = ScheduledBillModel(
+                                              id: Uuid().v4(),
+                                              title: title,
+                                              description: description,
+                                              amount: amount ?? 0,
+                                              currencyProfileId:
+                                                  selectedProfileId,
+                                              type: type,
+                                              scheduledAt: dateController
+                                                      .text.isNotEmpty
+                                                  ? Timestamp.fromDate(
+                                                      DateTime.parse(
+                                                          dateController.text))
+                                                  : Timestamp.now(),
+                                              recurrence: recurrence,
+                                              createdAt: Timestamp.fromDate(
+                                                  DateTime.now()),
+                                              createdBy:
+                                                  '' // willbe added at repository layer
+                                              );
                                           context.read<FinancialsBloc>().add(
                                               AddScheduledBill(scheduledBill));
                                           Navigator.pop(context);
@@ -493,7 +482,7 @@ class _ScheduleBillSection extends StatelessWidget {
                                             borderRadius:
                                                 BorderRadius.circular(8)),
                                       ),
-                                      child: const Text('جدولة'),
+                                      child: Text('schedule'.tr()),
                                     ),
                                     const SizedBox(height: 10),
                                   ],
@@ -506,7 +495,7 @@ class _ScheduleBillSection extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('جدولة جديدة'),
+                  label: Text('newSchedule'.tr()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
@@ -538,8 +527,8 @@ class _ScheduledBillsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'الفواتير المجدولة',
+        Text(
+          'scheduledBills'.tr(),
           style: TextStyle(
               fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
           textAlign: TextAlign.center,
@@ -579,13 +568,12 @@ class _ScheduledBillCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'تاريخ الاستحقاق: '
-                    '${bill.scheduledAt.toDate().toString().split(' ')[0]}',
+                    '${'dueDate'.tr()}: ${bill.scheduledAt.toDate().toString().split(' ')[0]}',
                     style: const TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'المبلغ: ${bill.amount.toStringAsFixed(2)}',
+                    '${'price'.tr()}: ${bill.amount.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 14, color: Colors.teal),
                   ),
                 ],
@@ -598,8 +586,8 @@ class _ScheduledBillCard extends StatelessWidget {
                 color: Colors.teal[50],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                'مجدولة',
+              child: Text(
+                'scheduled'.tr(),
                 style: TextStyle(
                     color: Colors.teal,
                     fontWeight: FontWeight.bold,
