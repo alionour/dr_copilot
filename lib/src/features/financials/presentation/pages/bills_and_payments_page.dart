@@ -32,7 +32,6 @@ class BillsAndPaymentsPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-
         return Scaffold(
           appBar: AppBar(
             title: Text('billsAndPayments'.tr()),
@@ -42,7 +41,7 @@ class BillsAndPaymentsPage extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.teal),
-                tooltip: 'refrsh'.tr(),
+                tooltip: 'refresh'.tr(),
                 onPressed: () {
                   context.read<FinancialsBloc>().add(FetchScheduledBills());
                 },
@@ -59,7 +58,7 @@ class BillsAndPaymentsPage extends StatelessWidget {
                   _ScheduleBillSection(),
                   const SizedBox(height: 16),
                   _ScheduledBillsSection(scheduledBills: state.scheduledBills),
-                   Text(
+                  Text(
                     'billsAndPayments'.tr(),
                     style: TextStyle(
                         fontSize: 20,
@@ -69,7 +68,7 @@ class BillsAndPaymentsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   if (state.bills.isEmpty)
-                     Center(child: Text('noBills'.tr()))
+                    Center(child: Text('noBills'.tr()))
                   else ...[
                     ...state.bills.map((b) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -86,15 +85,13 @@ class BillsAndPaymentsPage extends StatelessWidget {
   }
 }
 
-
-
 class _BillCard extends StatelessWidget {
   final BillModel bill;
   const _BillCard({required this.bill});
 
   @override
   Widget build(BuildContext context) {
-    final bool isPaid =  bill.status == BillStatus.paid;
+    final bool isPaid = bill.status == BillStatus.paid;
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -103,7 +100,7 @@ class _BillCard extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-             isPaid ? Icons.check_circle : Icons.error_outline,
+              isPaid ? Icons.check_circle : Icons.error_outline,
               color: isPaid ? Colors.green : Colors.redAccent,
               size: 32,
             ),
@@ -119,7 +116,7 @@ class _BillCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${'dueDate'.tr()}: ${bill.dueDate}',
+                    '${'dueDate'.tr()}: ${bill.dueDate.toDate().toString().split(' ')[0]}',
                     style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                   const SizedBox(height: 4),
@@ -141,7 +138,7 @@ class _BillCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    bill.status.name,
+                    bill.status.name.tr(),
                     style: TextStyle(
                       color: isPaid ? Colors.green[800] : Colors.red[800],
                       fontWeight: FontWeight.bold,
@@ -157,9 +154,9 @@ class _BillCard extends StatelessWidget {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title:  Text('confirm'.tr()),
-                          content:
-                              Text('${'doYouWantPayThisBill'.tr()}: ${bill.title}؟'),
+                          title: Text('confirm'.tr()),
+                          content: Text(
+                              '${'doYouWantPayThisBill'.tr()}: ${bill.title}؟'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
@@ -168,11 +165,7 @@ class _BillCard extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          '${'billHasPaid'.tr()}: ${bill.title}')),
-                                );
+                                context.read<FinancialsBloc>().add(PayBill(bill));
                               },
                               child: Text('pay'.tr()),
                             ),

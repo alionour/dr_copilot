@@ -20,7 +20,6 @@ part 'financials_state.dart';
 
 /// Bloc for managing financial transactions.
 class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
-  
   // --- Bill CRUD Handlers ---
   Future<void> _onFetchBills(
       FetchBills event, Emitter<FinancialsState> emit) async {
@@ -943,7 +942,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       description:
           'Payment for bill: ${bill.id}', // Description for the transaction
       transactionDate:
-          Timestamp.fromDate(DateTime.now()), // Set the transaction date to now
+          Timestamp.fromDate(DateTime.now().toUtc()), // Set the transaction date to now
       transactionSource: TransactionSource.bill, // Mark the source as a bill
       direction: TransactionDirection.fromSource(
           TransactionSource.bill), // Set the direction based on the source
@@ -958,36 +957,36 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       referenceId: bill.id, // Reference the bill ID
     );
 
-    // Add the transaction to the backend
+    // Await the transaction creation
     final transactionResult =
         await financialsUseCase.addTransaction(transaction: transaction);
+    if (emit.isDone) return;
+    if (transactionResult.isLeft()) {
+      final failure = transactionResult.swap().getOrElse(() => ServerFailure(
+          'Failed to update bill status'
+          'billId: ${bill.id}', 
+          401
+      ));
+      emit(errorState(message: _mapFailureToMessage(failure)));
+      return;
+    }
 
-    // Handle the result of adding the transaction
-    transactionResult.fold(
-      (failure) => emit(errorState(
-          message: _mapFailureToMessage(
-              failure))), // Emit error if transaction fails
-      (_) async {
-        // 2. Mark the bill as paid
-        final paidBill = bill.copyWith(
-          status: BillStatus.paid, // Update the bill status to paid
-          payedAt:
-              Timestamp.fromDate(DateTime.now()), // Set the payment time to now
-        );
-
-        // Update the bill in the backend
-        final billResult = await financialsUseCase.updateBill(bill: paidBill);
-
-        // Handle the result of updating the bill
-        billResult.fold(
-          (failure) => emit(errorState(
-              message:
-                  _mapFailureToMessage(failure))), // Emit error if update fails
-          (_) => emit(successState(
-              message: 'billHasPaid'
-                  .tr(args: [bill.title]))), // Emit success if bill is paid
-        );
-      },
+    // 2. Mark the bill as paid
+    final paidBill = bill.copyWith(
+      status: BillStatus.paid,
+      payedAt: Timestamp.fromDate(DateTime.now()),
     );
+    final billResult = await financialsUseCase.updateBill(bill: paidBill);
+    if (emit.isDone) return;
+    if (billResult.isLeft()) {
+      final failure = billResult.swap().getOrElse(() => ServerFailure(
+          'Failed to update bill status'
+          'billId: ${bill.id}', 
+          401
+      ));
+      emit(errorState(message: _mapFailureToMessage(failure)));
+      return;
+    }
+    emit(successState(message: 'billHasPaid'.tr(args: [bill.title])));
   }
 }

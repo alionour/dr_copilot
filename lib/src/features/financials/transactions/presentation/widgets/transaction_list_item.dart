@@ -13,8 +13,7 @@ class TransactionListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = (transaction.direction == TransactionDirection.inwards ||
-        transaction.direction == TransactionDirection.outwards);
+    final isIncome = (transaction.direction == TransactionDirection.inwards);
     final color = isIncome ? Colors.green : Colors.red;
     final icon = isIncome ? Icons.arrow_downward : Icons.arrow_upward;
     final currency = transaction.currencyProfileId ?? '';
