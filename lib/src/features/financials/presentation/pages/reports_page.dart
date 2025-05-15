@@ -1,27 +1,30 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/financials_bloc.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
-
-  final List<String> months = const [
-    'يناير',
-    'فبراير',
-    'مارس',
-    'إبريل',
-    'مايو',
-    'يونيو',
-    'يوليو',
-    'أغسطس',
-    'سبتمبر',
-    'أكتوبر',
-    'نوفمبر',
-    'ديسمبر'
-  ];
+  
 
   @override
   Widget build(BuildContext context) {
+    List<String> months = [
+      'month_january',
+      'month_february',
+      'month_march',
+      'month_april',
+      'month_may',
+      'month_june',
+      'month_july',
+      'month_august',
+      'month_september',
+      'month_october',
+      'month_november',
+      'month_december'
+    ];
+    months =
+        months.map((month) => month.tr()).toList(); // Translate month names
     return BlocBuilder<FinancialsBloc, FinancialsState>(
       builder: (context, state) {
         final revenueByYear = state.revenuePerMonth.keys
@@ -106,7 +109,7 @@ class ReportsPage extends StatelessWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Text('التقارير المالية لعام',
+                                    Text('financial_reports_for_year'.tr(),
                                         style: TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
@@ -181,7 +184,7 @@ class ReportsPage extends StatelessWidget {
                                       children: [
                                         _buildTable(
                                           context,
-                                          title: 'الإيرادات',
+                                          title: 'income'.tr(),
                                           year: selectedYear,
                                           months: months,
                                           values: selectedRevenue,
@@ -191,7 +194,7 @@ class ReportsPage extends StatelessWidget {
                                         const SizedBox(height: 24),
                                         _buildTable(
                                           context,
-                                          title: 'المصروفات',
+                                          title: 'expenses'.tr(),
                                           year: selectedYear,
                                           months: months,
                                           values: selectedExpenses,
@@ -209,7 +212,7 @@ class ReportsPage extends StatelessWidget {
                                         Expanded(
                                           child: _buildTable(
                                             context,
-                                            title: 'الإيرادات',
+                                            title: 'income'.tr(),
                                             year: selectedYear,
                                             months: months,
                                             values: selectedRevenue,
@@ -221,7 +224,7 @@ class ReportsPage extends StatelessWidget {
                                         Expanded(
                                           child: _buildTable(
                                             context,
-                                            title: 'المصروفات',
+                                            title: 'expenses'.tr(),
                                             year: selectedYear,
                                             months: months,
                                             values: selectedExpenses,
@@ -255,7 +258,7 @@ class ReportsPage extends StatelessWidget {
     required int total,
     required Color color,
   }) {
-    final bool isExpenses = title == 'المصروفات';
+    final bool isExpenses = title == 'expenses'.tr();
     final Color headerColor =
         isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
     final Color totalRowColor =
@@ -289,7 +292,7 @@ class ReportsPage extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('الشهر',
+                      child: Text('month_label'.tr(),
                           style: TextStyle(
                               fontWeight: FontWeight.bold, color: Colors.teal)),
                     ),
@@ -320,9 +323,9 @@ class ReportsPage extends StatelessWidget {
                 TableRow(
                   decoration: BoxDecoration(color: totalRowColor),
                   children: [
-                    const Padding(
+                     Padding(
                       padding: EdgeInsets.all(8.0),
-                      child: Text('الإجمالي',
+                      child: Text('total_label'.tr(),
                           style: TextStyle(
                               fontWeight: FontWeight.bold, color: Colors.teal)),
                     ),

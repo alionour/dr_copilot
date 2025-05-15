@@ -228,9 +228,12 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     /// correctly after December, and the year is adjusted accordingly based on
     /// the overflow from the month calculation.
     // Always fetch data for all months in the current year (January to December)
-    for (int m = 1; m <= 12; m++) {
-      add(GetTotalRevenueForMonth(year, m));
-      add(GetTotalExpensesForMonth(year, m));
+    // Fetch data for all months in the current year and two years before
+    for (int y = year - 2; y <= year; y++) {
+      for (int m = 1; m <= 12; m++) {
+      add(GetTotalRevenueForMonth(y, m));
+      add(GetTotalExpensesForMonth(y, m));
+      }
     }
   }
 
