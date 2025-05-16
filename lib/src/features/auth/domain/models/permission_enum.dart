@@ -1,6 +1,8 @@
 // This file defines enums for all available permissions in the Dr Copilot app.
 // Use Permission.values for iteration, or Permission.<name> for type-safe checks.
 
+import 'package:json_annotation/json_annotation.dart';
+
 /// Enum representing all permissions in the app.
 ///
 /// Use [AppPermission.values] to get all permissions, or [permissionToString] to get the string value.
@@ -60,7 +62,7 @@ enum AppPermission {
   canAccessSupport;
 
   /// Maps [AppPermission] enum to its string value (as used in Firestore and all_permissions.dart).
-  String permissionToString(AppPermission permission) {
+  static String permissionToString(AppPermission permission) {
     switch (permission) {
       case AppPermission.canViewPatient:
         return 'can_view_patient';
@@ -130,10 +132,23 @@ enum AppPermission {
   }
 
   /// Optionally, add a function to parse a string to Permission enum.
-  AppPermission? permissionFromString(String value) {
+  static AppPermission? permissionFromString(String value) {
     for (final perm in AppPermission.values) {
       if (permissionToString(perm) == value) return perm;
     }
     return null;
   }
+}
+
+// --- JSON converters for enum lists ---
+class PermissionListJsonConverter implements JsonConverter<List<AppPermission>, List<String>> {
+  const PermissionListJsonConverter();
+
+  @override
+  List<AppPermission> fromJson(List<String> json) =>
+      json.map((e) => AppPermission.permissionFromString(e)!).toList();
+
+  @override
+  List<String> toJson(List<AppPermission> object) =>
+      object.map((e) => AppPermission.permissionToString(e)).toList();
 }

@@ -9,9 +9,8 @@ enum Role {
   financial,
   readonly;
 
-  /// Maps [Role] enum to its string value (as used in Firestore and role_permissions.dart).
-  String roleToString(Role role) {
-    switch (role) {
+  String get asString {
+    switch (this) {
       case Role.admin:
         return 'admin';
       case Role.doctor:
@@ -25,10 +24,9 @@ enum Role {
     }
   }
 
-  /// Optionally, add a function to parse a string to Role enum.
-  Role? roleFromString(String value) {
+  static Role? fromString(String value) {
     for (final role in Role.values) {
-      if (roleToString(role) == value) return role;
+      if (role.asString == value) return role;
     }
     return null;
   }

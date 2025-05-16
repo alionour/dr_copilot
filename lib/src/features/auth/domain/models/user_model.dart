@@ -24,12 +24,23 @@ class UserModel {
   final List<dynamic>? providerData;
   final String? refreshToken;
   final String? tenantId;
+  final String? ownerId;
 
-  /// List of permission strings (e.g., 'can_edit_patient', 'can_view_financials')
+  /// List of permissions as enums (AppPermission)
+  /// A list of permissions assigned to the user, represented as [AppPermission] objects.
+  /// This list determines the actions the user is authorized to perform within the application.
+  @PermissionListJsonConverter()
   final List<AppPermission> permissions;
 
-  /// List of role group names (e.g., 'admin', 'doctor', 'staff')
+  /// List of roles as enums (AppRole)
+  /// The list of roles assigned to the user, represented as [AppRole] objects.
+  /// This determines the user's permissions and access levels within the application.
+  @RoleListJsonConverter()
   final List<AppRole> roles;
+
+  /// Multi-clinic support fields
+  final List<String>? clinicIds;
+  final String? primaryClinicId;
 
   UserModel({
     required this.uid,
@@ -45,6 +56,9 @@ class UserModel {
     this.tenantId,
     this.permissions = const [],
     this.roles = const [],
+    this.clinicIds,
+    this.primaryClinicId,
+    this.ownerId,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -66,6 +80,9 @@ class UserModel {
     String? tenantId,
     List<AppPermission>? permissions,
     List<AppRole>? roles,
+    List<String>? clinicIds,
+    String? primaryClinicId,
+    String? ownerId,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -81,10 +98,14 @@ class UserModel {
       tenantId: tenantId ?? this.tenantId,
       permissions: permissions ?? this.permissions,
       roles: roles ?? this.roles,
+      clinicIds: clinicIds ?? this.clinicIds,
+      primaryClinicId: primaryClinicId ?? this.primaryClinicId,
+      ownerId: ownerId ?? this.ownerId,
     );
   }
 
-  factory UserModel.fromFirebaseUser(dynamic user, {List<AppPermission>? permissions, List<AppRole>? roles}) {
+  factory UserModel.fromFirebaseUser(dynamic user,
+      {List<AppPermission>? permissions, List<AppRole>? roles}) {
     return UserModel(
       uid: user.uid,
       displayName: user.displayName,
@@ -99,6 +120,9 @@ class UserModel {
       tenantId: user.tenantId,
       permissions: permissions ?? const [],
       roles: roles ?? const [],
+      clinicIds: user.clinicIds,
+      primaryClinicId: user.primaryClinicId,
+      ownerId: user.ownerId,
     );
   }
 }
