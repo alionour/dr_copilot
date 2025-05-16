@@ -8,11 +8,19 @@
 
   <!-- Badges -->
   <p>
-    <img src="https://img.shields.io/github/workflow/status/alionour22/dr_copilot/Flutter%20CI?label=Build&logo=github&style=flat-square" alt="Build Status"/>
-    <img src="https://img.shields.io/github/license/alionour22/dr_copilot?style=flat-square" alt="License"/>
-    <img src="https://img.shields.io/badge/Flutter-%E2%9D%A4-blue?logo=flutter&logoColor=white&style=flat-square" alt="Flutter"/>
-    <img src="https://img.shields.io/badge/Platform-Android%20|%20iOS%20|%20Web%20|%20Desktop-blueviolet?style=flat-square" alt="Platforms"/>
-    <img src="https://img.shields.io/badge/OTA-Shorebird-orange?logo=bird&style=flat-square" alt="OTA"/>
+    <a href="https://github.com/alionour22/dr_copilot/actions/workflows/flutter_ci.yaml">
+      <img src="https://github.com/alionour22/dr_copilot/actions/workflows/flutter_ci.yaml/badge.svg" alt="CI Status"/>
+    </a>
+    <a href="https://github.com/alionour22/dr_copilot/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/alionour22/dr_copilot?style=flat" alt="License"/>
+    </a>
+    <a href="https://flutter.dev/">
+      <img src="https://img.shields.io/badge/Flutter-3.19-blue?logo=flutter&logoColor=white" alt="Flutter"/>
+    </a>
+    <img src="https://img.shields.io/badge/Platform-Android%20|%20iOS%20|%20Web%20|%20Desktop-blueviolet" alt="Platforms"/>
+    <a href="https://shorebird.dev/">
+      <img src="https://img.shields.io/badge/OTA-Shorebird-orange?logo=bird" alt="OTA"/>
+    </a>
   </p>
 </div>
 
@@ -100,7 +108,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
 
 ## 🙏 Credits & Acknowledgements
 
-- Built by Ali Onour and contributors.
+- Built by Ali Nour and contributors.
 - Thanks to the Flutter, Firebase, and open source communities.
 - Major packages: Flutter, Bloc, Provider, Easy Localization, GetIt, go_router, Shorebird, Doppler, Syncfusion Charts, Google Fonts, and more.
 - Special thanks to all testers, translators, and users who provided feedback.
