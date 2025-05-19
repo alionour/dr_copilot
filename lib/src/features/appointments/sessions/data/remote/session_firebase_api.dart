@@ -305,11 +305,28 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         }
         final snapshot = await queryRef.get();
 
-        List<SessionModel> sessions = snapshot.docs
-            .map((doc) =>
-                SessionModel.fromJson(doc.data() as Map<String, dynamic>))
-            .toList();
+        // Map the snapshot documents to a list of SessionModel objects
+        List<SessionModel> sessions =
+            await Future.wait(snapshot.docs.map((doc) async {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          // Fetch the patient name dynamically using the patient ID
+          final patientName =
+              await getPatientNameById(data['patientId'] as String);
+          if (patientName == null) {
+            debugPrint('Patient name not found for ID: ${data['patientId']}');
+          }
+          return SessionModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+            'patientName': patientName ?? 'No Name Available',
+          });
+        }).toList());
+
         return Right(sessions);
+
       }
       return Left(ServerFailure('User not authenticated', 401));
     } on FirebaseException catch (e) {

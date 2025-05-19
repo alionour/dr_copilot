@@ -272,10 +272,24 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         }
         final snapshot = await queryRef.get();
 
-        List<EvaluationModel> evaluations = snapshot.docs
-            .map((doc) =>
-                EvaluationModel.fromJson(doc.data() as Map<String, dynamic>))
-            .toList();
+        List<EvaluationModel> evaluations =
+            await Future.wait(snapshot.docs.map((doc) async {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          // Fetch the patient name dynamically using the patient ID
+          final patientName =
+              await getPatientNameById(data['patientId'] as String);
+          if (patientName == null) {
+            debugPrint('Patient name not found for ID: ${data['patientId']}');
+          }
+          return EvaluationModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+            'patientName': patientName ?? 'No Name Available',
+          });
+        }).toList());
         return Right(evaluations);
       }
       return Left(ServerFailure('User not authenticated', 401));
