@@ -31,7 +31,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     final userId = getCurrentUserId();
     if (userId != null) {
       bill = bill.copyWith(
-        userId: userId,
+        ownerId: userId,
         createdBy: userId,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
       );
@@ -313,7 +313,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     final userId = getCurrentUserId();
     if (userId != null) {
       invoice = invoice.copyWith(
-        userId: userId,
+        ownerId: userId,
         createdBy: userId,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
       );
@@ -350,7 +350,8 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
 
   /// Deletes an invoice by its reference ID.
   @override
-  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId) {
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId) {
     return firebaseApi.deleteInvoiceByReferenceId(referenceId);
   }
 
@@ -360,7 +361,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     final userId = getCurrentUserId();
     if (userId != null) {
       transaction = transaction.copyWith(
-        userId: userId,
+        ownerId: userId,
         createdBy: userId,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
       );
@@ -377,7 +378,8 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
 
   /// Deletes a transaction by its reference ID.
   @override
-  Future<Either<Failure, void>> deleteTransactionByReferenceId(String referenceId) {
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) {
     return firebaseApi.deleteTransactionByReferenceId(referenceId);
   }
 

@@ -1,3 +1,5 @@
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/auth/owner_notifier.dart';
 import 'package:dr_copilot/src/features/financials/data/remote/abstract_financial_api.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
@@ -19,6 +21,9 @@ import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.d
 class FinancialsFirebaseApi extends AbstractFinancialApi {
   // --- Transactions CRUD ---
   final TransactionsUseCase transactionsUseCase;
+
+  /// The owner ID of the user, fetched from Firebase Auth.
+  final ownerId = OwnerNotifier().ownerId;
 
   // Add a transaction
   @override
@@ -45,9 +50,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
       String referenceId) async {
-    return await transactionsUseCase.deleteTransactionByReferenceId(referenceId);
+    return await transactionsUseCase
+        .deleteTransactionByReferenceId(referenceId);
   }
-
 
   // Fetch all transactions
   @override
@@ -70,7 +75,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
         data.remove('id');
         final docRef =
             await FirebaseFirestore.instance.collection('invoices').add(data);
-        final newInvoice = invoice.copyWith(id: docRef.id, userId: user.uid);
+        final newInvoice = invoice.copyWith(id: docRef.id, ownerId: user.uid);
         return Right(newInvoice);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -106,7 +111,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       if (user != null) {
         final snapshot = await FirebaseFirestore.instance
             .collection('invoices')
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .get();
         final invoices = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -162,6 +167,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
           // Get the invoice before deleting
           await doc.reference.delete();
         }
+
         /// Returns [InvoiceModel]
         return Right(InvoiceModel.fromJson(snapshot.docs.first.data()));
       }
@@ -171,8 +177,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
-
-
 
   // --- Bill CRUD ---
   @override
@@ -184,7 +188,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
         data.remove('id');
         final docRef =
             await FirebaseFirestore.instance.collection('bills').add(data);
-        final newBill = bill.copyWith(id: docRef.id, userId: user.uid);
+        final newBill = bill.copyWith(id: docRef.id, ownerId: user.uid);
         return Right(newBill);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -220,7 +224,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
       if (user != null) {
         final snapshot = await FirebaseFirestore.instance
             .collection('bills')
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .get();
         final bills = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -301,7 +305,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     required this.transactionsUseCase,
   });
 
-  
   /// Gets the sum of session costs for a given month and year.
   @override
   @Deprecated('Sessions Costs will be calculated from Invoices and Bills')
@@ -416,7 +419,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
           return CurrencyProfileModel.fromJson({
             ...data,
             'id': doc.id,
-        });
+          });
         }).toList();
         return Right(profiles);
       }
@@ -645,7 +648,6 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
           return ScheduledBillModel.fromJson({
             ...data,
             'id': doc.id,
-      
           });
         }).toList();
         return Right(bills);

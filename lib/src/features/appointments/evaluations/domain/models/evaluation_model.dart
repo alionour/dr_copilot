@@ -58,7 +58,8 @@ class EvaluationModel {
   @TimestampConverter()
   final Timestamp endDateTime;
 
-  final String userId;
+  final String ownerId;
+  final String clinicId;
   final String createdBy;
   final String? updatedBy;
   final String? deletedBy;
@@ -79,11 +80,12 @@ class EvaluationModel {
     required this.price,
     required this.startDateTime,
     required this.endDateTime,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     required this.createdBy,
     this.updatedBy,
     this.deletedBy,
-   required this.createdAt,
+    required this.createdAt,
     this.updatedAt,
     this.deletedAt,
   });
@@ -93,7 +95,6 @@ class EvaluationModel {
 
   Map<String, dynamic> toJson() => _$EvaluationModelToJson(this);
 
-
   EvaluationModel copyWith({
     String? id,
     String? patientId,
@@ -101,7 +102,8 @@ class EvaluationModel {
     double? price,
     Timestamp? startDateTime,
     Timestamp? endDateTime,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? createdBy,
     String? updatedBy,
     String? deletedBy,
@@ -116,7 +118,8 @@ class EvaluationModel {
       price: price ?? this.price,
       startDateTime: startDateTime ?? this.startDateTime,
       endDateTime: endDateTime ?? this.endDateTime,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       createdBy: createdBy ?? this.createdBy,
       updatedBy: updatedBy ?? this.updatedBy,
       deletedBy: deletedBy ?? this.deletedBy,

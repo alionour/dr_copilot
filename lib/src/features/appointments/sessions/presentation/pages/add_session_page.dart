@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
@@ -21,6 +22,8 @@ class AddSessionPage extends StatefulWidget {
 }
 
 class _AddSessionPageState extends State<AddSessionPage> {
+  // Clinic selection fields
+  String _selectedClinicId = OwnerNotifier().clinics.first.id;
   final _formKey = GlobalKey<FormState>();
   final _patientNameController = TextEditingController();
   final _patientNameFocusNode = FocusNode();
@@ -235,6 +238,14 @@ class _AddSessionPageState extends State<AddSessionPage> {
         return;
       }
 
+      // Ensure a clinic is selected
+      if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select a clinic.')),
+        );
+        return;
+      }
+
       final now = Timestamp.fromDate(DateTime.now().toUtc());
 
       final session = SessionModel(
@@ -247,7 +258,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
         createdAt: now,
         sessionType: _selectedSessionType,
         price: double.parse(_actualPriceController.text),
-        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        clinicId: _selectedClinicId!,
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
       );
 
@@ -279,10 +291,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
     //   );
     // }
     return Scaffold(
-    // floatingActionButton: FloatingActionButton(onPressed: () {
-    //     context.read<SessionsBloc>().processSessions(context);
-    //     context.read<SessionsBloc>().processEvaluations(context);
-    //   }),  
+      // floatingActionButton: FloatingActionButton(onPressed: () {
+      //     context.read<SessionsBloc>().processSessions(context);
+      //     context.read<SessionsBloc>().processEvaluations(context);
+      //   }),
       appBar: AppBar(
         title: Text('addSession'.tr()),
         leading: IconButton(
@@ -460,6 +472,37 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   );
                                 },
                               ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            DropdownButtonFormField<String>(
+                              value: _selectedClinicId,
+                              decoration: InputDecoration(
+                                labelText: 'Clinic',
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: OwnerNotifier().clinics.map((clinic) {
+                                return DropdownMenuItem<String>(
+                                  value: clinic.id,
+                                  child: Text(clinic
+                                      .name), // Replace with clinic name if available
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  if (newValue != null) {
+                                    _selectedClinicId = newValue;
+                                  }
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please select a clinic';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 8.0),
                             Container(

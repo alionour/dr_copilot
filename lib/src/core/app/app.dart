@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
-import '../localization/locale_notifier.dart';
+import 'notifiers/locale_notifier.dart';
 import '../router/routing_config.dart';
-import '../theme/theme.dart';
+import 'notifiers/theme_notifier.dart';
 import 'providers/bloc_providers.dart';
 
 /// The [App] widget is the root of the application, responsible for setting up

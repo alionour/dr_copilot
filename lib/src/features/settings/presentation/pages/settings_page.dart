@@ -1,4 +1,4 @@
-import 'package:dr_copilot/src/core/theme/theme.dart';
+import 'package:dr_copilot/src/core/app/notifiers/theme_notifier.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';

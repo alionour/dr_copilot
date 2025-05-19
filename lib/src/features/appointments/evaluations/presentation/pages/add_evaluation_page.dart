@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
@@ -171,6 +172,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       });
     }
   }
+  final ownerId = OwnerNotifier().ownerId;
+  final clinicId = OwnerNotifier().clinicId;
+
 
   void _saveEvaluation() {
     if (_formKey.currentState!.validate()) {
@@ -182,7 +186,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       }
       final selectedPatient = _filteredPatients.firstWhere(
         (patient) => patient.name == _patientNameController.text,
-        orElse: () => PatientModel(id: '', name: '', userId: ''),
+        orElse: () => PatientModel(id: '', name: '', ownerId: '', clinicId: ''),
       );
       if (selectedPatient.id.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -198,8 +202,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         endDateTime: _endDate!,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
         price: double.parse(_actualPriceController.text),
-        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        ownerId: ownerId ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
+        clinicId: clinicId ?? '',
       );
       context.read<EvaluationsBloc>().add(AddEvaluation(evaluationData));
     }
@@ -457,7 +462,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                       final userId =
                                                           FirebaseAuth.instance
                                                               .currentUser?.uid;
-                                                      if (userId != null) {
+                                                      if (userId != null &&
+                                                          clinicId != null) {
                                                         if (query
                                                                 .split(' ')
                                                                 .length <
@@ -478,7 +484,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                                 id: const Uuid()
                                                                     .v4(),
                                                                 name: query,
-                                                                userId: userId);
+                                                                ownerId:
+                                                                    userId,
+                                                                    clinicId: clinicId!,
+                                                                    
+                                                                    );
                                                         context
                                                             .read<
                                                                 PatientsBloc>()

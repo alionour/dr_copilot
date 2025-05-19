@@ -1,3 +1,26 @@
+## Doppler Task Usage in VS Code
+
+To run your Flutter app or scripts with Doppler secrets injected using VS Code tasks, ensure your `.vscode/tasks.json` includes a task like this:
+
+```json
+{
+  "label": "doppler-run",
+  "type": "shell",
+  "command": "doppler run -- flutter run -d windows",
+  "problemMatcher": []
+}
+```
+
+**How it works:**
+- This task will run `flutter run -d windows` with Doppler secrets injected into the environment.
+- You can change the command after `--` to run any script or tool, for example:
+  - `doppler run -- dart lib/scripts/onboarding_multi_clinic_migration.dart`
+  - `doppler run -- flutter test`
+
+**Note:** Doppler requires a command after `--`. If you omit the command, you will get an error like:
+> Error: requires at least 1 arg(s), received 0
+
+Update your `tasks.json` as needed for your workflow.
 # App Context Feature Summary (as of 2025-05-16)
 
 > This document provides a comprehensive overview of the features available in the Dr Copilot app, as well as a clear summary of any missing or incomplete features. Last reviewed: **2025-05-16**

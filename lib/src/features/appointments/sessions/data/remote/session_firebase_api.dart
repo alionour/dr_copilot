@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
@@ -11,6 +12,9 @@ import 'package:flutter/foundation.dart';
 /// and includes additional functionality such as fetching sessions by date
 /// and detecting session types.
 class SessionsFirebaseApi extends AbstractSessionsRepository {
+
+  final ownerId = OwnerNotifier().ownerId;
+  
   /// Reference to the Firestore collection for sessions.
   final CollectionReference _sessionsCollection =
       FirebaseFirestore.instance.collection('sessions');
@@ -50,7 +54,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
               await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = _sessionsCollection
-                .where('userId', isEqualTo: user.uid)
+                .where('ownerId', isEqualTo: ownerId)
                 .orderBy('startDateTime', descending: true)
                 .startAfterDocument(lastDocumentSnapshot)
                 .limit(limit);
@@ -59,7 +63,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           }
         } else {
           queryRef = _sessionsCollection
-              .where('userId', isEqualTo: user.uid)
+              .where('ownerId', isEqualTo: ownerId)
               .orderBy('startDateTime', descending: true)
               .limit(limit);
         }
@@ -282,7 +286,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         Query queryRef =
-            _sessionsCollection.where('createdBy', isEqualTo: user.uid);
+            _sessionsCollection.where('ownerId', isEqualTo: ownerId);
 
         if (patientId != null && patientId.isNotEmpty) {
           queryRef = queryRef
@@ -339,7 +343,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       if (user != null) {
         debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
         Query queryRef = _sessionsCollection
-            .where('createdBy', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -470,7 +474,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final query = _sessionsCollection.where('userId', isEqualTo: user.uid);
+        final query = _sessionsCollection.where('ownerId', isEqualTo: ownerId);
         final aggregateQuerySnapshot = await query.count().get();
         return Right(aggregateQuerySnapshot.count ?? 0);
       }
@@ -497,7 +501,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
         final query = _sessionsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -525,7 +529,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
         final query = _sessionsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -559,7 +563,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
         final query = _sessionsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -593,7 +597,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
         final query = _sessionsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -621,7 +625,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final query = _sessionsCollection.where('userId', isEqualTo: user.uid);
+        final query = _sessionsCollection.where('ownerId', isEqualTo: ownerId);
         final aggregateQuerySnapshot =
             await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;

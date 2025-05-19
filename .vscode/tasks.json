@@ -9,6 +9,12 @@
             "problemMatcher": [
                 "$dart-analyze"
             ]
+        },
+        {
+            "label": "doppler-run",
+            "type": "shell",
+            "command": "doppler run -- flutter run -d windows",
+            "problemMatcher": []
         }
     ]
 }

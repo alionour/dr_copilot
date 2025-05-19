@@ -41,6 +41,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.0"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      sha256: "0511d6be23b007e95105ae023db599aea731df604608978dada7f9faf2637623"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.4"
   async:
     dependency: transitive
     description:
@@ -297,6 +305,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
+  crypto_keys:
+    dependency: transitive
+    description:
+      name: crypto_keys
+      sha256: acc19abf34623d990a0e8aec69463d74a824c31f137128f42e2810befc509ad0
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0+1"
   csslib:
     dependency: transitive
     description:
@@ -385,6 +401,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
+  expressions:
+    dependency: transitive
+    description:
+      name: expressions
+      sha256: "308a621b602923dd8a0cf3072793b24850d06453eb49c6b698cbda41a282e904"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.5+2"
   extension_google_sign_in_as_googleapis_auth:
     dependency: "direct main"
     description:
@@ -505,6 +529,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.22.0"
+  firebase_dart:
+    dependency: "direct dev"
+    description:
+      name: firebase_dart
+      sha256: be42a8fbbf33eaa598189216e64024dc13a34b6355376966a246b7c7df636be5
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  firebaseapis:
+    dependency: transitive
+    description:
+      name: firebaseapis
+      sha256: "7e9663f298a209dc7d4e8a10944d6c39d43e02e9cade08c915720768d02d712d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   fixnum:
     dependency: transitive
     description:
@@ -933,6 +973,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  jose:
+    dependency: transitive
+    description:
+      name: jose
+      sha256: "7955ec5d131960104e81fbf151abacb9d835c16c9e793ed394b2809f28b2198d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.4"
   js:
     dependency: transitive
     description:
@@ -1101,6 +1149,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  openid_client:
+    dependency: transitive
+    description:
+      name: openid_client
+      sha256: "1d39a829dc770947bf8ec8684a3456743ef0205a777371efe16773a44163eb6a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.9"
   package_config:
     dependency: transitive
     description:
@@ -1197,6 +1253,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.1"
   pool:
     dependency: transitive
     description:
@@ -1229,6 +1293,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.2"
   rxdart:
     dependency: transitive
     description:
@@ -1354,6 +1426,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  sortedmap:
+    dependency: transitive
+    description:
+      name: sortedmap
+      sha256: f000f40804e15fad5e3ad429164291c06cf7fcf8cc982006cf482852b912c3cf
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.4"
   source_gen:
     dependency: transitive
     description:
@@ -1738,6 +1818,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.10.1"
+  x509:
+    dependency: transitive
+    description:
+      name: x509
+      sha256: cbd1a63846884afd273cda247b0365284c8d85a365ca98e110413f93d105b935
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.4+3"
   xdg_directories:
     dependency: transitive
     description:
@@ -1763,5 +1851,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.7.0-0 <4.0.0"
+  dart: ">=3.7.0 <4.0.0"
   flutter: ">=3.27.0"

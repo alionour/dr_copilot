@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/repositories/abstract_financials_repository.dart';
@@ -12,9 +13,11 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   final CollectionReference _transactionsCollection =
       FirebaseFirestore.instance.collection('transactions');
 
+  final ownerId = OwnerNotifier().ownerId;
+
   /// Ensures all queries are scoped to the current user.
-  Query _userScopedQuery() => _transactionsCollection.where('userId',
-      isEqualTo: FirebaseAuth.instance.currentUser?.uid);
+  Query _userScopedQuery() => _transactionsCollection.where('ownerId',
+      isEqualTo:ownerId);
 
   /// Checks if the user is authenticated.
   ///

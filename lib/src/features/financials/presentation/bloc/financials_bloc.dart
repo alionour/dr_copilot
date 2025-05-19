@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/goal_model.dart';
@@ -231,8 +232,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     // Fetch data for all months in the current year and two years before
     for (int y = year - 2; y <= year; y++) {
       for (int m = 1; m <= 12; m++) {
-      add(GetTotalRevenueForMonth(y, m));
-      add(GetTotalExpensesForMonth(y, m));
+        add(GetTotalRevenueForMonth(y, m));
+        add(GetTotalExpensesForMonth(y, m));
       }
     }
   }
@@ -673,7 +674,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
               status: BillStatus.unpaid,
               createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
               createdBy: scheduledBill.createdBy,
-              userId: '', //will be added at repository layer
+              ownerId: OwnerNotifier().ownerId!, //will be added at repository layer
+              clinicId: OwnerNotifier().clinicId!, //will be added at repository layer
             ))
         .toList();
   }
@@ -944,20 +946,22 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       amount: bill.amount, // Set the transaction amount to the bill amount
       description:
           'Payment for bill: ${bill.id}', // Description for the transaction
-      transactionDate:
-          Timestamp.fromDate(DateTime.now().toUtc()), // Set the transaction date to now
+      transactionDate: Timestamp.fromDate(
+          DateTime.now().toUtc()), // Set the transaction date to now
       transactionSource: TransactionSource.bill, // Mark the source as a bill
       direction: TransactionDirection.fromSource(
           TransactionSource.bill), // Set the direction based on the source
       createdAt: Timestamp.fromDate(
           DateTime.now().toUtc()), // Set creation time to now (UTC)
-      userId: bill.userId, // Associate the transaction with the bill's user
+      ownerId: bill.ownerId, // Associate the transaction with the bill's user
       createdBy: bill.createdBy, // Set who created the transaction
       currencyProfileId:
           bill.currencyProfileId, // Use the bill's currency profile
       notes: null, // No additional notes
       status: TransactionStatus.completed, // Mark the transaction as completed
       referenceId: bill.id, // Reference the bill ID
+      clinicId: bill.clinicId, // Associate the transaction with the clinic
+      
     );
 
     // Await the transaction creation
@@ -967,9 +971,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     if (transactionResult.isLeft()) {
       final failure = transactionResult.swap().getOrElse(() => ServerFailure(
           'Failed to update bill status'
-          'billId: ${bill.id}', 
-          401
-      ));
+          'billId: ${bill.id}',
+          401));
       emit(errorState(message: _mapFailureToMessage(failure)));
       return;
     }
@@ -984,9 +987,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     if (billResult.isLeft()) {
       final failure = billResult.swap().getOrElse(() => ServerFailure(
           'Failed to update bill status'
-          'billId: ${bill.id}', 
-          401
-      ));
+          'billId: ${bill.id}',
+          401));
       emit(errorState(message: _mapFailureToMessage(failure)));
       return;
     }

@@ -111,8 +111,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
         // If requested, also delete the corresponding invoice and transactions
         if (event.deleteInvoiceAndTransaction) {
-          final failureOrInvoice =
-              await _financialsUseCase.deleteInvoiceByReferenceId(event.evaluationId);
+          final failureOrInvoice = await _financialsUseCase
+              .deleteInvoiceByReferenceId(event.evaluationId);
           return await failureOrInvoice.fold(
             (failure) {
               return EvaluationsError(state.evaluations,
@@ -231,11 +231,13 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
             status: TransactionStatus.completed,
             transactionDate: invoice.createdAt,
             referenceId: invoice.id,
-            userId: invoice.userId,
+            ownerId: invoice.ownerId,
+            clinicId: invoice.clinicId,
             amount: invoice.amount,
             createdAt: invoice.createdAt,
             createdBy: invoice.createdBy,
             description: 'Full payment for invoice ${invoice.id}',
+            
           );
 
           add(AddTransaction(transaction));
@@ -251,7 +253,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
               status: TransactionStatus.completed,
               transactionDate: invoice.createdAt,
               referenceId: invoice.id,
-              userId: invoice.userId,
+              ownerId: invoice.ownerId,
+              clinicId: invoice.clinicId,
               amount: invoice.amount,
               createdAt: invoice.createdAt,
               createdBy: invoice.createdBy,

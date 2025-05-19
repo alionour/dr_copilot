@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:dr_copilot/scripts/onboarding_multi_clinic_migration.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart'
@@ -133,7 +134,15 @@ class _CopilotPageState extends State<CopilotPage> {
   Widget build(BuildContext context) {
     final navMenuButton = NavMenuButtonProvider.of(context);
     return Scaffold(
-       appBar: AppBar(
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: ()async {
+      //     // Provide a valid file path for export
+      //     const String filePath = 'exported_firestore.json';
+      //     await runFirestoreMigration();
+      //   },
+      //   child: const Icon(Icons.refresh),
+      // ),
+      appBar: AppBar(
         title: Text('copilotChat'.tr()),
         leading: Icon(Icons.chat),
         actions: [navMenuButton ?? SizedBox()],

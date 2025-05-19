@@ -86,7 +86,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           dueDate: Timestamp.fromDate(addedSession.startDateTime
               .toDate()
               .add(const Duration(days: 30))),
-          userId: addedSession.userId,
+          ownerId: addedSession.ownerId,
+          clinicId: addedSession.clinicId,
           customerType: CustomerType.patient,
           source: InvoiceSource.sessions,
           status: InvoiceStatus.unpaid,
@@ -132,8 +133,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       emit(SessionsSuccess(sessions, message: 'sessionDeleted'.tr()));
       // If the invoice and transaction should be deleted, handle that here
       if (event.deleteInvoiceAndTransaction) {
-        final failureOrInvoice =
-            await _financialsUseCase.deleteInvoiceByReferenceId(event.sessionId);
+        final failureOrInvoice = await _financialsUseCase
+            .deleteInvoiceByReferenceId(event.sessionId);
         return await failureOrInvoice.fold(
           (failure) {
             return SessionsError(state.sessions,
@@ -272,7 +273,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
             status: TransactionStatus.completed,
             transactionDate: invoice.createdAt,
             referenceId: invoice.id,
-            userId: invoice.userId,
+            ownerId: invoice.ownerId,
+            clinicId: invoice.clinicId,
             amount: invoice.amount,
             createdAt: invoice.createdAt,
             createdBy: invoice.createdBy,
@@ -292,7 +294,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               status: TransactionStatus.completed,
               transactionDate: invoice.createdAt,
               referenceId: invoice.id,
-              userId: invoice.userId,
+              ownerId: invoice.ownerId,
+              clinicId: invoice.clinicId,
               amount: invoice.amount,
               createdAt: invoice.createdAt,
               createdBy: invoice.createdBy,
@@ -378,7 +381,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               issuedAt: session.startDateTime,
               dueDate: Timestamp.fromDate(
                   session.startDateTime.toDate().add(const Duration(days: 2))),
-              userId: session.userId,
+              ownerId: session.ownerId,
+              clinicId: session.clinicId,
               customerType: CustomerType.patient,
               source: InvoiceSource.sessions,
               status: InvoiceStatus.paid, // Store as `InvoiceStatus`
@@ -409,7 +413,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     status: TransactionStatus.completed,
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
-                    userId: addedInvoice.userId,
+                    ownerId: addedInvoice.ownerId,
+                    clinicId: addedInvoice.clinicId,
                     amount: addedInvoice.amount,
                     createdAt: addedInvoice.createdAt,
                     createdBy: addedInvoice.createdBy,
@@ -433,7 +438,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                         TransactionSource.invoice),
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
-                    userId: addedInvoice.userId,
+                    ownerId: addedInvoice.ownerId,
+                    clinicId: addedInvoice.clinicId,
                     amount: partialPaymentAmount,
                     createdAt: addedInvoice.createdAt,
                     createdBy: addedInvoice.createdBy,
@@ -506,7 +512,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               issuedAt: session.startDateTime,
               dueDate: Timestamp.fromDate(
                   session.startDateTime.toDate().add(const Duration(days: 2))),
-              userId: session.userId,
+              ownerId: session.ownerId,
+              clinicId: session.clinicId,
               customerType: CustomerType.patient,
               source: InvoiceSource.evaluations,
               status: InvoiceStatus.paid, // Store as `InvoiceStatus`
@@ -537,7 +544,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     status: TransactionStatus.completed,
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
-                    userId: addedInvoice.userId,
+                    ownerId: addedInvoice.ownerId,
+                    clinicId: addedInvoice.clinicId,
                     amount: addedInvoice.amount,
                     createdAt: addedInvoice.createdAt,
                     createdBy: addedInvoice.createdBy,
@@ -561,7 +569,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                         TransactionSource.invoice),
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
-                    userId: addedInvoice.userId,
+                    ownerId: addedInvoice.ownerId,
+                    clinicId: addedInvoice.clinicId,
                     amount: partialPaymentAmount,
                     createdAt: addedInvoice.createdAt,
                     createdBy: addedInvoice.createdBy,
