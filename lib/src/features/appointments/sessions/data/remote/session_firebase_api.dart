@@ -13,7 +13,7 @@ import 'package:flutter/foundation.dart';
 /// and detecting session types.
 class SessionsFirebaseApi extends AbstractSessionsRepository {
 
-  final ownerId = OwnerNotifier().ownerId;
+  final ownerId = OwnerNotifier().ownerId; 
   
   /// Reference to the Firestore collection for sessions.
   final CollectionReference _sessionsCollection =
