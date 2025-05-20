@@ -376,6 +376,37 @@ class _AddSessionPageState extends State<AddSessionPage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
+                            DropdownButtonFormField<String>(
+                              value: _selectedClinicId,
+                              decoration: InputDecoration(
+                                labelText: 'clinic'.tr(),
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: OwnerNotifier().clinics.map((clinic) {
+                                return DropdownMenuItem<String>(
+                                  value: clinic.id,
+                                  child: Text(clinic
+                                      .name), // Replace with clinic name if available
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  if (newValue != null) {
+                                    _selectedClinicId = newValue;
+                                  }
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'selectClinic'.tr();
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8.0),
                             Focus(
                               focusNode: _searchFocusNode,
                               child: BlocBuilder<PatientsBloc, PatientsState>(
@@ -477,37 +508,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   );
                                 },
                               ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            DropdownButtonFormField<String>(
-                              value: _selectedClinicId,
-                              decoration: InputDecoration(
-                                labelText: 'Clinic',
-                                labelStyle: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              items: OwnerNotifier().clinics.map((clinic) {
-                                return DropdownMenuItem<String>(
-                                  value: clinic.id,
-                                  child: Text(clinic
-                                      .name), // Replace with clinic name if available
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  if (newValue != null) {
-                                    _selectedClinicId = newValue;
-                                  }
-                                });
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please select a clinic';
-                                }
-                                return null;
-                              },
                             ),
                             const SizedBox(height: 8.0),
                             Container(

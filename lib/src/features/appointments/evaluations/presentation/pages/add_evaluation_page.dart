@@ -48,6 +48,7 @@ class AddEvaluationPage extends StatefulWidget {
 }
 
 class _AddEvaluationPageState extends State<AddEvaluationPage> {
+  String? _selectedClinicId;
   final _formKey = GlobalKey<FormState>();
   final _patientNameController = TextEditingController();
   final _patientNameFocusNode = FocusNode();
@@ -79,6 +80,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
+
+    final clinics = OwnerNotifier().clinics;
+    if (clinics.isNotEmpty) {
+      _selectedClinicId = clinics.first.id;
+    }
   }
 
   String? _validateTime() {
@@ -172,15 +178,20 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       });
     }
   }
-  final ownerId = OwnerNotifier().ownerId;
-  final clinicId = OwnerNotifier().clinicId;
 
+  final ownerId = OwnerNotifier().ownerId;
 
   void _saveEvaluation() {
     if (_formKey.currentState!.validate()) {
       if (_startDate == null || _endDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('startAndEndTimesRequired'.tr())),
+        );
+        return;
+      }
+      if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select a clinic.')),
         );
         return;
       }
@@ -204,7 +215,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         price: double.parse(_actualPriceController.text),
         ownerId: ownerId ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
-        clinicId: clinicId ?? '',
+        clinicId: _selectedClinicId!,
       );
       context.read<EvaluationsBloc>().add(AddEvaluation(evaluationData));
     }
@@ -363,6 +374,36 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
+                            DropdownButtonFormField<String>(
+                              value: _selectedClinicId,
+                              decoration: InputDecoration(
+                                labelText: 'clinic'.tr(),
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: OwnerNotifier().clinics.map((clinic) {
+                                return DropdownMenuItem<String>(
+                                  value: clinic.id,
+                                  child: Text(clinic.name),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  if (newValue != null) {
+                                    _selectedClinicId = newValue;
+                                  }
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'selectClinic'.tr();
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8.0),
                             Focus(
                               focusNode: _searchFocusNode,
                               child: BlocBuilder<PatientsBloc, PatientsState>(
@@ -454,68 +495,6 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
-                                                Tooltip(
-                                                  message: 'addPatient'.tr(),
-                                                  child: IconButton(
-                                                    icon: const Icon(Icons.add),
-                                                    onPressed: () {
-                                                      final userId =
-                                                          FirebaseAuth.instance
-                                                              .currentUser?.uid;
-                                                      if (userId != null &&
-                                                          clinicId != null) {
-                                                        if (query
-                                                                .split(' ')
-                                                                .length <
-                                                            3) {
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            SnackBar(
-                                                                content: Text(
-                                                                    'nameMustContain'
-                                                                        .tr())),
-                                                          );
-                                                          return;
-                                                        }
-                                                        // Add patient directly
-                                                        final newPatient =
-                                                            PatientModel(
-                                                                id: const Uuid()
-                                                                    .v4(),
-                                                                name: query,
-                                                                ownerId:
-                                                                    userId,
-                                                                    clinicId: clinicId!,
-                                                                    
-                                                                    );
-                                                        context
-                                                            .read<
-                                                                PatientsBloc>()
-                                                            .add(AddPatient(
-                                                                newPatient));
-                                                        setState(() {
-                                                          _patientNameController
-                                                              .text = query;
-                                                          _filteredPatients =
-                                                              [];
-                                                        });
-                                                        FocusScope.of(context)
-                                                            .requestFocus(
-                                                                _actualPriceFocusNode);
-                                                      } else {
-                                                        ScaffoldMessenger.of(
-                                                                context)
-                                                            .showSnackBar(
-                                                          SnackBar(
-                                                              content: Text(
-                                                                  'userIdCannotBeNull'
-                                                                      .tr())),
-                                                        );
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
                                                 Tooltip(
                                                   message:
                                                       'goToAddPatient'.tr(),

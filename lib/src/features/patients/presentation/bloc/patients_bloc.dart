@@ -168,11 +168,17 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     final result = await _patientsUseCase.getPatientsByDate(
       event.date,
     );
-    emit(result.fold(
-      (failure) =>
-          PatientsError(state.patients, message: _mapFailureToMessage(failure)),
-      (patients) => PatientsLoaded(patients),
-    ));
+    result.fold(
+      (failure) {
+      debugPrint('GetPatientsByDate failed: ${_mapFailureToMessage(failure)}');
+      emit(PatientsError(state.patients, message: _mapFailureToMessage(failure)));
+      },
+      (patients) {
+      debugPrint('Fetched ${patients.length} patients for date ${event.date}');
+      emit(PatientsLoaded(patients));
+      },
+    );
+    
   }
 
   Future<void> _onGetPatientsCount(
