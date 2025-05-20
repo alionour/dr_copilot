@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:googleapis/bigquery/v2.dart';
 
 /// A Firebase API implementation for managing session data in Firestore.
 /// This class provides methods to perform CRUD operations on session data
@@ -271,52 +272,61 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// Searches for sessions based on the provided criteria.
   ///
   /// [patientId] is the ID of the patient to filter sessions by.
+  /// [name] is the name of the patient to filter sessions by (optional, will be converted to patientId(s)).
   /// [lastDocumentID] is the ID of the last document fetched for pagination.
   /// [limit] specifies the maximum number of sessions to fetch.
   ///
   /// Returns a list of [SessionModel] objects or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions(
-      {String? patientId, String? lastDocumentID, int limit = 20}) async {
+   @override
+  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name, String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
-      final user = _auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef =
-            _sessionsCollection.where('ownerId', isEqualTo: ownerId);
+        List<String> patientIds = [];
+        if (name != null && name.isNotEmpty) {
+          // 1. Find patient IDs by name
+          final patientsSnapshot = await _patientsCollection
+              .where('name', isGreaterThanOrEqualTo: name)
+              .where('name', isLessThanOrEqualTo: '$name\uf8ff')
+              .get();
+          patientIds = patientsSnapshot.docs.map((doc) => doc.id).toList();
+          if (patientIds.isEmpty) {
+            // No patients found, return empty result
+            return Right([]);
+          }
+        }
 
-        if (patientId != null && patientId.isNotEmpty) {
-          queryRef = queryRef
-              .where('patientId', isGreaterThanOrEqualTo: patientId)
-              .where('patientId', isLessThanOrEqualTo: '$patientId\uf8ff');
+        Query queryRef = _sessionsCollection.where('ownerId', isEqualTo: ownerId);
+        if (patientIds.isNotEmpty) {
+          // Firestore whereIn supports max 10 items, so take first 10
+          queryRef = queryRef.where('patientId', whereIn: patientIds.take(10).toList());
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot =
-              await _sessionsCollection.doc(lastDocumentID).get();
+          final lastDocumentSnapshot = await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         }
+
         final snapshot = await queryRef.get();
 
-        // Map the snapshot documents to a list of SessionModel objects
-        List<SessionModel> sessions =
-            await Future.wait(snapshot.docs.map((doc) async {
+        List<SessionModel> sessions = await Future.wait(snapshot.docs.map((doc) async {
           final data = doc.data() as Map<String, dynamic>?;
           if (data == null) {
             throw Exception('Document data is null');
           }
           // Fetch the patient name dynamically using the patient ID
-          final patientName =
-              await getPatientNameById(data['patientId'] as String);
+          final patientName = await getPatientNameById(data['patientId'] as String);
           if (patientName == null) {
-            debugPrint('Patient name not found for ID: ${data['patientId']}');
+            debugPrint('Patient name not found for ID: \\${data['patientId']}');
           }
           return SessionModel.fromJson({
             ...data,
@@ -324,9 +334,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             'patientName': patientName ?? 'No Name Available',
           });
         }).toList());
-
         return Right(sessions);
-
       }
       return Left(ServerFailure('User not authenticated', 401));
     } on FirebaseException catch (e) {
@@ -336,10 +344,11 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             'Firestore index required. Please create the index in the Firestore console.',
             400));
       }
-      debugPrint('Error searching sessions: $e');
+      debugPrint('Error searching evaluations: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }
+
 
   /// Fetches sessions for a specific date.
   ///

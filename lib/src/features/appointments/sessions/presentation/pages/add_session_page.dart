@@ -23,7 +23,7 @@ class AddSessionPage extends StatefulWidget {
 
 class _AddSessionPageState extends State<AddSessionPage> {
   // Clinic selection fields
-  String _selectedClinicId = OwnerNotifier().clinics.first.id;
+  String? _selectedClinicId;
   final _formKey = GlobalKey<FormState>();
   final _patientNameController = TextEditingController();
   final _patientNameFocusNode = FocusNode();
@@ -66,6 +66,11 @@ class _AddSessionPageState extends State<AddSessionPage> {
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
+    
+    final clinics = OwnerNotifier().clinics;
+    if (clinics.isNotEmpty) {
+      _selectedClinicId = clinics.first.id;
+    }
   }
 
   Future<void> _fetchCurrencyProfiles() async {

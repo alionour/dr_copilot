@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -13,9 +14,11 @@ class LoginPage extends StatelessWidget {
     return StreamBuilder(
       stream: authBloc.userAuthenticationStream(),
       builder: (context, snapshot) {
+        
         final user = snapshot.data;
         if (user != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            OwnerNotifier().loadOwnerIdAndClinicId();
             RoutingConfig.router.go('/home');
           });
           return const SizedBox.shrink();

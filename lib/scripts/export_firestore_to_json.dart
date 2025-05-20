@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/scripts/onboarding_multi_clinic_migration.dart';
-
 
 // Helper to convert Firestore data to JSON-encodable format
 dynamic toEncodableFirestore(dynamic value) {
@@ -16,7 +14,6 @@ dynamic toEncodableFirestore(dynamic value) {
     return value;
   }
 }
-
 
 Future<void> exportFirestoreToJson(String filePath) async {
   final firestore = FirebaseFirestore.instance;
@@ -48,7 +45,8 @@ Future<void> exportFirestoreToJson(String filePath) async {
   }
   try {
     final file = File(filePath);
-    await file.writeAsString(const JsonEncoder.withIndent('  ').convert(exportData));
+    await file
+        .writeAsString(const JsonEncoder.withIndent('  ').convert(exportData));
     print('Firestore export complete: $filePath');
   } catch (e, st) {
     print('Error writing export file: $e\n$st');

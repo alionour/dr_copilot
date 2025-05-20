@@ -243,8 +243,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
 
   /// Fetches evaluations based on search criteria.
   @override
-  Future<Either<Failure, List<EvaluationModel>>> searchEvaluations(
-      {String? name, String? lastDocumentID, int limit = 20}) async {
+  Future<Either<Failure, List<EvaluationModel>>> searchEvaluations({String? name, String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -252,37 +251,46 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef =
-            _evaluationsCollection.where('ownerId', isEqualTo: ownerId);
-
+        List<String> patientIds = [];
         if (name != null && name.isNotEmpty) {
-          queryRef = queryRef
-              .where('patientName', isGreaterThanOrEqualTo: name)
-              .where('patientName', isLessThanOrEqualTo: '$name\uf8ff');
+          // 1. Find patient IDs by name
+          final patientsSnapshot = await _patientsCollection
+              .where('name', isGreaterThanOrEqualTo: name)
+              .where('name', isLessThanOrEqualTo: '$name\uf8ff')
+              .get();
+          patientIds = patientsSnapshot.docs.map((doc) => doc.id).toList();
+          if (patientIds.isEmpty) {
+            // No patients found, return empty result
+            return Right([]);
+          }
+        }
+
+        Query queryRef = _evaluationsCollection.where('ownerId', isEqualTo: ownerId);
+        if (patientIds.isNotEmpty) {
+          // Firestore whereIn supports max 10 items, so take first 10
+          queryRef = queryRef.where('patientId', whereIn: patientIds.take(10).toList());
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot =
-              await _evaluationsCollection.doc(lastDocumentID).get();
+          final lastDocumentSnapshot = await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         }
+
         final snapshot = await queryRef.get();
 
-        List<EvaluationModel> evaluations =
-            await Future.wait(snapshot.docs.map((doc) async {
+        List<EvaluationModel> evaluations = await Future.wait(snapshot.docs.map((doc) async {
           final data = doc.data() as Map<String, dynamic>?;
           if (data == null) {
             throw Exception('Document data is null');
           }
           // Fetch the patient name dynamically using the patient ID
-          final patientName =
-              await getPatientNameById(data['patientId'] as String);
+          final patientName = await getPatientNameById(data['patientId'] as String);
           if (patientName == null) {
-            debugPrint('Patient name not found for ID: ${data['patientId']}');
+            debugPrint('Patient name not found for ID: \\${data['patientId']}');
           }
           return EvaluationModel.fromJson({
             ...data,
