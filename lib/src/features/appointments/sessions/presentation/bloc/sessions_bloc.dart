@@ -456,6 +456,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           }
 
           debugPrint('All sessions processed successfully');
+                if (!context.mounted) return;
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -465,6 +466,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       );
     } catch (e) {
       debugPrint('Error in processSessions: $e');
+      if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to process sessions'.tr())),
@@ -587,6 +589,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           }
 
           debugPrint('All sessions processed successfully');
+                if (!context.mounted) return;
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('Processed all sessions successfully!'.tr())),
@@ -595,6 +599,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       );
     } catch (e) {
       debugPrint('Error in processSessions: $e');
+      if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to process sessions'.tr())),

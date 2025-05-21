@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 Future<void> runFirestoreMigration() async {
@@ -161,8 +158,6 @@ Future<void> runFirestoreMigration() async {
       for (final doc in snap.docs) {
         try {
           debugPrint('Migrating $collection doc ${doc.id}...');
-          
-          final data = doc.data();
 
           final updates = <String, dynamic>{};
 
@@ -178,7 +173,6 @@ Future<void> runFirestoreMigration() async {
           await doc.reference.update(updates);
 
           debugPrint('Migrated $collection doc ${doc.id}');
-        
         } catch (e, st) {
           debugPrint('Error migrating $collection doc ${doc.id}: $e\n$st');
         }

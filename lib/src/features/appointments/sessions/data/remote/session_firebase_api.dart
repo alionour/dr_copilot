@@ -6,7 +6,6 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/models/sess
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:googleapis/bigquery/v2.dart';
 
 /// A Firebase API implementation for managing session data in Firestore.
 /// This class provides methods to perform CRUD operations on session data

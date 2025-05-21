@@ -1,5 +1,4 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-import 'package:dr_copilot/src/core/auth/owner_notifier.dart';
 import 'package:dr_copilot/src/features/financials/data/remote/abstract_financial_api.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';

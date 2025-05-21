@@ -5,7 +5,7 @@ class DrCopilotLogo extends StatelessWidget {
   final double? width;
   final double? height;
 
-  const DrCopilotLogo({Key? key, this.width, this.height}) : super(key: key);
+  const DrCopilotLogo({super.key, this.width, this.height});
 
   @override
   Widget build(BuildContext context) {

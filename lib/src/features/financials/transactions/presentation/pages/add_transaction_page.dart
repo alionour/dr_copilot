@@ -241,7 +241,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           Consumer<OwnerNotifier>(
                             builder: (context, ownerNotifier, _) {
                               final clinics = ownerNotifier.clinics;
-                              if (clinics == null || clinics.isEmpty) {
+                              if (clinics.isEmpty) {
                                 return const SizedBox();
                               }
                               return Column(
@@ -257,7 +257,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                                     items: clinics.map((clinic) {
                                       return DropdownMenuItem<String>(
                                         value: clinic.id,
-                                        child: Text(clinic.name ?? clinic.id),
+                                        child: Text(clinic.name),
                                       );
                                     }).toList(),
                                     onChanged: (String? newValue) {
@@ -356,8 +356,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                                   _transactionSource = newValue;
                                 }
                               });
-                              if (!mounted)
+                              if (!mounted) {
                                 return; // Ensure context is still valid after async gap
+                              }
 
                               FocusScope.of(context)
                                   .requestFocus(_transactionDateFocusNode);
@@ -471,6 +472,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                               final isValid =
                                   await _validateReferenceId(context);
                               if (isValid) {
+                                      if (!context.mounted) return;
+
                                 FocusScope.of(context)
                                     .unfocus(); // Unfocus after the last field
                               }

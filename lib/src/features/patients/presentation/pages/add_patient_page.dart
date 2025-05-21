@@ -114,7 +114,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                             Consumer<OwnerNotifier>(
                               builder: (context, ownerNotifier, _) {
                                 final clinics = ownerNotifier.clinics;
-                                if (clinics == null || clinics.isEmpty) {
+                                if (clinics.isEmpty) {
                                   return const SizedBox();
                                 }
                                 return Column(
@@ -130,7 +130,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                       items: clinics.map((clinic) {
                                         return DropdownMenuItem<String>(
                                           value: clinic.id,
-                                          child: Text(clinic.name ?? clinic.id),
+                                          child: Text(clinic.name),
                                         );
                                       }).toList(),
                                       onChanged: (String? newValue) {

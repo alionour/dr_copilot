@@ -221,6 +221,8 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                               },
                             );
                             if (result != null) {
+                              if (!context.mounted) return;
+
                               context.read<EvaluationsBloc>().add(
                                   DeleteEvaluation(widget.evaluationModel.id));
                               // TODO: If you want to delete invoice/transactions, dispatch events here using result.deleteEvaluationAndTransaction

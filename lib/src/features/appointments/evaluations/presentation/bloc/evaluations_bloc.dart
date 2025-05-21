@@ -113,7 +113,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         if (event.deleteInvoiceAndTransaction) {
           final failureOrInvoice = await _financialsUseCase
               .deleteInvoiceByReferenceId(event.evaluationId);
-          return await failureOrInvoice.fold(
+          return failureOrInvoice.fold(
             (failure) {
               return EvaluationsError(state.evaluations,
                   message: _mapFailureToMessage(failure));

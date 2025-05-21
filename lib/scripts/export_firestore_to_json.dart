@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 // Helper to convert Firestore data to JSON-encodable format
 dynamic toEncodableFirestore(dynamic value) {
@@ -28,18 +29,18 @@ Future<void> exportFirestoreToJson(String filePath) async {
     // Add more collections if needed
   ];
   final Map<String, List<Map<String, dynamic>>> exportData = {};
-  print('Starting Firestore export...');
+  debugPrint('Starting Firestore export...');
   for (final collection in collections) {
     try {
-      print('Exporting collection: $collection');
+      debugPrint('Exporting collection: $collection');
       final snap = await firestore.collection(collection).get();
-      print('Fetched ${snap.docs.length} documents from $collection');
+      debugPrint('Fetched ${snap.docs.length} documents from $collection');
       exportData[collection] = [
         for (final doc in snap.docs)
           {'id': doc.id, ...toEncodableFirestore(doc.data())}
       ];
     } catch (e, st) {
-      print('Error exporting collection $collection: $e\n$st');
+      debugPrint('Error exporting collection $collection: $e\n$st');
       exportData[collection] = [];
     }
   }
@@ -47,8 +48,8 @@ Future<void> exportFirestoreToJson(String filePath) async {
     final file = File(filePath);
     await file
         .writeAsString(const JsonEncoder.withIndent('  ').convert(exportData));
-    print('Firestore export complete: $filePath');
+    debugPrint('Firestore export complete: $filePath');
   } catch (e, st) {
-    print('Error writing export file: $e\n$st');
+    debugPrint('Error writing export file: $e\n$st');
   }
 }
