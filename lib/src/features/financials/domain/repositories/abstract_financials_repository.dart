@@ -89,27 +89,6 @@ abstract class AbstractFinancialsRepository {
   Future<Either<Failure, CurrencyProfileModel>> updateCurrencyProfile(
       CurrencyProfileModel profile);
 
-  /// Gets the sum of session costs for a given month and year.
-  Future<Either<Failure, double>> getSessionsSumForMonth({
-    required int year,
-    required int month,
-  });
-
-  /// Gets the sum of session costs for a given year.
-  Future<Either<Failure, double>> getSessionsSumForYear({
-    required int year,
-  });
-
-  /// Gets the sum of evaluation costs for a given month and year.
-  Future<Either<Failure, double>> getEvaluationsSumForMonth({
-    required int year,
-    required int month,
-  });
-
-  /// Gets the sum of evaluation costs for a given year.
-  Future<Either<Failure, double>> getEvaluationsSumForYear({
-    required int year,
-  });
 
   /// Gets the count of sessions.
   Future<Either<Failure, int>> getSessionsCount();

@@ -158,32 +158,6 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     return firebaseApi.updateCurrencyProfile(profile);
   }
 
-  /// Gets the sum of session costs for a given month and year.
-  @override
-  Future<Either<Failure, double>> getSessionsSumForMonth(
-      {required int year, required int month}) {
-    return firebaseApi.getSessionsSumForMonth(year: year, month: month);
-  }
-
-  /// Gets the sum of session costs for a given year.
-  @override
-  Future<Either<Failure, double>> getSessionsSumForYear({required int year}) {
-    return firebaseApi.getSessionsSumForYear(year: year);
-  }
-
-  /// Gets the sum of evaluation costs for a given month and year.
-  @override
-  Future<Either<Failure, double>> getEvaluationsSumForMonth(
-      {required int year, required int month}) {
-    return firebaseApi.getEvaluationsSumForMonth(year: year, month: month);
-  }
-
-  /// Gets the sum of evaluation costs for a given year.
-  @override
-  Future<Either<Failure, double>> getEvaluationsSumForYear(
-      {required int year}) {
-    return firebaseApi.getEvaluationsSumForYear(year: year);
-  }
 
   /// Gets the count of sessions.
   @override
