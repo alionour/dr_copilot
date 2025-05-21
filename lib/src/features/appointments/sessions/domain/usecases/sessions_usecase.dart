@@ -35,7 +35,7 @@ class SessionsUseCase {
   /// Searches sessions based on criteria.
   Future<Either<Failure, List<SessionModel>>> searchSessions(
       {String? name}) async {
-    return await repository.searchSessions(patientId: name);
+    return await repository.searchSessions(name: name);
   }
 
   /// Gets sessions by a specific date.

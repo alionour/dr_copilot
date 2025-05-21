@@ -18,6 +18,18 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       providerData: json['providerData'] as List<dynamic>?,
       refreshToken: json['refreshToken'] as String?,
       tenantId: json['tenantId'] as String?,
+      permissions: json['permissions'] == null
+          ? const []
+          : const PermissionListJsonConverter()
+              .fromJson(json['permissions'] as List<String>),
+      roles: json['roles'] == null
+          ? const []
+          : const RoleListJsonConverter().fromJson(json['roles'] as List),
+      clinicIds: (json['clinicIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      primaryClinicId: json['primaryClinicId'] as String?,
+      ownerId: json['ownerId'] as String?,
     );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
@@ -32,4 +44,10 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
       'providerData': instance.providerData,
       'refreshToken': instance.refreshToken,
       'tenantId': instance.tenantId,
+      'ownerId': instance.ownerId,
+      'permissions':
+          const PermissionListJsonConverter().toJson(instance.permissions),
+      'roles': const RoleListJsonConverter().toJson(instance.roles),
+      'clinicIds': instance.clinicIds,
+      'primaryClinicId': instance.primaryClinicId,
     };

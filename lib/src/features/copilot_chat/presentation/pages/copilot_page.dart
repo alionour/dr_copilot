@@ -133,7 +133,15 @@ class _CopilotPageState extends State<CopilotPage> {
   Widget build(BuildContext context) {
     final navMenuButton = NavMenuButtonProvider.of(context);
     return Scaffold(
-       appBar: AppBar(
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: ()async {
+      //     // Provide a valid file path for export
+      //     const String filePath = 'exported_firestore.json';
+      //     await runFirestoreMigration();
+      //   },
+      //   child: const Icon(Icons.refresh),
+      // ),
+      appBar: AppBar(
         title: Text('copilotChat'.tr()),
         leading: Icon(Icons.chat),
         actions: [navMenuButton ?? SizedBox()],

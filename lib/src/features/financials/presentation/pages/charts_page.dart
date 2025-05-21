@@ -73,7 +73,7 @@ class _ChartsPageState extends State<ChartsPage> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.teal.withOpacity(0.08),
+                        color: Colors.teal.withAlpha((0.08 * 255).toInt()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -410,8 +410,7 @@ class _ToggleableBarLineChart extends StatefulWidget {
     required this.lineName,
     required this.color,
     required this.yValueMapper,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   State<_ToggleableBarLineChart> createState() =>

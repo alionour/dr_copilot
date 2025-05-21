@@ -100,6 +100,8 @@ dev_dependencies:
   bloc_test: ^10.0.0
   freezed: ^3.0.4
   shorebird_code_push: ^2.0.3
+  firebase_dart: ^1.4.0
+  flutter_launcher_icons: ^0.14.3
 
 
 # For information on the generic Dart part of this file, see the
@@ -116,7 +118,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/svg/icons8-google-ios-17-filled/
-    - assets/svg/logo.svg
+    - assets/svg/dr_copilot_logo.svg
     - assets/translations/
     - shorebird.yaml
   #   - images/a_dot_ham.jpeg

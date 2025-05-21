@@ -72,14 +72,19 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
   /// Fetch user data from Firebase
   void getUserData(GetUserData event, Emitter emit) async {
+    debugPrint('getUserData called');
     try {
       final firebaseUser = FirebaseAuth.instance.currentUser;
+      debugPrint('Firebase currentUser: $firebaseUser');
       UserModel? userModel;
       if (firebaseUser != null) {
         userModel = UserModel.fromFirebaseUser(firebaseUser);
+        debugPrint('UserModel created: $userModel');
       }
       emit(state.copyWith(user: userModel));
+      debugPrint('Emitted state with user: $userModel');
     } catch (error) {
+      debugPrint('Error fetching user data: $error');
       emit(state.copyWith(user: null));
     }
   }

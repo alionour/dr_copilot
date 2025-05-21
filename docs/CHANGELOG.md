@@ -6,9 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+
 ## [Unreleased]
 ### Added
-- Initial changelog file with structure for future releases.
+- Dr Copilot logo SVG and new app icon assets for all platforms
+- App icon generation instructions and automation (flutter_launcher_icons)
+- Multi-clinic onboarding documentation and flows
+- Firestore export script and migration tools
+- Billing summary and app context documentation
+- Enhanced localization: new translations and improved RTL support
+- New onboarding and invitation flows for clinics
+- Financials: currency profiles, revenue charts, and improved dashboard
+- Security: migration to flutter_secure_storage, improved release checklist
+- CI/CD: Doppler integration, Shorebird OTA, GitHub Actions workflows
+- Clinic selection dropdown to evaluation and session pages
+- Firestore export to JSON functionality
+- Roles and permissions structure with enums and mapping
+- Month labels and financial report translations for Arabic and English
+- Toggleable Bar/Line chart for revenue vs expenses
+- Bill management: fetch, add, update, delete, payment processing
+- Delete functionality for invoices and transactions by reference ID
+- Invoice and transaction handling in evaluations bloc
+- Direction field in transaction model
+
+### Changed
+- Refactored navigation and BLoC structure for sessions and financials
+- Improved session and evaluation search and filtering (filter by patient name, better data retrieval)
+- Modularized codebase for maintainability and scalability
+- Updated app icon and branding across all platforms
+- Enhanced accessibility and theming
+- Refactored ChartsPage to use StatefulWidget and year selection
+- Refactored transaction queries for user scoping and ordering
+- Improved transaction fetching order (ascending by creation date)
+- Refactored financials and transactions handling for better state management
+- Updated color handling in widgets for alpha transparency
+
+### Fixed
+- Improved transaction and bill management logic
+- Fixed bugs in patient and session CRUD operations
+- Enhanced error handling and state management in BLoCs
+- Enhanced session and evaluation retrieval by dynamically fetching patient names and including document IDs
+- Improved transaction list item logic for income detection
+
+### Removed
+- Deprecated/unused files and legacy code
+
 
 ---
 

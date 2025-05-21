@@ -260,6 +260,8 @@ class _SessionListItemState extends State<SessionListItem> {
                               },
                             );
                             if (result != null) {
+                                    if (!context.mounted) return;
+
                               context.read<SessionsBloc>().add(DeleteSession(
                                   widget.sessionModel.id,
                                   deleteInvoiceAndTransaction:

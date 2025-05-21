@@ -128,6 +128,7 @@ class TransactionsRepositoryImpl extends AbstractTransactionsRepository {
   }
 
   /// Deletes a transaction by its reference ID.
+  @override
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
       String referenceId) async {
     return firebaseApi.deleteTransactionByReferenceId(referenceId);
