@@ -76,7 +76,8 @@ enum InvoiceStatus {
 @JsonSerializable(explicitToJson: true)
 class InvoiceModel {
   final String id;
-  final String userId; // The parent user document this invoice belongs to
+  final String ownerId; // The parent user document this invoice belongs to
+  final String clinicId;
   final String title;
   final String description;
   final double amount;
@@ -112,7 +113,8 @@ class InvoiceModel {
 
   InvoiceModel({
     required this.id,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     required this.title,
     required this.description,
     required this.amount,
@@ -138,7 +140,8 @@ class InvoiceModel {
 
   InvoiceModel copyWith({
     String? id,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? title,
     String? description,
     double? amount,
@@ -159,7 +162,8 @@ class InvoiceModel {
   }) {
     return InvoiceModel(
       id: id ?? this.id,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       title: title ?? this.title,
       description: description ?? this.description,
       amount: amount ?? this.amount,

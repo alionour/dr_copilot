@@ -21,7 +21,8 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
       deletedBy: json['deletedBy'] as String?,
       updatedBy: json['updatedBy'] as String?,
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
-      userId: json['userId'] as String,
+      ownerId: json['ownerId'] as String,
+      clinicId: json['clinicId'] as String,
       currencyProfileId: json['currencyProfileId'] as String?,
       direction: const TransactionDirectionConverter()
           .fromJson(json['direction'] as String),
@@ -47,7 +48,8 @@ Map<String, dynamic> _$TransactionModelToJson(TransactionModel instance) =>
           const NullableTimestampConverter().toJson(instance.deletedAt),
       'updatedAt':
           const NullableTimestampConverter().toJson(instance.updatedAt),
-      'userId': instance.userId,
+      'ownerId': instance.ownerId,
+      'clinicId': instance.clinicId,
       'createdBy': instance.createdBy,
       'deletedBy': instance.deletedBy,
       'updatedBy': instance.updatedBy,

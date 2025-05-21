@@ -1,0 +1,59 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#20B2AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#008B8B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lightTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5DADE2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#48CAE4;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#48CAE4;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#20B2AA;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect x="0" y="0" width="1024" height="1024" fill="#ffffff"/>
+  
+  <!-- Medical Clipboard with Digital/Circuit Elements -->
+  <g transform="translate(200, 200)">
+    <!-- Clipboard base -->
+    <rect x="162" y="100" width="300" height="400" rx="20" fill="url(#tealGradient)"/>
+    <rect x="180" y="120" width="264" height="360" rx="12" fill="#ffffff"/>
+    
+    <!-- Clipboard clip -->
+    <rect x="262" y="80" width="80" height="60" rx="12" fill="#008B8B"/>
+    <rect x="272" y="92" width="60" height="36" rx="8" fill="url(#lightTeal)"/>
+    
+    <!-- Digital lines on clipboard -->
+    <line x1="200" y1="180" x2="424" y2="180" stroke="#5DADE2" stroke-width="8"/>
+    <line x1="200" y1="220" x2="360" y2="220" stroke="#5DADE2" stroke-width="8"/>
+    <line x1="200" y1="260" x2="400" y2="260" stroke="#5DADE2" stroke-width="8"/>
+    <line x1="200" y1="300" x2="340" y2="300" stroke="#5DADE2" stroke-width="8"/>
+    <line x1="200" y1="340" x2="380" y2="340" stroke="#5DADE2" stroke-width="8"/>
+    <line x1="200" y1="380" x2="424" y2="380" stroke="#5DADE2" stroke-width="8"/>
+    <line x1="200" y1="420" x2="360" y2="420" stroke="#5DADE2" stroke-width="8"/>
+    
+    <!-- Circuit nodes around clipboard -->
+    <circle cx="100" cy="200" r="12" fill="#20B2AA"/>
+    <circle cx="100" cy="200" r="20" fill="url(#glowGradient)" opacity="0.4"/>
+    
+    <circle cx="524" cy="250" r="12" fill="#48CAE4"/>
+    <circle cx="524" cy="250" r="20" fill="url(#glowGradient)" opacity="0.4"/>
+    
+    <circle cx="120" cy="350" r="10" fill="#5DADE2"/>
+    <circle cx="504" cy="320" r="10" fill="#20B2AA"/>
+    
+    <!-- Circuit connections -->
+    <line x1="112" y1="200" x2="162" y2="200" stroke="#5DADE2" stroke-width="6" opacity="0.8"/>
+    <line x1="462" y1="250" x2="512" y2="250" stroke="#5DADE2" stroke-width="6" opacity="0.8"/>
+    <line x1="130" y1="345" x2="162" y2="330" stroke="#5DADE2" stroke-width="6" opacity="0.6"/>
+    <line x1="462" y1="320" x2="494" y2="320" stroke="#5DADE2" stroke-width="6" opacity="0.6"/>
+    
+    <!-- Additional tech elements -->
+    <circle cx="312" cy="60" r="6" fill="#48CAE4" opacity="0.7"/>
+    <line x1="312" y1="60" x2="312" y2="80" stroke="#5DADE2" stroke-width="4" opacity="0.6"/>
+  </g>
+</svg>

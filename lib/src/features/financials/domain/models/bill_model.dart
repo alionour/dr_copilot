@@ -51,7 +51,8 @@ enum PaymentMethod {
 @JsonSerializable(explicitToJson: true)
 class BillModel {
   final String id;
-  final String userId; // The parent user document this bill belongs to
+  final String ownerId; // The parent user document this bill belongs to
+  final String clinicId; // The clinic this bill belongs to
   final String? scheduledBillId;
   final String title;
   final String description;
@@ -85,7 +86,8 @@ class BillModel {
 
   BillModel({
     required this.id,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     this.scheduledBillId,
     required this.title,
     required this.description,
@@ -109,7 +111,8 @@ class BillModel {
 
   BillModel copyWith({
     String? id,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? scheduledBillId,
     String? title,
     String? description,
@@ -128,7 +131,8 @@ class BillModel {
   }) {
     return BillModel(
       id: id ?? this.id,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       scheduledBillId: scheduledBillId ?? this.scheduledBillId,
       title: title ?? this.title,
       description: description ?? this.description,

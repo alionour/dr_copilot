@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -135,7 +136,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(message)),
             );
-                    }
+          }
         },
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -242,10 +243,17 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                                                     // Add patient directly
                                                     final newPatient =
                                                         PatientModel(
-                                                            id: const Uuid()
-                                                                .v4(),
-                                                            name: query,
-                                                            userId: userId);
+                                                      id: const Uuid().v4(),
+                                                      name: query,
+                                                      ownerId: OwnerNotifier()
+                                                          .ownerId!,
+                                                      clinicId: OwnerNotifier()
+                                                          .clinicId!,
+                                                      createdBy: FirebaseAuth
+                                                          .instance
+                                                          .currentUser!
+                                                          .uid,
+                                                    );
                                                     context
                                                         .read<PatientsBloc>()
                                                         .add(AddPatient(

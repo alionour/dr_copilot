@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/repositories/abstract_patients_repository.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/material.dart';
 class PatientFirebaseApi extends AbstractPatientsRepository {
   final CollectionReference _patientsCollection =
       FirebaseFirestore.instance.collection('patients');
+
+  final ownerId = OwnerNotifier().ownerId;
 
   /// Checks if the user is authenticated.
   ///
@@ -34,7 +37,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
               await _patientsCollection.doc(lastDocumentId).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = _patientsCollection
-                .where('userId', isEqualTo: user.uid)
+                .where('ownerId', isEqualTo: ownerId)
                 .orderBy('createdAt', descending: true)
                 .startAfterDocument(lastDocumentSnapshot)
                 .limit(limit ?? 20);
@@ -43,7 +46,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           }
         } else {
           queryRef = _patientsCollection
-              .where('userId', isEqualTo: user.uid)
+              .where('ownerId', isEqualTo: ownerId)
               .orderBy('createdAt', descending: true)
               .limit(limit ?? 20);
         }
@@ -83,7 +86,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         });
         final createdPatient = patient.copyWith(
           id: docRef.id, // Assign the generated document ID
-          userId: user.uid, // Ensure userId is set
+          ownerId: user.uid, // Ensure userId is set
         );
         return Right(createdPatient);
       }
@@ -173,7 +176,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         Query queryRef =
-            _patientsCollection.where('userId', isEqualTo: user.uid);
+            _patientsCollection.where('ownerId', isEqualTo: ownerId);
 
         if (name != null && name.isNotEmpty) {
           queryRef = queryRef
@@ -229,7 +232,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         Query queryRef = _patientsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('createdAt',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -274,7 +277,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         final snapshot = await _patientsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .get();
         return Right(snapshot.docs.length);
       }

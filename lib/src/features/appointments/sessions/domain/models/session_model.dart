@@ -71,7 +71,8 @@ class SessionModel {
   final Timestamp endDateTime;
 
   final SessionType? sessionType;
-  final String userId;
+  final String ownerId;
+  final String clinicId;
   final String createdBy;
   final String? patientName;
   final String? updatedBy;
@@ -93,7 +94,8 @@ class SessionModel {
     required this.startDateTime,
     required this.endDateTime,
     this.sessionType,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     required this.createdBy,
     this.patientName,
     this.updatedBy,
@@ -115,7 +117,8 @@ class SessionModel {
     Timestamp? startDateTime,
     Timestamp? endDateTime,
     SessionType? sessionType,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? createdBy,
     String? patientName,
     String? updatedBy,
@@ -131,7 +134,8 @@ class SessionModel {
       startDateTime: startDateTime ?? this.startDateTime,
       endDateTime: endDateTime ?? this.endDateTime,
       sessionType: sessionType ?? this.sessionType,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       createdBy: createdBy ?? this.createdBy,
       patientName: patientName ?? this.patientName,
       updatedBy: updatedBy ?? this.updatedBy,

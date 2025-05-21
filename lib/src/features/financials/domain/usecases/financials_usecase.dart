@@ -76,24 +76,6 @@ class FinancialsUseCase {
     return repository.updateCurrencyProfile(profile);
   }
 
-  Future<Either<Failure, double>> getSessionsSumForMonth(
-      {required int year, required int month}) {
-    return repository.getSessionsSumForMonth(year: year, month: month);
-  }
-
-  Future<Either<Failure, double>> getSessionsSumForYear({required int year}) {
-    return repository.getSessionsSumForYear(year: year);
-  }
-
-  Future<Either<Failure, double>> getEvaluationsSumForMonth(
-      {required int year, required int month}) {
-    return repository.getEvaluationsSumForMonth(year: year, month: month);
-  }
-
-  Future<Either<Failure, double>> getEvaluationsSumForYear(
-      {required int year}) {
-    return repository.getEvaluationsSumForYear(year: year);
-  }
 
   Future<Either<Failure, int>> getSessionsCount() {
     return repository.getSessionsCount();

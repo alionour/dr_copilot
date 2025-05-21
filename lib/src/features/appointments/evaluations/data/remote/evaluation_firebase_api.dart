@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
@@ -9,12 +10,15 @@ import 'package:flutter/foundation.dart';
 class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   final CollectionReference _evaluationsCollection =
       FirebaseFirestore.instance.collection('evaluations');
+  
 
   /// Reference to the Firestore collection for patients.
   /// This is used to fetch patient data.
   final CollectionReference _patientsCollection =
       FirebaseFirestore.instance.collection('patients');
 
+  final ownerId = OwnerNotifier().ownerId;
+  
   Future<bool> _isAuthenticated() async {
     final currentUser = await FirebaseAuth.instance.authStateChanges().first;
     return currentUser != null;
@@ -34,7 +38,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
               await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = _evaluationsCollection
-                .where('userId', isEqualTo: user.uid)
+                .where('ownerId', isEqualTo: ownerId)
                 .orderBy('startDateTime', descending: true)
                 .startAfterDocument(lastDocumentSnapshot)
                 .limit(limit);
@@ -43,13 +47,13 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           }
         } else {
           queryRef = _evaluationsCollection
-              .where('userId', isEqualTo: user.uid)
+              .where('ownerId', isEqualTo: ownerId)
               .orderBy('startDateTime', descending: true)
               .limit(limit);
         }
 
         debugPrint('Executing query for evaluations');
-        debugPrint('Query details: userId = ${user.uid}, limit = $limit');
+        debugPrint('Query details: ownerId = $ownerId, limit = $limit');
         if (lastDocumentID != null) {
           debugPrint('Using lastDocumentID: $lastDocumentID');
         }
@@ -239,8 +243,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
 
   /// Fetches evaluations based on search criteria.
   @override
-  Future<Either<Failure, List<EvaluationModel>>> searchEvaluations(
-      {String? name, String? lastDocumentID, int limit = 20}) async {
+  Future<Either<Failure, List<EvaluationModel>>> searchEvaluations({String? name, String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -248,30 +251,53 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef =
-            _evaluationsCollection.where('createdBy', isEqualTo: user.uid);
-
+        List<String> patientIds = [];
         if (name != null && name.isNotEmpty) {
-          queryRef = queryRef
-              .where('patientName', isGreaterThanOrEqualTo: name)
-              .where('patientName', isLessThanOrEqualTo: '$name\uf8ff');
+          // 1. Find patient IDs by name
+          final patientsSnapshot = await _patientsCollection
+              .where('name', isGreaterThanOrEqualTo: name)
+              .where('name', isLessThanOrEqualTo: '$name\uf8ff')
+              .get();
+          patientIds = patientsSnapshot.docs.map((doc) => doc.id).toList();
+          if (patientIds.isEmpty) {
+            // No patients found, return empty result
+            return Right([]);
+          }
+        }
+
+        Query queryRef = _evaluationsCollection.where('ownerId', isEqualTo: ownerId);
+        if (patientIds.isNotEmpty) {
+          // Firestore whereIn supports max 10 items, so take first 10
+          queryRef = queryRef.where('patientId', whereIn: patientIds.take(10).toList());
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot =
-              await _evaluationsCollection.doc(lastDocumentID).get();
+          final lastDocumentSnapshot = await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         }
+
         final snapshot = await queryRef.get();
 
-        List<EvaluationModel> evaluations = snapshot.docs
-            .map((doc) =>
-                EvaluationModel.fromJson(doc.data() as Map<String, dynamic>))
-            .toList();
+        List<EvaluationModel> evaluations = await Future.wait(snapshot.docs.map((doc) async {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          // Fetch the patient name dynamically using the patient ID
+          final patientName = await getPatientNameById(data['patientId'] as String);
+          if (patientName == null) {
+            debugPrint('Patient name not found for ID: \\${data['patientId']}');
+          }
+          return EvaluationModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+            'patientName': patientName ?? 'No Name Available',
+          });
+        }).toList());
         return Right(evaluations);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -302,7 +328,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         debugPrint(
             'Filtering evaluations for user: ${user.uid} on date: $date');
         Query queryRef = _evaluationsCollection
-            .where('createdBy', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -397,7 +423,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
         final query = _evaluationsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -425,7 +451,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
         final query = _evaluationsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -455,7 +481,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
         final query = _evaluationsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -486,7 +512,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
         final query = _evaluationsCollection
-            .where('userId', isEqualTo: user.uid)
+            .where('ownerId', isEqualTo: ownerId)
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -514,7 +540,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final query =
-            _evaluationsCollection.where('userId', isEqualTo: user.uid);
+            _evaluationsCollection.where('ownerId', isEqualTo: ownerId);
         final aggregateQuerySnapshot =
             await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
@@ -527,4 +553,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
+
+
+  
 }

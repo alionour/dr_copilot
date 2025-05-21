@@ -31,7 +31,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     final userId = getCurrentUserId();
     if (userId != null) {
       bill = bill.copyWith(
-        userId: userId,
+        ownerId: userId,
         createdBy: userId,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
       );
@@ -158,32 +158,6 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     return firebaseApi.updateCurrencyProfile(profile);
   }
 
-  /// Gets the sum of session costs for a given month and year.
-  @override
-  Future<Either<Failure, double>> getSessionsSumForMonth(
-      {required int year, required int month}) {
-    return firebaseApi.getSessionsSumForMonth(year: year, month: month);
-  }
-
-  /// Gets the sum of session costs for a given year.
-  @override
-  Future<Either<Failure, double>> getSessionsSumForYear({required int year}) {
-    return firebaseApi.getSessionsSumForYear(year: year);
-  }
-
-  /// Gets the sum of evaluation costs for a given month and year.
-  @override
-  Future<Either<Failure, double>> getEvaluationsSumForMonth(
-      {required int year, required int month}) {
-    return firebaseApi.getEvaluationsSumForMonth(year: year, month: month);
-  }
-
-  /// Gets the sum of evaluation costs for a given year.
-  @override
-  Future<Either<Failure, double>> getEvaluationsSumForYear(
-      {required int year}) {
-    return firebaseApi.getEvaluationsSumForYear(year: year);
-  }
 
   /// Gets the count of sessions.
   @override
@@ -313,7 +287,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     final userId = getCurrentUserId();
     if (userId != null) {
       invoice = invoice.copyWith(
-        userId: userId,
+        ownerId: userId,
         createdBy: userId,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
       );
@@ -350,7 +324,8 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
 
   /// Deletes an invoice by its reference ID.
   @override
-  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId) {
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId) {
     return firebaseApi.deleteInvoiceByReferenceId(referenceId);
   }
 
@@ -360,7 +335,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     final userId = getCurrentUserId();
     if (userId != null) {
       transaction = transaction.copyWith(
-        userId: userId,
+        ownerId: userId,
         createdBy: userId,
         createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
       );
@@ -377,7 +352,8 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
 
   /// Deletes a transaction by its reference ID.
   @override
-  Future<Either<Failure, void>> deleteTransactionByReferenceId(String referenceId) {
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId) {
     return firebaseApi.deleteTransactionByReferenceId(referenceId);
   }
 

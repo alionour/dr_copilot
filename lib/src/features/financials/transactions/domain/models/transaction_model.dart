@@ -37,7 +37,8 @@ class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
   Timestamp fromJson(dynamic json) {
     // Debug: print type and value for every conversion attempt
     // ignore: avoid_print
-    print('[TimestampConverter] fromJson: type=${json == null ? 'null' : json.runtimeType.toString()}, value=$json');
+    print(
+        '[TimestampConverter] fromJson: type=${json == null ? 'null' : json.runtimeType.toString()}, value=$json');
     if (json is Timestamp) {
       return json;
     } else if (json is int) {
@@ -177,7 +178,9 @@ class TransactionModel {
   @NullableTimestampConverter()
   final Timestamp?
       updatedAt; // (Optional) The timestamp when the transaction was last updated.
-  final String userId; //  The ID of the user associated with the transaction.
+  final String ownerId; //  The ID of the user associated with the transaction.
+  final String
+      clinicId; //  The ID of the clinic associated with the transaction.
   final String?
       createdBy; //  The ID of the user associated with the transaction.
   final String?
@@ -205,7 +208,8 @@ class TransactionModel {
     this.deletedBy,
     this.updatedBy,
     this.deletedAt,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     required this.currencyProfileId,
     required this.direction,
     this.notes,
@@ -233,7 +237,8 @@ class TransactionModel {
     Timestamp? deletedAt,
     Timestamp? updatedAt,
     String? category,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? createdBy,
     String? deletedBy,
     String? updatedBy,
@@ -251,7 +256,8 @@ class TransactionModel {
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       createdBy: createdBy ?? this.createdBy,
       deletedBy: deletedBy ?? this.deletedBy,
       updatedBy: updatedBy ?? this.updatedBy,

@@ -9,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
@@ -44,6 +46,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
   final _occupationFocusNode = FocusNode();
 
   String _selectedGender = 'Male';
+  String? _selectedClinicId;
 
   @override
   void initState() {
@@ -107,6 +110,46 @@ class _AddPatientPageState extends State<AddPatientPage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // Clinic selection dropdown
+                            Consumer<OwnerNotifier>(
+                              builder: (context, ownerNotifier, _) {
+                                final clinics = ownerNotifier.clinics;
+                                if (clinics.isEmpty) {
+                                  return const SizedBox();
+                                }
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    DropdownButtonFormField<String>(
+                                      value: _selectedClinicId ??
+                                          ownerNotifier.clinicId,
+                                      decoration: InputDecoration(
+                                        labelText: 'clinic'.tr(),
+                                        border: const OutlineInputBorder(),
+                                      ),
+                                      items: clinics.map((clinic) {
+                                        return DropdownMenuItem<String>(
+                                          value: clinic.id,
+                                          child: Text(clinic.name),
+                                        );
+                                      }).toList(),
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          _selectedClinicId = newValue;
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'selectClinic'.tr();
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 16.0),
+                                  ],
+                                );
+                              },
+                            ),
                             TextFormField(
                               controller: _nameController,
                               focusNode: _nameFocusNode,
@@ -320,8 +363,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
     // Validate the form
     if (_formKey.currentState!.validate()) {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      // Check if the user is authenticated
-      if (userId != null) {
+      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+      final ownerId = ownerNotifier.ownerId;
+      final clinicId = _selectedClinicId ?? ownerNotifier.clinicId;
+      // Check if the user is authenticated and clinic/owner are available
+      if (userId != null && ownerId != null && clinicId != null) {
         const uuid = Uuid();
         final patientModel = PatientModel(
           id: uuid.v4(), // Generate a unique ID
@@ -330,7 +376,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
           createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
           gender: _selectedGender,
           address: _addressController.text,
-          userId: userId, // Get userId from AuthBloc
+          ownerId: ownerId,
+          clinicId: clinicId,
           phoneNumber: _phoneNumberController.text.isNotEmpty
               ? _phoneNumberController.text
               : null,

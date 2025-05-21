@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTransactionPage extends StatefulWidget {
@@ -33,8 +35,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   final _statusController = TextEditingController();
   final _referenceIdController = TextEditingController();
 
-
-  TransactionStatus _selectedStatus = TransactionStatus.completed; // Default status value
+  TransactionStatus _selectedStatus =
+      TransactionStatus.completed; // Default status value
 
   // Define focus nodes for the form fields
   final FocusNode _notesFocusNode = FocusNode();
@@ -46,6 +48,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   // Define a variable to hold the selected currency profile
   String? _selectedCurrencyProfile;
+
+  // Clinic selection
+  String? _selectedClinicId;
 
   String? _referenceIdError;
 
@@ -76,10 +81,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     });
 
     if (_referenceIdController.text.isNotEmpty) {
-      final result = await context.read<TransactionsBloc>().validateAndFetchReferenceId(
-        referenceId: _referenceIdController.text,
-        transactionSource: _transactionSource,
-      );
+      final result =
+          await context.read<TransactionsBloc>().validateAndFetchReferenceId(
+                referenceId: _referenceIdController.text,
+                transactionSource: _transactionSource,
+              );
 
       return result.fold(
         (failure) {
@@ -109,8 +115,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       if (!isValid) return;
 
       final userId = FirebaseAuth.instance.currentUser?.uid;
+      final ownerNotifier = OwnerNotifier();
+      final ownerId = ownerNotifier.ownerId;
+      final clinicId = _selectedClinicId ?? ownerNotifier.clinicId;
 
-      if (userId != null) {
+      if (userId != null && ownerId != null && clinicId != null) {
         final transactionData = TransactionModel(
           id: const Uuid().v4(),
           amount: double.parse(_amountController.text),
@@ -125,17 +134,17 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           referenceId: _referenceIdController.text,
           createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
           createdBy: userId,
-          userId: userId,
-
+          ownerId: ownerId,
+          clinicId: clinicId,
         );
         // Dispatch AddTransactionEvent
-      if (!mounted) return; // Ensure context is still valid after async gap
+        if (!mounted) return; // Ensure context is still valid after async gap
 
         context
             .read<TransactionsBloc>()
             .add(AddTransactionEvent(transactionData));
       } else {
-      if (!mounted) return; // Ensure context is still valid after async gap
+        if (!mounted) return; // Ensure context is still valid after async gap
 
         _showSnackBar(context, 'userIdCannotBeNull');
       }
@@ -228,6 +237,46 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
+                          // Clinic selection dropdown
+                          Consumer<OwnerNotifier>(
+                            builder: (context, ownerNotifier, _) {
+                              final clinics = ownerNotifier.clinics;
+                              if (clinics.isEmpty) {
+                                return const SizedBox();
+                              }
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  DropdownButtonFormField<String>(
+                                    value: _selectedClinicId ??
+                                        ownerNotifier.clinicId,
+                                    decoration: InputDecoration(
+                                      labelText: 'clinic'.tr(),
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    items: clinics.map((clinic) {
+                                      return DropdownMenuItem<String>(
+                                        value: clinic.id,
+                                        child: Text(clinic.name),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        _selectedClinicId = newValue;
+                                      });
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'selectClinic'.tr();
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16.0),
+                                ],
+                              );
+                            },
+                          ),
                           TextFormField(
                             controller: _amountController,
                             focusNode: _amountFocusNode,
@@ -307,7 +356,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                                   _transactionSource = newValue;
                                 }
                               });
-      if (!mounted) return; // Ensure context is still valid after async gap
+                              if (!mounted) {
+                                return; // Ensure context is still valid after async gap
+                              }
 
                               FocusScope.of(context)
                                   .requestFocus(_transactionDateFocusNode);
@@ -382,7 +433,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                               labelText: 'status'.tr(),
                               border: const OutlineInputBorder(),
                             ),
-                            items: TransactionStatus.values.map((TransactionStatus status) {
+                            items: TransactionStatus.values
+                                .map((TransactionStatus status) {
                               return DropdownMenuItem<TransactionStatus>(
                                 value: status,
                                 child: Text(status.name.tr()),
@@ -420,6 +472,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                               final isValid =
                                   await _validateReferenceId(context);
                               if (isValid) {
+                                      if (!context.mounted) return;
+
                                 FocusScope.of(context)
                                     .unfocus(); // Unfocus after the last field
                               }
