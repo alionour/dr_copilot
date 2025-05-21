@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/app/providers/bloc_providers.dart';
 import 'package:provider/provider.dart';
 import '../notifiers/theme_notifier.dart';
 import '../notifiers/locale_notifier.dart';
@@ -29,9 +30,11 @@ final appProviders = [
   /// This allows descendant widgets to listen for locale changes and rebuild accordingly.
   /// The [LocaleNotifier] manages the application's locale state.
   ChangeNotifierProvider(create: (context) => LocaleNotifier()),
-
+  
   /// Provides an instance of [OwnerNotifier] to the widget tree using [ChangeNotifierProvider].
   ///
   /// This allows descendant widgets to access the global ownerId for Firestore queries.
   ChangeNotifierProvider(create: (context) => OwnerNotifier()),
+
+  ...appBlocProviders
 ];

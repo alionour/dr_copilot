@@ -24,6 +24,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   // Initialize dependency injections for the app
   // This is where you set up your service locator (GetIt) and register all the necessary services.
   await initInjections();
