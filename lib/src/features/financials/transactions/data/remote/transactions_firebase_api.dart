@@ -80,9 +80,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc =
-            _userScopedQuery().where(FieldPath.documentId, isEqualTo: id);
-        // The rest of the logic remains the same
+         // The rest of the logic remains the same
         final docSnapshot = await _transactionsCollection.doc(id).get();
 
         if (docSnapshot.exists) {

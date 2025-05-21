@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/app/providers/providers.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -90,7 +91,7 @@ class App extends StatelessWidget {
                 /// - Disables the debug banner.
                 /// - Sets the locale, supported locales, and localization delegates from the current context.
                 /// - Uses a custom `builder` to print the current locale for debugging and wraps the child widget in a `Stack`.
-                providers: appBlocProviders,
+                providers: appProviders,
                 child: MaterialApp.router(
                   /// Sets the application's router configuration using the predefined
                   /// `router` from the `RoutingConfig` class. This determines how

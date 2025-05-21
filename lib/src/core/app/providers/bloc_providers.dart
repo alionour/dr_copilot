@@ -173,4 +173,6 @@ final appBlocProviders = <BlocProvider<dynamic>>[
     create: (context) => TransactionsBloc(TransactionsUseCase(
         TransactionsRepositoryImpl(TransactionsFirebaseApi()))),
   ),
+  
+  
 ];
