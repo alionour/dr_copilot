@@ -1,0 +1,63 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#20B2AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#008B8B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lightTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5DADE2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#48CAE4;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#48CAE4;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#20B2AA;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect x="0" y="0" width="1024" height="1024" fill="#ffffff"/>
+  
+  <!-- Medical Clipboard with Digital/Circuit Elements -->
+  <g transform="translate(200, 150)">
+    <!-- Clipboard base -->
+    <rect x="162" y="80" width="300" height="340" rx="20" fill="url(#tealGradient)"/>
+    <rect x="180" y="100" width="264" height="300" rx="12" fill="#ffffff"/>
+    
+    <!-- Clipboard clip -->
+    <rect x="262" y="60" width="80" height="50" rx="12" fill="#008B8B"/>
+    <rect x="272" y="70" width="60" height="30" rx="8" fill="url(#lightTeal)"/>
+    
+    <!-- Digital lines on clipboard -->
+    <line x1="200" y1="140" x2="424" y2="140" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="170" x2="360" y2="170" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="200" x2="400" y2="200" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="230" x2="340" y2="230" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="260" x2="380" y2="260" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="290" x2="424" y2="290" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="320" x2="360" y2="320" stroke="#5DADE2" stroke-width="6"/>
+    <line x1="200" y1="350" x2="400" y2="350" stroke="#5DADE2" stroke-width="6"/>
+    
+    <!-- Circuit nodes around clipboard -->
+    <circle cx="100" cy="160" r="10" fill="#20B2AA"/>
+    <circle cx="100" cy="160" r="16" fill="url(#glowGradient)" opacity="0.4"/>
+    
+    <circle cx="524" cy="200" r="10" fill="#48CAE4"/>
+    <circle cx="524" cy="200" r="16" fill="url(#glowGradient)" opacity="0.4"/>
+    
+    <circle cx="120" cy="290" r="8" fill="#5DADE2"/>
+    <circle cx="504" cy="260" r="8" fill="#20B2AA"/>
+    
+    <!-- Circuit connections -->
+    <line x1="110" y1="160" x2="162" y2="160" stroke="#5DADE2" stroke-width="5" opacity="0.8"/>
+    <line x1="462" y1="200" x2="514" y2="200" stroke="#5DADE2" stroke-width="5" opacity="0.8"/>
+    <line x1="128" y1="286" x2="162" y2="275" stroke="#5DADE2" stroke-width="5" opacity="0.6"/>
+    <line x1="462" y1="260" x2="496" y2="260" stroke="#5DADE2" stroke-width="5" opacity="0.6"/>
+    
+    <!-- Additional tech elements -->
+    <circle cx="312" cy="40" r="5" fill="#48CAE4" opacity="0.7"/>
+    <line x1="312" y1="40" x2="312" y2="60" stroke="#5DADE2" stroke-width="3" opacity="0.6"/>
+    
+    <!-- "Dr Copilot" text -->
+    <text x="312" y="480" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="url(#tealGradient)" text-anchor="middle">Dr Copilot</text>
+  </g>
+</svg>

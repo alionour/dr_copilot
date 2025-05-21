@@ -120,9 +120,9 @@ class UserModel {
       tenantId: user.tenantId,
       permissions: permissions ?? const [],
       roles: roles ?? const [],
-      clinicIds: user.clinicIds,
-      primaryClinicId: user.primaryClinicId,
-      ownerId: user.ownerId,
+      clinicIds: [],
+      primaryClinicId: '',
+      ownerId: '',
     );
   }
 }

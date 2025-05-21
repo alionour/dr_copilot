@@ -14,7 +14,6 @@ class LoginPage extends StatelessWidget {
     return StreamBuilder(
       stream: authBloc.userAuthenticationStream(),
       builder: (context, snapshot) {
-        
         final user = snapshot.data;
         if (user != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,31 +62,20 @@ class LoginPage extends StatelessWidget {
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(50),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 10,
-                                offset: Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: SvgPicture.asset(
-                            'assets/svg/logo.svg',
-                            semanticsLabel: 'App Logo',
-                            width: 100,
-                            height: 100,
-                            placeholderBuilder: (context) => const Icon(
-                              Icons.person,
-                              size: 100,
-                              color: Colors.blue,
-                            ),
+                        child: SvgPicture.asset(
+                          'assets/svg/dr_copilot_logo.svg',
+                          semanticsLabel: 'App Logo',
+                          width: 250,
+                          height: 250,
+                          placeholderBuilder: (context) => const Icon(
+                            Icons.person,
+                            size: 100,
+                            color: Colors.blue,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 15),
                     Text(
                       'welcomeBack'.tr(),
                       style: Theme.of(context).textTheme.headlineSmall,
@@ -99,7 +87,7 @@ class LoginPage extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 20),
                     Center(
                       child: ElevatedButton.icon(
                         onPressed: () {
