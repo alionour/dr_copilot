@@ -66,7 +66,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
-    
+
     final clinics = OwnerNotifier().clinics;
     if (clinics.isNotEmpty) {
       _selectedClinicId = clinics.first.id;
@@ -251,6 +251,14 @@ class _AddSessionPageState extends State<AddSessionPage> {
         return;
       }
 
+      // Ensure invoice status is selected
+      if (_selectedInvoiceStatus == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select an invoice status.')),
+        );
+        return;
+      }
+
       final now = Timestamp.fromDate(DateTime.now().toUtc());
 
       final session = SessionModel(
@@ -268,7 +276,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
       );
 
-      context.read<SessionsBloc>().add(AddSession(session));
+      // Pass the selected currencyProfileId to the bloc as well
+      context.read<SessionsBloc>().add(AddSession(session,
+          invoiceStatus: _selectedInvoiceStatus!,
+          currencyProfileId: _selectedCurrencyProfile!.id));
     }
   }
 

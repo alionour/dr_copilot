@@ -28,11 +28,14 @@ class SearchEvaluations extends EvaluationsEvent {
 
 class AddEvaluation extends EvaluationsEvent {
   final EvaluationModel model;
+  final InvoiceStatus invoiceStatus;
+  final String currencyProfileId;
 
-  const AddEvaluation(this.model);
+  const AddEvaluation(this.model,
+      {required this.invoiceStatus, required this.currencyProfileId});
 
   @override
-  List<Object> get props => [model];
+  List<Object> get props => [model, invoiceStatus, currencyProfileId];
 }
 
 class UpdateEvaluation extends EvaluationsEvent {
@@ -49,7 +52,8 @@ class DeleteEvaluation extends EvaluationsEvent {
   final String evaluationId;
   final bool deleteInvoiceAndTransaction;
 
-  const DeleteEvaluation(this.evaluationId, {this.deleteInvoiceAndTransaction = false});
+  const DeleteEvaluation(this.evaluationId,
+      {this.deleteInvoiceAndTransaction = false});
 
   @override
   List<Object> get props => [evaluationId, deleteInvoiceAndTransaction];
@@ -80,8 +84,6 @@ class GetEvaluationsCount extends EvaluationsEvent {
   @override
   List<Object?> get props => [];
 }
-
-
 
 /// Event to add an invoice in the sessions feature.
 ///

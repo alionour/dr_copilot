@@ -205,6 +205,20 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         );
         return;
       }
+      // Ensure invoice status is selected
+      if (_selectedInvoiceStatus == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select an invoice status.')),
+        );
+        return;
+      }
+      // Ensure currency profile is selected
+      if (_selectedCurrencyProfile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select a currency profile.')),
+        );
+        return;
+      }
       final evaluationData = EvaluationModel(
         id: const Uuid().v4(),
         patientId: selectedPatient.id,
@@ -217,7 +231,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
         clinicId: _selectedClinicId!,
       );
-      context.read<EvaluationsBloc>().add(AddEvaluation(evaluationData));
+      context.read<EvaluationsBloc>().add(AddEvaluation(
+            evaluationData,
+            invoiceStatus: _selectedInvoiceStatus!,
+            currencyProfileId: _selectedCurrencyProfile!.currency,
+          ));
     }
   }
 

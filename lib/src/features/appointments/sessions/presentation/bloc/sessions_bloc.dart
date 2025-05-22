@@ -67,7 +67,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           ..add(addedSession)
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         emit(SessionsSuccess(sessions,
-            message: 'sessionAddedSuccessfully'.tr()));
+            message: 'sessionAdded'.tr()));
         emit(SessionsLoaded(sessions));
 
         // After session is added, create the invoice with referenceId = sessionId
@@ -79,20 +79,21 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           createdBy: addedSession.createdBy,
           title: 'Session Invoice',
           description:
-              'Invoice for session with ${addedSession.patientName} at ${addedSession.startDateTime.toDate()}',
+              'Invoice for session with ${addedSession.patientId} at ${addedSession.startDateTime.toDate()}',
           currencyProfileId:
-              '', // You may want to pass this from the UI or event
+              event.currencyProfileId, // You may want to pass this from the UI or event
           issuedAt: addedSession.createdAt,
           dueDate: Timestamp.fromDate(addedSession.startDateTime
               .toDate()
-              .add(const Duration(days: 30))),
+              .add(const Duration(days: 2))),
           ownerId: addedSession.ownerId,
           clinicId: addedSession.clinicId,
           customerType: CustomerType.patient,
           source: InvoiceSource.sessions,
-          status: InvoiceStatus.unpaid,
+          status: event.invoiceStatus,
           referenceId: addedSession.id,
         );
+        
         add(AddInvoice(invoice));
       },
     );

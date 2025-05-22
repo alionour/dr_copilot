@@ -28,11 +28,17 @@ class SearchSessions extends SessionsEvent {
 
 class AddSession extends SessionsEvent {
   final SessionModel model;
+  final InvoiceStatus invoiceStatus;
+  final String currencyProfileId;
 
-  const AddSession(this.model);
+  const AddSession(
+    this.model, {
+    required this.invoiceStatus,
+    required this.currencyProfileId,
+  });
 
   @override
-  List<Object> get props => [model];
+  List<Object> get props => [model, invoiceStatus, currencyProfileId];
 }
 
 class UpdateSession extends SessionsEvent {
@@ -46,20 +52,22 @@ class UpdateSession extends SessionsEvent {
 }
 
 /// Event to delete a session in the [SessionsBloc].
-/// 
+///
 /// This event should be dispatched when a session needs to be removed.
 /// The associated session information should be provided as part of the event's properties.
 class DeleteSession extends SessionsEvent {
   /// The unique identifier for the session.
-  final String sessionId; 
+  final String sessionId;
 
   /// Indicates whether the invoice associated with the session should be deleted.
-  /// 
+  ///
   /// If set to `true`, the invoice will be deleted; otherwise, it will be retained.
   final bool deleteInvoiceAndTransaction;
 
-
-  const DeleteSession(this.sessionId, {required this.deleteInvoiceAndTransaction,});
+  const DeleteSession(
+    this.sessionId, {
+    required this.deleteInvoiceAndTransaction,
+  });
 
   @override
   List<Object> get props => [sessionId, deleteInvoiceAndTransaction];
