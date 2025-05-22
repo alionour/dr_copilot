@@ -37,8 +37,6 @@ class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
   Timestamp fromJson(dynamic json) {
     // Debug: print type and value for every conversion attempt
     // ignore: avoid_print
-    print(
-        '[TimestampConverter] fromJson: type=${json == null ? 'null' : json.runtimeType.toString()}, value=$json');
     if (json is Timestamp) {
       return json;
     } else if (json is int) {
@@ -48,8 +46,6 @@ class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
     } else {
       // Extra debug for unexpected types
       // ignore: avoid_print
-      print(
-          '[TimestampConverter] ERROR: Invalid type for Timestamp conversion: type=${json == null ? 'null' : json.runtimeType.toString()}, value=$json');
       throw Exception(
           'Invalid type for Timestamp conversion: ${json.runtimeType}');
     }

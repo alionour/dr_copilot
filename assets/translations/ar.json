@@ -289,7 +289,7 @@
   "selectEndTime": "اختر وقت الانتهاء",
   "selectStartDate": "اختر تاريخ البدء",
   "selectStartTime": "اختر وقت البدء",
-  "sessionAddedSuccessfully": "تمت إضافة الجلسة بنجاح",
+  "sessionAdded": "تمت إضافة الجلسة بنجاح",
   "sessionDeleted": "تم حذف الجلسة بنجاح",
   "sessionDetails": "تفاصيل الجلسة",
   "sessionNotFound": "لم يتم العثور على الجلسة",

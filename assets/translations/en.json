@@ -301,7 +301,7 @@
   "selectEndTime": "Select End Time",
   "selectStartDate": "Select Start Date",
   "selectStartTime": "Select Start Time",
-  "sessionAddedSuccessfully": "Session added successfully",
+  "sessionAdded": "Session added successfully",
   "sessionDeleted": "Session deleted successfully",
   "sessionDetails": "Session Details",
   "sessionNotFound": "Session not found",

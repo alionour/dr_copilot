@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
@@ -52,10 +53,12 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     emit(EvaluationsLoading(state.evaluations));
     final failureOrEvaluation =
         await _evaluationsUseCase.addEvaluation(event.model);
-    emit(failureOrEvaluation.fold(
-      (failure) => EvaluationsError(state.evaluations,
-          message: _mapFailureToMessage(failure)),
-      (addedEvaluation) {
+    await failureOrEvaluation.fold(
+      (failure) {
+        emit(EvaluationsError(state.evaluations,
+            message: _mapFailureToMessage(failure)));
+      },
+      (addedEvaluation) async {
         debugPrint('Add successful: $addedEvaluation');
         // Insert the new evaluation in the correct sorted position (descending by startDateTime)
         final evaluations = List<EvaluationModel>.from(state.evaluations)
@@ -63,9 +66,33 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         emit(EvaluationsSuccess(evaluations,
             message: 'evaluationAddedSuccessfully'.tr()));
-        return EvaluationsLoaded(evaluations);
+        emit(EvaluationsLoaded(evaluations));
+
+        // After evaluation is added, create the invoice with referenceId = evaluationId
+        final invoice = InvoiceModel(
+          id: const Uuid().v4(),
+          customerId: addedEvaluation.patientId,
+          amount: addedEvaluation.price,
+          createdAt: addedEvaluation.createdAt,
+          createdBy: addedEvaluation.createdBy,
+          title: 'Evaluation Invoice',
+          description:
+              'Invoice for evaluation with ${addedEvaluation.patientName} at ${addedEvaluation.startDateTime.toDate()}',
+          currencyProfileId: event.currencyProfileId,
+          issuedAt: addedEvaluation.createdAt,
+          dueDate: Timestamp.fromDate(addedEvaluation.startDateTime
+              .toDate()
+              .add(const Duration(days: 30))),
+          ownerId: addedEvaluation.ownerId,
+          clinicId: addedEvaluation.clinicId,
+          customerType: CustomerType.patient,
+          source: InvoiceSource.evaluations,
+          status: event.invoiceStatus,
+          referenceId: addedEvaluation.id,
+        );
+        add(AddInvoice(invoice));
       },
-    ));
+    );
   }
 
   void _onUpdateEvaluation(
@@ -237,7 +264,6 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
             createdAt: invoice.createdAt,
             createdBy: invoice.createdBy,
             description: 'Full payment for invoice ${invoice.id}',
-            
           );
 
           add(AddTransaction(transaction));
