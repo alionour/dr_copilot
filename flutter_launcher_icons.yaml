@@ -5,8 +5,8 @@ flutter_icons:
   android: true
   ios: true
   windows:
-      generate: true
-      image_path: "assets/png/app_icon/1024/app_icon.png"  
-  image_path: "assets/png/app_icon/1024/app_icon.png"
+    generate: true
+    image_path: "assets/png/app_logo/drcopilot_logo_no_text.png"
+  image_path: "assets/png/app_logo/drcopilot_logo_no_text.png"
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/png/app_icon/1024/app_icon.png"
+  adaptive_icon_foreground: "assets/png/app_logo/drcopilot_logo_no_text.png"
