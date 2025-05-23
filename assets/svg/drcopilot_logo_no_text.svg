@@ -1,0 +1,49 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#20B2AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#008B8B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lightTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5DADE2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#48CAE4;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#48CAE4;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#20B2AA;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Transparent background -->
+  <rect x="0" y="0" width="1024" height="1024" fill="none"/>
+
+  <!-- Icon elements (centered and scaled to fit viewBox) -->
+  <g>
+    <rect x="162" y="100" width="700" height="824" rx="40" fill="url(#tealGradient)"/>
+    <rect x="200" y="140" width="624" height="742" rx="24" fill="#ffffff"/>
+    <rect x="462" y="80" width="160" height="120" rx="24" fill="#008B8B"/>
+    <rect x="488" y="104" width="120" height="72" rx="16" fill="url(#lightTeal)"/>
+    <!-- Digital lines -->
+    <line x1="240" y1="260" x2="784" y2="260" stroke="#5DADE2" stroke-width="16"/>
+    <line x1="240" y1="340" x2="640" y2="340" stroke="#5DADE2" stroke-width="16"/>
+    <line x1="240" y1="420" x2="720" y2="420" stroke="#5DADE2" stroke-width="16"/>
+    <line x1="240" y1="500" x2="560" y2="500" stroke="#5DADE2" stroke-width="16"/>
+    <line x1="240" y1="580" x2="640" y2="580" stroke="#5DADE2" stroke-width="16"/>
+    <line x1="240" y1="660" x2="784" y2="660" stroke="#5DADE2" stroke-width="16"/>
+    <line x1="240" y1="740" x2="640" y2="740" stroke="#5DADE2" stroke-width="16"/>
+    <!-- Circuit nodes -->
+    <circle cx="100" cy="300" r="24" fill="#20B2AA"/>
+    <circle cx="100" cy="300" r="40" fill="url(#glowGradient)" opacity="0.4"/>
+    <circle cx="924" cy="400" r="24" fill="#48CAE4"/>
+    <circle cx="924" cy="400" r="40" fill="url(#glowGradient)" opacity="0.4"/>
+    <circle cx="140" cy="650" r="20" fill="#5DADE2"/>
+    <circle cx="884" cy="600" r="20" fill="#20B2AA"/>
+    <!-- Connections -->
+    <line x1="124" y1="300" x2="162" y2="300" stroke="#5DADE2" stroke-width="12" opacity="0.8"/>
+    <line x1="862" y1="400" x2="904" y2="400" stroke="#5DADE2" stroke-width="12" opacity="0.8"/>
+    <line x1="160" y1="645" x2="200" y2="630" stroke="#5DADE2" stroke-width="12" opacity="0.6"/>
+    <line x1="862" y1="600" x2="864" y2="600" stroke="#5DADE2" stroke-width="12" opacity="0.6"/>
+    <circle cx="512" cy="40" r="12" fill="#48CAE4" opacity="0.7"/>
+    <line x1="512" y1="40" x2="512" y2="100" stroke="#5DADE2" stroke-width="8" opacity="0.6"/>
+  </g>
+</svg>

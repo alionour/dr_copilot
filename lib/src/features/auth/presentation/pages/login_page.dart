@@ -63,7 +63,7 @@ class LoginPage extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(50),
                         child: SvgPicture.asset(
-                          'assets/svg/dr_copilot_logo.svg',
+                          'assets/svg/drcopilot_logo.svg',
                           semanticsLabel: 'App Logo',
                           width: 250,
                           height: 250,
