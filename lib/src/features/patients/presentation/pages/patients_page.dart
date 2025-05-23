@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -55,8 +56,10 @@ class _PatientsPageState extends State<PatientsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    // Only trigger when scrolling down and near the end
+    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<PatientsBloc>().state;
       if (state is PatientsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {

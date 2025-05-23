@@ -193,6 +193,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   void _onLoadMoreEvaluations(
       LoadMoreEvaluations event, Emitter<EvaluationsState> emit) async {
+        
     if (state is EvaluationsLoaded) {
       final currentState = state as EvaluationsLoaded;
       if (currentState.isLoadingMore) return;
@@ -302,6 +303,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       await _financialsUseCase.addTransaction(transaction: event.transaction);
       emit(EvaluationsSuccess(state.evaluations,
           message: 'transactionAddedSuccessfully'.tr()));
+      emit(EvaluationsLoaded(state.evaluations));
     } catch (e) {
       emit(EvaluationsError(state.evaluations,
           message: 'failedToAddTransaction'.tr()));
