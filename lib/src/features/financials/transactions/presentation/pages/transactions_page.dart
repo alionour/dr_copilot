@@ -93,7 +93,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
             'TransactionsPage: State is not TransactionsLoaded/TransactionsCountLoaded, not dispatching');
       }
     }
-    _lastScrollPosition = currentPosition;
   }
 
   @override
