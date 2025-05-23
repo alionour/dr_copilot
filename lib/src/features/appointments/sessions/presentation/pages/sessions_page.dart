@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/presentation/widge
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -50,8 +51,10 @@ class _SessionsPageState extends State<SessionsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    // Only trigger when scrolling down and near the end
+    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<SessionsBloc>().state;
       if (state is SessionsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {

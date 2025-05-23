@@ -4,10 +4,15 @@ import 'package:dr_copilot/src/features/appointments/evaluations/presentation/wi
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:flutter/gestures.dart';
+
+// Ensure ScrollDirection is available
+import 'package:flutter/widgets.dart';
 
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
@@ -46,8 +51,10 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    // Only trigger when scrolling down and near the end
+    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<EvaluationsBloc>().state;
       if (state is EvaluationsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
@@ -335,6 +342,24 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                       },
                     ),
                   ),
+                  if (state is EvaluationsLoaded && state.isLoadingMore ||
+                      state is EvaluationsLoadingMore)
+                    Shimmer.fromColors(
+                      baseColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      highlightColor: Theme.of(context).colorScheme.surface,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          height: 50.0,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               );
             } else if (state is EvaluationsError) {

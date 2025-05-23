@@ -66,6 +66,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         final sessions = List<SessionModel>.from(state.sessions)
           ..add(addedSession)
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
+        
         emit(SessionsSuccess(sessions,
             message: 'sessionAdded'.tr()));
         emit(SessionsLoaded(sessions));
@@ -317,6 +318,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       await _financialsUseCase.addTransaction(transaction: event.transaction);
       emit(SessionsSuccess(state.sessions,
           message: 'transactionAddedSuccessfully'.tr()));
+      emit(SessionsLoaded(state.sessions));
     } catch (e) {
       emit(SessionsError(state.sessions,
           message: 'failedToAddTransaction'.tr()));
