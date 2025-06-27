@@ -260,13 +260,13 @@ class _SessionListItemState extends State<SessionListItem> {
                               },
                             );
                             if (result != null) {
-                                    if (!context.mounted) return;
+                              if (!context.mounted) return;
 
                               context.read<SessionsBloc>().add(DeleteSession(
                                   widget.sessionModel.id,
                                   deleteInvoiceAndTransaction:
                                       result.deleteInvoiceAndTransaction));
-                              // TODO: If you want to delete invoice/transactions, dispatch events here using result.deleteInvoice/result.deleteTransactions
+                              // Note: Invoice/transaction deletion is handled separately if needed
                             }
                           },
                           icon: const Icon(

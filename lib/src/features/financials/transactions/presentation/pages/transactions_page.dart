@@ -28,7 +28,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
   DateTime? _selectedDate;
   bool _canLoadMore = true; // Add a flag to control loading more sessions
   int? _firestoreTransactionsCount;
-  double _lastScrollPosition = 0;
 
   void _dispatchGetTransactionsCount() {
     context.read<TransactionsBloc>().add(const GetTransactionsCount());
@@ -55,7 +54,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   void _onScroll() {
     // Only trigger when scrolling down and near the end
-    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+    if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.reverse &&
         _scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<TransactionsBloc>().state;

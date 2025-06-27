@@ -9,10 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
-import 'package:flutter/gestures.dart';
-
-// Ensure ScrollDirection is available
-import 'package:flutter/widgets.dart';
 
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
@@ -52,7 +48,8 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
 
   void _onScroll() {
     // Only trigger when scrolling down and near the end
-    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+    if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.reverse &&
         _scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<EvaluationsBloc>().state;
@@ -296,7 +293,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                       color: Colors.deepPurple,
                                     ),
                               ),
-                              Text( 
+                              Text(
                                 ' ${'stored'.tr()} ',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),

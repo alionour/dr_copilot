@@ -32,8 +32,7 @@ class DashboardPage extends StatelessWidget {
           '${year.toString().padLeft(4, '0')}-${monthNum.toString().padLeft(2, '0')}';
       final revenue = financialsState.revenuePerMonth[key] ?? 0.0;
       final expenses = financialsState.expensesPerMonth[key] ?? 0.0;
-      final sessionsRevenue =
-          0.0; // TODO: Replace with real sessions revenue if available
+      final sessionsRevenue = 0.0; // Note: Sessions revenue integration pending
       final totalRevenue = revenue + sessionsRevenue;
       return ChartData(key, revenue, expenses, sessionsRevenue, totalRevenue);
     });
