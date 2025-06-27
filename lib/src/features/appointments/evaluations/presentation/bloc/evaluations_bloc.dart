@@ -193,7 +193,6 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   void _onLoadMoreEvaluations(
       LoadMoreEvaluations event, Emitter<EvaluationsState> emit) async {
-        
     if (state is EvaluationsLoaded) {
       final currentState = state as EvaluationsLoaded;
       if (currentState.isLoadingMore) return;
@@ -235,7 +234,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     result.fold(
       (failure) =>
           emit(EvaluationsError(state.evaluations, message: failure.message)),
-      (count) => emit(EvaluationsCountLoaded(count, state.evaluations)),
+      (evaluationCount) =>
+          emit(EvaluationsCountLoaded(evaluationCount, state.evaluations)),
     );
     debugPrint('Evaluations count: $result');
   }

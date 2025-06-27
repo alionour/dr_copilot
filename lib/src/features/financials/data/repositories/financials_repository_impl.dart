@@ -61,7 +61,7 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     return firebaseApi.fetchBills();
   }
 
-  //TODO do not delete doc Mark as deleted flag
+  // Note: Consider implementing soft delete with deleted flag instead of hard delete
   @override
   Future<Either<Failure, void>> deleteBill(String id) {
     return firebaseApi.deleteBill(id);
@@ -157,7 +157,6 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     }
     return firebaseApi.updateCurrencyProfile(profile);
   }
-
 
   /// Gets the count of sessions.
   @override

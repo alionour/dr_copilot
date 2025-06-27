@@ -21,7 +21,6 @@ abstract class Failure {
 
 /// Represents a failure that occurs due to server-side issues.
 class ServerFailure extends Failure {
-  
   /// Represents a failure that occurs due to a server-side error.
   ///
   /// [message] provides details about the failure.
@@ -31,10 +30,18 @@ class ServerFailure extends Failure {
 
 /// Represents a failure that occurs due to caching issues.
 class CacheFailure extends Failure {
-
   /// Represents a failure that occurs when accessing or interacting with a cache.
-  /// 
+  ///
   /// [message] provides details about the failure.
   /// [code] is an optional error code associated with the failure.
   CacheFailure(super.message, super.code);
+}
+
+/// Represents a failure that occurs due to network connectivity issues.
+class NetworkFailure extends Failure {
+  /// Represents a failure that occurs when there are network connectivity issues.
+  ///
+  /// [message] provides details about the failure.
+  /// [code] is an optional error code associated with the failure.
+  NetworkFailure(super.message, super.code);
 }

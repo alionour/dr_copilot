@@ -13,8 +13,9 @@
         {
             "label": "doppler-run",
             "type": "shell",
-            "command": "doppler run -- flutter run -d windows",
+            "command": "doppler run -- flutter run",
             "problemMatcher": []
-        }
+        },
+
     ]
 }
