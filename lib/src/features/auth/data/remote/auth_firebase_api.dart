@@ -12,7 +12,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AuthFirebaseApi extends AbstractAuthRepository {
   /// An instance of [FirebaseAuth] used to handle authentication operations
   /// such as sign-in, sign-up, and sign-out with Firebase in the application.
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseAuth _firebaseAuth;
+
+  AuthFirebaseApi(this._firebaseAuth);
 
   /// A reference to the 'users' collection in Firestore.
   ///
