@@ -3,10 +3,10 @@ import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,7 +14,7 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
 import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
 
-
+class CommandParser.dart';
 
 class CommandParserService {
   final GeminiService _geminiService;
@@ -104,11 +104,11 @@ class CommandParserService {
             await _patientsUseCase.searchPatients(name: patientName);
         failureOrPatients.fold(
           (failure) {
-            debugPrint('Error searching for patient: $failure');
+            print('Error searching for patient: $failure');
           },
           (patients) async {
             if (patients.isEmpty) {
-              debugPrint('Patient not found: $patientName');
+              print('Patient not found: $patientName');
               return;
             }
             final patient = patients.first;
@@ -143,11 +143,11 @@ class CommandParserService {
             await _patientsUseCase.searchPatients(name: patientName);
         failureOrPatients.fold(
           (failure) {
-            debugPrint('Error searching for patient: $failure');
+            print('Error searching for patient: $failure');
           },
           (patients) async {
             if (patients.isEmpty) {
-              debugPrint('Patient not found: $patientName');
+              print('Patient not found: $patientName');
               return;
             }
             final patient = patients.first;
@@ -189,15 +189,15 @@ class CommandParserService {
             await _evaluationsUseCase.getEvaluationsByDate(date);
 
         failureOrSessions.fold(
-          (failure) => debugPrint('Error getting sessions: $failure'),
+          (failure) => print('Error getting sessions: $failure'),
           (sessions) {
             failureOrEvaluations.fold(
-              (failure) => debugPrint('Error getting evaluations: $failure'),
+              (failure) => print('Error getting evaluations: $failure'),
               (evaluations) {
                 final appointments = [...sessions, ...evaluations];
-                debugPrint('Appointments for $date:');
+                print('Appointments for $date:');
                 for (final appointment in appointments) {
-                  debugPrint((appointment as dynamic).toJson());
+                  print((appointment as dynamic).toJson());
                 }
               },
             );
@@ -214,7 +214,7 @@ class CommandParserService {
           final failureOrTransactions =
               await _financialsUseCase.getTransactions();
           failureOrTransactions.fold(
-            (failure) => debugPrint('Error getting transactions: $failure'),
+            (failure) => print('Error getting transactions: $failure'),
             (transactions) {
               final monthlyTransactions = transactions.where((t) {
                 final transactionDate = t.transactionDate.toDate();
@@ -224,7 +224,7 @@ class CommandParserService {
 
               final totalRevenue = monthlyTransactions.fold<double>(
                   0, (sum, t) => sum + t.amount);
-              debugPrint('Total revenue for this month: $totalRevenue');
+              print('Total revenue for this month: $totalRevenue');
             },
           );
         }

@@ -22,6 +22,6 @@ class SpeechRecognitionDatasource {
   }
 
   Future<bool> hasPermission() async {
-    return await _speech.hasPermission;
+    return await _speech.hasPermission();
   }
 }
