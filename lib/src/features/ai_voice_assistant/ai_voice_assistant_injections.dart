@@ -14,9 +14,6 @@ void initAiVoiceAssistantInjections() {
       sl(),
       sl(),
       sl(),
-      sl(),
-      sl(),
-      sl(),
     ),
   );
 
@@ -26,6 +23,9 @@ void initAiVoiceAssistantInjections() {
       sl(),
       sl(),
       sl(),
+      sl(),
+      sl(),
+      sl()
     ),
   );
 

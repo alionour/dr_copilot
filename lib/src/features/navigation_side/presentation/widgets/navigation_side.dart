@@ -293,7 +293,7 @@ class _NavigationSideState extends State<NavigationSide> {
           ],
         ),
       ),
-    );
+    ),);
   }
 }
 
