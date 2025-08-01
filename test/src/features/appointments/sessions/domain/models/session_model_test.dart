@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../../../../helpers/test_helpers.dart';
-
 void main() {
   group('SessionModel Tests', () {
     late SessionModel testSession;
@@ -62,15 +60,16 @@ void main() {
 
     group('SessionType Enum', () {
       test('should have correct session type values', () {
-        expect(SessionType.pediatricIntensive.text, equals('Pediatric Intensive'));
+        expect(
+            SessionType.pediatricIntensive.text, equals('Pediatric Intensive'));
         expect(SessionType.pediatricIntensive.basePrice, equals(100.0));
-        
+
         expect(SessionType.adultIntensive.text, equals('Adult Intensive'));
         expect(SessionType.adultIntensive.basePrice, equals(150.0));
-        
+
         expect(SessionType.standard.text, equals('Standard'));
         expect(SessionType.standard.basePrice, equals(120.0));
-        
+
         expect(SessionType.traction.text, equals('Traction'));
         expect(SessionType.traction.basePrice, equals(150.0));
       });
@@ -163,7 +162,7 @@ void main() {
       test('should validate session duration', () {
         final startTime = DateTime(2024, 1, 15, 10, 0);
         final endTime = DateTime(2024, 1, 15, 11, 30);
-        
+
         final session = SessionModel(
           id: 'duration-test',
           patientId: 'patient-duration',
@@ -176,14 +175,16 @@ void main() {
           createdAt: testTimestamp,
         );
 
-        final duration = session.endDateTime.toDate().difference(session.startDateTime.toDate());
+        final duration = session.endDateTime
+            .toDate()
+            .difference(session.startDateTime.toDate());
         expect(duration.inMinutes, equals(90));
         expect(duration.inHours, equals(1));
       });
 
       test('should validate price is positive', () {
         expect(testSession.price, greaterThan(0));
-        
+
         // Test with different session types
         expect(SessionType.pediatricIntensive.basePrice, greaterThan(0));
         expect(SessionType.adultIntensive.basePrice, greaterThan(0));
@@ -194,7 +195,7 @@ void main() {
       test('should validate session timing constraints', () {
         final startTime = testSession.startDateTime.toDate();
         final endTime = testSession.endDateTime.toDate();
-        
+
         expect(endTime.isAfter(startTime), isTrue);
         expect(endTime.difference(startTime).inMinutes, greaterThan(0));
       });
@@ -212,7 +213,7 @@ void main() {
       test('should handle very short sessions', () {
         final startTime = DateTime(2024, 1, 15, 10, 0);
         final endTime = DateTime(2024, 1, 15, 10, 15); // 15 minutes
-        
+
         final shortSession = SessionModel(
           id: 'short-session',
           patientId: 'patient-short',
@@ -225,14 +226,16 @@ void main() {
           createdAt: testTimestamp,
         );
 
-        final duration = shortSession.endDateTime.toDate().difference(shortSession.startDateTime.toDate());
+        final duration = shortSession.endDateTime
+            .toDate()
+            .difference(shortSession.startDateTime.toDate());
         expect(duration.inMinutes, equals(15));
       });
 
       test('should handle very long sessions', () {
         final startTime = DateTime(2024, 1, 15, 9, 0);
         final endTime = DateTime(2024, 1, 15, 17, 0); // 8 hours
-        
+
         final longSession = SessionModel(
           id: 'long-session',
           patientId: 'patient-long',
@@ -245,14 +248,16 @@ void main() {
           createdAt: testTimestamp,
         );
 
-        final duration = longSession.endDateTime.toDate().difference(longSession.startDateTime.toDate());
+        final duration = longSession.endDateTime
+            .toDate()
+            .difference(longSession.startDateTime.toDate());
         expect(duration.inHours, equals(8));
       });
 
       test('should handle sessions across different days', () {
         final startTime = DateTime(2024, 1, 15, 23, 30);
         final endTime = DateTime(2024, 1, 16, 1, 0); // Next day
-        
+
         final crossDaySession = SessionModel(
           id: 'cross-day-session',
           patientId: 'patient-cross-day',
@@ -265,7 +270,9 @@ void main() {
           createdAt: testTimestamp,
         );
 
-        final duration = crossDaySession.endDateTime.toDate().difference(crossDaySession.startDateTime.toDate());
+        final duration = crossDaySession.endDateTime
+            .toDate()
+            .difference(crossDaySession.startDateTime.toDate());
         expect(duration.inMinutes, equals(90));
         expect(crossDaySession.startDateTime.toDate().day, equals(15));
         expect(crossDaySession.endDateTime.toDate().day, equals(16));

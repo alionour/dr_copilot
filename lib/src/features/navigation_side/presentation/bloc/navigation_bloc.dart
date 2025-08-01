@@ -29,6 +29,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.chat:
         emit(state.copyWith(destination: Destination.chat));
         break;
+      case Destination.liveAssistant:
+        emit(state.copyWith(destination: Destination.liveAssistant));
+        break;
       case Destination.notifications:
         emit(state.copyWith(destination: Destination.notifications));
         break;

@@ -1,9 +1,5 @@
-import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../../../../../helpers/test_helpers.dart';
 
 // Mock classes for testing
 class MockFinancialsRepository extends Mock {}
