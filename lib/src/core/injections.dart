@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/evaluations_injections.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/sessions_injections.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/ai_voice_assistant_injections.dart';
 import 'package:dr_copilot/src/features/auth/auth_injections.dart';
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
 import 'package:get_it/get_it.dart';
@@ -67,4 +68,6 @@ Future<void> initInjections() async {
   /// throughout the app.
   initAuthInjections();
 
+  /// Initializes the dependency injections required for the AI voice assistant feature.
+  initAiVoiceAssistantInjections();
 }

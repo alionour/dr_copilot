@@ -12,6 +12,9 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/settings_pag
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/bloc/ai_voice_assistant_bloc.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/voice_assistant_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
@@ -48,10 +51,13 @@ class _NavigationSideState extends State<NavigationSide> {
           debugPrint('User signed out');
         }
       },
-      child: Scaffold(
-        body: Row(
-          children: [
-            BlocBuilder<NavigationBloc, NavigationState>(
+      child: BlocProvider(
+        create: (context) => sl<AiVoiceAssistantBloc>(),
+        child: Scaffold(
+          floatingActionButton: const VoiceAssistantButton(),
+          body: Row(
+            children: [
+              BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, state) {
                 return Focus(
                   focusNode: _navigationFocusNode,
