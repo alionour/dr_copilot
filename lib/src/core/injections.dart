@@ -71,14 +71,6 @@ Future<void> initInjections() async {
   /// throughout the app.
   initAuthInjections();
 
-  /// Initializes the dependency injections required for the Live Voice Assistant feature.
-  ///
-  /// This function sets up all necessary services, repositories, and use cases
-  /// related to voice interaction, speech recognition, text-to-speech, and AI
-  /// conversation management. It should be called during the application's
-  /// initialization phase to ensure voice assistant components are available.
-  initLiveVoiceAssistantInjections();
-
   /// Initializes the dependency injections required for the navigation side feature.
   ///
   /// This function sets up all necessary services and dependencies related to
@@ -92,6 +84,15 @@ Future<void> initInjections() async {
   /// AI chat functionality, ensuring they are available throughout the application.
   /// Call this during the application's initialization phase.
   initCopilotInjections();
+
+  /// Initializes the dependency injections required for the Live Voice Assistant feature.
+  ///
+  /// This function sets up all necessary services, repositories, and use cases
+  /// related to voice interaction, speech recognition, text-to-speech, and AI
+  /// conversation management. It should be called during the application's
+  /// initialization phase to ensure voice assistant components are available.
+  /// NOTE: Must be called after copilot injections as it depends on AI services.
+  initLiveVoiceAssistantInjections();
 
   /// Initializes the dependency injections required for the settings feature.
   ///
