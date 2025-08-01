@@ -45,3 +45,12 @@ class NetworkFailure extends Failure {
   /// [code] is an optional error code associated with the failure.
   NetworkFailure(super.message, super.code);
 }
+
+/// Represents a failure that occurs due to validation issues.
+class ValidationFailure extends Failure {
+  /// Represents a failure that occurs when input validation fails.
+  ///
+  /// [message] provides details about the validation failure.
+  /// [code] is an optional error code associated with the validation failure.
+  ValidationFailure(super.message, [super.code = 400]);
+}

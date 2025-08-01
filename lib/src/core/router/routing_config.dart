@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart'
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/pages/add_transaction_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
+import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
@@ -14,21 +15,22 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// A configuration class for defining routing settings and behaviors within the application.
-/// 
+///
 /// Use this class to specify and manage route-related options, such as route paths,
 /// navigation rules, and other routing-specific configurations.
 class RoutingConfig {
   /// A static instance of [GoRouter] used to configure and manage the application's routing.
-  /// 
+  ///
   /// This router defines the navigation logic and available routes within the app.
   /// It should be used throughout the application to handle route transitions and deep linking.
   static final GoRouter router = GoRouter(
     /// A builder function that returns the widget to display when a routing error occurs.
-    /// 
+    ///
     /// The [context] provides the location in the widget tree, and [state] contains
     /// information about the current routing state. This builder returns an instance
     /// of [ErrorRoutePage] to inform the user about the navigation error.
     errorBuilder: (context, state) => const ErrorRoutePage(),
+
     /// A list of route configurations used to define the navigation structure of the application.
     /// Each entry in the list represents a route and its associated settings, such as path, widget,
     /// and any route-specific guards or parameters.
@@ -47,6 +49,11 @@ class RoutingConfig {
         path: '/home',
         name: 'home',
         builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: '/live_assistant',
+        name: 'live_assistant',
+        builder: (context, state) => const LiveVoiceAssistantPage(),
       ),
       GoRoute(
         path: '/patients/new',
@@ -161,7 +168,7 @@ class RoutingConfig {
 }
 
 /// A [StatelessWidget] that represents a page displayed when a routing error occurs.
-/// 
+///
 /// Typically used to show an error message or fallback UI when navigation fails
 /// or an invalid route is accessed within the application.
 class ErrorRoutePage extends StatelessWidget {

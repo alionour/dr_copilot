@@ -1,50 +1,18 @@
-import 'package:dr_copilot/src/features/auth/data/remote/auth_firebase_api.dart';
-import 'package:dr_copilot/src/features/auth/data/repositories/auth_repositories_impl.dart';
-import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
-import 'package:dr_copilot/src/features/financials/transactions/data/remote/transactions_firebase_api.dart';
-import 'package:dr_copilot/src/features/financials/transactions/data/repositories/transactions_repository_impl.dart';
-import 'package:dr_copilot/src/features/financials/transactions/domain/usecases/transactions_usecase.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import '../../../features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
-import '../../../features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
-import '../../../features/appointments/evaluations/data/repositories/evaluations_repository_impl.dart';
-import '../../../features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
 import '../../../features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
-import '../../../features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-import '../../../features/appointments/sessions/data/repositories/sessions_repository_impl.dart';
-import '../../../features/appointments/sessions/data/remote/session_firebase_api.dart';
 import '../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../../features/copilot_chat/presentation/bloc/copilot_bloc.dart';
-import '../../../features/copilot_chat/services/claude_service.dart';
-import '../../../features/copilot_chat/services/deepseek_service.dart';
-import '../../../features/copilot_chat/services/gemini_service.dart';
-import '../../../features/copilot_chat/services/gpt_service.dart';
-import '../../../features/copilot_chat/services/qwen_service.dart';
-import '../../../features/copilot_chat/services/vertex_ai_service.dart';
 import '../../../features/financials/presentation/bloc/financials_bloc.dart';
-import '../../../features/financials/domain/usecases/financials_usecase.dart';
-import '../../../features/financials/data/repositories/financials_repository_impl.dart';
-import '../../../features/financials/data/remote/financials_firebase_api.dart';
+import '../../../features/live_voice_assistant/presentation/bloc/live_assistant_bloc.dart';
 import '../../../features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../../../features/patients/presentation/bloc/patients_bloc.dart';
-import '../../../features/patients/domain/usecases/patients_usecase.dart';
-import '../../../features/patients/data/repositories/patients_repo_impl.dart';
-import '../../../features/patients/data/remote/patient_firebase_api.dart';
 import '../../../features/settings/presentation/bloc/settings_bloc.dart';
-import '../../helper/api_key_helper.dart';
 
-final _financialsUseCase = FinancialsUseCase(
-  FinancialsRepositoryImpl(FinancialsFirebaseApi(
-    sessionsUseCase:
-        SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
-    evaluationsUseCase: EvaluationsUseCase(
-      EvaluationsRepositoryImpl(EvaluationsFirebaseApi()),
-    ),
-    transactionsUseCase: TransactionsUseCase(
-        TransactionsRepositoryImpl(TransactionsFirebaseApi())),
-  )),
-);
+final sl = GetIt.instance;
 
 /// A list of [BlocProvider]s used to provide various BLoC instances throughout the app.
 ///
@@ -61,9 +29,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// This provider should be placed above any widgets that need to interact with
   /// authentication logic, such as login, logout, or user session management.
-  BlocProvider<AuthBloc>(
-      create: (context) =>
-          AuthBloc(AuthUseCase(AuthRepositoryImpl(AuthFirebaseApi())))),
+  BlocProvider<AuthBloc>(create: (context) => sl<AuthBloc>()),
 
   /// Provides a [NavigationBloc] instance to the widget tree.
   ///
@@ -73,7 +39,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// Usage of this provider allows descendant widgets to access and interact with
   /// the [NavigationBloc] for navigation and user data management.
   BlocProvider<NavigationBloc>(
-      create: (context) => NavigationBloc()..add(GetUserData())),
+      create: (context) => sl<NavigationBloc>()..add(GetUserData())),
 
   /// Provides an instance of [PatientsBloc] to the widget tree.
   ///
@@ -83,24 +49,13 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// Typically used at a high level in the widget tree to ensure that the
   /// [PatientsBloc] is accessible throughout the relevant scope of the application.
-  BlocProvider<PatientsBloc>(
-      create: (context) => PatientsBloc(
-            PatientsUseCase(PatientsRepositoryImpl(PatientFirebaseApi())),
-          )),
+  BlocProvider<PatientsBloc>(create: (context) => sl<PatientsBloc>()),
 
   /// Provides an instance of [CopilotBloc] to the widget tree using [BlocProvider].
   ///
   /// The [CopilotBloc] is created with the given [context] and made available
   /// to all descendant widgets that require access to its state and events.
-  BlocProvider<CopilotBloc>(
-      create: (context) => CopilotBloc(
-            vertexAIService: VertexAIService(ApiKeyHelper.vertexAIKey),
-            gptService: GPTService(ApiKeyHelper.gptKey),
-            geminiService: GeminiService(ApiKeyHelper.geminiKey),
-            deepSeekService: DeepSeekService(ApiKeyHelper.deepSeekKey),
-            qwenService: QwenService(ApiKeyHelper.qwenKey),
-            claudeService: ClaudeService(ApiKeyHelper.claudeKey),
-          )),
+  BlocProvider<CopilotBloc>(create: (context) => sl<CopilotBloc>()),
 
   /// Provides an instance of [SettingsBloc] to the widget tree.
   ///
@@ -115,7 +70,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///   child: MyApp(),
   /// )
   /// ```
-  BlocProvider<SettingsBloc>(create: (context) => SettingsBloc()),
+  BlocProvider<SettingsBloc>(create: (context) => sl<SettingsBloc>()),
 
   /// Provides an instance of [SessionsBloc] to the widget tree.
   ///
@@ -125,10 +80,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// The [create] function initializes the [SessionsBloc] using the provided
   /// [BuildContext].
-  BlocProvider<SessionsBloc>(
-      create: (context) => SessionsBloc(
-          SessionsUseCase(SessionsRepositoryImpl(SessionsFirebaseApi())),
-          _financialsUseCase)),
+  BlocProvider<SessionsBloc>(create: (context) => sl<SessionsBloc>()),
 
   /// Provides an instance of [EvaluationsBloc] to the widget tree.
   ///
@@ -139,12 +91,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// Usage:
   /// Wrap your widget tree with this provider to access [EvaluationsBloc] via
   /// `BlocProvider.of<EvaluationsBloc>(context)`.
-  BlocProvider<EvaluationsBloc>(
-      create: (context) => EvaluationsBloc(
-            EvaluationsUseCase(
-                EvaluationsRepositoryImpl(EvaluationsFirebaseApi())),
-                _financialsUseCase
-          )),
+  BlocProvider<EvaluationsBloc>(create: (context) => sl<EvaluationsBloc>()),
 
   /// Provides an instance of [FinancialsBloc] to the widget tree.
   ///
@@ -155,11 +102,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// Usage:
   /// Wrap your widget tree with this provider to access [FinancialsBloc]
   /// using `BlocProvider.of<FinancialsBloc>(context)`.
-  BlocProvider<FinancialsBloc>(
-      create: (context) => FinancialsBloc(
-          _financialsUseCase,
-          TransactionsUseCase(
-              TransactionsRepositoryImpl(TransactionsFirebaseApi())))),
+  BlocProvider<FinancialsBloc>(create: (context) => sl<FinancialsBloc>()),
 
   /// Provides a [TransactionsBloc] instance to the widget tree.
   ///
@@ -170,9 +113,25 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// This provider enables descendant widgets to access and interact with the
   /// transactions business logic and state management.
   BlocProvider<TransactionsBloc>(
-    create: (context) => TransactionsBloc(TransactionsUseCase(
-        TransactionsRepositoryImpl(TransactionsFirebaseApi()))),
+    create: (context) => sl<TransactionsBloc>(),
   ),
-  
-  
+
+  /// Provides an instance of [LiveAssistantBloc] to the widget tree.
+  ///
+  /// This [BlocProvider] creates and manages the lifecycle of [LiveAssistantBloc],
+  /// making it available to all descendant widgets that require access to
+  /// live voice assistant functionality including speech recognition, text-to-speech,
+  /// and AI conversation management.
+  BlocProvider<LiveAssistantBloc>(
+    create: (context) => sl<LiveAssistantBloc>(),
+  ),
+
+  /// Provides an instance of [CalendarBloc] to the widget tree.
+  ///
+  /// This [BlocProvider] creates and manages the lifecycle of [CalendarBloc],
+  /// making it available to all descendant widgets that require access to
+  /// calendar functionality including Google Calendar integration and event management.
+  BlocProvider<CalendarBloc>(
+    create: (context) => sl<CalendarBloc>(),
+  ),
 ];

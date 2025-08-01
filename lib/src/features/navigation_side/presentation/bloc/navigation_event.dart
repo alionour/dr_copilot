@@ -49,6 +49,8 @@ enum Destination {
   notifications(NavItemModel('notifications', Icons.notifications_on_outlined),
       'View notifications'),
   chat(NavItemModel('chat', Icons.chat_outlined), 'Open chat'),
+  liveAssistant(
+      NavItemModel('liveAssistant', Icons.mic), 'Live Voice Assistant'),
   patients(NavItemModel('patients', Icons.people), 'Manage your patients'),
   sessions(
       NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),

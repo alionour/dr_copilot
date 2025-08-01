@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/copilot_page.dart';
+import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
@@ -107,7 +108,7 @@ class _NavigationSideState extends State<NavigationSide> {
                       child: GestureDetector(
                         onTap: _closeMobileNav,
                         child: Container(
-                          color: Colors.black.withValues(alpha:0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                         ),
                       ),
                     ),
@@ -185,6 +186,7 @@ class _NavigationSideState extends State<NavigationSide> {
                           Destination.calendar,
                           // Destination.chat,
                           Destination.copilot,
+                          Destination.liveAssistant,
                           Destination.patients,
                           Destination.settings,
                           Destination.notifications,
@@ -303,6 +305,9 @@ class _NavigationSideState extends State<NavigationSide> {
                       if (state.destination == Destination.copilot) {
                         return const Center(
                             child: CopilotPage(title: 'Dr Copilot'));
+                      } else if (state.destination ==
+                          Destination.liveAssistant) {
+                        return const Center(child: LiveVoiceAssistantPage());
                       } else if (state.destination == Destination.calendar) {
                         return const Center(child: CalendarPage());
                       } else if (state.destination == Destination.settings) {
@@ -332,6 +337,8 @@ class _NavigationSideState extends State<NavigationSide> {
                     if (state.destination == Destination.copilot) {
                       return const Center(
                           child: CopilotPage(title: 'Dr Copilot'));
+                    } else if (state.destination == Destination.liveAssistant) {
+                      return const Center(child: LiveVoiceAssistantPage());
                     } else if (state.destination == Destination.calendar) {
                       return const Center(child: CalendarPage());
                     } else if (state.destination == Destination.settings) {
