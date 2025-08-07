@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/data/remote/evaluation_firebase_api.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/data/repositories/evaluations_repository_impl.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -14,7 +15,7 @@ void initEvaluationsInjections() {
   sl.registerLazySingleton(() => EvaluationsUseCase(sl()));
 
   // Repository
-  sl.registerLazySingleton<EvaluationsRepositoryImpl>(
+  sl.registerLazySingleton<AbstractEvaluationsRepository>(
     () => EvaluationsRepositoryImpl(sl()),
   );
 
