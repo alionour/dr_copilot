@@ -3,6 +3,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/pages/ai_voice_assistant_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/add_transaction_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
@@ -87,6 +88,11 @@ class RoutingConfig {
         path: '/add_transaction',
         name: 'add_transaction',
         builder: (context, state) => const AddTransactionPage(),
+      ),
+      GoRoute(
+        path: '/voice_assistant',
+        name: 'voice_assistant',
+        builder: (context, state) => const AiVoiceAssistantPage(),
       ),
     ],
   );

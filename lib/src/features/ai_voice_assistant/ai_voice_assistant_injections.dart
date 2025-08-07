@@ -7,11 +7,13 @@ import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/comma
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/bloc/ai_voice_assistant_bloc.dart';
 import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:record/record.dart';
 
 void initAiVoiceAssistantInjections() {
   // BLoC
   sl.registerFactory(
     () => AiVoiceAssistantBloc(
+      sl(),
       sl(),
       sl(),
       sl(),
@@ -47,4 +49,5 @@ void initAiVoiceAssistantInjections() {
   // External
   sl.registerLazySingleton(() => Deepgram(ApiKeyHelper.deepgramApiKey));
   sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => AudioRecorder());
 }

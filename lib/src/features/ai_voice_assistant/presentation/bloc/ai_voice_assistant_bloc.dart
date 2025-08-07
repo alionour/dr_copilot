@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/speech_re
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/text_to_speech_datasource.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/command_parser_service.dart';
 import 'package:equatable/equatable.dart';
+import 'package:record/record.dart';
 
 part 'ai_voice_assistant_event.dart';
 part 'ai_voice_assistant_state.dart';
@@ -14,12 +15,14 @@ class AiVoiceAssistantBloc
   final SpeechRecognitionDatasource _speechRecognitionDatasource;
   final TextToSpeechDatasource _textToSpeechDatasource;
   final CommandParserService _commandParserService;
+  final AudioRecorder _audioRecorder;
   StreamSubscription<String>? _speechSubscription;
 
   AiVoiceAssistantBloc(
     this._speechRecognitionDatasource,
     this._textToSpeechDatasource,
     this._commandParserService,
+    this._audioRecorder,
   ) : super(AiVoiceAssistantInitial()) {
     on<StartListeningEvent>(_onStartListening);
     on<StopListeningEvent>(_onStopListening);
@@ -30,22 +33,36 @@ class AiVoiceAssistantBloc
   @override
   Future<void> close() {
     _speechSubscription?.cancel();
+    _audioRecorder.dispose();
     return super.close();
   }
 
   Future<void> _onStartListening(
       StartListeningEvent event, Emitter<AiVoiceAssistantState> emit) async {
-    emit(const AiVoiceAssistantListening(''));
-    // TODO: Get audio stream from microphone
-    final audioStream = Stream<List<int>>.empty();
-    _speechSubscription =
-        _speechRecognitionDatasource.startListening(audioStream).listen((text) {
-      add(TextChangedEvent(text));
-    });
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        final audioStream = await _audioRecorder.startStream(const RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: 16000,
+          numChannels: 1,
+        ));
+        emit(const AiVoiceAssistantListening(''));
+        _speechSubscription = _speechRecognitionDatasource
+            .startListening(audioStream)
+            .listen((text) {
+          add(TextChangedEvent(text));
+        });
+      } else {
+        emit(const AiVoiceAssistantError('Microphone permission not granted.'));
+      }
+    } catch (e) {
+      emit(AiVoiceAssistantError('Error starting to listen: $e'));
+    }
   }
 
   void _onStopListening(
       StopListeningEvent event, Emitter<AiVoiceAssistantState> emit) {
+    _audioRecorder.stop();
     _speechSubscription?.cancel();
     emit(AiVoiceAssistantInitial());
   }

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/pages/ai_voice_assistant_page.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
@@ -14,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/bloc/ai_voice_assistant_bloc.dart';
-import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/voice_assistant_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
@@ -54,7 +54,6 @@ class _NavigationSideState extends State<NavigationSide> {
       child: BlocProvider(
         create: (context) => sl<AiVoiceAssistantBloc>(),
         child: Scaffold(
-          floatingActionButton: const VoiceAssistantButton(),
           body: Row(
             children: [
               BlocBuilder<NavigationBloc, NavigationState>(
@@ -120,6 +119,7 @@ class _NavigationSideState extends State<NavigationSide> {
                                     Destination.notifications,
                                     Destination.charts,
                                     Destination.financials,
+                                    Destination.voiceAssistant,
                                   ].map(
                                     (e) => SideMenuItemDataTile(
                                       isSelected: state.destination == e,
@@ -279,6 +279,11 @@ class _NavigationSideState extends State<NavigationSide> {
                                 Destination.financials) {
                               return const Center(
                                 child: FinancialsPage(),
+                              );
+                            } else if (state.destination ==
+                                Destination.voiceAssistant) {
+                              return const Center(
+                                child: AiVoiceAssistantPage(),
                               );
                             } else {
                               return const SizedBox();
