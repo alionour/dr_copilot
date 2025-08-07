@@ -55,4 +55,10 @@ class ApiKeyHelper {
   /// Returns the value of the 'CLAUDE_KEY' environment variable if it exists,
   /// otherwise returns an empty string.
   static String get claudeKey => Platform.environment['CLAUDE_KEY'] ?? '';
+
+  /// Retrieves the Deepgram API key from the environment variables.
+  ///
+  /// Returns the value of the 'DEEPGRAM_KEY' environment variable if it exists,
+  /// otherwise returns an empty string.
+  static String get deepgramApiKey => Platform.environment['DEEPGRAM_KEY'] ?? '';
 }

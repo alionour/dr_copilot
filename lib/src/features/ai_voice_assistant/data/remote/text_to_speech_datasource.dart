@@ -1,15 +1,13 @@
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:deepgram_speech_to_text/deepgram_speech_to_text.dart';
 
 class TextToSpeechDatasource {
-  final FlutterTts _flutterTts;
+  final Deepgram _deepgram;
 
-  TextToSpeechDatasource(this._flutterTts);
+  TextToSpeechDatasource(this._deepgram);
 
-  Future<void> speak(String text) async {
-    await _flutterTts.speak(text);
-  }
-
-  Future<void> stop() async {
-    await _flutterTts.stop();
+  Future<DeepgramSpeakResult> speak(String text) async {
+    return await _deepgram.speak.text(text, queryParams: {
+      'model': 'aura-asteria-en',
+    });
   }
 }
