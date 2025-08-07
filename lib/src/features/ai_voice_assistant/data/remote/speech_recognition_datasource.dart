@@ -1,23 +1,21 @@
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:async';
+
+import 'package:deepgram_speech_to_text/deepgram_speech_to_text.dart';
 
 class SpeechRecognitionDatasource {
-  final stt.SpeechToText _speech;
+  final Deepgram _deepgram;
 
-  SpeechRecognitionDatasource(this._speech);
+  SpeechRecognitionDatasource(this._deepgram);
 
-  Future<bool> initialize() async {
-    return await _speech.initialize();
-  }
+  Stream<String> startListening(Stream<List<int>> audioStream) {
+    final sttStreamParams = {
+      'language': 'en',
+      'encoding': 'linear16',
+      'sample_rate': 16000,
+    };
 
-  void startListening({required Function(String) onResult}) {
-    _speech.listen(
-      onResult: (result) {
-        onResult(result.recognizedWords);
-      },
-    );
-  }
+    final liveListener = _deepgram.listen.live(audioStream, queryParams: sttStreamParams);
 
-  void stopListening() {
-    _speech.stop();
+    return liveListener.map((result) => result.transcript ?? '');
   }
 }
