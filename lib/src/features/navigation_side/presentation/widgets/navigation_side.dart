@@ -215,6 +215,7 @@ class _NavigationSideState extends State<NavigationSide> {
                 );
               },
             ),
+            ),
             Expanded(
               child: BlocBuilder<NavigationBloc, NavigationState>(
                 builder: (context, state) {

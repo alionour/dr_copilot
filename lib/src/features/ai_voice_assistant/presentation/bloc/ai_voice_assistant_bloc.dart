@@ -26,15 +26,10 @@ class AiVoiceAssistantBloc
 
   Future<void> _onStartListening(
       StartListeningEvent event, Emitter<AiVoiceAssistantState> emit) async {
-    final hasPermission = await _speechRecognitionDatasource.hasPermission();
-    if (!hasPermission) {
-      emit(const AiVoiceAssistantError('Microphone permission not granted.'));
-      return;
-    }
-
     final initialized = await _speechRecognitionDatasource.initialize();
     if (!initialized) {
-      emit(const AiVoiceAssistantError('Failed to initialize speech recognition.'));
+      emit(const AiVoiceAssistantError(
+          'Speech recognition not available or permission denied.'));
       return;
     }
 

@@ -20,8 +20,4 @@ class SpeechRecognitionDatasource {
   void stopListening() {
     _speech.stop();
   }
-
-  Future<bool> hasPermission() async {
-    return await _speech.hasPermission();
-  }
 }

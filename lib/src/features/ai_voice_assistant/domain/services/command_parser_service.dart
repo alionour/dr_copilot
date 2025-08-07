@@ -14,8 +14,6 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
 import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
 
-class CommandParser.dart';
-
 class CommandParserService {
   final GeminiService _geminiService;
   final PatientsUseCase _patientsUseCase;
