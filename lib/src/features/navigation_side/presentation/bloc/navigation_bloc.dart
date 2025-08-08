@@ -50,6 +50,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.financials:
         emit(state.copyWith(destination: Destination.financials));
         break;
+      case Destination.voiceAssistant:
+        emit(state.copyWith(destination: Destination.voiceAssistant));
+        break;
     }
   }
 
