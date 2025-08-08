@@ -18,6 +18,7 @@ class AiVoiceAssistantBloc
   final CommandParserService _commandParserService;
   final AudioRecorder _audioRecorder;
   StreamSubscription<String>? _speechSubscription;
+  Timer? _silenceTimer;
 
   AiVoiceAssistantBloc(
     this._speechRecognitionDatasource,
@@ -48,6 +49,7 @@ class AiVoiceAssistantBloc
   @override
   Future<void> close() {
     _speechSubscription?.cancel();
+    _silenceTimer?.cancel();
     _audioRecorder.dispose();
     return super.close();
   }
@@ -61,8 +63,10 @@ class AiVoiceAssistantBloc
           sampleRate: 16000,
           numChannels: 1,
         ));
-        emit(AiVoiceAssistantListening('',
+        emit(AiVoiceAssistantListening(
+            recognizedText: '',
             conversationHistory: state.conversationHistory));
+        _startSilenceTimer();
         _speechSubscription = _speechRecognitionDatasource
             .startListening(audioStream)
             .listen((text) {
@@ -89,32 +93,42 @@ class AiVoiceAssistantBloc
       StopListeningEvent event, Emitter<AiVoiceAssistantState> emit) {
     _audioRecorder.stop();
     _speechSubscription?.cancel();
-    emit(AiVoiceAssistantInitial(
+    _silenceTimer?.cancel();
+    emit(AiVoiceAssistantIdle(
+        recognizedText: state.recognizedText,
         conversationHistory: state.conversationHistory));
   }
 
   void _onTextChanged(
       TextChangedEvent event, Emitter<AiVoiceAssistantState> emit) {
-    emit(AiVoiceAssistantListening(event.text,
+    _resetSilenceTimer();
+    emit(AiVoiceAssistantListening(
+        recognizedText: event.text,
         conversationHistory: state.conversationHistory));
   }
 
   Future<void> _onProcessCommand(
       ProcessCommandEvent event, Emitter<AiVoiceAssistantState> emit) async {
+    if (event.command.isEmpty) {
+      return;
+    }
     add(AddMessageToHistoryEvent('You: ${event.command}'));
     emit(AiVoiceAssistantProcessing(
+        recognizedText: state.recognizedText,
         conversationHistory: state.conversationHistory));
     try {
       await _commandParserService.parseCommand(event.command);
       const successMessage = 'Command processed successfully.';
       add(AddMessageToHistoryEvent('AI: $successMessage'));
       emit(AiVoiceAssistantSuccess(successMessage,
+          recognizedText: state.recognizedText,
           conversationHistory: state.conversationHistory));
       await _textToSpeechDatasource.speak(successMessage);
     } catch (e) {
       final errorMessage = 'Error processing command: $e';
       add(AddMessageToHistoryEvent('AI: $errorMessage'));
       emit(AiVoiceAssistantError(errorMessage,
+          recognizedText: state.recognizedText,
           conversationHistory: state.conversationHistory));
       await _textToSpeechDatasource.speak(errorMessage);
     }
@@ -126,36 +140,57 @@ class AiVoiceAssistantBloc
       ..add(event.message);
     emit(state.copyWith(conversationHistory: newHistory));
   }
+
+  void _startSilenceTimer() {
+    _silenceTimer = Timer(const Duration(seconds: 30), () {
+      add(StopListeningEvent());
+    });
+  }
+
+  void _resetSilenceTimer() {
+    _silenceTimer?.cancel();
+    _startSilenceTimer();
+  }
 }
 
 extension on AiVoiceAssistantState {
   AiVoiceAssistantState copyWith({
     List<String>? conversationHistory,
+    String? recognizedText,
   }) {
     if (this is AiVoiceAssistantInitial) {
       return AiVoiceAssistantInitial(
           conversationHistory:
               conversationHistory ?? this.conversationHistory);
+    } else if (this is AiVoiceAssistantIdle) {
+      return AiVoiceAssistantIdle(
+          recognizedText: recognizedText ?? this.recognizedText,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
     } else if (this is AiVoiceAssistantListening) {
       return AiVoiceAssistantListening(
-          (this as AiVoiceAssistantListening).recognizedText,
+          recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory);
     } else if (this is AiVoiceAssistantProcessing) {
       return AiVoiceAssistantProcessing(
+          recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory);
     } else if (this is AiVoiceAssistantSpeaking) {
       return AiVoiceAssistantSpeaking(
           (this as AiVoiceAssistantSpeaking).textToSpeak,
+          recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory);
     } else if (this is AiVoiceAssistantSuccess) {
       return AiVoiceAssistantSuccess((this as AiVoiceAssistantSuccess).message,
+          recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory);
     } else if (this is AiVoiceAssistantError) {
       return AiVoiceAssistantError((this as AiVoiceAssistantError).message,
+          recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory);
     }

@@ -82,6 +82,7 @@ dependencies:
   syncfusion_flutter_charts: ^29.1.35
   mockito: ^5.4.5
   lottie: ^3.1.2
+  just_audio: ^0.9.36
 
 dependency_overrides:
   record_linux: ^1.1.1

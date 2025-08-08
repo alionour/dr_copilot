@@ -34,6 +34,7 @@ class CommandParserService {
     final prompt = """
       You are a command parser for a medical assistant app.
       Your task is to parse the user's voice command and extract the intent and the entities.
+      If the user is not giving a command, but is just having a conversation, the intent should be "conversational_chat" and the "response" entity should contain a friendly and helpful response to the user's message.
       The output should be a JSON object with the following structure:
       {
         "intent": "intent_name",
@@ -66,6 +67,8 @@ class CommandParserService {
         - date (string, in YYYY-MM-DD format, e.g., "today", "tomorrow")
       - show_revenue:
         - period (string, e.g., "this month", "last month")
+      - conversational_chat:
+        - response (string)
 
       User command: "$command"
 
@@ -237,6 +240,9 @@ class CommandParserService {
               },
             );
           }
+          break;
+        case 'conversational_chat':
+          // The response is already in the entities, so we just need to speak it.
           break;
         // TODO: Handle other intents
       }
