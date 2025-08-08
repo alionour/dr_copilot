@@ -57,7 +57,9 @@ enum Destination {
   charts(
       NavItemModel('charts', Icons.area_chart_outlined), 'Navigate to Charts'),
   financials(NavItemModel('financials', Icons.attach_money_outlined),
-      'Manage your financials');
+      'Manage your financials'),
+  voiceAssistant(NavItemModel('voiceAssistant', Icons.mic_outlined),
+      'AI Voice Assistant');
 
   final NavItemModel model;
   final String message; // Tooltip or explanation for the destination
