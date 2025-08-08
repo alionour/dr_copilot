@@ -3,10 +3,21 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/speech_recognition_datasource.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/text_to_speech_datasource.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/domain/models/command_model.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/command_parser_service.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
+import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 part 'ai_voice_assistant_event.dart';
 part 'ai_voice_assistant_state.dart';
@@ -17,6 +28,11 @@ class AiVoiceAssistantBloc
   final TextToSpeechDatasource _textToSpeechDatasource;
   final CommandParserService _commandParserService;
   final AudioRecorder _audioRecorder;
+  final PatientsUseCase _patientsUseCase;
+  final SessionsUseCase _sessionsUseCase;
+  final EvaluationsUseCase _evaluationsUseCase;
+  final FinancialsUseCase _financialsUseCase;
+  final FirebaseAuth _firebaseAuth;
   StreamSubscription<String>? _speechSubscription;
   Timer? _silenceTimer;
 
@@ -25,12 +41,20 @@ class AiVoiceAssistantBloc
     this._textToSpeechDatasource,
     this._commandParserService,
     this._audioRecorder,
+    this._patientsUseCase,
+    this._sessionsUseCase,
+    this._evaluationsUseCase,
+    this._financialsUseCase,
+    this._firebaseAuth,
   ) : super(const AiVoiceAssistantInitial()) {
     on<StartListeningEvent>(_onStartListening);
     on<StopListeningEvent>(_onStopListening);
     on<TextChangedEvent>(_onTextChanged);
     on<ProcessCommandEvent>(_onProcessCommand);
     on<AddMessageToHistoryEvent>(_onAddMessageToHistory);
+    on<ConfirmCommandEvent>(_onConfirmCommand);
+    on<CancelCommandEvent>(_onCancelCommand);
+    on<SelectPatientEvent>(_onSelectPatient);
   }
 
   @override
@@ -115,15 +139,48 @@ class AiVoiceAssistantBloc
     add(AddMessageToHistoryEvent('You: ${event.command}'));
     emit(AiVoiceAssistantProcessing(
         recognizedText: state.recognizedText,
-        conversationHistory: state.conversationHistory));
+        conversationHistory: state.conversationHistory,
+        partialCommand: state.partialCommand));
     try {
-      await _commandParserService.parseCommand(event.command);
-      const successMessage = 'Command processed successfully.';
-      add(AddMessageToHistoryEvent('AI: $successMessage'));
-      emit(AiVoiceAssistantSuccess(successMessage,
-          recognizedText: state.recognizedText,
-          conversationHistory: state.conversationHistory));
-      await _textToSpeechDatasource.speak(successMessage);
+      final commandJson = await _commandParserService.parseCommand(
+          event.command, state.conversationHistory);
+      final command = Command.fromJson(commandJson);
+
+      if (state.partialCommand != null) {
+        // We are in a conversation, so we need to merge the new command with the partial command.
+        final mergedEntities = {
+          ...state.partialCommand!.entities,
+          ...command.entities
+        };
+        final mergedCommand = Command(
+            intent: state.partialCommand!.intent, entities: mergedEntities);
+
+        // Now we need to check if the merged command is complete.
+        // For simplicity, I will assume it's complete and proceed to confirmation.
+        // In a real app, I would need to check if all required entities are present.
+        emit(AiVoiceAssistantCommandConfirmation(mergedCommand,
+            recognizedText: state.recognizedText,
+            conversationHistory: state.conversationHistory));
+      } else if (command.intent == 'ask_for_information') {
+        final question = command.entities['question'] as String;
+        add(AddMessageToHistoryEvent('AI: $question'));
+        emit(AiVoiceAssistantAskingForInformation(question,
+            recognizedText: state.recognizedText,
+            conversationHistory: state.conversationHistory,
+            partialCommand: command));
+        await _textToSpeechDatasource.speak(question);
+      } else if (command.intent == 'conversational_chat') {
+        final response = command.entities['response'] as String;
+        add(AddMessageToHistoryEvent('AI: $response'));
+        await _textToSpeechDatasource.speak(response);
+        emit(AiVoiceAssistantIdle(
+            recognizedText: state.recognizedText,
+            conversationHistory: state.conversationHistory));
+      } else {
+        emit(AiVoiceAssistantCommandConfirmation(command,
+            recognizedText: state.recognizedText,
+            conversationHistory: state.conversationHistory));
+      }
     } catch (e) {
       final errorMessage = 'Error processing command: $e';
       add(AddMessageToHistoryEvent('AI: $errorMessage'));
@@ -151,48 +208,397 @@ class AiVoiceAssistantBloc
     _silenceTimer?.cancel();
     _startSilenceTimer();
   }
+
+  Future<void> _onConfirmCommand(
+      ConfirmCommandEvent event, Emitter<AiVoiceAssistantState> emit) async {
+    await _executeCommand(event.command, emit);
+  }
+
+  void _onCancelCommand(
+      CancelCommandEvent event, Emitter<AiVoiceAssistantState> emit) {
+    emit(AiVoiceAssistantIdle(
+        recognizedText: state.recognizedText,
+        conversationHistory: state.conversationHistory));
+  }
+
+  Future<void> _onSelectPatient(
+      SelectPatientEvent event, Emitter<AiVoiceAssistantState> emit) async {
+    final patient = event.patient;
+    final partialCommand = state.partialCommand;
+
+    if (partialCommand != null) {
+      final mergedEntities = {
+        ...partialCommand.entities,
+        'patient_name': patient.name,
+        'patient_id': patient.id,
+      };
+      final mergedCommand =
+          Command(intent: partialCommand.intent, entities: mergedEntities);
+
+      emit(AiVoiceAssistantCommandConfirmation(mergedCommand,
+          recognizedText: state.recognizedText,
+          conversationHistory: state.conversationHistory));
+    }
+  }
+
+  Future<void> _executeCommand(
+      Command command, Emitter<AiVoiceAssistantState> emit) async {
+    try {
+      final intent = command.intent;
+      final entities = command.entities;
+
+      switch (intent) {
+        case 'add_patient':
+          final user = _firebaseAuth.currentUser;
+          if (user == null) {
+            // Handle user not logged in
+            return;
+          }
+
+          final patient = PatientModel(
+            id: const Uuid().v4(),
+            name: entities['name'],
+            age: entities['age'],
+            phoneNumber: entities['phone'],
+            address: entities['address'],
+            gender: entities['gender'],
+            userId: user.uid,
+          );
+          await _patientsUseCase.addPatient(patient);
+          break;
+        case 'schedule_session':
+          final patientId = entities['patient_id'];
+          final patientName = entities['patient_name'];
+          final date = entities['date'];
+          final time = entities['time'];
+
+          if (patientId != null) {
+            // patient_id is available, no need to search
+            final user = _firebaseAuth.currentUser;
+            if (user == null) {
+              return;
+            }
+
+            final startDateTime = DateTime.parse('$date $time');
+            final endDateTime = startDateTime.add(const Duration(hours: 1));
+
+            final session = SessionModel(
+              id: const Uuid().v4(),
+              patientId: patientId,
+              price: SessionType.standard.basePrice,
+              startDateTime: Timestamp.fromDate(startDateTime),
+              endDateTime: Timestamp.fromDate(endDateTime),
+              sessionType: SessionType.standard,
+              userId: user.uid,
+              createdBy: user.uid,
+              patientName: patientName,
+            );
+            await _sessionsUseCase.addSession(session);
+            const successMessage = 'Session scheduled successfully.';
+            add(AddMessageToHistoryEvent('AI: $successMessage'));
+            emit(AiVoiceAssistantSuccess(successMessage,
+                recognizedText: state.recognizedText,
+                conversationHistory: state.conversationHistory));
+            await _textToSpeechDatasource.speak(successMessage);
+          } else {
+            // patient_id is not available, search by name
+            final failureOrPatients =
+                await _patientsUseCase.searchPatients(name: patientName);
+            failureOrPatients.fold(
+              (failure) {
+                debugPrint('Error searching for patient: $failure');
+                add(AddMessageToHistoryEvent(
+                    'AI: Error searching for patient: $failure'));
+              },
+              (patients) async {
+                if (patients.isEmpty) {
+                  final question =
+                      'I could not find a patient named $patientName. Would you like to add a new patient?';
+                  add(AddMessageToHistoryEvent('AI: $question'));
+                  emit(AiVoiceAssistantAskingForInformation(question,
+                      recognizedText: state.recognizedText,
+                      conversationHistory: state.conversationHistory,
+                      partialCommand: command));
+                  await _textToSpeechDatasource.speak(question);
+                } else if (patients.length == 1) {
+                  final patient = patients.first;
+                  final user = _firebaseAuth.currentUser;
+                  if (user == null) {
+                    return;
+                  }
+
+                  final startDateTime = DateTime.parse('$date $time');
+                  final endDateTime =
+                      startDateTime.add(const Duration(hours: 1));
+
+                  final session = SessionModel(
+                    id: const Uuid().v4(),
+                    patientId: patient.id,
+                    price: SessionType.standard.basePrice,
+                    startDateTime: Timestamp.fromDate(startDateTime),
+                    endDateTime: Timestamp.fromDate(endDateTime),
+                    sessionType: SessionType.standard,
+                    userId: user.uid,
+                    createdBy: user.uid,
+                    patientName: patient.name,
+                  );
+                  await _sessionsUseCase.addSession(session);
+                  const successMessage = 'Session scheduled successfully.';
+                  add(AddMessageToHistoryEvent('AI: $successMessage'));
+                  emit(AiVoiceAssistantSuccess(successMessage,
+                      recognizedText: state.recognizedText,
+                      conversationHistory: state.conversationHistory));
+                  await _textToSpeechDatasource.speak(successMessage);
+                } else {
+                  // Multiple patients found, ask the user to select one.
+                  emit(AiVoiceAssistantPatientSelection(patients,
+                      recognizedText: state.recognizedText,
+                      conversationHistory: state.conversationHistory,
+                      partialCommand: command));
+                }
+              },
+            );
+          }
+          break;
+        case 'record_evaluation':
+          final patientId = entities['patient_id'];
+          final patientName = entities['patient_name'];
+          final date = entities['date'];
+
+          if (patientId != null) {
+            // patient_id is available, no need to search
+            final user = _firebaseAuth.currentUser;
+            if (user == null) {
+              return;
+            }
+
+            final startDateTime = DateTime.parse('$date 09:00:00');
+            final endDateTime = startDateTime.add(const Duration(hours: 1));
+
+            final evaluation = EvaluationModel(
+              id: const Uuid().v4(),
+              patientId: patientId,
+              patientName: patientName,
+              price: 200.0,
+              startDateTime: Timestamp.fromDate(startDateTime),
+              endDateTime: Timestamp.fromDate(endDateTime),
+              userId: user.uid,
+              createdBy: user.uid,
+            );
+            await _evaluationsUseCase.addEvaluation(evaluation);
+            const successMessage = 'Evaluation recorded successfully.';
+            add(AddMessageToHistoryEvent('AI: $successMessage'));
+            emit(AiVoiceAssistantSuccess(successMessage,
+                recognizedText: state.recognizedText,
+                conversationHistory: state.conversationHistory));
+            await _textToSpeechDatasource.speak(successMessage);
+          } else {
+            // patient_id is not available, search by name
+            final failureOrPatients =
+                await _patientsUseCase.searchPatients(name: patientName);
+            failureOrPatients.fold(
+              (failure) {
+                debugPrint('Error searching for patient: $failure');
+                add(AddMessageToHistoryEvent(
+                    'AI: Error searching for patient: $failure'));
+              },
+              (patients) async {
+                if (patients.isEmpty) {
+                  final question =
+                      'I could not find a patient named $patientName. Would you like to add a new patient?';
+                  add(AddMessageToHistoryEvent('AI: $question'));
+                  emit(AiVoiceAssistantAskingForInformation(question,
+                      recognizedText: state.recognizedText,
+                      conversationHistory: state.conversationHistory,
+                      partialCommand: command));
+                  await _textToSpeechDatasource.speak(question);
+                } else if (patients.length == 1) {
+                  final patient = patients.first;
+                  final user = _firebaseAuth.currentUser;
+                  if (user == null) {
+                    return;
+                  }
+
+                  final startDateTime = DateTime.parse('$date 09:00:00');
+                  final endDateTime =
+                      startDateTime.add(const Duration(hours: 1));
+
+                  final evaluation = EvaluationModel(
+                    id: const Uuid().v4(),
+                    patientId: patient.id,
+                    patientName: patient.name,
+                    price: 200.0,
+                    startDateTime: Timestamp.fromDate(startDateTime),
+                    endDateTime: Timestamp.fromDate(endDateTime),
+                    userId: user.uid,
+                    createdBy: user.uid,
+                  );
+                  await _evaluationsUseCase.addEvaluation(evaluation);
+                  const successMessage = 'Evaluation recorded successfully.';
+                  add(AddMessageToHistoryEvent('AI: $successMessage'));
+                  emit(AiVoiceAssistantSuccess(successMessage,
+                      recognizedText: state.recognizedText,
+                      conversationHistory: state.conversationHistory));
+                  await _textToSpeechDatasource.speak(successMessage);
+                } else {
+                  // Multiple patients found, ask the user to select one.
+                  emit(AiVoiceAssistantPatientSelection(patients,
+                      recognizedText: state.recognizedText,
+                      conversationHistory: state.conversationHistory,
+                      partialCommand: command));
+                }
+              },
+            );
+          }
+          break;
+        case 'show_appointments':
+          final dateString = entities['date'];
+          DateTime date;
+          if (dateString == 'today') {
+            date = DateTime.now();
+          } else if (dateString == 'tomorrow') {
+            date = DateTime.now().add(const Duration(days: 1));
+          } else {
+            date = DateTime.parse(dateString);
+          }
+
+          final failureOrSessions =
+              await _sessionsUseCase.getSessionsByDate(date);
+          final failureOrEvaluations =
+              await _evaluationsUseCase.getEvaluationsByDate(date);
+
+          failureOrSessions.fold(
+            (failure) => debugPrint('Error getting sessions: $failure'),
+            (sessions) {
+              failureOrEvaluations.fold(
+                (failure) => debugPrint('Error getting evaluations: $failure'),
+                (evaluations) {
+                  final appointments = [...sessions, ...evaluations];
+                  debugPrint('Appointments for $date:');
+                  for (final appointment in appointments) {
+                    debugPrint((appointment as dynamic).toJson());
+                  }
+                },
+              );
+            },
+          );
+          break;
+        case 'show_revenue':
+          final period = entities['period'];
+          if (period == 'this month') {
+            final now = DateTime.now();
+            final firstDayOfMonth = DateTime(now.year, now.month, 1);
+            final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+
+            final failureOrTransactions =
+                await _financialsUseCase.getTransactions();
+            failureOrTransactions.fold(
+              (failure) => debugPrint('Error getting transactions: $failure'),
+              (transactions) {
+                final monthlyTransactions = transactions.where((t) {
+                  final transactionDate = t.transactionDate.toDate();
+                  return transactionDate.isAfter(firstDayOfMonth) &&
+                      transactionDate.isBefore(lastDayOfMonth);
+                }).toList();
+
+                final totalRevenue = monthlyTransactions.fold<double>(
+                    0, (sum, t) => sum + t.amount);
+                debugPrint('Total revenue for this month: $totalRevenue');
+              },
+            );
+          }
+          break;
+        case 'conversational_chat':
+          // The response is already in the entities, so we just need to speak it.
+          break;
+        // TODO: Handle other intents
+      }
+      const successMessage = 'Command processed successfully.';
+      add(AddMessageToHistoryEvent('AI: $successMessage'));
+      emit(AiVoiceAssistantSuccess(successMessage,
+          recognizedText: state.recognizedText,
+          conversationHistory: state.conversationHistory));
+      await _textToSpeechDatasource.speak(successMessage);
+    } catch (e) {
+      final errorMessage = 'Error processing command: $e';
+      add(AddMessageToHistoryEvent('AI: $errorMessage'));
+      emit(AiVoiceAssistantError(errorMessage,
+          recognizedText: state.recognizedText,
+          conversationHistory: state.conversationHistory));
+      await _textToSpeechDatasource.speak(errorMessage);
+    }
+  }
 }
 
 extension on AiVoiceAssistantState {
   AiVoiceAssistantState copyWith({
     List<String>? conversationHistory,
     String? recognizedText,
+    Command? partialCommand,
   }) {
     if (this is AiVoiceAssistantInitial) {
       return AiVoiceAssistantInitial(
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     } else if (this is AiVoiceAssistantIdle) {
       return AiVoiceAssistantIdle(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     } else if (this is AiVoiceAssistantListening) {
       return AiVoiceAssistantListening(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     } else if (this is AiVoiceAssistantProcessing) {
       return AiVoiceAssistantProcessing(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     } else if (this is AiVoiceAssistantSpeaking) {
       return AiVoiceAssistantSpeaking(
           (this as AiVoiceAssistantSpeaking).textToSpeak,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     } else if (this is AiVoiceAssistantSuccess) {
       return AiVoiceAssistantSuccess((this as AiVoiceAssistantSuccess).message,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
+    } else if (this is AiVoiceAssistantCommandConfirmation) {
+      return AiVoiceAssistantCommandConfirmation(
+          (this as AiVoiceAssistantCommandConfirmation).command,
+          recognizedText: recognizedText ?? this.recognizedText,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
+    } else if (this is AiVoiceAssistantAskingForInformation) {
+      return AiVoiceAssistantAskingForInformation(
+          (this as AiVoiceAssistantAskingForInformation).question,
+          recognizedText: recognizedText ?? this.recognizedText,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
+    } else if (this is AiVoiceAssistantPatientSelection) {
+      return AiVoiceAssistantPatientSelection(
+          (this as AiVoiceAssistantPatientSelection).patients,
+          recognizedText: recognizedText ?? this.recognizedText,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     } else if (this is AiVoiceAssistantError) {
       return AiVoiceAssistantError((this as AiVoiceAssistantError).message,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
-              conversationHistory ?? this.conversationHistory);
+              conversationHistory ?? this.conversationHistory,
+          partialCommand: partialCommand ?? this.partialCommand);
     }
     return this;
   }

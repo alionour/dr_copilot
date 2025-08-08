@@ -1,40 +1,24 @@
 import 'dart:convert';
 import 'package:dr_copilot/src/features/copilot/services/gemini_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
-import 'package:dr_copilot/src/features/financials/domain/models/transaction_model.dart';
-import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
-import 'package:uuid/uuid.dart';
-
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
 
 class CommandParserService {
   final GeminiService _geminiService;
-  final PatientsUseCase _patientsUseCase;
-  final SessionsUseCase _sessionsUseCase;
-  final EvaluationsUseCase _evaluationsUseCase;
-  final FinancialsUseCase _financialsUseCase;
-  final FirebaseAuth _firebaseAuth;
 
-  CommandParserService(
-      this._geminiService,
-      this._patientsUseCase,
-      this._sessionsUseCase,
-      this._evaluationsUseCase,
-      this._financialsUseCase,
-      this._firebaseAuth);
+  CommandParserService(this._geminiService);
 
-  Future<void> parseCommand(String command) async {
+  Future<Map<String, dynamic>> parseCommand(
+      String command, List<String> conversationHistory) async {
     final prompt = """
       You are a command parser for a medical assistant app.
       Your task is to parse the user's voice command and extract the intent and the entities.
-      If the user is not giving a command, but is just having a conversation, the intent should be "conversational_chat" and the "response" entity should contain a friendly and helpful response to the user's message.
+
+      If the user is missing information required for a command, you should ask for it.
+      For example, if the user says "schedule a session", you should ask "For which patient?".
+      The intent in this case should be "ask_for_information", and the "question" entity should contain the question to ask the user.
+
+      If the user is just having a conversation, the intent should be "conversational_chat" and the "response" entity should contain a friendly and helpful response to the user's message.
+
       The output should be a JSON object with the following structure:
       {
         "intent": "intent_name",
@@ -67,8 +51,13 @@ class CommandParserService {
         - date (string, in YYYY-MM-DD format, e.g., "today", "tomorrow")
       - show_revenue:
         - period (string, e.g., "this month", "last month")
+      - ask_for_information:
+        - question (string)
       - conversational_chat:
         - response (string)
+
+      Conversation History:
+      ${conversationHistory.join('\n')}
 
       User command: "$command"
 
@@ -76,7 +65,8 @@ class CommandParserService {
     """;
 
     final response = await _geminiService.getGeminiResponse(prompt);
-    final jsonResponse = response.parts.map((part) => (part as TextPart).text).join('');
+    final jsonResponse =
+        response.parts.map((part) => (part as TextPart).text).join('');
 
     try {
       final decoded = jsonDecode(jsonResponse);
@@ -85,167 +75,7 @@ class CommandParserService {
         throw Exception(decoded['error']);
       }
 
-      final intent = decoded['intent'];
-      final entities = decoded['entities'];
-
-      switch (intent) {
-        case 'add_patient':
-          final user = _firebaseAuth.currentUser;
-          if (user == null) {
-            // Handle user not logged in
-            return;
-          }
-
-          final patient = PatientModel(
-            id: Uuid().v4(),
-            name: entities['name'],
-            age: entities['age'],
-            phoneNumber: entities['phone'],
-            address: entities['address'],
-            gender: entities['gender'],
-            userId: user.uid,
-          );
-          await _patientsUseCase.addPatient(patient);
-          break;
-        case 'schedule_session':
-          final patientName = entities['patient_name'];
-          final date = entities['date'];
-          final time = entities['time'];
-
-          final failureOrPatients =
-              await _patientsUseCase.searchPatients(name: patientName);
-          failureOrPatients.fold(
-            (failure) {
-              print('Error searching for patient: $failure');
-            },
-            (patients) async {
-              if (patients.isEmpty) {
-                print('Patient not found: $patientName');
-                return;
-              }
-              final patient = patients.first;
-              final user = _firebaseAuth.currentUser;
-              if (user == null) {
-                return;
-              }
-
-              final startDateTime = DateTime.parse('$date $time');
-              final endDateTime = startDateTime.add(const Duration(hours: 1));
-
-              final session = SessionModel(
-                id: Uuid().v4(),
-                patientId: patient.id,
-                price: SessionType.standard.basePrice,
-                startDateTime: Timestamp.fromDate(startDateTime),
-                endDateTime: Timestamp.fromDate(endDateTime),
-                sessionType: SessionType.standard,
-                userId: user.uid,
-                createdBy: user.uid,
-                patientName: patient.name,
-              );
-              await _sessionsUseCase.addSession(session);
-            },
-          );
-          break;
-        case 'record_evaluation':
-          final patientName = entities['patient_name'];
-          final date = entities['date'];
-
-          final failureOrPatients =
-              await _patientsUseCase.searchPatients(name: patientName);
-          failureOrPatients.fold(
-            (failure) {
-              print('Error searching for patient: $failure');
-            },
-            (patients) async {
-              if (patients.isEmpty) {
-                print('Patient not found: $patientName');
-                return;
-              }
-              final patient = patients.first;
-              final user = _firebaseAuth.currentUser;
-              if (user == null) {
-                return;
-              }
-
-              final startDateTime = DateTime.parse('$date 09:00:00');
-              final endDateTime = startDateTime.add(const Duration(hours: 1));
-
-              final evaluation = EvaluationModel(
-                id: Uuid().v4(),
-                patientId: patient.id,
-                patientName: patient.name,
-                price: 200.0,
-                startDateTime: Timestamp.fromDate(startDateTime),
-                endDateTime: Timestamp.fromDate(endDateTime),
-                userId: user.uid,
-                createdBy: user.uid,
-              );
-              await _evaluationsUseCase.addEvaluation(evaluation);
-            },
-          );
-          break;
-        case 'show_appointments':
-          final dateString = entities['date'];
-          DateTime date;
-          if (dateString == 'today') {
-            date = DateTime.now();
-          } else if (dateString == 'tomorrow') {
-            date = DateTime.now().add(const Duration(days: 1));
-          } else {
-            date = DateTime.parse(dateString);
-          }
-
-          final failureOrSessions = await _sessionsUseCase.getSessionsByDate(date);
-          final failureOrEvaluations =
-              await _evaluationsUseCase.getEvaluationsByDate(date);
-
-          failureOrSessions.fold(
-            (failure) => print('Error getting sessions: $failure'),
-            (sessions) {
-              failureOrEvaluations.fold(
-                (failure) => print('Error getting evaluations: $failure'),
-                (evaluations) {
-                  final appointments = [...sessions, ...evaluations];
-                  print('Appointments for $date:');
-                  for (final appointment in appointments) {
-                    print((appointment as dynamic).toJson());
-                  }
-                },
-              );
-            },
-          );
-          break;
-        case 'show_revenue':
-          final period = entities['period'];
-          if (period == 'this month') {
-            final now = DateTime.now();
-            final firstDayOfMonth = DateTime(now.year, now.month, 1);
-            final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-
-            final failureOrTransactions =
-                await _financialsUseCase.getTransactions();
-            failureOrTransactions.fold(
-              (failure) => print('Error getting transactions: $failure'),
-              (transactions) {
-                final monthlyTransactions = transactions.where((t) {
-                  final transactionDate = t.transactionDate.toDate();
-                  return transactionDate.isAfter(firstDayOfMonth) &&
-                      transactionDate.isBefore(lastDayOfMonth);
-                }).toList();
-
-                final totalRevenue = monthlyTransactions.fold<double>(
-                    0, (sum, t) => sum + t.amount);
-                print('Total revenue for this month: $totalRevenue');
-              },
-            );
-          }
-          break;
-        case 'conversational_chat':
-          // The response is already in the entities, so we just need to speak it.
-          break;
-        // TODO: Handle other intents
-      }
+      return decoded;
     } catch (e) {
       print('Error decoding JSON: $e');
       throw Exception('Failed to parse command from AI response.');

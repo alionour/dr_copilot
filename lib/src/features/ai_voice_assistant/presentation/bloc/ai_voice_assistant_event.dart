@@ -1,5 +1,8 @@
 part of 'ai_voice_assistant_bloc.dart';
 
+import 'package:dr_copilot/src/features/ai_voice_assistant/domain/models/command_model.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+
 abstract class AiVoiceAssistantEvent extends Equatable {
   const AiVoiceAssistantEvent();
 
@@ -36,4 +39,24 @@ class AddMessageToHistoryEvent extends AiVoiceAssistantEvent {
 
   @override
   List<Object> get props => [message];
+}
+
+class ConfirmCommandEvent extends AiVoiceAssistantEvent {
+  final Command command;
+
+  const ConfirmCommandEvent(this.command);
+
+  @override
+  List<Object> get props => [command];
+}
+
+class CancelCommandEvent extends AiVoiceAssistantEvent {}
+
+class SelectPatientEvent extends AiVoiceAssistantEvent {
+  final PatientModel patient;
+
+  const SelectPatientEvent(this.patient);
+
+  @override
+  List<Object> get props => [patient];
 }

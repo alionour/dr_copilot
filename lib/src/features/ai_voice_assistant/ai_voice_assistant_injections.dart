@@ -18,17 +18,17 @@ void initAiVoiceAssistantInjections() {
       sl(),
       sl(),
       sl(),
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      sl(),
     ),
   );
 
   // Services
   sl.registerLazySingleton(
     () => CommandParserService(
-      sl(),
-      sl(),
-      sl(),
-      sl(),
-      sl(),
       sl(),
     ),
   );

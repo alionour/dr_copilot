@@ -1,6 +1,10 @@
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/bloc/ai_voice_assistant_bloc.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/pallete.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/feature_box.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/patient_selection_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:animate_do/animate_do.dart';
 
 class AiVoiceAssistantPage extends StatefulWidget {
   const AiVoiceAssistantPage({super.key});
@@ -21,89 +25,198 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
       body: Column(
         children: [
           Expanded(
-            child: BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
-              builder: (context, state) {
-                return ListView.builder(
-                  itemCount: state.conversationHistory.length,
-                  itemBuilder: (context, index) {
-                    final message = state.conversationHistory[index];
-                    final isUserMessage = message.startsWith('You: ');
-                    return Align(
-                      alignment: isUserMessage
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isUserMessage
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          message.replaceFirst(isUserMessage ? 'You: ' : 'AI: ', ''),
-                          style: TextStyle(
-                            color: isUserMessage ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
+                // Left Section (Jarvis UI)
                 Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      hintText: 'Type your command...',
+                  flex: 1,
+                  child: Container(
+                    color: Pallete.whiteColor,
+                    child: Column(
+                      children: [
+                        ZoomIn(
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Container(
+                                  height: 120,
+                                  width: 120,
+                                  margin: const EdgeInsets.only(top: 4),
+                                  decoration: const BoxDecoration(
+                                    color: Pallete.assistantCircleColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                height: 123,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                    image: AssetImage(
+                                      'assets/svg/logo.svg', // Using a placeholder image
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // chat bubble
+                        FadeInRight(
+                          child: Visibility(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              margin: const EdgeInsets.symmetric(horizontal: 40).copyWith(
+                                top: 30,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Pallete.borderColor,
+                                ),
+                                borderRadius: BorderRadius.circular(20).copyWith(
+                                  topLeft: Radius.zero,
+                                ),
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 10.0),
+                                child: Text(
+                                  'Good Morning, what task can I do for you?',
+                                  style: TextStyle(
+                                    fontFamily: 'Cera Pro',
+                                    color: Pallete.mainFontColor,
+                                    fontSize: 25,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        FadeInLeft(
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            alignment: Alignment.centerLeft,
+                            margin: const EdgeInsets.only(top: 10, left: 22),
+                            child: const Text(
+                              'Here are a few features',
+                              style: TextStyle(
+                                fontFamily: 'Cera Pro',
+                                color: Pallete.mainFontColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // features list
+                        const Column(
+                          children: [
+                            FeatureBox(
+                              color: Pallete.firstSuggestionBoxColor,
+                              headerText: 'Add Patient',
+                              descriptionText:
+                                  'Add a new patient to your records.',
+                            ),
+                            FeatureBox(
+                              color: Pallete.secondSuggestionBoxColor,
+                              headerText: 'Schedule Session',
+                              descriptionText:
+                                  'Schedule a new session for a patient.',
+                            ),
+                            FeatureBox(
+                              color: Pallete.thirdSuggestionBoxColor,
+                              headerText: 'Record Evaluation',
+                              descriptionText:
+                                  'Record a new evaluation for a patient.',
+                            ),
+                          ],
+                        )
+                      ],
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () {
-                    final command = _textController.text;
-                    if (command.isNotEmpty) {
-                      context
-                          .read<AiVoiceAssistantBloc>()
-                          .add(ProcessCommandEvent(command));
-                      _textController.clear();
-                    }
-                  },
-                ),
-                BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
-                  builder: (context, state) {
-                    if (state is AiVoiceAssistantListening) {
-                      return IconButton(
-                        icon: const Icon(Icons.stop),
-                        onPressed: () {
-                          context
-                              .read<AiVoiceAssistantBloc>()
-                              .add(StopListeningEvent());
-                        },
-                      );
-                    }
-                    return IconButton(
-                      icon: const Icon(Icons.mic),
-                      onPressed: () {
-                        context
-                            .read<AiVoiceAssistantBloc>()
-                            .add(StartListeningEvent());
+                // Right Section (Dynamic Content)
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    color: Colors.white,
+                    child: BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+                      builder: (context, state) {
+                        if (state is AiVoiceAssistantPatientSelection) {
+                          return PatientSelectionCard(
+                            patients: state.patients,
+                            onPatientSelected: (patient) {
+                              context
+                                  .read<AiVoiceAssistantBloc>()
+                                  .add(SelectPatientEvent(patient));
+                            },
+                          );
+                        }
+                        return const Center(
+                          child: Text('Placeholder for dynamic content'),
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
+          // Bottom Section (Confirmation Card)
+          BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+            builder: (context, state) {
+              if (state is AiVoiceAssistantCommandConfirmation) {
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Text('Intent: ${state.command.intent}'),
+                        ...state.command.entities.entries.map(
+                          (entry) => Text('- ${entry.key}: ${entry.value}'),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                context.read<AiVoiceAssistantBloc>().add(CancelCommandEvent());
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context
+                                    .read<AiVoiceAssistantBloc>()
+                                    .add(ConfirmCommandEvent(state.command));
+                              },
+                              child: const Text('Confirm'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
+      ),
+      floatingActionButton: ZoomIn(
+        child: FloatingActionButton(
+          backgroundColor: Pallete.firstSuggestionBoxColor,
+          onPressed: () async {
+            // TODO: Implement voice command logic
+          },
+          child: const Icon(
+            Icons.mic,
+          ),
+        ),
       ),
     );
   }
