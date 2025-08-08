@@ -107,7 +107,7 @@ class AiVoiceAssistantBloc
     try {
       await _commandParserService.parseCommand(event.command);
       const successMessage = 'Command processed successfully.';
-      add(AddMessageTo-HistoryEvent('AI: $successMessage'));
+      add(AddMessageToHistoryEvent('AI: $successMessage'));
       emit(AiVoiceAssistantSuccess(successMessage,
           conversationHistory: state.conversationHistory));
       await _textToSpeechDatasource.speak(successMessage);
