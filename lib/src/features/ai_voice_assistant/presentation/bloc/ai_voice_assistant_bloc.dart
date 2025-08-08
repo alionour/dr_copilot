@@ -23,11 +23,12 @@ class AiVoiceAssistantBloc
     this._textToSpeechDatasource,
     this._commandParserService,
     this._audioRecorder,
-  ) : super(AiVoiceAssistantInitial()) {
+  ) : super(const AiVoiceAssistantInitial()) {
     on<StartListeningEvent>(_onStartListening);
     on<StopListeningEvent>(_onStopListening);
     on<TextChangedEvent>(_onTextChanged);
     on<ProcessCommandEvent>(_onProcessCommand);
+    on<AddMessageToHistoryEvent>(_onAddMessageToHistory);
   }
 
   @override
@@ -46,17 +47,27 @@ class AiVoiceAssistantBloc
           sampleRate: 16000,
           numChannels: 1,
         ));
-        emit(const AiVoiceAssistantListening(''));
+        emit(AiVoiceAssistantListening('',
+            conversationHistory: state.conversationHistory));
         _speechSubscription = _speechRecognitionDatasource
             .startListening(audioStream)
             .listen((text) {
           add(TextChangedEvent(text));
+        }, onError: (error) {
+          print('Error from speech stream: $error');
+          add(AddMessageToHistoryEvent('Error: $error'));
+          emit(AiVoiceAssistantError('Error from speech stream: $error',
+              conversationHistory: state.conversationHistory));
         });
       } else {
+        add(const AddMessageToHistoryEvent('Error: Microphone permission not granted.'));
         emit(const AiVoiceAssistantError('Microphone permission not granted.'));
       }
     } catch (e) {
-      emit(AiVoiceAssistantError('Error starting to listen: $e'));
+      print('Error starting to listen: $e');
+      add(AddMessageToHistoryEvent('Error: $e'));
+      emit(AiVoiceAssistantError('Error starting to listen: $e',
+          conversationHistory: state.conversationHistory));
     }
   }
 
@@ -64,26 +75,76 @@ class AiVoiceAssistantBloc
       StopListeningEvent event, Emitter<AiVoiceAssistantState> emit) {
     _audioRecorder.stop();
     _speechSubscription?.cancel();
-    emit(AiVoiceAssistantInitial());
+    emit(AiVoiceAssistantInitial(
+        conversationHistory: state.conversationHistory));
   }
 
   void _onTextChanged(
       TextChangedEvent event, Emitter<AiVoiceAssistantState> emit) {
-    emit(AiVoiceAssistantListening(event.text));
+    emit(AiVoiceAssistantListening(event.text,
+        conversationHistory: state.conversationHistory));
   }
 
   Future<void> _onProcessCommand(
       ProcessCommandEvent event, Emitter<AiVoiceAssistantState> emit) async {
-    emit(AiVoiceAssistantProcessing());
+    add(AddMessageToHistoryEvent('You: ${event.command}'));
+    emit(AiVoiceAssistantProcessing(
+        conversationHistory: state.conversationHistory));
     try {
       await _commandParserService.parseCommand(event.command);
       const successMessage = 'Command processed successfully.';
-      emit(const AiVoiceAssistantSuccess(successMessage));
+      add(AddMessageToHistoryEvent('AI: $successMessage'));
+      emit(AiVoiceAssistantSuccess(successMessage,
+          conversationHistory: state.conversationHistory));
       await _textToSpeechDatasource.speak(successMessage);
     } catch (e) {
       final errorMessage = 'Error processing command: $e';
-      emit(AiVoiceAssistantError(errorMessage));
+      add(AddMessageToHistoryEvent('AI: $errorMessage'));
+      emit(AiVoiceAssistantError(errorMessage,
+          conversationHistory: state.conversationHistory));
       await _textToSpeechDatasource.speak(errorMessage);
     }
+  }
+
+  void _onAddMessageToHistory(
+      AddMessageToHistoryEvent event, Emitter<AiVoiceAssistantState> emit) {
+    final newHistory = List<String>.from(state.conversationHistory)
+      ..add(event.message);
+    emit(state.copyWith(conversationHistory: newHistory));
+  }
+}
+
+extension on AiVoiceAssistantState {
+  AiVoiceAssistantState copyWith({
+    List<String>? conversationHistory,
+  }) {
+    if (this is AiVoiceAssistantInitial) {
+      return AiVoiceAssistantInitial(
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
+    } else if (this is AiVoiceAssistantListening) {
+      return AiVoiceAssistantListening(
+          (this as AiVoiceAssistantListening).recognizedText,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
+    } else if (this is AiVoiceAssistantProcessing) {
+      return AiVoiceAssistantProcessing(
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
+    } else if (this is AiVoiceAssistantSpeaking) {
+      return AiVoiceAssistantSpeaking(
+          (this as AiVoiceAssistantSpeaking).textToSpeak,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
+    } else if (this is AiVoiceAssistantSuccess) {
+      return AiVoiceAssistantSuccess((this as AiVoiceAssistantSuccess).message,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
+    } else if (this is AiVoiceAssistantError) {
+      return AiVoiceAssistantError((this as AiVoiceAssistantError).message,
+          conversationHistory:
+              conversationHistory ?? this.conversationHistory);
+    }
+    return this;
   }
 }

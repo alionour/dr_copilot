@@ -9,7 +9,7 @@ abstract class AiVoiceAssistantEvent extends Equatable {
 
 class StartListeningEvent extends AiVoiceAssistantEvent {}
 
-class StopListeningEvent extends AiVoiceAssistantEvent {}
+class StopListeningEvent extends AiVoiceassistantEvent {}
 
 class TextChangedEvent extends AiVoiceAssistantEvent {
   final String text;
@@ -27,4 +27,13 @@ class ProcessCommandEvent extends AiVoiceAssistantEvent {
 
   @override
   List<Object> get props => [command];
+}
+
+class AddMessageToHistoryEvent extends AiVoiceAssistantEvent {
+  final String message;
+
+  const AddMessageToHistoryEvent(this.message);
+
+  @override
+  List<Object> get props => [message];
 }
