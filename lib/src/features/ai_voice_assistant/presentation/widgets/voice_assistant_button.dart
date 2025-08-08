@@ -26,7 +26,7 @@ class VoiceAssistantButton extends StatelessWidget {
                   .read<AiVoiceAssistantBloc>()
                   .add(ProcessCommandEvent(state.recognizedText));
             },
-            child: const Icon(Icons.stop),
+            child: const CircularProgressIndicator(),
           );
         }
 
@@ -47,5 +47,3 @@ class VoiceAssistantButton extends StatelessWidget {
     );
   }
 }
-
-// TODO: Implement a full conversation UI with history.

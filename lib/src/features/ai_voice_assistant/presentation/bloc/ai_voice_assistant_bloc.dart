@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/speech_re
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/text_to_speech_datasource.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/command_parser_service.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
 part 'ai_voice_assistant_event.dart';
@@ -32,6 +33,19 @@ class AiVoiceAssistantBloc
   }
 
   @override
+  void onEvent(AiVoiceAssistantEvent event) {
+    super.onEvent(event);
+    debugPrint('AiVoiceAssistantBloc: onEvent: $event');
+  }
+
+  @override
+  void onTransition(
+      Transition<AiVoiceAssistantEvent, AiVoiceAssistantState> transition) {
+    super.onTransition(transition);
+    debugPrint('AiVoiceAssistantBloc: onTransition: $transition');
+  }
+
+  @override
   Future<void> close() {
     _speechSubscription?.cancel();
     _audioRecorder.dispose();
@@ -54,7 +68,7 @@ class AiVoiceAssistantBloc
             .listen((text) {
           add(TextChangedEvent(text));
         }, onError: (error) {
-          print('Error from speech stream: $error');
+          debugPrint('Error from speech stream: $error');
           add(AddMessageToHistoryEvent('Error: $error'));
           emit(AiVoiceAssistantError('Error from speech stream: $error',
               conversationHistory: state.conversationHistory));
@@ -64,7 +78,7 @@ class AiVoiceAssistantBloc
         emit(const AiVoiceAssistantError('Microphone permission not granted.'));
       }
     } catch (e) {
-      print('Error starting to listen: $e');
+      debugPrint('Error starting to listen: $e');
       add(AddMessageToHistoryEvent('Error: $e'));
       emit(AiVoiceAssistantError('Error starting to listen: $e',
           conversationHistory: state.conversationHistory));
@@ -93,7 +107,7 @@ class AiVoiceAssistantBloc
     try {
       await _commandParserService.parseCommand(event.command);
       const successMessage = 'Command processed successfully.';
-      add(AddMessageToHistoryEvent('AI: $successMessage'));
+      add(AddMessageTo-HistoryEvent('AI: $successMessage'));
       emit(AiVoiceAssistantSuccess(successMessage,
           conversationHistory: state.conversationHistory));
       await _textToSpeechDatasource.speak(successMessage);

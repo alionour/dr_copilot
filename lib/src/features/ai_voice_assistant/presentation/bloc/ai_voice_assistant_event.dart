@@ -9,7 +9,7 @@ abstract class AiVoiceAssistantEvent extends Equatable {
 
 class StartListeningEvent extends AiVoiceAssistantEvent {}
 
-class StopListeningEvent extends AiVoiceAssistantEvent {}
+class StopListeningEvent extends AiVoiceassistantEvent {}
 
 class TextChangedEvent extends AiVoiceAssistantEvent {
   final String text;

@@ -43,6 +43,11 @@ class CommandParserService {
         }
       }
 
+      If you cannot parse the command, return an error in the JSON object like this:
+      {
+        "error": "Could not parse command."
+      }
+
       Here are the possible intents and their entities:
       - add_patient:
         - name (string)
@@ -69,165 +74,175 @@ class CommandParserService {
 
     final response = await _geminiService.getGeminiResponse(prompt);
     final jsonResponse = response.parts.map((part) => (part as TextPart).text).join('');
-    final decoded = jsonDecode(jsonResponse);
 
-    final intent = decoded['intent'];
-    final entities = decoded['entities'];
+    try {
+      final decoded = jsonDecode(jsonResponse);
 
-    switch (intent) {
-      case 'add_patient':
-        final user = _firebaseAuth.currentUser;
-        if (user == null) {
-          // Handle user not logged in
-          return;
-        }
+      if (decoded['error'] != null) {
+        throw Exception(decoded['error']);
+      }
 
-        final patient = PatientModel(
-          id: Uuid().v4(),
-          name: entities['name'],
-          age: entities['age'],
-          phoneNumber: entities['phone'],
-          address: entities['address'],
-          gender: entities['gender'],
-          userId: user.uid,
-        );
-        await _patientsUseCase.addPatient(patient);
-        break;
-      case 'schedule_session':
-        final patientName = entities['patient_name'];
-        final date = entities['date'];
-        final time = entities['time'];
+      final intent = decoded['intent'];
+      final entities = decoded['entities'];
 
-        final failureOrPatients =
-            await _patientsUseCase.searchPatients(name: patientName);
-        failureOrPatients.fold(
-          (failure) {
-            print('Error searching for patient: $failure');
-          },
-          (patients) async {
-            if (patients.isEmpty) {
-              print('Patient not found: $patientName');
-              return;
-            }
-            final patient = patients.first;
-            final user = _firebaseAuth.currentUser;
-            if (user == null) {
-              return;
-            }
+      switch (intent) {
+        case 'add_patient':
+          final user = _firebaseAuth.currentUser;
+          if (user == null) {
+            // Handle user not logged in
+            return;
+          }
 
-            final startDateTime = DateTime.parse('$date $time');
-            final endDateTime = startDateTime.add(const Duration(hours: 1));
+          final patient = PatientModel(
+            id: Uuid().v4(),
+            name: entities['name'],
+            age: entities['age'],
+            phoneNumber: entities['phone'],
+            address: entities['address'],
+            gender: entities['gender'],
+            userId: user.uid,
+          );
+          await _patientsUseCase.addPatient(patient);
+          break;
+        case 'schedule_session':
+          final patientName = entities['patient_name'];
+          final date = entities['date'];
+          final time = entities['time'];
 
-            final session = SessionModel(
-              id: Uuid().v4(),
-              patientId: patient.id,
-              price: SessionType.standard.basePrice,
-              startDateTime: Timestamp.fromDate(startDateTime),
-              endDateTime: Timestamp.fromDate(endDateTime),
-              sessionType: SessionType.standard,
-              userId: user.uid,
-              createdBy: user.uid,
-              patientName: patient.name,
-            );
-            await _sessionsUseCase.addSession(session);
-          },
-        );
-        break;
-      case 'record_evaluation':
-        final patientName = entities['patient_name'];
-        final date = entities['date'];
+          final failureOrPatients =
+              await _patientsUseCase.searchPatients(name: patientName);
+          failureOrPatients.fold(
+            (failure) {
+              print('Error searching for patient: $failure');
+            },
+            (patients) async {
+              if (patients.isEmpty) {
+                print('Patient not found: $patientName');
+                return;
+              }
+              final patient = patients.first;
+              final user = _firebaseAuth.currentUser;
+              if (user == null) {
+                return;
+              }
 
-        final failureOrPatients =
-            await _patientsUseCase.searchPatients(name: patientName);
-        failureOrPatients.fold(
-          (failure) {
-            print('Error searching for patient: $failure');
-          },
-          (patients) async {
-            if (patients.isEmpty) {
-              print('Patient not found: $patientName');
-              return;
-            }
-            final patient = patients.first;
-            final user = _firebaseAuth.currentUser;
-            if (user == null) {
-              return;
-            }
+              final startDateTime = DateTime.parse('$date $time');
+              final endDateTime = startDateTime.add(const Duration(hours: 1));
 
-            final startDateTime = DateTime.parse('$date 09:00:00');
-            final endDateTime = startDateTime.add(const Duration(hours: 1));
-
-            final evaluation = EvaluationModel(
-              id: Uuid().v4(),
-              patientId: patient.id,
-              patientName: patient.name,
-              price: 200.0,
-              startDateTime: Timestamp.fromDate(startDateTime),
-              endDateTime: Timestamp.fromDate(endDateTime),
-              userId: user.uid,
-              createdBy: user.uid,
-            );
-            await _evaluationsUseCase.addEvaluation(evaluation);
-          },
-        );
-        break;
-      case 'show_appointments':
-        final dateString = entities['date'];
-        DateTime date;
-        if (dateString == 'today') {
-          date = DateTime.now();
-        } else if (dateString == 'tomorrow') {
-          date = DateTime.now().add(const Duration(days: 1));
-        } else {
-          date = DateTime.parse(dateString);
-        }
-
-        final failureOrSessions = await _sessionsUseCase.getSessionsByDate(date);
-        final failureOrEvaluations =
-            await _evaluationsUseCase.getEvaluationsByDate(date);
-
-        failureOrSessions.fold(
-          (failure) => print('Error getting sessions: $failure'),
-          (sessions) {
-            failureOrEvaluations.fold(
-              (failure) => print('Error getting evaluations: $failure'),
-              (evaluations) {
-                final appointments = [...sessions, ...evaluations];
-                print('Appointments for $date:');
-                for (final appointment in appointments) {
-                  print((appointment as dynamic).toJson());
-                }
-              },
-            );
-          },
-        );
-        break;
-      case 'show_revenue':
-        final period = entities['period'];
-        if (period == 'this month') {
-          final now = DateTime.now();
-          final firstDayOfMonth = DateTime(now.year, now.month, 1);
-          final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-
-          final failureOrTransactions =
-              await _financialsUseCase.getTransactions();
-          failureOrTransactions.fold(
-            (failure) => print('Error getting transactions: $failure'),
-            (transactions) {
-              final monthlyTransactions = transactions.where((t) {
-                final transactionDate = t.transactionDate.toDate();
-                return transactionDate.isAfter(firstDayOfMonth) &&
-                    transactionDate.isBefore(lastDayOfMonth);
-              }).toList();
-
-              final totalRevenue = monthlyTransactions.fold<double>(
-                  0, (sum, t) => sum + t.amount);
-              print('Total revenue for this month: $totalRevenue');
+              final session = SessionModel(
+                id: Uuid().v4(),
+                patientId: patient.id,
+                price: SessionType.standard.basePrice,
+                startDateTime: Timestamp.fromDate(startDateTime),
+                endDateTime: Timestamp.fromDate(endDateTime),
+                sessionType: SessionType.standard,
+                userId: user.uid,
+                createdBy: user.uid,
+                patientName: patient.name,
+              );
+              await _sessionsUseCase.addSession(session);
             },
           );
-        }
-        break;
-      // TODO: Handle other intents
+          break;
+        case 'record_evaluation':
+          final patientName = entities['patient_name'];
+          final date = entities['date'];
+
+          final failureOrPatients =
+              await _patientsUseCase.searchPatients(name: patientName);
+          failureOrPatients.fold(
+            (failure) {
+              print('Error searching for patient: $failure');
+            },
+            (patients) async {
+              if (patients.isEmpty) {
+                print('Patient not found: $patientName');
+                return;
+              }
+              final patient = patients.first;
+              final user = _firebaseAuth.currentUser;
+              if (user == null) {
+                return;
+              }
+
+              final startDateTime = DateTime.parse('$date 09:00:00');
+              final endDateTime = startDateTime.add(const Duration(hours: 1));
+
+              final evaluation = EvaluationModel(
+                id: Uuid().v4(),
+                patientId: patient.id,
+                patientName: patient.name,
+                price: 200.0,
+                startDateTime: Timestamp.fromDate(startDateTime),
+                endDateTime: Timestamp.fromDate(endDateTime),
+                userId: user.uid,
+                createdBy: user.uid,
+              );
+              await _evaluationsUseCase.addEvaluation(evaluation);
+            },
+          );
+          break;
+        case 'show_appointments':
+          final dateString = entities['date'];
+          DateTime date;
+          if (dateString == 'today') {
+            date = DateTime.now();
+          } else if (dateString == 'tomorrow') {
+            date = DateTime.now().add(const Duration(days: 1));
+          } else {
+            date = DateTime.parse(dateString);
+          }
+
+          final failureOrSessions = await _sessionsUseCase.getSessionsByDate(date);
+          final failureOrEvaluations =
+              await _evaluationsUseCase.getEvaluationsByDate(date);
+
+          failureOrSessions.fold(
+            (failure) => print('Error getting sessions: $failure'),
+            (sessions) {
+              failureOrEvaluations.fold(
+                (failure) => print('Error getting evaluations: $failure'),
+                (evaluations) {
+                  final appointments = [...sessions, ...evaluations];
+                  print('Appointments for $date:');
+                  for (final appointment in appointments) {
+                    print((appointment as dynamic).toJson());
+                  }
+                },
+              );
+            },
+          );
+          break;
+        case 'show_revenue':
+          final period = entities['period'];
+          if (period == 'this month') {
+            final now = DateTime.now();
+            final firstDayOfMonth = DateTime(now.year, now.month, 1);
+            final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+
+            final failureOrTransactions =
+                await _financialsUseCase.getTransactions();
+            failureOrTransactions.fold(
+              (failure) => print('Error getting transactions: $failure'),
+              (transactions) {
+                final monthlyTransactions = transactions.where((t) {
+                  final transactionDate = t.transactionDate.toDate();
+                  return transactionDate.isAfter(firstDayOfMonth) &&
+                      transactionDate.isBefore(lastDayOfMonth);
+                }).toList();
+
+                final totalRevenue = monthlyTransactions.fold<double>(
+                    0, (sum, t) => sum + t.amount);
+                print('Total revenue for this month: $totalRevenue');
+              },
+            );
+          }
+          break;
+        // TODO: Handle other intents
+      }
+    } catch (e) {
+      print('Error decoding JSON: $e');
+      throw Exception('Failed to parse command from AI response.');
     }
   }
 }
