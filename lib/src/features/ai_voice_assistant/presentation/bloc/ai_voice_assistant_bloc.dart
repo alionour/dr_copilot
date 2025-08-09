@@ -5,6 +5,8 @@ import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/speech_re
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/text_to_speech_datasource.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/models/command_model.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/command_parser_service.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/correction_service.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/user_preferences_service.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
