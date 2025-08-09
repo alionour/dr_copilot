@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/speech_recognition_datasource.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/data/remote/text_to_speech_datasource.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/models/command_model.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/domain/models/correction_model.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/command_parser_service.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/correction_service.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/domain/services/user_preferences_service.dart';

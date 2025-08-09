@@ -1,8 +1,5 @@
 part of 'ai_voice_assistant_bloc.dart';
 
-import 'package:dr_copilot/src/features/ai_voice_assistant/domain/models/command_model.dart';
-import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-
 abstract class AiVoiceAssistantEvent extends Equatable {
   const AiVoiceAssistantEvent();
 
