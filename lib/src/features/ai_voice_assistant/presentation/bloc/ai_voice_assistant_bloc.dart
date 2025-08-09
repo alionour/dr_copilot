@@ -117,13 +117,16 @@ class AiVoiceAssistantBloc
 
   Future<void> _onStartListening(
       StartListeningEvent event, Emitter<AiVoiceAssistantState> emit) async {
+    debugPrint('AiVoiceAssistantBloc: _onStartListening');
     try {
       if (await _audioRecorder.hasPermission()) {
+        debugPrint('AiVoiceAssistantBloc: Microphone permission granted.');
         final audioStream = await _audioRecorder.startStream(const RecordConfig(
           encoder: AudioEncoder.pcm16bits,
           sampleRate: 16000,
           numChannels: 1,
         ));
+        debugPrint('AiVoiceAssistantBloc: Audio stream started.');
         emit(AiVoiceAssistantListening(
             recognizedText: '',
             conversationHistory: state.conversationHistory));
@@ -131,19 +134,21 @@ class AiVoiceAssistantBloc
         _speechSubscription = _speechRecognitionDatasource
             .startListening(audioStream)
             .listen((text) {
+          debugPrint('AiVoiceAssistantBloc: Received text from speech stream: $text');
           add(TextChangedEvent(text));
         }, onError: (error) {
-          debugPrint('Error from speech stream: $error');
+          debugPrint('AiVoiceAssistantBloc: Error from speech stream: $error');
           add(AddMessageToHistoryEvent('Error: $error'));
           emit(AiVoiceAssistantError('Error from speech stream: $error',
               conversationHistory: state.conversationHistory));
         });
       } else {
+        debugPrint('AiVoiceAssistantBloc: Microphone permission not granted.');
         add(const AddMessageToHistoryEvent('Error: Microphone permission not granted.'));
         emit(const AiVoiceAssistantError('Microphone permission not granted.'));
       }
     } catch (e) {
-      debugPrint('Error starting to listen: $e');
+      debugPrint('AiVoiceAssistantBloc: Error starting to listen: $e');
       add(AddMessageToHistoryEvent('Error: $e'));
       emit(AiVoiceAssistantError('Error starting to listen: $e',
           conversationHistory: state.conversationHistory));
@@ -152,6 +157,7 @@ class AiVoiceAssistantBloc
 
   void _onStopListening(
       StopListeningEvent event, Emitter<AiVoiceAssistantState> emit) {
+    debugPrint('AiVoiceAssistantBloc: _onStopListening');
     _audioRecorder.stop();
     _speechSubscription?.cancel();
     _silenceTimer?.cancel();
@@ -162,6 +168,7 @@ class AiVoiceAssistantBloc
 
   void _onTextChanged(
       TextChangedEvent event, Emitter<AiVoiceAssistantState> emit) {
+    debugPrint('AiVoiceAssistantBloc: _onTextChanged: ${event.text}');
     _resetSilenceTimer();
     emit(AiVoiceAssistantListening(
         recognizedText: event.text,
@@ -170,6 +177,7 @@ class AiVoiceAssistantBloc
 
   Future<void> _onProcessCommand(
       ProcessCommandEvent event, Emitter<AiVoiceAssistantState> emit) async {
+    debugPrint('AiVoiceAssistantBloc: _onProcessCommand: ${event.command}');
     if (event.command.isEmpty) {
       return;
     }
@@ -182,9 +190,11 @@ class AiVoiceAssistantBloc
     try {
       final commandJson = await _commandParserService.parseCommand(event.command,
           state.conversationHistory, state.partialCommand, _userPreferencesService);
+      debugPrint('AiVoiceAssistantBloc: Parsed command: $commandJson');
       final command = Command.fromJson(commandJson);
 
       if (state.partialCommand != null) {
+        debugPrint('AiVoiceAssistantBloc: In conversation, merging commands.');
         // We are in a conversation, so we need to merge the new command with the partial command.
         final mergedEntities = {
           ...state.partialCommand!.entities,
@@ -192,6 +202,7 @@ class AiVoiceAssistantBloc
         };
         final mergedCommand = Command(
             intent: state.partialCommand!.intent, entities: mergedEntities);
+        debugPrint('AiVoiceAssistantBloc: Merged command: $mergedCommand');
 
         // Now we need to check if the merged command is complete.
         // For simplicity, I will assume it's complete and proceed to confirmation.
@@ -202,7 +213,9 @@ class AiVoiceAssistantBloc
             originalCommand: state.originalCommand));
       } else {
         // This is a new command
+        debugPrint('AiVoiceAssistantBloc: New command.');
         if (command.intent == 'ask_for_information') {
+          debugPrint('AiVoiceAssistantBloc: Asking for information.');
           final question = command.entities['question'] as String;
           add(AddMessageToHistoryEvent('AI: $question'));
           emit(AiVoiceAssistantAskingForInformation(question,
@@ -212,6 +225,7 @@ class AiVoiceAssistantBloc
               originalCommand: command));
           await _textToSpeechDatasource.speak(question);
         } else if (command.intent == 'conversational_chat') {
+          debugPrint('AiVoiceAssistantBloc: Conversational chat.');
           final response = command.entities['response'] as String;
           add(AddMessageToHistoryEvent('AI: $response'));
           await _textToSpeechDatasource.speak(response);
@@ -219,6 +233,7 @@ class AiVoiceAssistantBloc
               recognizedText: state.recognizedText,
               conversationHistory: state.conversationHistory));
         } else {
+          debugPrint('AiVoiceAssistantBloc: Command confirmation.');
           emit(AiVoiceAssistantCommandConfirmation(command,
               recognizedText: state.recognizedText,
               conversationHistory: state.conversationHistory,
@@ -226,6 +241,7 @@ class AiVoiceAssistantBloc
         }
       }
     } catch (e) {
+      debugPrint('AiVoiceAssistantBloc: Error processing command: $e');
       final errorMessage = 'Error processing command: $e';
       add(AddMessageToHistoryEvent('AI: $errorMessage'));
       emit(AiVoiceAssistantError(errorMessage,
