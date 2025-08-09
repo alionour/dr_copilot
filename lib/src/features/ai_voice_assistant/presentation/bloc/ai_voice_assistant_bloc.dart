@@ -161,6 +161,9 @@ class AiVoiceAssistantBloc
     _audioRecorder.stop();
     _speechSubscription?.cancel();
     _silenceTimer?.cancel();
+    if (state.recognizedText.isNotEmpty) {
+      add(ProcessCommandEvent(state.recognizedText));
+    }
     emit(AiVoiceAssistantIdle(
         recognizedText: state.recognizedText,
         conversationHistory: state.conversationHistory));

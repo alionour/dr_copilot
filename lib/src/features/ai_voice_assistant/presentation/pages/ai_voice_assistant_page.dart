@@ -191,21 +191,40 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
       ),
       floatingActionButton: BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
         builder: (context, state) {
-          return ZoomIn(
-            child: FloatingActionButton(
-              backgroundColor: Pallete.firstSuggestionBoxColor,
-              onPressed: () async {
-                final bloc = context.read<AiVoiceAssistantBloc>();
-                if (state is AiVoiceAssistantListening) {
-                  bloc.add(StopListeningEvent());
-                } else {
-                  bloc.add(StartListeningEvent());
-                }
-              },
-              child: Icon(
-                state is AiVoiceAssistantListening ? Icons.stop : Icons.mic,
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ZoomIn(
+                child: FloatingActionButton(
+                  backgroundColor: Pallete.firstSuggestionBoxColor,
+                  onPressed: () {
+                    final bloc = context.read<AiVoiceAssistantBloc>();
+                    if (state is AiVoiceAssistantListening) {
+                      bloc.add(StopListeningEvent());
+                    } else {
+                      bloc.add(StartListeningEvent());
+                    }
+                  },
+                  child: Icon(
+                    state is AiVoiceAssistantListening ? Icons.stop : Icons.mic,
+                  ),
+                ),
               ),
-            ),
+              if (state.recognizedText.isNotEmpty) ...[
+                const SizedBox(width: 16),
+                ZoomIn(
+                  child: FloatingActionButton(
+                    backgroundColor: Pallete.firstSuggestionBoxColor,
+                    onPressed: () {
+                      context
+                          .read<AiVoiceAssistantBloc>()
+                          .add(ProcessCommandEvent(state.recognizedText));
+                    },
+                    child: const Icon(Icons.send),
+                  ),
+                ),
+              ]
+            ],
           );
         },
       ),
