@@ -33,6 +33,8 @@ class AiVoiceAssistantBloc
   final EvaluationsUseCase _evaluationsUseCase;
   final FinancialsUseCase _financialsUseCase;
   final FirebaseAuth _firebaseAuth;
+  final UserPreferencesService _userPreferencesService;
+  final CorrectionService _correctionService;
   StreamSubscription<String>? _speechSubscription;
   Timer? _silenceTimer;
 
@@ -46,6 +48,8 @@ class AiVoiceAssistantBloc
     this._evaluationsUseCase,
     this._financialsUseCase,
     this._firebaseAuth,
+    this._userPreferencesService,
+    this._correctionService,
   ) : super(const AiVoiceAssistantInitial()) {
     on<StartListeningEvent>(_onStartListening);
     on<StopListeningEvent>(_onStopListening);
@@ -55,6 +59,36 @@ class AiVoiceAssistantBloc
     on<ConfirmCommandEvent>(_onConfirmCommand);
     on<CancelCommandEvent>(_onCancelCommand);
     on<SelectPatientEvent>(_onSelectPatient);
+    on<StartAssistantEvent>(_onStartAssistant);
+  }
+
+  String _getTimeOfDay() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Morning';
+    } else if (hour < 17) {
+      return 'Afternoon';
+    } else {
+      return 'Evening';
+    }
+  }
+
+  Future<void> _onStartAssistant(
+      StartAssistantEvent event, Emitter<AiVoiceAssistantState> emit) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      return;
+    }
+    final userName = user.displayName ?? 'Doctor';
+    final timeOfDay = _getTimeOfDay();
+
+    final greeting =
+        await _commandParserService.generateGreeting(userName, timeOfDay);
+    add(AddMessageToHistoryEvent('AI: $greeting'));
+    emit(AiVoiceAssistantSpeaking(greeting,
+        recognizedText: state.recognizedText,
+        conversationHistory: state.conversationHistory));
+    await _textToSpeechDatasource.speak(greeting);
   }
 
   @override
@@ -140,10 +174,11 @@ class AiVoiceAssistantBloc
     emit(AiVoiceAssistantProcessing(
         recognizedText: state.recognizedText,
         conversationHistory: state.conversationHistory,
-        partialCommand: state.partialCommand));
+        partialCommand: state.partialCommand,
+        originalCommand: state.originalCommand));
     try {
-      final commandJson = await _commandParserService.parseCommand(
-          event.command, state.conversationHistory);
+      final commandJson = await _commandParserService.parseCommand(event.command,
+          state.conversationHistory, state.partialCommand, _userPreferencesService);
       final command = Command.fromJson(commandJson);
 
       if (state.partialCommand != null) {
@@ -160,26 +195,32 @@ class AiVoiceAssistantBloc
         // In a real app, I would need to check if all required entities are present.
         emit(AiVoiceAssistantCommandConfirmation(mergedCommand,
             recognizedText: state.recognizedText,
-            conversationHistory: state.conversationHistory));
-      } else if (command.intent == 'ask_for_information') {
-        final question = command.entities['question'] as String;
-        add(AddMessageToHistoryEvent('AI: $question'));
-        emit(AiVoiceAssistantAskingForInformation(question,
-            recognizedText: state.recognizedText,
             conversationHistory: state.conversationHistory,
-            partialCommand: command));
-        await _textToSpeechDatasource.speak(question);
-      } else if (command.intent == 'conversational_chat') {
-        final response = command.entities['response'] as String;
-        add(AddMessageToHistoryEvent('AI: $response'));
-        await _textToSpeechDatasource.speak(response);
-        emit(AiVoiceAssistantIdle(
-            recognizedText: state.recognizedText,
-            conversationHistory: state.conversationHistory));
+            originalCommand: state.originalCommand));
       } else {
-        emit(AiVoiceAssistantCommandConfirmation(command,
-            recognizedText: state.recognizedText,
-            conversationHistory: state.conversationHistory));
+        // This is a new command
+        if (command.intent == 'ask_for_information') {
+          final question = command.entities['question'] as String;
+          add(AddMessageToHistoryEvent('AI: $question'));
+          emit(AiVoiceAssistantAskingForInformation(question,
+              recognizedText: state.recognizedText,
+              conversationHistory: state.conversationHistory,
+              partialCommand: command,
+              originalCommand: command));
+          await _textToSpeechDatasource.speak(question);
+        } else if (command.intent == 'conversational_chat') {
+          final response = command.entities['response'] as String;
+          add(AddMessageToHistoryEvent('AI: $response'));
+          await _textToSpeechDatasource.speak(response);
+          emit(AiVoiceAssistantIdle(
+              recognizedText: state.recognizedText,
+              conversationHistory: state.conversationHistory));
+        } else {
+          emit(AiVoiceAssistantCommandConfirmation(command,
+              recognizedText: state.recognizedText,
+              conversationHistory: state.conversationHistory,
+              originalCommand: command));
+        }
       }
     } catch (e) {
       final errorMessage = 'Error processing command: $e';
@@ -211,7 +252,20 @@ class AiVoiceAssistantBloc
 
   Future<void> _onConfirmCommand(
       ConfirmCommandEvent event, Emitter<AiVoiceAssistantState> emit) async {
-    await _executeCommand(event.command, emit);
+    final originalCommand = state.originalCommand;
+    final correctedCommand = event.command;
+
+    if (originalCommand != null && originalCommand != correctedCommand) {
+      final correction = CorrectionModel(
+        id: const Uuid().v4(),
+        originalCommand: originalCommand,
+        correctedCommand: correctedCommand,
+        createdAt: DateTime.now(),
+      );
+      await _correctionService.saveCorrection(correction);
+    }
+
+    await _executeCommand(correctedCommand, emit);
   }
 
   void _onCancelCommand(
@@ -265,6 +319,13 @@ class AiVoiceAssistantBloc
             userId: user.uid,
           );
           await _patientsUseCase.addPatient(patient);
+          final successMessage =
+              await _commandParserService.generateResponse(command);
+          add(AddMessageToHistoryEvent('AI: $successMessage'));
+          emit(AiVoiceAssistantSuccess(successMessage,
+              recognizedText: state.recognizedText,
+              conversationHistory: state.conversationHistory));
+          await _textToSpeechDatasource.speak(successMessage);
           break;
         case 'schedule_session':
           final patientId = entities['patient_id'];
@@ -279,8 +340,12 @@ class AiVoiceAssistantBloc
               return;
             }
 
+            final duration = entities['duration'] as int? ??
+                _userPreferencesService.getPreferredSessionDuration() ??
+                60;
             final startDateTime = DateTime.parse('$date $time');
-            final endDateTime = startDateTime.add(const Duration(hours: 1));
+            final endDateTime =
+                startDateTime.add(Duration(minutes: duration));
 
             final session = SessionModel(
               id: const Uuid().v4(),
@@ -294,7 +359,8 @@ class AiVoiceAssistantBloc
               patientName: patientName,
             );
             await _sessionsUseCase.addSession(session);
-            const successMessage = 'Session scheduled successfully.';
+            final successMessage =
+                await _commandParserService.generateResponse(command);
             add(AddMessageToHistoryEvent('AI: $successMessage'));
             emit(AiVoiceAssistantSuccess(successMessage,
                 recognizedText: state.recognizedText,
@@ -327,9 +393,12 @@ class AiVoiceAssistantBloc
                     return;
                   }
 
+                  final duration = entities['duration'] as int? ??
+                      _userPreferencesService.getPreferredSessionDuration() ??
+                      60;
                   final startDateTime = DateTime.parse('$date $time');
                   final endDateTime =
-                      startDateTime.add(const Duration(hours: 1));
+                      startDateTime.add(Duration(minutes: duration));
 
                   final session = SessionModel(
                     id: const Uuid().v4(),
@@ -343,7 +412,8 @@ class AiVoiceAssistantBloc
                     patientName: patient.name,
                   );
                   await _sessionsUseCase.addSession(session);
-                  const successMessage = 'Session scheduled successfully.';
+                  final successMessage =
+                      await _commandParserService.generateResponse(command);
                   add(AddMessageToHistoryEvent('AI: $successMessage'));
                   emit(AiVoiceAssistantSuccess(successMessage,
                       recognizedText: state.recognizedText,
@@ -386,7 +456,8 @@ class AiVoiceAssistantBloc
               createdBy: user.uid,
             );
             await _evaluationsUseCase.addEvaluation(evaluation);
-            const successMessage = 'Evaluation recorded successfully.';
+            final successMessage =
+                await _commandParserService.generateResponse(command);
             add(AddMessageToHistoryEvent('AI: $successMessage'));
             emit(AiVoiceAssistantSuccess(successMessage,
                 recognizedText: state.recognizedText,
@@ -434,7 +505,8 @@ class AiVoiceAssistantBloc
                     createdBy: user.uid,
                   );
                   await _evaluationsUseCase.addEvaluation(evaluation);
-                  const successMessage = 'Evaluation recorded successfully.';
+                  final successMessage =
+                      await _commandParserService.generateResponse(command);
                   add(AddMessageToHistoryEvent('AI: $successMessage'));
                   emit(AiVoiceAssistantSuccess(successMessage,
                       recognizedText: state.recognizedText,
@@ -513,12 +585,6 @@ class AiVoiceAssistantBloc
           break;
         // TODO: Handle other intents
       }
-      const successMessage = 'Command processed successfully.';
-      add(AddMessageToHistoryEvent('AI: $successMessage'));
-      emit(AiVoiceAssistantSuccess(successMessage,
-          recognizedText: state.recognizedText,
-          conversationHistory: state.conversationHistory));
-      await _textToSpeechDatasource.speak(successMessage);
     } catch (e) {
       final errorMessage = 'Error processing command: $e';
       add(AddMessageToHistoryEvent('AI: $errorMessage'));
@@ -535,70 +601,81 @@ extension on AiVoiceAssistantState {
     List<String>? conversationHistory,
     String? recognizedText,
     Command? partialCommand,
+    Command? originalCommand,
   }) {
     if (this is AiVoiceAssistantInitial) {
       return AiVoiceAssistantInitial(
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantIdle) {
       return AiVoiceAssistantIdle(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantListening) {
       return AiVoiceAssistantListening(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantProcessing) {
       return AiVoiceAssistantProcessing(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantSpeaking) {
       return AiVoiceAssistantSpeaking(
           (this as AiVoiceAssistantSpeaking).textToSpeak,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantSuccess) {
       return AiVoiceAssistantSuccess((this as AiVoiceAssistantSuccess).message,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantCommandConfirmation) {
       return AiVoiceAssistantCommandConfirmation(
           (this as AiVoiceAssistantCommandConfirmation).command,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantAskingForInformation) {
       return AiVoiceAssistantAskingForInformation(
           (this as AiVoiceAssistantAskingForInformation).question,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantPatientSelection) {
       return AiVoiceAssistantPatientSelection(
           (this as AiVoiceAssistantPatientSelection).patients,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     } else if (this is AiVoiceAssistantError) {
       return AiVoiceAssistantError((this as AiVoiceAssistantError).message,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
-          partialCommand: partialCommand ?? this.partialCommand);
+          partialCommand: partialCommand ?? this.partialCommand,
+          originalCommand: originalCommand ?? this.originalCommand);
     }
     return this;
   }

@@ -69,5 +69,5 @@ Future<void> initInjections() async {
   initAuthInjections();
 
   /// Initializes the dependency injections required for the AI voice assistant feature.
-  initAiVoiceAssistantInjections();
+  await initAiVoiceAssistantInjections();
 }

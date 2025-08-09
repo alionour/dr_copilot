@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/bloc/ai_voice_assistant_bloc.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/pallete.dart';
+import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/confirmation_card.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/feature_box.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/patient_selection_card.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,12 @@ class AiVoiceAssistantPage extends StatefulWidget {
 
 class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<AiVoiceAssistantBloc>().add(StartAssistantEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,37 +176,16 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
           BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
             builder: (context, state) {
               if (state is AiVoiceAssistantCommandConfirmation) {
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Text('Intent: ${state.command.intent}'),
-                        ...state.command.entities.entries.map(
-                          (entry) => Text('- ${entry.key}: ${entry.value}'),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                context.read<AiVoiceAssistantBloc>().add(CancelCommandEvent());
-                              },
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                context
-                                    .read<AiVoiceAssistantBloc>()
-                                    .add(ConfirmCommandEvent(state.command));
-                              },
-                              child: const Text('Confirm'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                return ConfirmationCard(
+                  command: state.command,
+                  onConfirm: (updatedCommand) {
+                    context
+                        .read<AiVoiceAssistantBloc>()
+                        .add(ConfirmCommandEvent(updatedCommand));
+                  },
+                  onCancel: () {
+                    context.read<AiVoiceAssistantBloc>().add(CancelCommandEvent());
+                  },
                 );
               }
               return const SizedBox.shrink();

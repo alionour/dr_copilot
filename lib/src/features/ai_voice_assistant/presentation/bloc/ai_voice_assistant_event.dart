@@ -60,3 +60,5 @@ class SelectPatientEvent extends AiVoiceAssistantEvent {
   @override
   List<Object> get props => [patient];
 }
+
+class StartAssistantEvent extends AiVoiceAssistantEvent {}
