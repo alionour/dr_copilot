@@ -92,6 +92,8 @@ dependency_overrides:
   record_linux: ^1.1.1
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   l10n_mapper_generator: ^2.1.6
   flutter_test:
     sdk: flutter
