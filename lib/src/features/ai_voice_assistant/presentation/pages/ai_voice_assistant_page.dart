@@ -193,16 +193,25 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
           ),
         ],
       ),
-      floatingActionButton: ZoomIn(
-        child: FloatingActionButton(
-          backgroundColor: Pallete.firstSuggestionBoxColor,
-          onPressed: () async {
-            // TODO: Implement voice command logic
-          },
-          child: const Icon(
-            Icons.mic,
-          ),
-        ),
+      floatingActionButton: BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+        builder: (context, state) {
+          return ZoomIn(
+            child: FloatingActionButton(
+              backgroundColor: Pallete.firstSuggestionBoxColor,
+              onPressed: () async {
+                final bloc = context.read<AiVoiceAssistantBloc>();
+                if (state is AiVoiceAssistantListening) {
+                  bloc.add(StopListeningEvent());
+                } else {
+                  bloc.add(StartListeningEvent());
+                }
+              },
+              child: Icon(
+                state is AiVoiceAssistantListening ? Icons.stop : Icons.mic,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
