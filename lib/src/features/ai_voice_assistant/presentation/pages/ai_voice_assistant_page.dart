@@ -55,15 +55,11 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
                                   ),
                                 ),
                               ),
-                              Container(
-                                height: 123,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                      'assets/svg/logo.svg', // Using a placeholder image
-                                    ),
-                                  ),
+                              const Center(
+                                child: Icon(
+                                  Icons.mic,
+                                  size: 60,
+                                  color: Pallete.mainFontColor,
                                 ),
                               ),
                             ],

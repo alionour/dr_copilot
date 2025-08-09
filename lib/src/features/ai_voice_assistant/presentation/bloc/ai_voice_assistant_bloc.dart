@@ -259,7 +259,7 @@ class AiVoiceAssistantBloc
   }
 
   void _startSilenceTimer() {
-    _silenceTimer = Timer(const Duration(seconds: 30), () {
+    _silenceTimer = Timer(const Duration(seconds: 60), () {
       add(StopListeningEvent());
     });
   }
