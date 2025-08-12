@@ -28,6 +28,26 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI Voice Assistant'),
+        actions: [
+          BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+            buildWhen: (previous, current) =>
+                previous.isTranscriptVisible != current.isTranscriptVisible,
+            builder: (context, state) {
+              return IconButton(
+                onPressed: () {
+                  context
+                      .read<AiVoiceAssistantBloc>()
+                      .add(ToggleTranscriptVisibilityEvent());
+                },
+                icon: Icon(
+                  state.isTranscriptVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -66,37 +86,53 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
                           ),
                         ),
                         // chat bubble
-                        FadeInRight(
-                          child: Visibility(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              margin: const EdgeInsets.symmetric(horizontal: 40).copyWith(
-                                top: 30,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Pallete.borderColor,
-                                ),
-                                borderRadius: BorderRadius.circular(20).copyWith(
-                                  topLeft: Radius.zero,
-                                ),
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 10.0),
-                                child: Text(
-                                  'Good Morning, what task can I do for you?',
-                                  style: TextStyle(
-                                    fontFamily: 'Cera Pro',
-                                    color: Pallete.mainFontColor,
-                                    fontSize: 25,
+                        BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+                          buildWhen: (previous, current) =>
+                              previous.recognizedText !=
+                                  current.recognizedText ||
+                              previous.isTranscriptVisible !=
+                                  current.isTranscriptVisible,
+                          builder: (context, state) {
+                            return Visibility(
+                              visible: state.isTranscriptVisible,
+                              child: FadeInRight(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
+                                  margin: const EdgeInsets.symmetric(
+                                          horizontal: 40)
+                                      .copyWith(
+                                    top: 30,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Pallete.borderColor,
+                                    ),
+                                    borderRadius:
+                                        BorderRadius.circular(20).copyWith(
+                                      topLeft: Radius.zero,
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0),
+                                    child: Text(
+                                      state.recognizedText.isEmpty
+                                          ? 'Listening...'
+                                          : state.recognizedText,
+                                      style: const TextStyle(
+                                        fontFamily: 'Cera Pro',
+                                        color: Pallete.mainFontColor,
+                                        fontSize: 25,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                         FadeInLeft(
                           child: Container(
@@ -146,7 +182,8 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
                   flex: 1,
                   child: Container(
                     color: Colors.white,
-                    child: BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+                    child:
+                        BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
                       builder: (context, state) {
                         if (state is AiVoiceAssistantPatientSelection) {
                           return PatientSelectionCard(
@@ -180,7 +217,9 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
                         .add(ConfirmCommandEvent(updatedCommand));
                   },
                   onCancel: () {
-                    context.read<AiVoiceAssistantBloc>().add(CancelCommandEvent());
+                    context
+                        .read<AiVoiceAssistantBloc>()
+                        .add(CancelCommandEvent());
                   },
                 );
               }
@@ -189,7 +228,8 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
           ),
         ],
       ),
-      floatingActionButton: BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+      floatingActionButton:
+          BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
         builder: (context, state) {
           return Row(
             mainAxisAlignment: MainAxisAlignment.end,

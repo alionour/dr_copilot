@@ -90,6 +90,39 @@ void main() {
     });
 
     blocTest<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+      'emits state with isTranscriptVisible toggled when ToggleTranscriptVisibilityEvent is added',
+      build: () => bloc,
+      act: (bloc) => bloc.add(ToggleTranscriptVisibilityEvent()),
+      expect: () => [
+        isA<AiVoiceAssistantState>().having(
+          (state) => state.isTranscriptVisible,
+          'isTranscriptVisible',
+          false,
+        ),
+      ],
+    );
+
+    blocTest<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+      'plays greeting when StartListeningEvent is added',
+      build: () {
+        when(() => mockTextToSpeechDatasource.speak(any()))
+            .thenAnswer((_) async {});
+        when(() => mockAudioRecorder.hasPermission())
+            .thenAnswer((_) async => true);
+        when(() => mockAudioRecorder.startStream(any()))
+            .thenAnswer((_) async => const Stream.empty());
+        when(() => mockSpeechRecognitionDatasource.startListening(any()))
+            .thenAnswer((_) => const Stream.empty());
+        return bloc;
+      },
+      act: (bloc) => bloc.add(StartListeningEvent()),
+      verify: (_) {
+        verify(() => mockTextToSpeechDatasource.speak("Hello, how can I help?"))
+            .called(1);
+      },
+    );
+
+    blocTest<AiVoiceAssistantBloc, AiVoiceAssistantState>(
       'emits [AiVoiceAssistantProcessing, AiVoiceAssistantAskingForInformation] when command is missing information',
       build: () {
         when(() => mockCommandParserService.parseCommand(any(), any(), any(), any()))

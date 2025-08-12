@@ -5,92 +5,94 @@ abstract class AiVoiceAssistantState extends Equatable {
   final String recognizedText;
   final Command? partialCommand;
   final Command? originalCommand;
+  final bool isTranscriptVisible;
 
   const AiVoiceAssistantState({
     this.conversationHistory = const [],
     this.recognizedText = '',
     this.partialCommand,
     this.originalCommand,
+    this.isTranscriptVisible = true,
   });
 
   @override
-  List<Object?> get props => [conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }
 
 class AiVoiceAssistantInitial extends AiVoiceAssistantState {
-  const AiVoiceAssistantInitial({super.conversationHistory, super.partialCommand, super.originalCommand});
+  const AiVoiceAssistantInitial({super.conversationHistory, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 }
 
 class AiVoiceAssistantIdle extends AiVoiceAssistantState {
-  const AiVoiceAssistantIdle({super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+  const AiVoiceAssistantIdle({super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 }
 
 class AiVoiceAssistantListening extends AiVoiceAssistantState {
   const AiVoiceAssistantListening(
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 }
 
 class AiVoiceAssistantProcessing extends AiVoiceAssistantState {
   const AiVoiceAssistantProcessing(
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 }
 
 class AiVoiceAssistantSpeaking extends AiVoiceAssistantState {
   final String textToSpeak;
 
   const AiVoiceAssistantSpeaking(this.textToSpeak,
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 
   @override
-  List<Object?> get props => [textToSpeak, conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [textToSpeak, conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }
 
 class AiVoiceAssistantSuccess extends AiVoiceAssistantState {
   final String message;
 
   const AiVoiceAssistantSuccess(this.message,
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 
   @override
-  List<Object?> get props => [message, conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [message, conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }
 
 class AiVoiceAssistantCommandConfirmation extends AiVoiceAssistantState {
   final Command command;
 
   const AiVoiceAssistantCommandConfirmation(this.command,
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 
   @override
-  List<Object?> get props => [command, conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [command, conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }
 
 class AiVoiceAssistantAskingForInformation extends AiVoiceAssistantState {
   final String question;
 
   const AiVoiceAssistantAskingForInformation(this.question,
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 
   @override
-  List<Object?> get props => [question, conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [question, conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }
 
 class AiVoiceAssistantPatientSelection extends AiVoiceAssistantState {
   final List<PatientModel> patients;
 
   const AiVoiceAssistantPatientSelection(this.patients,
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 
   @override
-  List<Object?> get props => [patients, conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [patients, conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }
 
 class AiVoiceAssistantError extends AiVoiceAssistantState {
   final String message;
 
   const AiVoiceAssistantError(this.message,
-      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand});
+      {super.conversationHistory, super.recognizedText, super.partialCommand, super.originalCommand, super.isTranscriptVisible});
 
   @override
-  List<Object?> get props => [message, conversationHistory, recognizedText, partialCommand, originalCommand];
+  List<Object?> get props => [message, conversationHistory, recognizedText, partialCommand, originalCommand, isTranscriptVisible];
 }

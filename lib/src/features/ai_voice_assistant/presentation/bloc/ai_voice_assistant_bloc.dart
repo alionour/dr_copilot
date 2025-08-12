@@ -63,6 +63,12 @@ class AiVoiceAssistantBloc
     on<CancelCommandEvent>(_onCancelCommand);
     on<SelectPatientEvent>(_onSelectPatient);
     on<StartAssistantEvent>(_onStartAssistant);
+    on<ToggleTranscriptVisibilityEvent>(_onToggleTranscriptVisibility);
+  }
+
+  void _onToggleTranscriptVisibility(ToggleTranscriptVisibilityEvent event,
+      Emitter<AiVoiceAssistantState> emit) {
+    emit(state.copyWith(isTranscriptVisible: !state.isTranscriptVisible));
   }
 
   String _getTimeOfDay() {
@@ -119,6 +125,7 @@ class AiVoiceAssistantBloc
       StartListeningEvent event, Emitter<AiVoiceAssistantState> emit) async {
     debugPrint('AiVoiceAssistantBloc: _onStartListening');
     try {
+      await _textToSpeechDatasource.speak("Hello, how can I help?");
       if (await _audioRecorder.hasPermission()) {
         debugPrint('AiVoiceAssistantBloc: Microphone permission granted.');
         final audioStream = await _audioRecorder.startStream(const RecordConfig(
@@ -129,7 +136,8 @@ class AiVoiceAssistantBloc
         debugPrint('AiVoiceAssistantBloc: Audio stream started.');
         emit(AiVoiceAssistantListening(
             recognizedText: '',
-            conversationHistory: state.conversationHistory));
+            conversationHistory: state.conversationHistory,
+            isTranscriptVisible: state.isTranscriptVisible));
         _startSilenceTimer();
         _speechSubscription = _speechRecognitionDatasource
             .startListening(audioStream)
@@ -140,18 +148,22 @@ class AiVoiceAssistantBloc
           debugPrint('AiVoiceAssistantBloc: Error from speech stream: $error');
           add(AddMessageToHistoryEvent('Error: $error'));
           emit(AiVoiceAssistantError('Error from speech stream: $error',
-              conversationHistory: state.conversationHistory));
+              conversationHistory: state.conversationHistory,
+              isTranscriptVisible: state.isTranscriptVisible));
         });
       } else {
         debugPrint('AiVoiceAssistantBloc: Microphone permission not granted.');
-        add(const AddMessageToHistoryEvent('Error: Microphone permission not granted.'));
-        emit(const AiVoiceAssistantError('Microphone permission not granted.'));
+        add(const AddMessageToHistoryEvent(
+            'Error: Microphone permission not granted.'));
+        emit(AiVoiceAssistantError('Microphone permission not granted.',
+            isTranscriptVisible: state.isTranscriptVisible));
       }
     } catch (e) {
       debugPrint('AiVoiceAssistantBloc: Error starting to listen: $e');
       add(AddMessageToHistoryEvent('Error: $e'));
       emit(AiVoiceAssistantError('Error starting to listen: $e',
-          conversationHistory: state.conversationHistory));
+          conversationHistory: state.conversationHistory,
+          isTranscriptVisible: state.isTranscriptVisible));
     }
   }
 
@@ -624,34 +636,39 @@ extension on AiVoiceAssistantState {
     String? recognizedText,
     Command? partialCommand,
     Command? originalCommand,
+    bool? isTranscriptVisible,
   }) {
     if (this is AiVoiceAssistantInitial) {
       return AiVoiceAssistantInitial(
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantIdle) {
       return AiVoiceAssistantIdle(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantListening) {
       return AiVoiceAssistantListening(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantProcessing) {
       return AiVoiceAssistantProcessing(
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantSpeaking) {
       return AiVoiceAssistantSpeaking(
           (this as AiVoiceAssistantSpeaking).textToSpeak,
@@ -659,14 +676,16 @@ extension on AiVoiceAssistantState {
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantSuccess) {
       return AiVoiceAssistantSuccess((this as AiVoiceAssistantSuccess).message,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantCommandConfirmation) {
       return AiVoiceAssistantCommandConfirmation(
           (this as AiVoiceAssistantCommandConfirmation).command,
@@ -674,7 +693,8 @@ extension on AiVoiceAssistantState {
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantAskingForInformation) {
       return AiVoiceAssistantAskingForInformation(
           (this as AiVoiceAssistantAskingForInformation).question,
@@ -682,7 +702,8 @@ extension on AiVoiceAssistantState {
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantPatientSelection) {
       return AiVoiceAssistantPatientSelection(
           (this as AiVoiceAssistantPatientSelection).patients,
@@ -690,14 +711,16 @@ extension on AiVoiceAssistantState {
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     } else if (this is AiVoiceAssistantError) {
       return AiVoiceAssistantError((this as AiVoiceAssistantError).message,
           recognizedText: recognizedText ?? this.recognizedText,
           conversationHistory:
               conversationHistory ?? this.conversationHistory,
           partialCommand: partialCommand ?? this.partialCommand,
-          originalCommand: originalCommand ?? this.originalCommand);
+          originalCommand: originalCommand ?? this.originalCommand,
+          isTranscriptVisible: isTranscriptVisible ?? this.isTranscriptVisible);
     }
     return this;
   }

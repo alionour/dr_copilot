@@ -59,3 +59,5 @@ class SelectPatientEvent extends AiVoiceAssistantEvent {
 }
 
 class StartAssistantEvent extends AiVoiceAssistantEvent {}
+
+class ToggleTranscriptVisibilityEvent extends AiVoiceAssistantEvent {}
