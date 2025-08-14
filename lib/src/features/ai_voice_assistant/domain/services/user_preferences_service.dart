@@ -14,4 +14,14 @@ class UserPreferencesService {
   int? getPreferredSessionDuration() {
     return _prefs.getInt(_sessionDurationKey);
   }
+
+  static const String _languageKey = 'language';
+
+  Future<void> setLanguage(String languageCode) async {
+    await _prefs.setString(_languageKey, languageCode);
+  }
+
+  String getLanguage() {
+    return _prefs.getString(_languageKey) ?? 'en';
+  }
 }

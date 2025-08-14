@@ -15,8 +15,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// providing methods to sign in, sign out, and manage user sessions via Google.
   final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
 
-  /// Handles native Google sign-in for Android and iOS.
-  Future<GoogleSignInResult?> _nativeGoogleSignIn() async {
+  Future<GoogleSignInResult?> _googleSignIn() async {
     final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
     final account = await googleSignInHelper.signIn();
     if (account == null) return null;
@@ -29,43 +28,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
         photoUrl: account.photoUrl,
         originalAccount: account,
       ),
-      authentication: CustomGoogleAuthentication(
-        accessToken: authentication.accessToken,
-        idToken: authentication.idToken,
-        originalAuthentication: authentication,
-      ),
-    );
-  }
-
-  /// Handles web Google sign-in.
-  Future<GoogleSignInResult?> _webGoogleSignIn() async {
-    final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
-    final account = await googleSignInHelper.signIn();
-    if (account == null) return null;
-    final authentication = await account.authentication;
-    return GoogleSignInResult(
-      account: CustomGoogleSignInAccount(
-        displayName: account.displayName,
-        email: account.email,
-        id: account.id,
-        photoUrl: account.photoUrl,
-        originalAccount: account,
-      ),
-      authentication: CustomGoogleAuthentication(
-        accessToken: authentication.accessToken,
-        idToken: authentication.idToken,
-        originalAuthentication: authentication,
-      ),
-    );
-  }
-
-  /// Handles Google sign-in for all platforms (Windows/Linux).
-  Future<GoogleSignInResult?> _allPlatformsGoogleSignIn() async {
-    final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
-    final authentication = await googleSignInHelper.signInAllPlatforms();
-    if (authentication == null) return null;
-    return GoogleSignInResult(
-      account: null,
       authentication: CustomGoogleAuthentication(
         accessToken: authentication.accessToken,
         idToken: authentication.idToken,
@@ -150,43 +112,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   @override
   Future<UserModel?> signInWithGoogle() async {
     try {
-      /// Holds the result of a Google Sign-In operation, or null if the sign-in has not been attempted or failed.
-      ///
-      /// [GoogleSignInResult] typically contains information about the user's authentication status,
-      /// credentials, and any associated user data returned from the Google Sign-In process.
-      GoogleSignInResult? googleResult;
-
-      /// Checks if the current platform is either Android or iOS.
-      ///
-      /// This condition is typically used to execute platform-specific code
-      /// for mobile devices, ensuring that the following logic only runs
-      /// on Android or iOS platforms.
-      if (io.Platform.isAndroid || io.Platform.isIOS) {
-        /// Initiates the native Google Sign-In process and awaits the result.
-        ///
-        /// Returns the result of the Google authentication flow, which may include
-        /// user credentials or authentication tokens depending on the implementation.
-        ///
-        /// Throws an exception if the sign-in process fails or is cancelled by the user.
-        googleResult = await _nativeGoogleSignIn();
-      } else if (kIsWeb) {
-        /// Initiates the Google Sign-In process for web platforms and assigns the result to [googleResult].
-        ///
-        /// This asynchronous operation attempts to authenticate the user using their Google account.
-        /// The result of the sign-in attempt is stored in [googleResult], which can be used for further authentication logic.
-        ///
-        /// Throws an exception if the sign-in process fails.
-        googleResult = await _webGoogleSignIn();
-      } else if (io.Platform.isWindows || io.Platform.isLinux) {
-        /// Initiates the Google sign-in process across all supported platforms and
-        /// assigns the result to [googleResult].
-        ///
-        /// This asynchronous operation attempts to authenticate the user using
-        /// Google Sign-In and returns the authentication result.
-        ///
-        /// Throws an exception if the sign-in process fails.
-        googleResult = await _allPlatformsGoogleSignIn();
-      }
+      GoogleSignInResult? googleResult = await _googleSignIn();
 
       if (googleResult == null) {
         // User canceled the sign-in
