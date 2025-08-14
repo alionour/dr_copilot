@@ -90,14 +90,15 @@ class AiVoiceAssistantBloc
     }
     final userName = user.displayName ?? 'Doctor';
     final timeOfDay = _getTimeOfDay();
+    final lang = await _userPreferencesService.getLanguage();
 
     final greeting =
-        await _commandParserService.generateGreeting(userName, timeOfDay);
+        await _commandParserService.generateGreeting(userName, timeOfDay, lang);
     add(AddMessageToHistoryEvent('AI: $greeting'));
     emit(AiVoiceAssistantSpeaking(greeting,
         recognizedText: state.recognizedText,
         conversationHistory: state.conversationHistory));
-    await _textToSpeechDatasource.speak(greeting);
+    await _textToSpeechDatasource.speak(greeting, lang);
   }
 
   @override
@@ -125,7 +126,8 @@ class AiVoiceAssistantBloc
       StartListeningEvent event, Emitter<AiVoiceAssistantState> emit) async {
     debugPrint('AiVoiceAssistantBloc: _onStartListening');
     try {
-      await _textToSpeechDatasource.speak("Hello, how can I help?");
+      final lang = await _userPreferencesService.getLanguage();
+      await _textToSpeechDatasource.speak("Hello, how can I help?", lang);
       if (await _audioRecorder.hasPermission()) {
         debugPrint('AiVoiceAssistantBloc: Microphone permission granted.');
         final audioStream = await _audioRecorder.startStream(const RecordConfig(
@@ -203,8 +205,13 @@ class AiVoiceAssistantBloc
         partialCommand: state.partialCommand,
         originalCommand: state.originalCommand));
     try {
-      final commandJson = await _commandParserService.parseCommand(event.command,
-          state.conversationHistory, state.partialCommand, _userPreferencesService);
+      final lang = await _userPreferencesService.getLanguage();
+      final commandJson = await _commandParserService.parseCommand(
+          event.command,
+          state.conversationHistory,
+          state.partialCommand,
+          _userPreferencesService,
+          lang);
       debugPrint('AiVoiceAssistantBloc: Parsed command: $commandJson');
       final command = Command.fromJson(commandJson);
 
@@ -238,12 +245,16 @@ class AiVoiceAssistantBloc
               conversationHistory: state.conversationHistory,
               partialCommand: command,
               originalCommand: command));
-          await _textToSpeechDatasource.speak(question);
+          final lang = await _userPreferencesService.getLanguage();
+          await _textToSpeechDatasource.speak(question, lang);
+        } else if (command.intent == 'get_time') {
+          await _executeCommand(command, emit);
         } else if (command.intent == 'conversational_chat') {
           debugPrint('AiVoiceAssistantBloc: Conversational chat.');
           final response = command.entities['response'] as String;
           add(AddMessageToHistoryEvent('AI: $response'));
-          await _textToSpeechDatasource.speak(response);
+          final lang = await _userPreferencesService.getLanguage();
+          await _textToSpeechDatasource.speak(response, lang);
           emit(AiVoiceAssistantIdle(
               recognizedText: state.recognizedText,
               conversationHistory: state.conversationHistory));
@@ -262,7 +273,8 @@ class AiVoiceAssistantBloc
       emit(AiVoiceAssistantError(errorMessage,
           recognizedText: state.recognizedText,
           conversationHistory: state.conversationHistory));
-      await _textToSpeechDatasource.speak(errorMessage);
+      final lang = await _userPreferencesService.getLanguage();
+      await _textToSpeechDatasource.speak(errorMessage, lang);
     }
   }
 
@@ -334,6 +346,7 @@ class AiVoiceAssistantBloc
     try {
       final intent = command.intent;
       final entities = command.entities;
+      final lang = await _userPreferencesService.getLanguage();
 
       switch (intent) {
         case 'add_patient':
@@ -354,13 +367,9 @@ class AiVoiceAssistantBloc
           );
           await _patientsUseCase.addPatient(patient);
           final successMessage =
-              await _commandParserService.generateResponse(command);
-          add(AddMessageToHistoryEvent('AI: $successMessage'));
-          emit(AiVoiceAssistantSuccess(successMessage,
-              recognizedText: state.recognizedText,
-              conversationHistory: state.conversationHistory));
-          await _textToSpeechDatasource.speak(successMessage);
-          break;
+              await _commandParserService.generateResponse(command, lang);
+          add(AddMessageToHisto...
+[3532 more characters]
         case 'schedule_session':
           final patientId = entities['patient_id'];
           final patientName = entities['patient_name'];
@@ -394,12 +403,12 @@ class AiVoiceAssistantBloc
             );
             await _sessionsUseCase.addSession(session);
             final successMessage =
-                await _commandParserService.generateResponse(command);
+                await _commandParserService.generateResponse(command, lang);
             add(AddMessageToHistoryEvent('AI: $successMessage'));
             emit(AiVoiceAssistantSuccess(successMessage,
                 recognizedText: state.recognizedText,
                 conversationHistory: state.conversationHistory));
-            await _textToSpeechDatasource.speak(successMessage);
+            await _textToSpeechDatasource.speak(successMessage, lang);
           } else {
             // patient_id is not available, search by name
             final failureOrPatients =
@@ -419,7 +428,7 @@ class AiVoiceAssistantBloc
                       recognizedText: state.recognizedText,
                       conversationHistory: state.conversationHistory,
                       partialCommand: command));
-                  await _textToSpeechDatasource.speak(question);
+                  await _textToSpeechDatasource.speak(question, lang);
                 } else if (patients.length == 1) {
                   final patient = patients.first;
                   final user = _firebaseAuth.currentUser;
@@ -447,12 +456,13 @@ class AiVoiceAssistantBloc
                   );
                   await _sessionsUseCase.addSession(session);
                   final successMessage =
-                      await _commandParserService.generateResponse(command);
+                      await _commandParserService.generateResponse(
+                          command, lang);
                   add(AddMessageToHistoryEvent('AI: $successMessage'));
                   emit(AiVoiceAssistantSuccess(successMessage,
                       recognizedText: state.recognizedText,
                       conversationHistory: state.conversationHistory));
-                  await _textToSpeechDatasource.speak(successMessage);
+                  await _textToSpeechDatasource.speak(successMessage, lang);
                 } else {
                   // Multiple patients found, ask the user to select one.
                   emit(AiVoiceAssistantPatientSelection(patients,
@@ -491,12 +501,12 @@ class AiVoiceAssistantBloc
             );
             await _evaluationsUseCase.addEvaluation(evaluation);
             final successMessage =
-                await _commandParserService.generateResponse(command);
+                await _commandParserService.generateResponse(command, lang);
             add(AddMessageToHistoryEvent('AI: $successMessage'));
             emit(AiVoiceAssistantSuccess(successMessage,
                 recognizedText: state.recognizedText,
                 conversationHistory: state.conversationHistory));
-            await _textToSpeechDatasource.speak(successMessage);
+            await _textToSpeechDatasource.speak(successMessage, lang);
           } else {
             // patient_id is not available, search by name
             final failureOrPatients =
@@ -516,7 +526,7 @@ class AiVoiceAssistantBloc
                       recognizedText: state.recognizedText,
                       conversationHistory: state.conversationHistory,
                       partialCommand: command));
-                  await _textToSpeechDatasource.speak(question);
+                  await _textToSpeechDatasource.speak(question, lang);
                 } else if (patients.length == 1) {
                   final patient = patients.first;
                   final user = _firebaseAuth.currentUser;
@@ -540,12 +550,13 @@ class AiVoiceAssistantBloc
                   );
                   await _evaluationsUseCase.addEvaluation(evaluation);
                   final successMessage =
-                      await _commandParserService.generateResponse(command);
+                      await _commandParserService.generateResponse(
+                          command, lang);
                   add(AddMessageToHistoryEvent('AI: $successMessage'));
                   emit(AiVoiceAssistantSuccess(successMessage,
                       recognizedText: state.recognizedText,
                       conversationHistory: state.conversationHistory));
-                  await _textToSpeechDatasource.speak(successMessage);
+                  await _textToSpeechDatasource.speak(successMessage, lang);
                 } else {
                   // Multiple patients found, ask the user to select one.
                   emit(AiVoiceAssistantPatientSelection(patients,
@@ -617,6 +628,55 @@ class AiVoiceAssistantBloc
         case 'conversational_chat':
           // The response is already in the entities, so we just need to speak it.
           break;
+        case 'get_time':
+          final now = DateTime.now();
+          final formattedTime = '${now.hour}:${now.minute}';
+          final successMessage = 'The current time is $formattedTime';
+          add(AddMessageToHistoryEvent('AI: $successMessage'));
+          emit(AiVoiceAssistantSuccess(successMessage,
+              recognizedText: state.recognizedText,
+              conversationHistory: state.conversationHistory));
+          await _textToSpeechDatasource.speak(successMessage, lang);
+          break;
+        case 'delete_patient':
+          final patientName = entities['patient_name'];
+          final failureOrPatients =
+              await _patientsUseCase.searchPatients(name: patientName);
+          failureOrPatients.fold(
+            (failure) {
+              debugPrint('Error searching for patient: $failure');
+              add(AddMessageToHistoryEvent(
+                  'AI: Error searching for patient: $failure'));
+            },
+            (patients) async {
+              if (patients.isEmpty) {
+                final question =
+                    'I could not find a patient named $patientName. Please try again.';
+                add(AddMessageToHistoryEvent('AI: $question'));
+                emit(AiVoiceAssistantAskingForInformation(question,
+                    recognizedText: state.recognizedText,
+                    conversationHistory: state.conversationHistory,
+                    partialCommand: command));
+                await _textToSpeechDatasource.speak(question, lang);
+              } else if (patients.length == 1) {
+                await _patientsUseCase.deletePatient(patients.first.id);
+                final successMessage =
+                    await _commandParserService.generateResponse(command, lang);
+                add(AddMessageToHistoryEvent('AI: $successMessage'));
+                emit(AiVoiceAssistantSuccess(successMessage,
+                    recognizedText: state.recognizedText,
+                    conversationHistory: state.conversationHistory));
+                await _textToSpeechDatasource.speak(successMessage, lang);
+              } else {
+                // Multiple patients found, ask the user to select one.
+                emit(AiVoiceAssistantPatientSelection(patients,
+                    recognizedText: state.recognizedText,
+                    conversationHistory: state.conversationHistory,
+                    partialCommand: command));
+              }
+            },
+          );
+          break;
         // TODO: Handle other intents
       }
     } catch (e) {
@@ -625,7 +685,8 @@ class AiVoiceAssistantBloc
       emit(AiVoiceAssistantError(errorMessage,
           recognizedText: state.recognizedText,
           conversationHistory: state.conversationHistory));
-      await _textToSpeechDatasource.speak(errorMessage);
+      final lang = await _userPreferencesService.getLanguage();
+      await _textToSpeechDatasource.speak(errorMessage, lang);
     }
   }
 }

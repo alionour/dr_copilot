@@ -7,9 +7,10 @@ class TextToSpeechDatasource {
 
   TextToSpeechDatasource(this._deepgram, this._audioPlayer);
 
-  Future<void> speak(String text) async {
+  Future<void> speak(String text, String languageCode) async {
+    final model = languageCode == 'ar' ? 'aura-zeus-ar' : 'aura-asteria-en';
     final result = await _deepgram.speak.text(text, queryParams: {
-      'model': 'aura-asteria-en',
+      'model': model,
     });
 
     if (result.data != null) {

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/bloc/ai_voice_assistant_bloc.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/pallete.dart';
 import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/confirmation_card.dart';
@@ -6,6 +9,7 @@ import 'package:dr_copilot/src/features/ai_voice_assistant/presentation/widgets/
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class AiVoiceAssistantPage extends StatefulWidget {
   const AiVoiceAssistantPage({super.key});
@@ -16,11 +20,56 @@ class AiVoiceAssistantPage extends StatefulWidget {
 
 class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
   final TextEditingController _textController = TextEditingController();
+  Timer? _animationTimer;
+  List<ChartData> _chartData = [];
 
   @override
   void initState() {
     super.initState();
     context.read<AiVoiceAssistantBloc>().add(StartAssistantEvent());
+    _chartData = _getInitialChartData();
+  }
+
+  List<ChartData> _getInitialChartData() {
+    return <ChartData>[
+      ChartData('1', 5),
+      ChartData('2', 5),
+      ChartData('3', 5),
+      ChartData('4', 5),
+      ChartData('5', 5),
+    ];
+  }
+
+  void _startAnimation() {
+    _animationTimer?.cancel(); // Cancel any existing timer
+    _animationTimer =
+        Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      if (mounted) {
+        setState(() {
+          _chartData = _getUpdatedChartData();
+        });
+      }
+    });
+  }
+
+  void _stopAnimation() {
+    _animationTimer?.cancel();
+    if (mounted) {
+      setState(() {
+        _chartData = _getInitialChartData();
+      });
+    }
+  }
+
+  List<ChartData> _getUpdatedChartData() {
+    final random = Random();
+    return <ChartData>[
+      ChartData('1', random.nextDouble() * 20 + 5),
+      ChartData('2', random.nextDouble() * 30 + 5),
+      ChartData('3', random.nextDouble() * 40 + 5),
+      ChartData('4', random.nextDouble() * 30 + 5),
+      ChartData('5', random.nextDouble() * 20 + 5),
+    ];
   }
 
   @override
@@ -229,44 +278,43 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
         ],
       ),
       floatingActionButton:
-          BlocBuilder<AiVoiceAssistantBloc, AiVoiceAssistantState>(
-        builder: (context, state) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ZoomIn(
-                child: FloatingActionButton(
-                  backgroundColor: Pallete.firstSuggestionBoxColor,
-                  onPressed: () {
-                    final bloc = context.read<AiVoiceAssistantBloc>();
-                    if (state is AiVoiceAssistantListening) {
-                      bloc.add(StopListeningEvent());
-                    } else {
-                      bloc.add(StartListeningEvent());
-                    }
-                  },
-                  child: Icon(
-                    state is AiVoiceAssistantListening ? Icons.stop : Icons.mic,
-                  ),
-                ),
-              ),
-              if (state.recognizedText.isNotEmpty) ...[
-                const SizedBox(width: 16),
-                ZoomIn(
-                  child: FloatingActionButton(
-                    backgroundColor: Pallete.firstSuggestionBoxColor,
-                    onPressed: () {
-                      context
-                          .read<AiVoiceAssistantBloc>()
-                          .add(ProcessCommandEvent(state.recognizedText));
-                    },
-                    child: const Icon(Icons.send),
-                  ),
-                ),
-              ]
-            ],
-          );
+          BlocListener<AiVoiceAssistantBloc, AiVoiceAssistantState>(
+        listener: (context, state) {
+          if (state is AiVoiceAssistantListening) {
+            _startAnimation();
+          } else {
+            _stopAnimation();
+          }
         },
+        child: GestureDetector(
+          onTap: () {
+            final bloc = context.read<AiVoiceAssistantBloc>();
+            if (bloc.state is AiVoiceAssistantListening) {
+              bloc.add(StopListeningEvent());
+            } else {
+              bloc.add(StartListeningEvent());
+            }
+          },
+          child: SizedBox(
+            height: 120,
+            width: 120,
+            child: SfCartesianChart(
+              primaryXAxis: CategoryAxis(isVisible: false),
+              primaryYAxis: NumericAxis(isVisible: false, maximum: 50),
+              plotAreaBorderWidth: 0,
+              series: <CartesianSeries<ChartData, String>>[
+                ColumnSeries<ChartData, String>(
+                  dataSource: _chartData,
+                  xValueMapper: (ChartData data, _) => data.x,
+                  yValueMapper: (ChartData data, _) => data.y,
+                  color: Pallete.firstSuggestionBoxColor,
+                  animationDuration: 200,
+                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                )
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -274,6 +322,13 @@ class _AiVoiceAssistantPageState extends State<AiVoiceAssistantPage> {
   @override
   void dispose() {
     _textController.dispose();
+    _animationTimer?.cancel();
     super.dispose();
   }
+}
+
+class ChartData {
+  ChartData(this.x, this.y);
+  final String x;
+  final double y;
 }

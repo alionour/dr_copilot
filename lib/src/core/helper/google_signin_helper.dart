@@ -1,12 +1,9 @@
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
-    as g_sign_in_all;
 import 'package:googleapis/calendar/v3.dart';
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
@@ -64,20 +61,7 @@ class GoogleSignInHelper {
   /// - `WEB_REDIRECT_PORT`: The port used for the redirect URI.
   /// - `scopes`: The list of OAuth scopes to request.
   ///
-  /// Make sure the redirect URI matches the one registered in the Google API Console.
-  final g_sign_in_all.GoogleSignIn _googleSignInAllPlatforms =
-      g_sign_in_all.GoogleSignIn(
-    params: g_sign_in_all.GoogleSignInParams(
-        clientId: Platform.environment['WEB_CLIENT_ID']!,
-        clientSecret: Platform.environment['WEB_CLIENT_SECRET']!,
-        redirectPort: int.parse(Platform.environment['WEB_REDIRECT_PORT']!),
-        scopes: scopes
-        // Ensure this matches the registered redirect URI
-        ),
-  );
-
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-      clientId: Platform.environment['WEB_CLIENT_ID']!, scopes: scopes);
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: scopes);
   Client? _client;
 
   /// Ensures the authenticated client is initialized and returns it.
@@ -96,22 +80,12 @@ class GoogleSignInHelper {
           return _client;
         }
         // Fallback to sign-in flows
-        if (io.Platform.isWindows || io.Platform.isLinux) {
-          final credentials = await _googleSignInAllPlatforms.signInOnline();
-          if (credentials != null) {
-            _client = await _googleSignInAllPlatforms.authenticatedClient;
-            debugPrint('Initialized _client for all platforms: $_client');
-          } else {
-            debugPrint('No credentials returned from signInAllPlatforms.');
-          }
-        } else {
-          if (_googleSignIn.currentUser == null) {
-            await _googleSignIn.signInSilently();
-            debugPrint('Called signInSilently for GoogleSignIn.');
-          }
-          _client = await _googleSignIn.authenticatedClient();
-          debugPrint('Initialized _client for GoogleSignIn: $_client');
+        if (_googleSignIn.currentUser == null) {
+          await _googleSignIn.signInSilently();
+          debugPrint('Called signInSilently for GoogleSignIn.');
         }
+        _client = await _googleSignIn.authenticatedClient();
+        debugPrint('Initialized _client for GoogleSignIn: $_client');
       } else {
         debugPrint('_client already initialized: $_client');
       }
@@ -140,11 +114,7 @@ class GoogleSignInHelper {
   ///
   /// Throws an [Exception] if the sign-out process fails.
   Future<void> signOut() async {
-    if (io.Platform.isWindows || io.Platform.isLinux) {
-      await _googleSignInAllPlatforms.signOut();
-    } else {
-      await _googleSignIn.signOut();
-    }
+    await _googleSignIn.signOut();
     debugPrint('User signed out'); // Add this line for debugging
   }
 
@@ -173,26 +143,6 @@ class GoogleSignInHelper {
     }
   }
 
-  /// Signs in the user using the all-platforms Google Sign-In method.
-  /// Returns a [GoogleSignInCredentials] object if the sign-in is successful,
-  /// or `null` if the sign-in fails or is cancelled by the user.
-  ///
-  /// Throws an exception if an unexpected error occurs during the sign-in process.
-  Future<g_sign_in_all.GoogleSignInCredentials?> signInAllPlatforms() async {
-    try {
-      g_sign_in_all.GoogleSignInCredentials? credentials =
-          await _googleSignInAllPlatforms.signInOnline();
-      if (credentials != null) {
-        _client = await _googleSignInAllPlatforms.authenticatedClient;
-      }
-
-      debugPrint('User signed in: $credentials'); // Add this line for debugging
-      return credentials;
-    } catch (error) {
-      debugPrint('Sign in error: $error');
-      return null;
-    }
-  }
 
   /// Asynchronously retrieves the current user's Google ID token.
   ///
