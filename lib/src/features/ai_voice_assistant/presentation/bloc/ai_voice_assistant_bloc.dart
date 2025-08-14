@@ -142,7 +142,7 @@ class AiVoiceAssistantBloc
             isTranscriptVisible: state.isTranscriptVisible));
         _startSilenceTimer();
         _speechSubscription = _speechRecognitionDatasource
-            .startListening(audioStream)
+            .startListening(audioStream, lang)
             .listen((text) {
           debugPrint('AiVoiceAssistantBloc: Received text from speech stream: $text');
           add(TextChangedEvent(text));

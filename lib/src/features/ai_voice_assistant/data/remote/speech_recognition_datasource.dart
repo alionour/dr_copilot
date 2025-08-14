@@ -7,14 +7,16 @@ class SpeechRecognitionDatasource {
 
   SpeechRecognitionDatasource(this._deepgram);
 
-  Stream<String> startListening(Stream<List<int>> audioStream) {
+  Stream<String> startListening(
+      Stream<List<int>> audioStream, String languageCode) {
     final sttStreamParams = {
-      'language': 'en',
+      'language': languageCode,
       'encoding': 'linear16',
       'sample_rate': 16000,
     };
 
-    final liveListener = _deepgram.listen.live(audioStream, queryParams: sttStreamParams);
+    final liveListener =
+        _deepgram.listen.live(audioStream, queryParams: sttStreamParams);
 
     return liveListener.map((result) => result.transcript ?? '');
   }
