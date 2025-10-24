@@ -1,14 +1,20 @@
+import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart';
 import 'package:get_it/get_it.dart';
 import 'data/remote/abstract_live_assistant_api.dart';
 import 'data/remote/live_assistant_firebase_api.dart';
 import 'data/repositories/live_assistant_repository_impl.dart';
 import 'data/services/abstract_speech_recognition_service.dart';
 import 'data/services/speech_recognition_service.dart';
-import 'data/services/windows_speech_recognition_service.dart';
+
 import 'dart:io';
 import 'data/services/abstract_text_to_speech_service.dart';
 import 'data/services/text_to_speech_service.dart';
-import 'data/services/windows_text_to_speech_service.dart';
+
 import 'data/services/abstract_ai_processing_service.dart';
 import 'data/services/ai_processing_service.dart';
 import 'data/services/abstract_audio_recording_service.dart';
@@ -28,46 +34,42 @@ void initLiveVoiceAssistantInjections() {
   // BLoC
   sl.registerFactory<LiveAssistantBloc>(
     () => LiveAssistantBloc(
-      startVoiceSessionUseCase: sl(),
-      processVoiceInputUseCase: sl(),
-      repository: sl(),
+      startVoiceSessionUseCase: sl<StartVoiceSessionUseCase>(),
+      processVoiceInputUseCase: sl<ProcessVoiceInputUseCase>(),
+      repository: sl<AbstractLiveAssistantRepository>(),
     ),
   );
 
   // Use cases
   sl.registerLazySingleton<LiveAssistantUseCase>(
-    () => LiveAssistantUseCase(sl()),
+    () => LiveAssistantUseCase(sl<AbstractLiveAssistantRepository>()),
   );
 
   sl.registerLazySingleton<StartVoiceSessionUseCase>(
-    () => StartVoiceSessionUseCase(sl()),
+    () => StartVoiceSessionUseCase(sl<AbstractLiveAssistantRepository>()),
   );
 
   sl.registerLazySingleton<ProcessVoiceInputUseCase>(
-    () => ProcessVoiceInputUseCase(sl()),
+    () => ProcessVoiceInputUseCase(sl<AbstractLiveAssistantRepository>()),
   );
 
   // Services
   sl.registerLazySingleton<AbstractSpeechRecognitionService>(
-    () => Platform.isWindows
-        ? WindowsSpeechRecognitionService()
-        : SpeechRecognitionService(),
+    () => SpeechRecognitionService(),
   );
 
   sl.registerLazySingleton<AbstractTextToSpeechService>(
-    () => Platform.isWindows
-        ? WindowsTextToSpeechService()
-        : TextToSpeechService(),
+    () => TextToSpeechService(),
   );
 
   sl.registerLazySingleton<AbstractAIProcessingService>(
     () => AIProcessingService(
-      vertexAIService: sl(),
-      gptService: sl(),
-      geminiService: sl(),
-      deepSeekService: sl(),
-      qwenService: sl(),
-      claudeService: sl(),
+      vertexAIService: sl<VertexAIService>(),
+      gptService: sl<GPTService>(),
+      geminiService: sl<GeminiService>(),
+      deepSeekService: sl<DeepSeekService>(),
+      qwenService: sl<QwenService>(),
+      claudeService: sl<ClaudeService>(),
     ),
   );
 
@@ -82,12 +84,12 @@ void initLiveVoiceAssistantInjections() {
   // Repository
   sl.registerLazySingleton<AbstractLiveAssistantRepository>(
     () => LiveAssistantRepositoryImpl(
-      sl(), // API
-      sl(), // Speech Recognition Service
-      sl(), // Text-to-Speech Service
-      sl(), // AI Processing Service
-      sl(), // Audio Recording Service
-      sl(), // Audio Playback Service
+      sl<AbstractLiveAssistantApi>(), // API
+      sl<AbstractSpeechRecognitionService>(), // Speech Recognition Service
+      sl<AbstractTextToSpeechService>(), // Text-to-Speech Service
+      sl<AbstractAIProcessingService>(), // AI Processing Service
+      sl<AbstractAudioRecordingService>(), // Audio Recording Service
+      sl<AbstractAudioPlaybackService>(), // Audio Playback Service
     ),
   );
 

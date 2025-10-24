@@ -46,12 +46,16 @@ class _LiveVoiceAssistantPageState extends State<LiveVoiceAssistantPage>
       vsync: this,
     );
 
-    // Initialize the assistant
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      context.read<LiveAssistantBloc>().add(
-            InitializeLiveAssistantEvent(userId: user.uid),
-          );
+    try {
+      // Initialize the assistant
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        context.read<LiveAssistantBloc>().add(
+              InitializeLiveAssistantEvent(userId: user.uid),
+            );
+      }
+    } catch (e, s) {
+      print('Error in initState: $e\n$s');
     }
   }
 
