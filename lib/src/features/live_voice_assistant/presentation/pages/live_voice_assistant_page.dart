@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -55,7 +56,7 @@ class _LiveVoiceAssistantPageState extends State<LiveVoiceAssistantPage>
             );
       }
     } catch (e, s) {
-      print('Error in initState: $e\n$s');
+      log('Error in initState: $e\n$s');
     }
   }
 
@@ -907,7 +908,7 @@ class _LiveVoiceAssistantPageState extends State<LiveVoiceAssistantPage>
   // Dynamic UI handlers
   void _handleActionSubmit(Map<String, dynamic> data) {
     // Process the submitted action data
-    debugPrint('Action submitted: $data');
+    log('Action submitted: $data');
 
     // Clear the current action after submission
     setState(() {
@@ -932,7 +933,7 @@ class _LiveVoiceAssistantPageState extends State<LiveVoiceAssistantPage>
 
   void _handleUserResponse(String response) {
     // Handle user's text response to AI questions
-    debugPrint('User response: $response');
+    log('User response: $response');
 
     // Send the response to the AI for processing
     context.read<LiveAssistantBloc>().add(ProcessTextInputEvent(response));

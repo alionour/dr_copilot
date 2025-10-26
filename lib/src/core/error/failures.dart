@@ -54,3 +54,12 @@ class ValidationFailure extends Failure {
   /// [code] is an optional error code associated with the validation failure.
   ValidationFailure(super.message, [super.code = 400]);
 }
+
+/// Represents a failure that occurs due to permission issues.
+class PermissionFailure extends Failure {
+  /// Represents a failure that occurs when required permissions are not granted.
+  ///
+  /// [message] provides details about the permission failure.
+  /// [code] is an optional error code associated with the permission failure.
+  PermissionFailure(super.message, [super.code = 403]);
+}

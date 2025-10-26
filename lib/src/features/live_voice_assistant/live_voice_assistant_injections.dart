@@ -11,7 +11,6 @@ import 'data/repositories/live_assistant_repository_impl.dart';
 import 'data/services/abstract_speech_recognition_service.dart';
 import 'data/services/speech_recognition_service.dart';
 
-import 'dart:io';
 import 'data/services/abstract_text_to_speech_service.dart';
 import 'data/services/text_to_speech_service.dart';
 
@@ -55,7 +54,7 @@ void initLiveVoiceAssistantInjections() {
 
   // Services
   sl.registerLazySingleton<AbstractSpeechRecognitionService>(
-    () => SpeechRecognitionService(),
+    () => SpeechRecognitionService(deepgramApiKey: const String.fromEnvironment('DEEPGRAM_KEY')),
   );
 
   sl.registerLazySingleton<AbstractTextToSpeechService>(
@@ -89,7 +88,6 @@ void initLiveVoiceAssistantInjections() {
       sl<AbstractTextToSpeechService>(), // Text-to-Speech Service
       sl<AbstractAIProcessingService>(), // AI Processing Service
       sl<AbstractAudioRecordingService>(), // Audio Recording Service
-      sl<AbstractAudioPlaybackService>(), // Audio Playback Service
     ),
   );
 

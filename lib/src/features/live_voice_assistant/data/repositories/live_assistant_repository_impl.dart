@@ -13,7 +13,6 @@ import '../services/abstract_speech_recognition_service.dart';
 import '../services/abstract_text_to_speech_service.dart';
 import '../services/abstract_ai_processing_service.dart';
 import '../services/abstract_audio_recording_service.dart';
-import '../services/abstract_audio_playback_service.dart';
 
 /// Implementation of the live voice assistant repository
 /// This class acts as a bridge between the domain layer and the data layer,
@@ -24,7 +23,6 @@ class LiveAssistantRepositoryImpl implements AbstractLiveAssistantRepository {
   final AbstractTextToSpeechService _textToSpeechService;
   final AbstractAIProcessingService _aiProcessingService;
   final AbstractAudioRecordingService _audioRecordingService;
-  final AbstractAudioPlaybackService _audioPlaybackService;
 
   const LiveAssistantRepositoryImpl(
     this._api,
@@ -32,7 +30,6 @@ class LiveAssistantRepositoryImpl implements AbstractLiveAssistantRepository {
     this._textToSpeechService,
     this._aiProcessingService,
     this._audioRecordingService,
-    this._audioPlaybackService,
   );
 
   /// Speech Recognition Operations

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
@@ -122,7 +123,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         ],
       ));
     } catch (e, s) {
-      print('Error in _onInitializeLiveAssistant: $e\n$s');
+      log('Error in _onInitializeLiveAssistant: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to initialize voice assistant: ${e.toString()}',
         isRecoverable: true,
@@ -186,7 +187,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         sessionContext: session.context,
       ));
     } catch (e, s) {
-      print('Error in _onStartVoiceSession: $e\n$s');
+      log('Error in _onStartVoiceSession: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to start voice session: ${e.toString()}',
         isRecoverable: true,
@@ -226,7 +227,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         ],
       ));
     } catch (e, s) {
-      print('Error in _onEndVoiceSession: $e\n$s');
+      log('Error in _onEndVoiceSession: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to end voice session: ${e.toString()}',
         isRecoverable: true,
@@ -271,7 +272,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         },
       );
     } catch (e, s) {
-      print('Error in _onStartListening: $e\n$s');
+      log('Error in _onStartListening: $e\n$s');
       emit(currentState.copyWith(
         isListening: false,
         errorMessage: 'Failed to start listening: ${e.toString()}',
@@ -313,7 +314,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
 
       _speechRecognitionSubscription?.cancel();
     } catch (e, s) {
-      print('Error in _onStopListening: $e\n$s');
+      log('Error in _onStopListening: $e\n$s');
       emit(currentState.copyWith(
         isListening: false,
         isProcessing: false,
@@ -341,7 +342,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         currentPartialText: null,
       ));
     } catch (e, s) {
-      print('Error in _onCancelListening: $e\n$s');
+      log('Error in _onCancelListening: $e\n$s');
       emit(currentState.copyWith(
         isListening: false,
         isProcessing: false,
@@ -395,7 +396,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         add(SpeakResponseEvent(lastMessage.content));
       }
     } catch (e, s) {
-      print('Error in _onVoiceInputReceived: $e\n$s');
+      log('Error in _onVoiceInputReceived: $e\n$s');
       emit(currentState.copyWith(
         isProcessing: false,
         errorMessage: 'Failed to process voice input: ${e.toString()}',
@@ -442,7 +443,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
 
       emit(currentState.copyWith(isSpeaking: false));
     } catch (e, s) {
-      print('Error in _onSpeakResponse: $e\n$s');
+      log('Error in _onSpeakResponse: $e\n$s');
       emit(currentState.copyWith(
         isSpeaking: false,
         errorMessage: 'Failed to speak response: ${e.toString()}',
@@ -463,7 +464,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
       await processVoiceInputUseCase.stopSpeaking(currentState.session.id);
       emit(currentState.copyWith(isSpeaking: false));
     } catch (e, s) {
-      print('Error in _onStopSpeaking: $e\n$s');
+      log('Error in _onStopSpeaking: $e\n$s');
       emit(currentState.copyWith(
         isSpeaking: false,
         errorMessage: 'Failed to stop speaking: ${e.toString()}',
@@ -485,7 +486,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
       emit(LiveAssistantPaused(
           session: currentState.session, reason: 'Speaking paused'));
     } catch (e, s) {
-      print('Error in _onPauseSpeaking: $e\n$s');
+      log('Error in _onPauseSpeaking: $e\n$s');
       emit(currentState.copyWith(
         errorMessage: 'Failed to pause speaking: ${e.toString()}',
       ));
@@ -517,7 +518,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         sessionContext: pausedState.session!.context,
       ));
     } catch (e, s) {
-      print('Error in _onResumeSpeaking: $e\n$s');
+      log('Error in _onResumeSpeaking: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to resume speaking: ${e.toString()}',
         isRecoverable: true,
@@ -554,7 +555,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         successMessage: 'Successfully executed ${completedAction.description}',
       ));
     } catch (e, s) {
-      print('Error in _onExecuteAction: $e\n$s');
+      log('Error in _onExecuteAction: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to execute action: ${e.toString()}',
         isRecoverable: true,
@@ -588,7 +589,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
       // Execute the confirmed action
       add(ExecuteActionEvent(confirmedAction));
     } catch (e, s) {
-      print('Error in _onConfirmAction: $e\n$s');
+      log('Error in _onConfirmAction: $e\n$s');
       emit(currentState.copyWith(
         errorMessage: 'Failed to confirm action: ${e.toString()}',
       ));
@@ -628,7 +629,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         selectedAiModel: event.modelName,
       ));
     } catch (e, s) {
-      print('Error in _onChangeAiModel: $e\n$s');
+      log('Error in _onChangeAiModel: $e\n$s');
       emit(currentState.copyWith(
         errorMessage: 'Failed to change AI model: ${e.toString()}',
       ));
@@ -651,7 +652,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         await repository.setPitch(event.pitch!);
       }
     } catch (e, s) {
-      print('Error in _onChangeVoiceSettings: $e\n$s');
+      log('Error in _onChangeVoiceSettings: $e\n$s');
       if (state is LiveAssistantSessionActive) {
         final currentState = state as LiveAssistantSessionActive;
         emit(currentState.copyWith(
@@ -683,7 +684,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
       final sessions = result.fold((l) => throw l, (r) => r);
       emit(LiveAssistantSessionHistory(sessions: sessions, isLoading: false));
     } catch (e, s) {
-      print('Error in _onLoadSessionHistory: $e\n$s');
+      log('Error in _onLoadSessionHistory: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to load session history: ${e.toString()}',
         isRecoverable: true,
@@ -723,7 +724,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         sessionContext: session.context,
       ));
     } catch (e, s) {
-      print('Error in _onLoadSession: $e\n$s');
+      log('Error in _onLoadSession: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to load session: ${e.toString()}',
         isRecoverable: true,
@@ -760,7 +761,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         }
       }
     } catch (e, s) {
-      print('Error in _onDeleteSession: $e\n$s');
+      log('Error in _onDeleteSession: $e\n$s');
       if (state is LiveAssistantSessionActive) {
         final currentState = state as LiveAssistantSessionActive;
         emit(currentState.copyWith(
@@ -812,7 +813,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         sessionContext: {},
       ));
     } catch (e, s) {
-      print('Error in _onClearConversation: $e\n$s');
+      log('Error in _onClearConversation: $e\n$s');
       emit(currentState.copyWith(
         errorMessage: 'Failed to clear conversation: ${e.toString()}',
       ));
@@ -846,7 +847,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
 
       emit(const LiveAssistantInitial());
     } catch (e, s) {
-      print('Error in _onResetAssistant: $e\n$s');
+      log('Error in _onResetAssistant: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to reset assistant: ${e.toString()}',
         isRecoverable: true,
@@ -889,7 +890,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
 
       emit(currentState.copyWith(sessionContext: event.context));
     } catch (e, s) {
-      print('Error in _onUpdateSessionContext: $e\n$s');
+      log('Error in _onUpdateSessionContext: $e\n$s');
       emit(currentState.copyWith(
         errorMessage: 'Failed to update session context: ${e.toString()}',
       ));
@@ -921,7 +922,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         ));
       }
     } catch (e, s) {
-      print('Error in _onRequestMicrophonePermission: $e\n$s');
+      log('Error in _onRequestMicrophonePermission: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to request microphone permission: ${e.toString()}',
         isRecoverable: true,
@@ -954,7 +955,7 @@ class LiveAssistantBloc extends Bloc<LiveAssistantEvent, LiveAssistantState> {
         ));
       }
     } catch (e, s) {
-      print('Error in _onCheckMicrophonePermission: $e\n$s');
+      log('Error in _onCheckMicrophonePermission: $e\n$s');
       emit(LiveAssistantError(
         message: 'Failed to check microphone permission: ${e.toString()}',
         isRecoverable: true,
