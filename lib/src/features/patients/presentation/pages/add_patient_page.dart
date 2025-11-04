@@ -66,7 +66,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+          context.go('/home');
           },
         ),
       ),
@@ -84,6 +84,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             setState(() {
               _selectedGender = 'Male';
             });
+            context.pop();
           } else if (state is PatientsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),

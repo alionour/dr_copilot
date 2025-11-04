@@ -66,7 +66,9 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
 
     if (isEditing) {
       // Fetch doctor details if in editing mode
-      context.read<DoctorsBloc>().add(const GetDoctors()); // Fetch all doctors to find the one to edit
+      context
+          .read<DoctorsBloc>()
+          .add(const GetDoctors()); // Fetch all doctors to find the one to edit
     }
     _selectedSpecialty = _initialDoctor?.specialty;
   }
@@ -97,7 +99,6 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
 
       final now = Timestamp.fromDate(DateTime.now().toUtc());
 
-
       final doctor = DoctorModel(
         id: isEditing ? _initialDoctor!.id : const Uuid().v4(),
         name: _nameController.text,
@@ -125,7 +126,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/doctors');
+            context.go('/home');
           },
         ),
       ),
@@ -148,7 +149,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message ?? 'Success'.tr())),
             );
-            context.go('/doctors');
+            context.go('/home');
           } else if (state is DoctorsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message ?? 'Error'.tr())),
@@ -252,7 +253,8 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                             if (value == null || value.isEmpty) {
                               return 'pleaseEnterEmail'.tr();
                             }
-                            if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                            if (!RegExp(
+                                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                                 .hasMatch(value)) {
                               return 'enterValidEmail'.tr();
                             }
