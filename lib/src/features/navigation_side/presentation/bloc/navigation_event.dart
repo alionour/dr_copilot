@@ -52,6 +52,7 @@ enum Destination {
   liveAssistant(
       NavItemModel('liveAssistant', Icons.mic), 'Live Voice Assistant'),
   patients(NavItemModel('patients', Icons.people), 'Manage your patients'),
+  doctors(NavItemModel('doctors', Icons.person_2_outlined), 'Manage your doctors'),
   sessions(
       NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),
   evaluations(NavItemModel('evaluations', Icons.assessment_outlined),

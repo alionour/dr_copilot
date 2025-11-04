@@ -73,6 +73,8 @@ class EvaluationModel {
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
 
+  final String? doctorId;
+
   EvaluationModel({
     required this.id,
     required this.patientId,
@@ -88,6 +90,7 @@ class EvaluationModel {
     required this.createdAt,
     this.updatedAt,
     this.deletedAt,
+    this.doctorId,
   });
 
   factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
@@ -110,6 +113,7 @@ class EvaluationModel {
     Timestamp? createdAt,
     Timestamp? updatedAt,
     Timestamp? deletedAt,
+    String? doctorId,
   }) {
     return EvaluationModel(
       id: id ?? this.id,
@@ -126,6 +130,7 @@ class EvaluationModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      doctorId: doctorId ?? this.doctorId,
     );
   }
 }

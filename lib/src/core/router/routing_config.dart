@@ -7,6 +7,8 @@ import 'package:dr_copilot/src/features/financials/transactions/presentation/pag
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/pages/add_edit_doctor_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
@@ -59,6 +61,23 @@ class RoutingConfig {
         path: '/patients/new',
         name: '/patients/new',
         builder: (context, state) => const AddPatientPage(),
+      ),
+      GoRoute(
+        path: '/doctors',
+        name: 'doctors',
+        builder: (context, state) => const DoctorsPage(),
+      ),
+      GoRoute(
+        path: '/doctors/new',
+        name: 'add_doctor',
+        builder: (context, state) => const AddEditDoctorPage(),
+      ),
+      GoRoute(
+        path: '/doctors/:doctorId/edit',
+        name: 'edit_doctor',
+        builder: (context, state) => AddEditDoctorPage(
+          doctorId: state.pathParameters['doctorId'],
+        ),
       ),
       GoRoute(
         path: '/sessions/new',

@@ -67,8 +67,6 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           ..add(addedSession)
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         
-        emit(SessionsSuccess(sessions,
-            message: 'sessionAdded'.tr()));
         emit(SessionsLoaded(sessions));
 
         // After session is added, create the invoice with referenceId = sessionId
@@ -263,8 +261,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       failureOrInvoice.fold(
           (failure) => emit(SessionsError(state.sessions,
               message: _mapFailureToMessage(failure))), (invoice) {
-        emit(SessionsSuccess(state.sessions,
-            message: 'invoiceAddedSuccessfully'.tr()));
+
+        bool transactionAdded = false;
         if (invoice.status == InvoiceStatus.paid) {
           final transaction = TransactionModel(
             id: const Uuid().v4(),
@@ -284,6 +282,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           );
 
           add(AddTransaction(transaction));
+          transactionAdded = true;
         } else if (invoice.status == InvoiceStatus.partiallyPaid) {
           final partialPaymentAmount = event.partialAmount ?? 0.0;
           if (partialPaymentAmount > 0) {
@@ -304,7 +303,12 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               description: 'Partial payment for invoice ${invoice.id}',
             );
             add(AddTransaction(transaction));
+            transactionAdded = true;
           }
+        }
+        if (!transactionAdded) {
+          emit(SessionsSuccess(state.sessions,
+              message: 'sessionAndInvoiceAddedSuccessfully'.tr()));
         }
       });
     } catch (e) {
@@ -317,7 +321,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     try {
       await _financialsUseCase.addTransaction(transaction: event.transaction);
       emit(SessionsSuccess(state.sessions,
-          message: 'transactionAddedSuccessfully'.tr()));
+          message: 'sessionInvoiceAndTransactionAddedSuccessfully'.tr()));
       emit(SessionsLoaded(state.sessions));
     } catch (e) {
       emit(SessionsError(state.sessions,

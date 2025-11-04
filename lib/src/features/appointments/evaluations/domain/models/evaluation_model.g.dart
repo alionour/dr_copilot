@@ -22,6 +22,7 @@ EvaluationModel _$EvaluationModelFromJson(Map<String, dynamic> json) =>
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
+      doctorId: json['doctorId'] as String?,
     );
 
 Map<String, dynamic> _$EvaluationModelToJson(EvaluationModel instance) =>
@@ -43,4 +44,5 @@ Map<String, dynamic> _$EvaluationModelToJson(EvaluationModel instance) =>
           const NullableTimestampConverter().toJson(instance.updatedAt),
       'deletedAt':
           const NullableTimestampConverter().toJson(instance.deletedAt),
+      'doctorId': instance.doctorId,
     };
