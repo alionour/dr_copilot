@@ -87,6 +87,8 @@ class SessionModel {
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
 
+  final String? doctorId;
+
   SessionModel({
     required this.id,
     required this.patientId,
@@ -103,6 +105,7 @@ class SessionModel {
     this.deletedAt,
     required this.createdAt,
     this.updatedAt,
+    this.doctorId,
   });
 
   factory SessionModel.fromJson(Map<String, dynamic> json) =>
@@ -126,6 +129,7 @@ class SessionModel {
     Timestamp? deletedAt,
     Timestamp? createdAt,
     Timestamp? updatedAt,
+    String? doctorId,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -143,6 +147,7 @@ class SessionModel {
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      doctorId: doctorId ?? this.doctorId,
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:dr_copilot/src/features/settings/settings_injections.dart';
 import 'package:get_it/get_it.dart';
 import 'package:dr_copilot/src/core/network/network_info.dart';
 import 'package:dr_copilot/src/features/patients/patients_injections.dart';
+import 'package:dr_copilot/src/features/doctors/doctors_injections.dart';
 
 // Import other feature injection files as needed
 /// Initializes dependency injection for the application using GetIt.
@@ -39,6 +40,7 @@ Future<void> initInjections() async {
   /// during the application's initialization phase to ensure that all patient
   /// services are properly registered and available for use.
   initPatientsInjections();
+  initDoctorsInjections();
 
   /// Initializes the dependency injections required for session management.
   ///

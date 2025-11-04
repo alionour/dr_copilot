@@ -8,6 +8,8 @@ import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
+
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
 import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -18,6 +20,7 @@ import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
+
 
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
@@ -188,6 +191,7 @@ class _NavigationSideState extends State<NavigationSide> {
                           Destination.copilot,
                           Destination.liveAssistant,
                           Destination.patients,
+                          Destination.doctors,
                           Destination.settings,
                           Destination.notifications,
                           // Destination.charts,
@@ -317,6 +321,8 @@ class _NavigationSideState extends State<NavigationSide> {
                         return const Center(child: NotificationsPage());
                       } else if (state.destination == Destination.patients) {
                         return const PatientsPage();
+                      } else if (state.destination == Destination.doctors) {
+                        return const DoctorsPage();
                       } else if (state.destination == Destination.sessions) {
                         return const Center(child: SessionsPage());
                       } else if (state.destination == Destination.evaluations) {
@@ -347,6 +353,8 @@ class _NavigationSideState extends State<NavigationSide> {
                       return const Center(child: NotificationsPage());
                     } else if (state.destination == Destination.patients) {
                       return const PatientsPage();
+                    } else if (state.destination == Destination.doctors) {
+                      return const DoctorsPage();
                     } else if (state.destination == Destination.sessions) {
                       return const Center(child: SessionsPage());
                     } else if (state.destination == Destination.evaluations) {

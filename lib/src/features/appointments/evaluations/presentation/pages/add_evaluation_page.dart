@@ -3,8 +3,11 @@ import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/bloc/doctors_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,33 +15,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
-
-// Mock class for CurrencyProfileModel (replace with actual implementation)
-class CurrencyProfileModel {
-  final String currency;
-  CurrencyProfileModel(this.currency);
-}
-
-// Define the missing variables
-List<CurrencyProfileModel> _currencyProfiles = [
-  CurrencyProfileModel('USD'),
-  CurrencyProfileModel('EUR'),
-  CurrencyProfileModel('GBP'),
-];
-
-CurrencyProfileModel? _selectedCurrencyProfile;
-InvoiceStatus? _selectedInvoiceStatus;
-final TextEditingController _partialPaymentController = TextEditingController();
-
-// Mock function for fetching currency profiles (replace with actual implementation)
-void _fetchCurrencyProfiles() {
-  // Simulate fetching currency profiles
-  _currencyProfiles = [
-    CurrencyProfileModel('USD'),
-    CurrencyProfileModel('EUR'),
-    CurrencyProfileModel('GBP'),
-  ];
-}
 
 class AddEvaluationPage extends StatefulWidget {
   const AddEvaluationPage({super.key});
@@ -70,20 +46,62 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   double _estimatedPrice = 120.0; // Default estimated price
   final _actualPriceController = TextEditingController();
 
+  DoctorModel? _selectedDoctor;
+
+
+  CurrencyProfileModel? _selectedCurrencyProfile;
+  List<CurrencyProfileModel> _currencyProfiles = [];
+  InvoiceStatus? _selectedInvoiceStatus;
+  final TextEditingController _partialPaymentController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
+      _fetchCurrencyProfiles(); // Fetch currency profiles on init
     });
     debugPrint('Fetching patients on init');
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
+    context.read<DoctorsBloc>().add(const GetDoctors()); // Fetch doctors on init
 
     final clinics = OwnerNotifier().clinics;
     if (clinics.isNotEmpty) {
       _selectedClinicId = clinics.first.id;
+    }
+  }
+
+  Future<void> _fetchCurrencyProfiles() async {
+    try {
+      final failureOrProfiles =
+          await context.read<EvaluationsBloc>().getCurrencyProfiles();
+      failureOrProfiles.fold(
+        (failure) {
+          debugPrint('Failed to fetch currency profiles: ${failure.message}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+          );
+        },
+        (profiles) {
+          debugPrint(
+              'Fetched currency profiles: ${profiles.map((p) => p.currency).toList()}');
+          setState(() {
+            _currencyProfiles = profiles.map((profile) => profile).toList();
+          });
+        },
+      );
+    } catch (e) {
+      debugPrint('Error in _fetchCurrencyProfiles: $e');
+      if (!mounted) return; // Ensure context is still valid after async gap
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+      );
+    }
+    if (_currencyProfiles.isNotEmpty) {
+      _selectedCurrencyProfile ??= _currencyProfiles
+          .first; // Set the first profile as default if none is selected
     }
   }
 
@@ -120,6 +138,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     );
 
     if (pickedDate != null) {
+      if (!mounted) return;
       setState(() {
         if (isStart) {
           _startDate = Timestamp.fromDate(DateTime(
@@ -143,6 +162,18 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     }
   }
 
+  DateTime _roundToNearestHalfHour(DateTime dateTime) {
+    final int minute = dateTime.minute;
+    final int roundedMinute = (minute < 15)
+        ? 0
+        : (minute < 45)
+            ? 30
+            : 0;
+    final int hour = (minute >= 45) ? dateTime.hour + 1 : dateTime.hour;
+    return DateTime(
+        dateTime.year, dateTime.month, dateTime.day, hour, roundedMinute);
+  }
+
   Future<void> _selectTime(BuildContext context, bool isStart) async {
     final DateTime initialDate =
         isStart ? _startDate!.toDate() : _endDate!.toDate();
@@ -154,25 +185,24 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     );
 
     if (pickedTime != null) {
+      if (!mounted) return;
       setState(() {
+        final DateTime selectedDateTime = DateTime(
+          initialDate.year,
+          initialDate.month,
+          initialDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        final roundedDateTime = _roundToNearestHalfHour(selectedDateTime);
         if (isStart) {
-          _startDate = Timestamp.fromDate(DateTime(
-              _startDate?.toDate().year ?? DateTime.now().year,
-              _startDate?.toDate().month ?? DateTime.now().month,
-              _startDate?.toDate().day ?? DateTime.now().day,
-              pickedTime.hour,
-              pickedTime.minute));
+          _startDate = Timestamp.fromDate(roundedDateTime);
           _endDate = _endDate!.toDate().isBefore(_startDate!.toDate())
               ? Timestamp.fromDate(
                   _startDate!.toDate().add(const Duration(hours: 1)))
               : _endDate;
         } else {
-          _endDate = Timestamp.fromDate(DateTime(
-              _endDate?.toDate().year ?? DateTime.now().year,
-              _endDate?.toDate().month ?? DateTime.now().month,
-              _endDate?.toDate().day ?? DateTime.now().day,
-              pickedTime.hour,
-              pickedTime.minute));
+          _endDate = Timestamp.fromDate(roundedDateTime);
         }
         _updateEstimatedPrice(); // Update price when time changes
       });
@@ -230,6 +260,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         ownerId: ownerId ?? '',
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
         clinicId: _selectedClinicId!,
+        doctorId: _selectedDoctor?.id, // Add the selected doctor's ID
       );
       context.read<EvaluationsBloc>().add(AddEvaluation(
             evaluationData,

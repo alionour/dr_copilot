@@ -6,6 +6,8 @@ import 'package:dr_copilot/src/features/financials/domain/models/currency_profil
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/bloc/doctors_bloc.dart';
+import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -56,12 +58,16 @@ class _AddSessionPageState extends State<AddSessionPage> {
   // Add a TextEditingController for the partial payment amount
   final _partialPaymentController = TextEditingController();
 
+  DoctorModel? _selectedDoctor;
+  List<DoctorModel> _doctors = [];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
       _fetchCurrencyProfiles(); // Fetch currency profiles on init
+      context.read<DoctorsBloc>().add(const GetDoctors()); // Fetch doctors on init
     });
     context
         .read<PatientsBloc>()
@@ -274,6 +280,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
         ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
         clinicId: _selectedClinicId!,
         createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
+        doctorId: _selectedDoctor?.id, // Add the selected doctor's ID
       );
 
       // Pass the selected currencyProfileId to the bloc as well
@@ -366,6 +373,25 @@ class _AddSessionPageState extends State<AddSessionPage> {
               }
             },
           ),
+          BlocListener<DoctorsBloc, DoctorsState>(
+            listener: (context, state) {
+              if (state is DoctorsLoaded) {
+                setState(() {
+                  _doctors = state.doctors;
+                  if (_doctors.isNotEmpty && _selectedDoctor == null) {
+                    _selectedDoctor = _doctors.first;
+                  }
+                });
+              } else if (state is DoctorsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
+            },
+          ),
         ],
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -413,6 +439,34 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'selectClinic'.tr();
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8.0),
+                            DropdownButtonFormField<DoctorModel>(
+                              value: _selectedDoctor,
+                              decoration: InputDecoration(
+                                labelText: 'selectDoctor'.tr(),
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: _doctors.map((doctor) {
+                                return DropdownMenuItem<DoctorModel>(
+                                  value: doctor,
+                                  child: Text(doctor.name),
+                                );
+                              }).toList(),
+                              onChanged: (DoctorModel? newValue) {
+                                setState(() {
+                                  _selectedDoctor = newValue;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'pleaseSelectDoctor'.tr();
                                 }
                                 return null;
                               },
