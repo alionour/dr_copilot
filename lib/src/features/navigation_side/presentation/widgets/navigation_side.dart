@@ -9,6 +9,7 @@ import 'package:dr_copilot/src/features/financials/presentation/pages/financials
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
+import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
 
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
 import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
@@ -185,17 +186,35 @@ class _NavigationSideState extends State<NavigationSide> {
                             )
                           : null,
                       items: [
+                        if (data.isOpen)
+                          SideMenuItemDataTitle(
+                              title: 'coreOperations'.tr(),
+                              padding: const EdgeInsetsDirectional.all(8)),
                         ...[
-                          Destination.calendar,
-                          // Destination.chat,
                           Destination.copilot,
+                          Destination.calendar,
                           Destination.liveAssistant,
+                        ].map((e) => SideMenuItemDataTile(
+                              isSelected: state.destination == e,
+                              onTap: () {
+                                context
+                                    .read<NavigationBloc>()
+                                    .add(NavigateToEvent(e));
+                                if (onItemTap != null) onItemTap();
+                              },
+                              title: tr(e.model.title),
+                              tooltip: e.message,
+                              icon: Icon(e.model.icon,
+                                  color: const Color(0xff0055c3)),
+                            )),
+                        if (data.isOpen)
+                          SideMenuItemDataTitle(
+                              title: 'management'.tr(),
+                              padding: const EdgeInsetsDirectional.all(8)),
+                        ...[
                           Destination.patients,
                           Destination.doctors,
-                          Destination.settings,
-                          Destination.notifications,
-                          // Destination.charts,
-                          Destination.financials,
+                          Destination.staff,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {
@@ -227,6 +246,46 @@ class _NavigationSideState extends State<NavigationSide> {
                                   icon: Icon(e.model.icon,
                                       color: const Color(0xff0055c3)),
                                 )),
+                        if (data.isOpen)
+                          SideMenuItemDataTitle(
+                              title: 'business'.tr(),
+                              padding: const EdgeInsetsDirectional.all(8)),
+                        ...[
+                          Destination.financials,
+                          // Destination.charts,
+                        ].map((e) => SideMenuItemDataTile(
+                              isSelected: state.destination == e,
+                              onTap: () {
+                                context
+                                    .read<NavigationBloc>()
+                                    .add(NavigateToEvent(e));
+                                if (onItemTap != null) onItemTap();
+                              },
+                              title: tr(e.model.title),
+                              tooltip: e.message,
+                              icon: Icon(e.model.icon,
+                                  color: const Color(0xff0055c3)),
+                            )),
+                        if (data.isOpen)
+                          SideMenuItemDataTitle(
+                              title: 'utilities'.tr(),
+                              padding: const EdgeInsetsDirectional.all(8)),
+                        ...[
+                          Destination.notifications,
+                          Destination.settings,
+                        ].map((e) => SideMenuItemDataTile(
+                              isSelected: state.destination == e,
+                              onTap: () {
+                                context
+                                    .read<NavigationBloc>()
+                                    .add(NavigateToEvent(e));
+                                if (onItemTap != null) onItemTap();
+                              },
+                              title: tr(e.model.title),
+                              tooltip: e.message,
+                              icon: Icon(e.model.icon,
+                                  color: const Color(0xff0055c3)),
+                            )),
                       ],
                       footer: data.isOpen
                           ? BlocBuilder<NavigationBloc, NavigationState>(
@@ -323,6 +382,8 @@ class _NavigationSideState extends State<NavigationSide> {
                         return const PatientsPage();
                       } else if (state.destination == Destination.doctors) {
                         return const DoctorsPage();
+                      } else if (state.destination == Destination.staff) {
+                        return const StaffPage();
                       } else if (state.destination == Destination.sessions) {
                         return const Center(child: SessionsPage());
                       } else if (state.destination == Destination.evaluations) {
@@ -355,6 +416,8 @@ class _NavigationSideState extends State<NavigationSide> {
                       return const PatientsPage();
                     } else if (state.destination == Destination.doctors) {
                       return const DoctorsPage();
+                    } else if (state.destination == Destination.staff) {
+                      return const StaffPage();
                     } else if (state.destination == Destination.sessions) {
                       return const Center(child: SessionsPage());
                     } else if (state.destination == Destination.evaluations) {
