@@ -11,6 +11,7 @@ import '../../../features/live_voice_assistant/presentation/bloc/live_assistant_
 import '../../../features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../../../features/patients/presentation/bloc/patients_bloc.dart';
 import '../../../features/doctors/presentation/bloc/doctors_bloc.dart';
+import '../../../features/staff/presentation/bloc/staff_bloc.dart';
 import '../../../features/settings/presentation/bloc/settings_bloc.dart';
 
 final sl = GetIt.instance;
@@ -61,6 +62,16 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// Typically used at a high level in the widget tree to ensure that the
   /// [DoctorsBloc] is accessible throughout the relevant scope of the application.
   BlocProvider<DoctorsBloc>(create: (context) => sl<DoctorsBloc>()),
+
+  /// Provides an instance of [StaffBloc] to the widget tree.
+  ///
+  /// This [BlocProvider] is responsible for creating and managing the lifecycle
+  /// of a [StaffBloc], making it available to all descendant widgets that
+  /// require access to staff-related business logic and state management.
+  ///
+  /// Typically used at a high level in the widget tree to ensure that the
+  /// [StaffBloc] is accessible throughout the relevant scope of the application.
+  BlocProvider<StaffBloc>(create: (context) => sl<StaffBloc>()),
 
   /// Provides an instance of [CopilotBloc] to the widget tree using [BlocProvider].
   ///

@@ -24,7 +24,7 @@ class OwnerNotifier with ChangeNotifier {
     _loading = true;
     notifyListeners();
     final user = FirebaseAuth.instance.currentUser;
-    debugPrint('[OwnerNotifier] Current user: \\${user?.uid}');
+    debugPrint('[OwnerNotifier] Current user: ${user?.uid}');
     if (user == null) {
       debugPrint('[OwnerNotifier] No user logged in.');
       _ownerId = null;
@@ -38,18 +38,18 @@ class OwnerNotifier with ChangeNotifier {
         .doc(user.uid)
         .get();
     final data = userDoc.data();
-    debugPrint('[OwnerNotifier] User doc data: \\$data');
+    debugPrint('[OwnerNotifier] User doc data: $data');
     _ownerId = data?['ownerId'] ?? user.uid;
-    debugPrint('[OwnerNotifier] Loaded ownerId: \\$_ownerId');
+    debugPrint('[OwnerNotifier] Loaded ownerId: $_ownerId');
     // Prefer primaryClinicId, fallback to first clinicIds entry, else null
     if (data?['primaryClinicId'] != null &&
         data?['primaryClinicId'] is String) {
       _clinicId = data?['primaryClinicId'];
-      debugPrint('[OwnerNotifier] Loaded primaryClinicId: \\$_clinicId');
+      debugPrint('[OwnerNotifier] Loaded primaryClinicId: $_clinicId');
     } else if (data?['clinicIds'] is List &&
         (data?['clinicIds'] as List).isNotEmpty) {
       _clinicId = (data?['clinicIds'] as List).first;
-      debugPrint('[OwnerNotifier] Loaded first clinicId from clinicIds: \\$_clinicId');
+      debugPrint('[OwnerNotifier] Loaded first clinicId from clinicIds: $_clinicId');
     } else {
       _clinicId = null;
       debugPrint('[OwnerNotifier] No clinicId found.');
@@ -57,15 +57,15 @@ class OwnerNotifier with ChangeNotifier {
 
     // Fetch all clinics for this owner
     if (_ownerId != null) {
-      debugPrint('[OwnerNotifier] Querying clinics for ownerId: \\$_ownerId');
+      debugPrint('[OwnerNotifier] Querying clinics for ownerId: $_ownerId');
       final clinicsSnap = await FirebaseFirestore.instance
           .collection('clinics')
           .where('ownerId', isEqualTo: _ownerId)
           .get();
-      debugPrint('[OwnerNotifier] Clinics found: \\${clinicsSnap.docs.length}');
+      debugPrint('[OwnerNotifier] Clinics found: ${clinicsSnap.docs.length}');
       _clinics = clinicsSnap.docs.map((doc) {
         final clinicData = doc.data();
-        debugPrint('[OwnerNotifier] Clinic doc: id=\\${doc.id}, data=\\$clinicData');
+        debugPrint('[OwnerNotifier] Clinic doc: id=${doc.id}, data=$clinicData');
         return ClinicModel.fromJson({
           'id': doc.id,
           ...clinicData,

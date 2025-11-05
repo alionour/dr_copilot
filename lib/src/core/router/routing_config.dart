@@ -9,6 +9,8 @@ import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/pages/add_edit_doctor_page.dart';
+import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
+import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
@@ -77,6 +79,23 @@ class RoutingConfig {
         name: 'edit_doctor',
         builder: (context, state) => AddEditDoctorPage(
           doctorId: state.pathParameters['doctorId'],
+        ),
+      ),
+      GoRoute(
+        path: '/staff',
+        name: 'staff',
+        builder: (context, state) => const StaffPage(),
+      ),
+      GoRoute(
+        path: '/staff/new',
+        name: 'add_staff',
+        builder: (context, state) => const AddEditStaffPage(),
+      ),
+      GoRoute(
+        path: '/staff/:staffId/edit',
+        name: 'edit_staff',
+        builder: (context, state) => AddEditStaffPage(
+          staffId: state.pathParameters['staffId'],
         ),
       ),
       GoRoute(
