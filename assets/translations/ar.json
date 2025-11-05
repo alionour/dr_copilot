@@ -19,6 +19,15 @@
   "management": "الإدارة",
   "business": "الأعمال",
   "utilities": "الأدوات المساعدة",
+  "userId": "معرف المستخدم",
+  "emailVerified": "البريد الإلكتروني متحقق",
+  "accountCreationTime": "وقت إنشاء الحساب",
+  "lastSignInTime": "آخر وقت تسجيل دخول",
+  "clinicInfo": "معلومات العيادة",
+  "primaryClinic": "العيادة الأساسية",
+  "otherClinics": "العيادات الأخرى",
+  "yes": "نعم",
+  "no": "لا",
   "scheduled": "مجدولة",
   "dueDate": "تاريخ الاستحقاق",
   "scheduledBills": "الفواتير المجدولة",
@@ -251,6 +260,8 @@
   "payments": "المدفوعات",
   "personal": "شخصي",
   "phoneNumber": "رقم الهاتف",
+  "personalInfo": "المعلومات الشخصية",
+  "copiedToClipboard": "تم النسخ إلى الحافظة",
   "pleaseEnterAddress": "يرجى إدخال العنوان",
   "pleaseEnterAge": "يرجى إدخال العمر",
   "pleaseEnterAlternativePhoneNumber": "يرجى إدخال رقم هاتف بديل",
@@ -393,6 +404,7 @@
   "yearOptional": "سنة اختيارية",
   "yesterday": "أمس",
   "yourRights": "حقوقك",
+  "not_available": "غير متاح",
   "yourRightsDescription": "لديك الحق في الوصول إلى معلوماتك الشخصية وتحديثها وحذفها. إذا كانت لديك أي أسئلة أو مخاوف بشأن ممارسات الخصوصية لدينا، يرجى الاتصال بنا على privacy@drcopilot.com."
 
 }
