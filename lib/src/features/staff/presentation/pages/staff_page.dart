@@ -17,31 +17,33 @@ class StaffPage extends StatefulWidget {
 
 class _StaffPageState extends State<StaffPage> {
   String? _currentClinicId;
+  late final OwnerNotifier _ownerNotifier;
+
   @override
   void initState() {
     super.initState();
-    final ownerNotifier = context.read<OwnerNotifier>();
-    final clinicId = ownerNotifier.clinicId;
+    _ownerNotifier = context.read<OwnerNotifier>();
+    final clinicId = _ownerNotifier.clinicId;
     if (clinicId != null) {
       _currentClinicId = clinicId;
-      context.read<StaffBloc>().add(const GetStaff());
+      context.read<StaffBloc>().add(GetStaff(clinicId: clinicId));
     }
-    ownerNotifier.addListener(_onClinicChanged);
+    _ownerNotifier.addListener(_onClinicChanged);
   }
 
   void _onClinicChanged() {
-    final clinicId = context.read<OwnerNotifier>().clinicId;
+    final clinicId = _ownerNotifier.clinicId;
     if (clinicId != null && clinicId != _currentClinicId) {
       setState(() {
         _currentClinicId = clinicId;
       });
-      context.read<StaffBloc>().add(const GetStaff());
+      context.read<StaffBloc>().add(GetStaff(clinicId: clinicId));
     }
   }
 
   @override
   void dispose() {
-    context.read<OwnerNotifier>().removeListener(_onClinicChanged);
+    _ownerNotifier.removeListener(_onClinicChanged);
     super.dispose();
   }
 
@@ -69,9 +71,9 @@ class _StaffPageState extends State<StaffPage> {
                     if (state is StaffLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is StaffLoaded) {
-                      print('StaffPage BlocBuilder - StaffLoaded state received');
+
                       final filteredStaff = state.staff.where((staff) => staff.clinicId == _currentClinicId).toList();
-                      print('StaffPage BlocBuilder - Filtered staff: $filteredStaff');
+
                       if (filteredStaff.isEmpty) {
                         return Center(
                           child: Column(

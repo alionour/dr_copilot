@@ -1,26 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
-import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/copilot_page.dart';
-import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
-import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
-import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
-import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
-import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
-
-import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart'; // Import PatientsPage
-import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
-import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
+import 'package:dr_copilot/src/features/navigation_side/domain/entities/destination.dart';
 
 
 /// A widget that provides a side navigation menu and displays the selected page.
@@ -34,7 +21,6 @@ class NavigationSide extends StatefulWidget {
 
 class _NavigationSideState extends State<NavigationSide> {
   final FocusNode _navigationFocusNode = FocusNode();
-  final FocusNode _contentFocusNode = FocusNode();
   bool _showMobileNav = false;
 
   void _toggleMobileNav() {
@@ -54,9 +40,51 @@ class _NavigationSideState extends State<NavigationSide> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _navigationFocusNode.requestFocus();
-      debugPrint('Navigation focus node requested focus');
     });
+
+    // Add listener to GoRouter for route changes
+    GoRouter.of(context).routerDelegate.addListener(_handleRouteChange);
   }
+
+  @override
+  void dispose() {
+    GoRouter.of(context).routerDelegate.removeListener(_handleRouteChange);
+    super.dispose();
+  }
+
+  void _handleRouteChange() {
+    final currentRoute = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    Destination? newDestination;
+
+    for (var entry in destinationToRoute.entries) {
+      if (entry.value == currentRoute) {
+        newDestination = entry.key;
+        break;
+      }
+    }
+
+    if (newDestination != null && newDestination != context.read<NavigationBloc>().state.destination) {
+      context.read<NavigationBloc>().add(NavigateToEvent(newDestination));
+    }
+  }
+
+  static const Map<Destination, String> destinationToRoute = {
+    Destination.copilot: '/home',
+    Destination.calendar: '/calendar',
+    Destination.settings: '/settings',
+    Destination.notifications: '/notifications',
+    Destination.chat: '/chat',
+    Destination.liveAssistant: '/live_assistant',
+    Destination.patients: '/patients',
+    Destination.doctors: '/doctors',
+    Destination.staff: '/staff',
+    Destination.sessions: '/sessions',
+    Destination.evaluations: '/evaluations',
+    Destination.charts: '/charts',
+    Destination.financials: '/financials',
+    Destination.clinicalReports: '/clinical_reports',
+    Destination.chatGptProject: '/chatgpt_project',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +107,7 @@ class _NavigationSideState extends State<NavigationSide> {
                   Positioned.fill(
                     child: Container(
                       color: Colors.transparent,
-                      child: _buildContent(context, bloc),
+                      child: widget.child,
                     ),
                   ),
                   // Menu icon button (only when nav is closed)
@@ -125,7 +153,7 @@ class _NavigationSideState extends State<NavigationSide> {
               body: Row(
                 children: [
                   _buildSideMenu(context, bloc),
-                  Expanded(child: _buildContent(context, bloc)),
+                  Expanded(child: widget.child),
                 ],
               ),
             );
@@ -144,9 +172,7 @@ class _NavigationSideState extends State<NavigationSide> {
           onKeyEvent: (FocusNode node, KeyEvent event) {
             if (event is KeyDownEvent) {
               if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-                _contentFocusNode.requestFocus();
                 bloc.add(const ChangeFocusEvent(false));
-                debugPrint('Content focus node requested focus');
                 return KeyEventResult.handled;
               } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
                 context.read<NavigationBloc>().add(NavigateDownEvent());
@@ -202,9 +228,7 @@ class _NavigationSideState extends State<NavigationSide> {
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {
-                                context
-                                    .read<NavigationBloc>()
-                                    .add(NavigateToEvent(e));
+                                context.go(destinationToRoute[e]!);
                                 if (onItemTap != null) onItemTap();
                               },
                               title: tr(e.model.title),
@@ -225,12 +249,11 @@ class _NavigationSideState extends State<NavigationSide> {
                           Destination.patients,
                           Destination.doctors,
                           Destination.staff,
+                          Destination.clinicalReports,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {
-                                context
-                                    .read<NavigationBloc>()
-                                    .add(NavigateToEvent(e));
+                                context.go(destinationToRoute[e]!);
                                 if (onItemTap != null) onItemTap();
                               },
                               title: tr(e.model.title),
@@ -251,9 +274,7 @@ class _NavigationSideState extends State<NavigationSide> {
                             .map((e) => SideMenuItemDataTile(
                                   isSelected: state.destination == e,
                                   onTap: () {
-                                    context
-                                        .read<NavigationBloc>()
-                                        .add(NavigateToEvent(e));
+                                    context.go(destinationToRoute[e]!);
                                     if (onItemTap != null) onItemTap();
                                   },
                                   title: tr(e.model.title),
@@ -276,9 +297,7 @@ class _NavigationSideState extends State<NavigationSide> {
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {
-                                context
-                                    .read<NavigationBloc>()
-                                    .add(NavigateToEvent(e));
+                                context.go(destinationToRoute[e]!);
                                 if (onItemTap != null) onItemTap();
                               },
                               title: tr(e.model.title),
@@ -298,12 +317,11 @@ class _NavigationSideState extends State<NavigationSide> {
                         ...[
                           Destination.notifications,
                           Destination.settings,
+                          Destination.chatGptProject,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {
-                                context
-                                    .read<NavigationBloc>()
-                                    .add(NavigateToEvent(e));
+                                context.go(destinationToRoute[e]!);
                                 if (onItemTap != null) onItemTap();
                               },
                               title: tr(e.model.title),
@@ -351,112 +369,6 @@ class _NavigationSideState extends State<NavigationSide> {
                 );
               },
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildContent(BuildContext context, NavigationBloc bloc) {
-    return BlocBuilder<NavigationBloc, NavigationState>(
-      builder: (context, state) {
-        return Focus(
-          focusNode: _contentFocusNode,
-          onKeyEvent: (FocusNode node, KeyEvent event) {
-            if (event is KeyDownEvent) {
-              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                _navigationFocusNode.requestFocus();
-                bloc.add(const ChangeFocusEvent(true));
-                debugPrint('Navigation focus node requested focus');
-                return KeyEventResult.handled;
-              }
-            }
-            return KeyEventResult.ignored;
-          },
-          child: Container(
-            color: !bloc.state.isNavigationFocused
-                ? Colors.blue.withAlpha((0.2 * 255).toInt())
-                : Colors.transparent,
-            padding: const EdgeInsets.all(8),
-            child: Builder(builder: (context) {
-              final isMobile = MediaQuery.of(context).size.width < 600;
-              if (isMobile) {
-                return NavMenuButtonProvider(
-                  navMenuButton: NavMenuButton(
-                    showMobileNav: _showMobileNav,
-                    tooltip: 'Open navigation',
-                    onTap: _toggleMobileNav,
-                  ),
-                  child: BlocBuilder<NavigationBloc, NavigationState>(
-                    builder: (context, state) {
-                      if (state.destination == Destination.copilot) {
-                        return const Center(
-                            child: CopilotPage(title: 'Dr Copilot'));
-                      } else if (state.destination ==
-                          Destination.liveAssistant) {
-                        return const Center(child: LiveVoiceAssistantPage());
-                      } else if (state.destination == Destination.calendar) {
-                        return const Center(child: CalendarPage());
-                      } else if (state.destination == Destination.settings) {
-                        return const Center(child: SettingsPage());
-                      } else if (state.destination ==
-                          Destination.notifications) {
-                        return const Center(child: NotificationsPage());
-                      } else if (state.destination == Destination.patients) {
-                        return const PatientsPage();
-                      } else if (state.destination == Destination.doctors) {
-                        return const DoctorsPage();
-                      } else if (state.destination == Destination.staff) {
-                        return const StaffPage();
-                      } else if (state.destination == Destination.sessions) {
-                        return const Center(child: SessionsPage());
-                      } else if (state.destination == Destination.evaluations) {
-                        return const Center(child: EvaluationsPage());
-                      } else if (state.destination == Destination.charts) {
-                        return const Center(child: ChartsPage());
-                      } else if (state.destination == Destination.financials) {
-                        return const Center(child: FinancialsPage());
-                      } else {
-                        return const SizedBox();
-                      }
-                    },
-                  ),
-                );
-              } else {
-                return BlocBuilder<NavigationBloc, NavigationState>(
-                  builder: (context, state) {
-                    if (state.destination == Destination.copilot) {
-                      return const Center(
-                          child: CopilotPage(title: 'Dr Copilot'));
-                    } else if (state.destination == Destination.liveAssistant) {
-                      return const Center(child: LiveVoiceAssistantPage());
-                    } else if (state.destination == Destination.calendar) {
-                      return const Center(child: CalendarPage());
-                    } else if (state.destination == Destination.settings) {
-                      return const Center(child: SettingsPage());
-                    } else if (state.destination == Destination.notifications) {
-                      return const Center(child: NotificationsPage());
-                    } else if (state.destination == Destination.patients) {
-                      return const PatientsPage();
-                    } else if (state.destination == Destination.doctors) {
-                      return const DoctorsPage();
-                    } else if (state.destination == Destination.staff) {
-                      return const StaffPage();
-                    } else if (state.destination == Destination.sessions) {
-                      return const Center(child: SessionsPage());
-                    } else if (state.destination == Destination.evaluations) {
-                      return const Center(child: EvaluationsPage());
-                    } else if (state.destination == Destination.charts) {
-                      return const Center(child: ChartsPage());
-                    } else if (state.destination == Destination.financials) {
-                      return const Center(child: FinancialsPage());
-                    } else {
-                      return const SizedBox();
-                    }
-                  },
-                );
-              }
-            }),
           ),
         );
       },

@@ -65,7 +65,10 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
 
     if (isEditing) {
       // Fetch staff details if in editing mode
-      context.read<StaffBloc>().add(const GetStaff());
+      final clinicId = context.read<OwnerNotifier>().clinicId;
+      if (clinicId != null) {
+        context.read<StaffBloc>().add(GetStaff(clinicId: clinicId));
+      }
     }
   }
 

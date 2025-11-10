@@ -18,8 +18,8 @@ class AccountPage extends StatelessWidget {
     final ownerNotifier = context.watch<OwnerNotifier>();
 
     final phoneNumber = user?.phoneNumber;
-    final creationTime = user?.metadata?.creationTime;
-    final lastSignInTime = user?.metadata?.lastSignInTime;
+    final creationTime = user?.metadata.creationTime;
+    final lastSignInTime = user?.metadata.lastSignInTime;
 
     return Scaffold(
       appBar: AppBar(
@@ -236,6 +236,17 @@ class AccountPage extends StatelessWidget {
                         ),
                     ],
                   ),
+                ),
+              ),
+              const SizedBox(height: 24), // Spacing between sections
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ListTile(
+                  leading: const Icon(Icons.folder_open),
+                  title: Text('cases'.tr()),
+                  onTap: () {
+                    context.go('/cases');
+                  },
                 ),
               ),
               const SizedBox(height: 24), // Spacing before button

@@ -17,12 +17,12 @@ class AddStaff extends StaffEvent {
 }
 
 class GetStaff extends StaffEvent {
-  final String? clinicId;
+  final String clinicId;
 
-  const GetStaff({this.clinicId});
+  const GetStaff({required this.clinicId});
 
   @override
-  List<Object> get props => [clinicId ?? ''];
+  List<Object> get props => [clinicId];
 }
 
 class UpdateStaff extends StaffEvent {

@@ -8,8 +8,8 @@ class StaffUseCases {
 
   StaffUseCases(this._repository);
 
-  Future<Either<Failure, List<StaffModel>>> getAllStaff() {
-    return _repository.getAllStaff();
+  Future<Either<Failure, List<StaffModel>>> getAllStaff({required String clinicId}) {
+    return _repository.getAllStaff(clinicId: clinicId);
   }
 
   Future<Either<Failure, void>> addStaff(StaffModel staff) {
