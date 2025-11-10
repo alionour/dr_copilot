@@ -31,9 +31,9 @@ class StaffRepositoryImpl implements StaffRepository {
   }
 
   @override
-  Future<Either<Failure, List<StaffModel>>> getAllStaff() async {
+  Future<Either<Failure, List<StaffModel>>> getAllStaff({required String clinicId}) async {
     try {
-      final staff = await _staffFirebaseApi.getAllStaff();
+      final staff = await _staffFirebaseApi.getAllStaff(clinicId: clinicId);
       return Right(staff);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));

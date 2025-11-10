@@ -27,6 +27,10 @@ final class CalendarInitial extends CalendarState {
   
 }
 
+final class CalendarAuthenticationRequired extends CalendarState {
+  const CalendarAuthenticationRequired() : super(const []);
+}
+
 /// State when calendar events are being loaded.
 final class CalendarEventsLoading extends CalendarState {
   const CalendarEventsLoading() : super(const []);

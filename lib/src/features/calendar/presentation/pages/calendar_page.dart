@@ -23,6 +23,7 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
+    context.read<CalendarBloc>().add(AuthenticateCalendar());
   }
 
   Future<void> _refreshCalendarEvents(BuildContext context) async {
@@ -75,6 +76,23 @@ class _CalendarPageState extends State<CalendarPage> {
               builder: (context, state) {
                 List<google_calendar.Event> events = [];
                 Map<String, Color> calendarColors = {};
+                if (state is CalendarAuthenticationRequired) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('calendarAuthRequired'.tr()),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<CalendarBloc>().add(AuthenticateCalendar());
+                          },
+                          child: Text('connectGoogleCalendar'.tr()),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 if (state is CalendarEventsLoaded) {
                   events = state.events;
                   calendarColors = state.calendarColors;

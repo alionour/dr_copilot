@@ -4,10 +4,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
     as g_sign_in_all;
 import 'package:googleapis/calendar/v3.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 /// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
 ///
@@ -26,7 +28,8 @@ final scopes = [
   CalendarApi.calendarEventsScope,
   CalendarApi.calendarReadonlyScope,
   CalendarApi.calendarEventsReadonlyScope,
-  CalendarApi.calendarSettingsReadonlyScope
+  CalendarApi.calendarSettingsReadonlyScope,
+  drive.DriveApi.driveScope
 ];
 
 /// Custom AuthClient for using a saved access token with Google APIs
@@ -118,32 +121,29 @@ class GoogleSignInHelper {
         clientId: Platform.environment['WEB_CLIENT_ID']!,
         clientSecret: Platform.environment['WEB_CLIENT_SECRET']!,
         redirectPort: int.parse(Platform.environment['WEB_REDIRECT_PORT']!),
-        scopes: scopes
+        scopes: scopes,
         // Ensure this matches the registered redirect URI
         ),
   );
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-      clientId: Platform.environment['WEB_CLIENT_ID']!, scopes: scopes);
+      clientId: Platform.environment['WEB_CLIENT_ID']!,
+      scopes: scopes);
   Client? _client;
 
   /// Ensures the authenticated client is initialized and returns it.
   Future<Client?> ensureClientInitialized() async {
     try {
       if (_client == null) {
-        // Try to restore from saved authentication first
-        final accessToken = await secureStorage.read(key: 'auth_access_token');
-        debugPrint(
-            'Trying saved auth: accessToken=${accessToken?.substring(0, 8)}...');
-        if (accessToken != null) {
-          _client =
-              AuthClient(accessToken, refreshTokenCallback: refreshAccessToken);
-          debugPrint('Initialized _client from saved tokens: $_client');
-          // Optionally: test the token with a lightweight API call and refresh if 401
-          return _client;
-        }
-        // Fallback to sign-in flows
-        if (io.Platform.isWindows || io.Platform.isLinux) {
+        // Try to sign in silently first to restore the GoogleSignIn session
+        GoogleSignInAccount? currentUser = await _googleSignIn.signInSilently();
+        debugPrint('Called signInSilently for GoogleSignIn. Current user: $currentUser');
+
+        if (currentUser != null) {
+          _client = await _googleSignIn.authenticatedClient();
+          debugPrint('Initialized _client from silent sign-in: $_client');
+        } else if (io.Platform.isWindows || io.Platform.isLinux) {
+          // Fallback for desktop platforms if silent sign-in fails
           final credentials = await _googleSignInAllPlatforms.signInOnline();
           if (credentials != null) {
             _client = await _googleSignInAllPlatforms.authenticatedClient;
@@ -151,13 +151,17 @@ class GoogleSignInHelper {
           } else {
             debugPrint('No credentials returned from signInAllPlatforms.');
           }
-        } else {
-          if (_googleSignIn.currentUser == null) {
-            await _googleSignIn.signInSilently();
-            debugPrint('Called signInSilently for GoogleSignIn.');
+        } else { // For other platforms (Android, iOS, Web) if silent sign-in fails
+          // Prompt for interactive sign-in
+          currentUser = await _googleSignIn.signIn();
+          debugPrint('Called interactive signIn for GoogleSignIn. Current user: $currentUser');
+
+          if (currentUser != null) {
+            _client = await _googleSignIn.authenticatedClient();
+            debugPrint('Initialized _client from interactive sign-in: $_client');
+          } else {
+            debugPrint('GoogleSignIn: No user signed in after silent and interactive attempts.');
           }
-          _client = await _googleSignIn.authenticatedClient();
-          debugPrint('Initialized _client for GoogleSignIn: $_client');
         }
       } else {
         debugPrint('_client already initialized: $_client');
@@ -278,32 +282,26 @@ class GoogleSignInHelper {
   /// Throws an exception if an error occurs during the refresh process.
   Future<String?> refreshAccessToken() async {
     try {
-      /// Attempts to retrieve the current user's Google access token.
-      ///
-      /// If no user is currently signed in, logs a message and returns `null`.
-      /// If the access token is `null`, attempts to silently re-sign in and refresh the token.
-      /// Logs the refreshed access token if successful, and returns it.
-      /// If the access token is still valid, logs and returns it.
-      /// In case of any errors during the process, logs the error and returns `null`.
-      final account = _googleSignIn.currentUser;
+      debugPrint('refreshAccessToken: Attempting to refresh token.');
+      GoogleSignInAccount? account = _googleSignIn.currentUser; // Use a local variable
       if (account == null) {
-        debugPrint('No user is currently signed in.');
-        return null;
+        debugPrint('refreshAccessToken: No user is currently signed in. Attempting silent sign-in.');
+        account = await _googleSignIn.signInSilently(); // Try to sign in silently
+        if (account == null) {
+          debugPrint('refreshAccessToken: Silent sign-in failed. Cannot refresh token.');
+          return null;
+        }
       }
 
-      final auth = await account.authentication;
-      if (auth.accessToken == null) {
-        debugPrint('Access token is null, attempting to refresh.');
-        await _googleSignIn.signInSilently();
-        final refreshedAuth = await account.authentication;
-        debugPrint('Access token refreshed: ${refreshedAuth.accessToken}');
-        return refreshedAuth.accessToken;
-      }
-
-      debugPrint('Access token is still valid: ${auth.accessToken}');
-      return auth.accessToken;
+      final auth = await account.authentication; // Use the local 'account' variable
+      debugPrint('refreshAccessToken: Current access token: ${auth.accessToken}');
+      // The authenticatedClient() extension method handles refreshing if needed
+      // We just need to ensure _googleSignIn.currentUser is not null
+      final refreshedAuth = await account.authentication; // Use the local 'account' variable
+      debugPrint('refreshAccessToken: Refreshed access token: ${refreshedAuth.accessToken}');
+      return refreshedAuth.accessToken;
     } catch (error) {
-      debugPrint('Error refreshing access token: $error');
+      debugPrint('refreshAccessToken: Error refreshing access token: $error');
       return null;
     }
   }

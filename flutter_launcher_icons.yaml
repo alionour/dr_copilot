@@ -1,12 +1,9 @@
-dev_dependencies:
-  flutter_launcher_icons: ^0.13.1
-
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
+  remove_alpha_ios: true
   windows:
     generate: true
-    image_path: "assets/png/app_logo/drcopilot_logo_no_text.png"
   image_path: "assets/png/app_logo/drcopilot_logo_no_text.png"
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/png/app_logo/drcopilot_logo_no_text.png"

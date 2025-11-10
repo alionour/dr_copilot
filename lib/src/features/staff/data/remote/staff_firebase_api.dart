@@ -25,9 +25,12 @@ class StaffFirebaseApi {
     }
   }
 
-  Future<List<StaffModel>> getAllStaff() async {
+  Future<List<StaffModel>> getAllStaff({required String clinicId}) async {
     try {
-      final snapshot = await _firestore.collection('staff').get();
+      final snapshot = await _firestore
+          .collection('staff')
+          .where('clinicId', isEqualTo: clinicId)
+          .get();
       return snapshot.docs.map((doc) => StaffModel.fromDocument(doc)).toList();
     } catch (e) {
       throw ServerException(e.toString(), 500);

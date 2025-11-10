@@ -33,11 +33,11 @@ class StaffBloc extends Bloc<StaffEvent, StaffState> {
 
   void _onGetStaff(GetStaff event, Emitter<StaffState> emit) async {
     emit(StaffLoading(state.staff));
-    final failureOrStaff = await _staffUseCases.getAllStaff();
+    final failureOrStaff = await _staffUseCases.getAllStaff(clinicId: event.clinicId);
     failureOrStaff.fold(
       (failure) => emit(StaffError(state.staff, message: _mapFailureToMessage(failure))),
       (staff) {
-        print('StaffBloc _onGetStaff - fetched staff: $staff');
+
         emit(StaffLoaded(staff));
       },
     );

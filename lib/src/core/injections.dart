@@ -1,8 +1,11 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/evaluations_injections.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/sessions_injections.dart';
 import 'package:dr_copilot/src/features/auth/auth_injections.dart';
+import 'package:dr_copilot/src/core/services/services_injections.dart';
 import 'package:dr_copilot/src/features/calendar/calendar_injections.dart';
 import 'package:dr_copilot/src/features/copilot_chat/copilot_injections.dart';
+import 'package:dr_copilot/src/features/clinical_reports/clinical_reports_injections.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/chatgpt_project_injections.dart';
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
 import 'package:dr_copilot/src/features/live_voice_assistant/live_voice_assistant_injections.dart';
 import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
@@ -32,6 +35,7 @@ final sl = GetIt.instance;
 Future<void> initInjections() async {
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  initServicesInjections();
 
   // Features (order matters due to dependencies)
   /// Initializes the dependency injections related to patients.
@@ -111,4 +115,6 @@ Future<void> initInjections() async {
   /// calendar functionality, ensuring they are available throughout the application.
   /// Call this during the application's initialization phase.
   initCalendarInjections();
+  initClinicalReportsInjections();
+  initChatGptProjectInjections();
 }

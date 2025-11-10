@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
+import 'package:dr_copilot/src/features/navigation_side/domain/entities/destination.dart';
 
 part 'navigation_event.dart';
 part 'navigation_state.dart';
@@ -58,6 +59,12 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
         break;
       case Destination.financials:
         emit(state.copyWith(destination: Destination.financials));
+        break;
+      case Destination.clinicalReports:
+        emit(state.copyWith(destination: Destination.clinicalReports));
+        break;
+      case Destination.chatGptProject:
+        emit(state.copyWith(destination: Destination.chatGptProject));
         break;
     }
   }
