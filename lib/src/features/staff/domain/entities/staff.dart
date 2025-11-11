@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 
 class Staff extends Equatable {
@@ -45,5 +44,6 @@ class Staff extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, email, phoneNumber, role, clinicId, createdAt, updatedAt];
+  List<Object?> get props =>
+      [id, name, email, phoneNumber, role, clinicId, createdAt, updatedAt];
 }

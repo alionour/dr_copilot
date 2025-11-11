@@ -17,16 +17,11 @@ enum AssistantActionType {
 }
 
 /// Enum for action execution status
-enum ActionExecutionStatus {
-  pending,
-  inProgress,
-  completed,
-  failed,
-  cancelled
-}
+enum ActionExecutionStatus { pending, inProgress, completed, failed, cancelled }
 
 /// Converter for AssistantActionType enum
-class AssistantActionTypeConverter implements JsonConverter<AssistantActionType, String> {
+class AssistantActionTypeConverter
+    implements JsonConverter<AssistantActionType, String> {
   const AssistantActionTypeConverter();
 
   @override
@@ -44,7 +39,8 @@ class AssistantActionTypeConverter implements JsonConverter<AssistantActionType,
 }
 
 /// Converter for ActionExecutionStatus enum
-class ActionExecutionStatusConverter implements JsonConverter<ActionExecutionStatus, String> {
+class ActionExecutionStatusConverter
+    implements JsonConverter<ActionExecutionStatus, String> {
   const ActionExecutionStatusConverter();
 
   @override
@@ -66,13 +62,13 @@ class ActionExecutionStatusConverter implements JsonConverter<ActionExecutionSta
 class AssistantActionModel {
   final String id;
   final String sessionId;
-  
+
   @AssistantActionTypeConverter()
   final AssistantActionType actionType;
-  
+
   @ActionExecutionStatusConverter()
   final ActionExecutionStatus status;
-  
+
   final String description;
   final Map<String, dynamic> parameters;
   final Map<String, dynamic>? result;
@@ -168,7 +164,8 @@ class AssistantActionModel {
       sessionId: sessionId,
       actionType: AssistantActionType.addSession,
       status: ActionExecutionStatus.pending,
-      description: 'Schedule session for: ${sessionData['patientName'] ?? 'Unknown patient'}',
+      description:
+          'Schedule session for: ${sessionData['patientName'] ?? 'Unknown patient'}',
       parameters: sessionData,
       createdAt: DateTime.now(),
       requiresConfirmation: requiresConfirmation,
@@ -188,7 +185,8 @@ class AssistantActionModel {
       sessionId: sessionId,
       actionType: AssistantActionType.addEvaluation,
       status: ActionExecutionStatus.pending,
-      description: 'Schedule evaluation for: ${evaluationData['patientName'] ?? 'Unknown patient'}',
+      description:
+          'Schedule evaluation for: ${evaluationData['patientName'] ?? 'Unknown patient'}',
       parameters: evaluationData,
       createdAt: DateTime.now(),
       requiresConfirmation: requiresConfirmation,
@@ -251,8 +249,8 @@ class AssistantActionModel {
   }
 
   /// Check if action can be executed
-  bool get canExecute => 
-      status == ActionExecutionStatus.pending && 
+  bool get canExecute =>
+      status == ActionExecutionStatus.pending &&
       (!requiresConfirmation || isConfirmed);
 
   /// Check if action is completed

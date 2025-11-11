@@ -22,7 +22,8 @@ enum Destination {
   liveAssistant(
       NavItemModel('liveAssistant', Icons.mic), 'Live Voice Assistant'),
   patients(NavItemModel('patients', Icons.people), 'Manage your patients'),
-  doctors(NavItemModel('doctors', Icons.person_2_outlined), 'Manage your doctors'),
+  doctors(
+      NavItemModel('doctors', Icons.person_2_outlined), 'Manage your doctors'),
   staff(NavItemModel('staff', Icons.people_outline), 'Manage your staff'),
   sessions(
       NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),
@@ -35,7 +36,9 @@ enum Destination {
   clinicalReports(NavItemModel('clinical_reports', Icons.assignment_outlined),
       'Manage your clinical reports'),
   chatGptProject(NavItemModel('chatGptProject', Icons.hub_outlined),
-      'Manage your ChatGPT projects');
+      'Manage your ChatGPT projects'),
+  privacyPolicy(NavItemModel('privacyPolicy', Icons.privacy_tip_outlined),
+      'View our privacy policy');
 
   final NavItemModel model;
   final String message; // Tooltip or explanation for the destination

@@ -4,7 +4,8 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/e
 import 'package:http/http.dart' as http;
 
 class EvaluationApiImpl {
-  static const String baseUrl = 'https://api-7hdpiv4e4q-uc.a.run.app/evaluations';
+  static const String baseUrl =
+      'https://api-7hdpiv4e4q-uc.a.run.app/evaluations';
 
   Future<void> addEvaluation(EvaluationModel evaluation) async {
     final response = await http.post(

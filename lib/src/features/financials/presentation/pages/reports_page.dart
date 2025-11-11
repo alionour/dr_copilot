@@ -5,7 +5,6 @@ import '../bloc/financials_bloc.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
-  
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +90,9 @@ class ReportsPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withValues(alpha: (0.1 * 255).toDouble(),),
+                          color: Colors.green.withValues(
+                            alpha: (0.1 * 255).toDouble(),
+                          ),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -121,8 +122,8 @@ class ReportsPage extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(16),
                                         boxShadow: [
                                           BoxShadow(
-                                            color:
-                                                Colors.teal.withValues(alpha: (0.08 * 255).toDouble()),
+                                            color: Colors.teal.withValues(
+                                                alpha: (0.08 * 255).toDouble()),
                                             blurRadius: 8,
                                             offset: const Offset(0, 2),
                                           ),
@@ -323,7 +324,7 @@ class ReportsPage extends StatelessWidget {
                 TableRow(
                   decoration: BoxDecoration(color: totalRowColor),
                   children: [
-                     Padding(
+                    Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Text('total_label'.tr(),
                           style: TextStyle(

@@ -29,7 +29,9 @@ class ChatGptProjectPage extends StatelessWidget {
               onPressed: () {
                 final clinicName = clinicNameController.text;
                 if (clinicName.isNotEmpty) {
-                  context.read<ChatGptProjectBloc>().add(GetProject(name: clinicName));
+                  context
+                      .read<ChatGptProjectBloc>()
+                      .add(GetProject(name: clinicName));
                 }
               },
               child: const Text('Get or Create Project'),

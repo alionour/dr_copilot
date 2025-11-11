@@ -20,7 +20,8 @@ void main() {
       referenceId: 'ref-1',
     );
 
-    test('should create a TransactionModel instance with correct properties', () {
+    test('should create a TransactionModel instance with correct properties',
+        () {
       expect(transactionModel.id, '1');
       expect(transactionModel.amount, 100.0);
       expect(transactionModel.description, 'Test Transaction');
@@ -85,18 +86,21 @@ void main() {
     });
 
     test('copyWith should create a new instance with updated values', () {
-      final updatedModel = transactionModel.copyWith(amount: 150.0, status: TransactionStatus.pending);
+      final updatedModel = transactionModel.copyWith(
+          amount: 150.0, status: TransactionStatus.pending);
 
       expect(updatedModel.id, transactionModel.id);
       expect(updatedModel.amount, 150.0);
       expect(updatedModel.description, transactionModel.description);
       expect(updatedModel.transactionDate, transactionModel.transactionDate);
-      expect(updatedModel.transactionSource, transactionModel.transactionSource);
+      expect(
+          updatedModel.transactionSource, transactionModel.transactionSource);
       expect(updatedModel.direction, transactionModel.direction);
       expect(updatedModel.createdAt, transactionModel.createdAt);
       expect(updatedModel.ownerId, transactionModel.ownerId);
       expect(updatedModel.clinicId, transactionModel.clinicId);
-      expect(updatedModel.currencyProfileId, transactionModel.currencyProfileId);
+      expect(
+          updatedModel.currencyProfileId, transactionModel.currencyProfileId);
       expect(updatedModel.status, TransactionStatus.pending);
       expect(updatedModel.referenceId, transactionModel.referenceId);
     });
@@ -104,27 +108,37 @@ void main() {
 
   group('Transaction Enums and Converters', () {
     test('TransactionSource.fromString should work correctly', () {
-      expect(TransactionSource.fromString('invoice'), TransactionSource.invoice);
+      expect(
+          TransactionSource.fromString('invoice'), TransactionSource.invoice);
       expect(TransactionSource.fromString('bill'), TransactionSource.bill);
-      expect(TransactionSource.fromString('invalid'), TransactionSource.invoice);
+      expect(
+          TransactionSource.fromString('invalid'), TransactionSource.invoice);
     });
 
     test('TransactionDirection.fromString should work correctly', () {
-      expect(TransactionDirection.fromString('in'), TransactionDirection.inwards);
-      expect(TransactionDirection.fromString('out'), TransactionDirection.outwards);
-      expect(TransactionDirection.fromString('invalid'), TransactionDirection.inwards);
+      expect(
+          TransactionDirection.fromString('in'), TransactionDirection.inwards);
+      expect(TransactionDirection.fromString('out'),
+          TransactionDirection.outwards);
+      expect(TransactionDirection.fromString('invalid'),
+          TransactionDirection.inwards);
     });
 
     test('TransactionDirection.fromSource should work correctly', () {
-      expect(TransactionDirection.fromSource(TransactionSource.invoice), TransactionDirection.inwards);
-      expect(TransactionDirection.fromSource(TransactionSource.bill), TransactionDirection.outwards);
+      expect(TransactionDirection.fromSource(TransactionSource.invoice),
+          TransactionDirection.inwards);
+      expect(TransactionDirection.fromSource(TransactionSource.bill),
+          TransactionDirection.outwards);
     });
 
     test('TransactionStatus.fromString should work correctly', () {
-      expect(TransactionStatus.fromString('Pending'), TransactionStatus.pending);
-      expect(TransactionStatus.fromString('Completed'), TransactionStatus.completed);
+      expect(
+          TransactionStatus.fromString('Pending'), TransactionStatus.pending);
+      expect(TransactionStatus.fromString('Completed'),
+          TransactionStatus.completed);
       expect(TransactionStatus.fromString('Failed'), TransactionStatus.failed);
-      expect(TransactionStatus.fromString('invalid'), TransactionStatus.pending);
+      expect(
+          TransactionStatus.fromString('invalid'), TransactionStatus.pending);
     });
 
     test('TransactionSourceConverter should work correctly', () {

@@ -19,7 +19,8 @@ void main() {
       await EasyLocalization.ensureInitialized();
     });
 
-    testWidgets('renders correctly with initial page selected', (widgetTester) async {
+    testWidgets('renders correctly with initial page selected',
+        (widgetTester) async {
       await widgetTester.pumpWidget(createWidgetUnderTest());
 
       expect(find.byType(FinancialsPage), findsOneWidget);
@@ -34,7 +35,8 @@ void main() {
       expect(find.text('Transactions'), findsOneWidget);
     });
 
-    testWidgets('tapping navigation items changes the selected page', (widgetTester) async {
+    testWidgets('tapping navigation items changes the selected page',
+        (widgetTester) async {
       await widgetTester.pumpWidget(createWidgetUnderTest());
 
       // Tap on the 'Transactions' navigation item
@@ -47,14 +49,16 @@ void main() {
       // Or we can check if the content of the page is displayed.
       // For now, we will just verify the navigation bar behavior.
 
-      final NavigationBar navigationBar = widgetTester.widget(find.byType(NavigationBar));
+      final NavigationBar navigationBar =
+          widgetTester.widget(find.byType(NavigationBar));
       expect(navigationBar.selectedIndex, 1);
 
       // Tap on the 'Charts' navigation item
       await widgetTester.tap(find.text('Charts'));
       await widgetTester.pumpAndSettle();
 
-      final NavigationBar navigationBar2 = widgetTester.widget(find.byType(NavigationBar));
+      final NavigationBar navigationBar2 =
+          widgetTester.widget(find.byType(NavigationBar));
       expect(navigationBar2.selectedIndex, 2);
     });
   });

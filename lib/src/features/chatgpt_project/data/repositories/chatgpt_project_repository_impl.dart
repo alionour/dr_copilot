@@ -6,7 +6,8 @@ class ChatGptProjectRepositoryImpl implements ChatGptProjectRepository {
   final ChatGptProjectRemoteDataSource remoteDataSource;
   final String apiKey;
 
-  ChatGptProjectRepositoryImpl({required this.remoteDataSource, required this.apiKey});
+  ChatGptProjectRepositoryImpl(
+      {required this.remoteDataSource, required this.apiKey});
 
   @override
   Future<ChatGptProjectModel?> getProjectByName(String name) {

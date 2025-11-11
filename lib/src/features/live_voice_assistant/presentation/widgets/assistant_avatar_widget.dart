@@ -17,7 +17,7 @@ class AssistantAvatarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final avatarColor = color ?? Theme.of(context).colorScheme.primary;
-    
+
     return AvatarGlow(
       animate: isActive,
       glowColor: avatarColor,

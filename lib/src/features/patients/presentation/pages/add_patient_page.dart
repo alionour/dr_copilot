@@ -66,7 +66,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-          context.go('/home');
+            context.go('/home');
           },
         ),
       ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
 import 'package:dr_copilot/src/features/patients/domain/services/patient_service.dart';
@@ -7,11 +6,13 @@ import 'package:dr_copilot/src/features/clinical_reports/domain/entities/clinica
 import 'clinical_reports_list_event.dart';
 import 'clinical_reports_list_state.dart';
 
-class ClinicalReportsListBloc extends Bloc<ClinicalReportsListEvent, ClinicalReportsListState> {
+class ClinicalReportsListBloc
+    extends Bloc<ClinicalReportsListEvent, ClinicalReportsListState> {
   final ClinicalReportService _clinicalReportService;
   final PatientService _patientService;
 
-  ClinicalReportsListBloc(this._clinicalReportService, this._patientService) : super(ClinicalReportsListInitial()) {
+  ClinicalReportsListBloc(this._clinicalReportService, this._patientService)
+      : super(ClinicalReportsListInitial()) {
     on<LoadClinicalReportsList>((event, emit) async {
       emit(ClinicalReportsListLoading());
       try {
@@ -24,7 +25,10 @@ class ClinicalReportsListBloc extends Bloc<ClinicalReportsListEvent, ClinicalRep
             patients[patientId] = patient;
           }
         }
-        emit(ClinicalReportsListLoaded(reports: reports, patients: patients.cast(), isFromDrive: false)); // Set the flag
+        emit(ClinicalReportsListLoaded(
+            reports: reports,
+            patients: patients.cast(),
+            isFromDrive: false)); // Set the flag
       } catch (e) {
         emit(ClinicalReportsListError(e.toString()));
       }
@@ -38,7 +42,9 @@ class ClinicalReportsListBloc extends Bloc<ClinicalReportsListEvent, ClinicalRep
           return ClinicalReport(
             id: file.id!,
             title: file.name ?? 'Untitled Report',
-            description: file.description ?? file.webViewLink ?? 'No description available.',
+            description: file.description ??
+                file.webViewLink ??
+                'No description available.',
             date: file.modifiedTime ?? DateTime.now(),
             patientId: 'google_drive_patient', // Placeholder patient ID
             documentUrls: file.webViewLink != null ? [file.webViewLink!] : [],

@@ -1,20 +1,20 @@
 part of 'calendar_bloc.dart';
 
 /// Base class for all calendar states, extending Equatable to allow for easy comparison.
-/// 
+///
 /// This class is sealed, meaning it cannot be extended outside of this file.
 sealed class CalendarState extends Equatable {
   /// A list of [Event] objects representing the events in the calendar.
-  /// 
+  ///
   /// This list is immutable and initialized as an empty constant list.
-  final List<Event> events ;
+  final List<Event> events;
 
   const CalendarState(this.events);
 
   /// Provides a list of properties for comparison.
-  /// 
+  ///
   /// This is used by Equatable to determine if two instances are equal.
-  /// 
+  ///
   /// @return A list of properties to compare.
   @override
   List<Object> get props => [events];
@@ -23,8 +23,6 @@ sealed class CalendarState extends Equatable {
 /// Initial state of the calendar, before any events have been loaded.
 final class CalendarInitial extends CalendarState {
   const CalendarInitial() : super(const []);
-
-  
 }
 
 final class CalendarAuthenticationRequired extends CalendarState {
@@ -42,7 +40,7 @@ final class CalendarsLoading extends CalendarState {
 }
 
 /// State when calendar events have been successfully loaded.
-/// 
+///
 /// Contains a list of loaded events and their corresponding calendar colors.
 final class CalendarEventsLoaded extends CalendarState {
   final Map<String, Color> calendarColors;
@@ -50,29 +48,29 @@ final class CalendarEventsLoaded extends CalendarState {
   const CalendarEventsLoaded(super.events, this.calendarColors);
 
   /// Provides a list of properties for comparison.
-  /// 
+  ///
   /// This is used by Equatable to determine if two instances are equal.
-  /// 
+  ///
   /// @return A list of properties to compare.
   @override
   List<Object> get props => [events, calendarColors];
 }
 
 /// State when the list of calendars has been successfully loaded.
-/// 
+///
 /// Contains a list of loaded calendar list entries.
 final class CalendarsLoaded extends CalendarState {
   final List<CalendarListEntry> calendars;
 
   /// Constructor for CalendarsLoaded state.
-  /// 
+  ///
   /// @param calendars The list of loaded calendar list entries.
   const CalendarsLoaded(this.calendars) : super(const []);
 
   /// Provides a list of properties for comparison.
-  /// 
+  ///
   /// This is used by Equatable to determine if two instances are equal.
-  /// 
+  ///
   /// @return A list of properties to compare.
   @override
   List<Object> get props => [calendars];

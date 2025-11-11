@@ -22,10 +22,13 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess = await _doctorsUseCase.addDoctor(event.doctor);
     failureOrSuccess.fold(
-      (failure) => DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) =>
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
       (_) {
-        final updatedDoctors = List<DoctorModel>.from(state.doctors)..add(event.doctor);
-        emit(DoctorsSuccess(updatedDoctors, message: 'doctorAddedSuccessfully'.tr()));
+        final updatedDoctors = List<DoctorModel>.from(state.doctors)
+          ..add(event.doctor);
+        emit(DoctorsSuccess(updatedDoctors,
+            message: 'doctorAddedSuccessfully'.tr()));
         emit(DoctorsLoaded(updatedDoctors));
       },
     );
@@ -33,23 +36,28 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
 
   void _onGetDoctors(GetDoctors event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
-    final failureOrDoctors = await _doctorsUseCase.getDoctors(clinicId: event.clinicId);
+    final failureOrDoctors =
+        await _doctorsUseCase.getDoctors(clinicId: event.clinicId);
     failureOrDoctors.fold(
-      (failure) => DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) =>
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
       (doctors) => emit(DoctorsLoaded(doctors)),
     );
   }
 
   void _onUpdateDoctor(UpdateDoctor event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
-    final failureOrSuccess = await _doctorsUseCase.updateDoctor(event.doctorId, event.doctor);
+    final failureOrSuccess =
+        await _doctorsUseCase.updateDoctor(event.doctorId, event.doctor);
     failureOrSuccess.fold(
-      (failure) => DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) =>
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
       (_) {
         final updatedDoctors = state.doctors.map((doctor) {
           return doctor.id == event.doctorId ? event.doctor : doctor;
         }).toList();
-        emit(DoctorsSuccess(updatedDoctors, message: 'doctorUpdatedSuccessfully'.tr()));
+        emit(DoctorsSuccess(updatedDoctors,
+            message: 'doctorUpdatedSuccessfully'.tr()));
         emit(DoctorsLoaded(updatedDoctors));
       },
     );
@@ -59,10 +67,14 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess = await _doctorsUseCase.deleteDoctor(event.doctorId);
     failureOrSuccess.fold(
-      (failure) => DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) =>
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
       (_) {
-        final updatedDoctors = state.doctors.where((doctor) => doctor.id != event.doctorId).toList();
-        emit(DoctorsSuccess(updatedDoctors, message: 'doctorDeletedSuccessfully'.tr()));
+        final updatedDoctors = state.doctors
+            .where((doctor) => doctor.id != event.doctorId)
+            .toList();
+        emit(DoctorsSuccess(updatedDoctors,
+            message: 'doctorDeletedSuccessfully'.tr()));
         emit(DoctorsLoaded(updatedDoctors));
       },
     );

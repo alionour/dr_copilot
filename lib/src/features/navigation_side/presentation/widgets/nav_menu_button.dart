@@ -25,9 +25,6 @@ class NavMenuButton extends StatelessWidget {
   }
 }
 
-
-
-
 /// An [InheritedWidget] that provides access to the navigation menu button state
 /// and functionality to its descendants in the widget tree.
 ///

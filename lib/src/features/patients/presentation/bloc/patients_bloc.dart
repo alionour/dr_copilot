@@ -127,7 +127,8 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onLoadMorePatients(
       LoadMorePatients event, Emitter<PatientsState> emit) async {
-        debugPrint('LoadMorePatients event triggered with lastDocumentId: ${event.lastDocumentId} and limit: ${event.limit}');
+    debugPrint(
+        'LoadMorePatients event triggered with lastDocumentId: ${event.lastDocumentId} and limit: ${event.limit}');
     if (state is PatientsLoaded) {
       final currentState = state as PatientsLoaded;
       if (currentState.isLoadingMore) return;
@@ -170,15 +171,17 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     );
     result.fold(
       (failure) {
-      debugPrint('GetPatientsByDate failed: ${_mapFailureToMessage(failure)}');
-      emit(PatientsError(state.patients, message: _mapFailureToMessage(failure)));
+        debugPrint(
+            'GetPatientsByDate failed: ${_mapFailureToMessage(failure)}');
+        emit(PatientsError(state.patients,
+            message: _mapFailureToMessage(failure)));
       },
       (patients) {
-      debugPrint('Fetched ${patients.length} patients for date ${event.date}');
-      emit(PatientsLoaded(patients));
+        debugPrint(
+            'Fetched ${patients.length} patients for date ${event.date}');
+        emit(PatientsLoaded(patients));
       },
     );
-    
   }
 
   Future<void> _onGetPatientsCount(

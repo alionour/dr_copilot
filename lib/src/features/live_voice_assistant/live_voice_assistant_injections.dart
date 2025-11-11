@@ -54,7 +54,8 @@ void initLiveVoiceAssistantInjections() {
 
   // Services
   sl.registerLazySingleton<AbstractSpeechRecognitionService>(
-    () => SpeechRecognitionService(deepgramApiKey: const String.fromEnvironment('DEEPGRAM_KEY')),
+    () => SpeechRecognitionService(
+        deepgramApiKey: const String.fromEnvironment('DEEPGRAM_KEY')),
   );
 
   sl.registerLazySingleton<AbstractTextToSpeechService>(

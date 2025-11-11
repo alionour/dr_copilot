@@ -37,7 +37,8 @@ class ClinicalReportsListPage extends StatelessWidget {
             create: (context) => getIt<ClinicalReportsListBloc>(),
           ),
           BlocProvider(
-            create: (context) => getIt<GoogleDriveBloc>(param1: context.read<OwnerNotifier>()),
+            create: (context) =>
+                getIt<GoogleDriveBloc>(param1: context.read<OwnerNotifier>()),
           ),
         ],
         child: const _ClinicalReportsContent(),
@@ -47,10 +48,11 @@ class ClinicalReportsListPage extends StatelessWidget {
 }
 
 class _ClinicalReportsContent extends StatefulWidget {
-  const _ClinicalReportsContent({super.key});
+  const _ClinicalReportsContent();
 
   @override
-  State<_ClinicalReportsContent> createState() => _ClinicalReportsContentState();
+  State<_ClinicalReportsContent> createState() =>
+      _ClinicalReportsContentState();
 }
 
 class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
@@ -80,7 +82,9 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<GoogleDriveBloc>().add(AuthenticateGoogleDrive());
+                    context
+                        .read<GoogleDriveBloc>()
+                        .add(AuthenticateGoogleDrive());
                   },
                   child: Text('connectGoogleDrive'.tr()),
                 ),
@@ -90,7 +94,9 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
         }
         if (driveState is GoogleDriveAuthenticated) {
           // If authenticated, then load clinical reports from Google Drive files
-          context.read<ClinicalReportsListBloc>().add(LoadClinicalReportsFromDrive(driveState.files));
+          context
+              .read<ClinicalReportsListBloc>()
+              .add(LoadClinicalReportsFromDrive(driveState.files));
           return BlocBuilder<ClinicalReportsListBloc, ClinicalReportsListState>(
             builder: (context, state) {
               if (state is ClinicalReportsListLoading) {
@@ -100,8 +106,13 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                 return Center(child: Text('Error: ${state.message}'));
               }
               if (state is ClinicalReportsListLoaded) {
-                final currentDriveState = context.read<GoogleDriveBloc>().state as GoogleDriveAuthenticated;
-                final bool canGoBack = currentDriveState.folderStack.isNotEmpty || (currentDriveState.currentFolderId != null && currentDriveState.currentFolderId != currentDriveState.clinicFolderId);
+                final currentDriveState = context.read<GoogleDriveBloc>().state
+                    as GoogleDriveAuthenticated;
+                final bool canGoBack =
+                    currentDriveState.folderStack.isNotEmpty ||
+                        (currentDriveState.currentFolderId != null &&
+                            currentDriveState.currentFolderId !=
+                                currentDriveState.clinicFolderId);
 
                 return Column(
                   children: [
@@ -115,32 +126,54 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                       ),
                     Expanded(
                       child: ListView.builder(
-                        itemCount: state.isFromDrive ? state.driveFiles.length : state.reports.length,
+                        itemCount: state.isFromDrive
+                            ? state.driveFiles.length
+                            : state.reports.length,
                         itemBuilder: (context, index) {
                           if (state.isFromDrive) {
                             final file = state.driveFiles[index];
-                            final isFolder = file.mimeType == 'application/vnd.google-apps.folder';
+                            final isFolder = file.mimeType ==
+                                'application/vnd.google-apps.folder';
 
                             return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 4.0, horizontal: 8.0),
                               child: ListTile(
-                                leading: Icon(isFolder ? Icons.folder : Icons.insert_drive_file),
+                                leading: Icon(isFolder
+                                    ? Icons.folder
+                                    : Icons.insert_drive_file),
                                 title: Text(file.name ?? 'Untitled'),
-                                subtitle: Text(file.modifiedTime != null ? DateFormat.yMd().add_jm().format(file.modifiedTime!) : 'N/A'),
-                                trailing: isFolder ? const Icon(Icons.arrow_forward_ios) : null,
+                                subtitle: Text(file.modifiedTime != null
+                                    ? DateFormat.yMd()
+                                        .add_jm()
+                                        .format(file.modifiedTime!)
+                                    : 'N/A'),
+                                trailing: isFolder
+                                    ? const Icon(Icons.arrow_forward_ios)
+                                    : null,
                                 onTap: () async {
-                                  debugPrint('File tapped: ${file.name}, webViewLink: ${file.webViewLink}');
+                                  debugPrint(
+                                      'File tapped: ${file.name}, webViewLink: ${file.webViewLink}');
                                   if (isFolder) {
-                                    context.read<GoogleDriveBloc>().add(GoToFolder(file.id!, file.name ?? ''));
+                                    context.read<GoogleDriveBloc>().add(
+                                        GoToFolder(file.id!, file.name ?? ''));
                                   } else {
                                     if (file.webViewLink != null) {
-                                      debugPrint('Calling _showOpenOptionsDialog for file: ${file.name}');
-                                      _showOpenOptionsDialog(context, file.name ?? 'File', file.webViewLink!); // Show dialog
+                                      debugPrint(
+                                          'Calling _showOpenOptionsDialog for file: ${file.name}');
+                                      _showOpenOptionsDialog(
+                                          context,
+                                          file.name ?? 'File',
+                                          file.webViewLink!); // Show dialog
                                     } else {
-                                      debugPrint('webViewLink is null for file: ${file.name}');
+                                      debugPrint(
+                                          'webViewLink is null for file: ${file.name}');
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('No webViewLink available for ${file.name}')),
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'No webViewLink available for ${file.name}')),
                                       );
                                     }
                                   }
@@ -149,15 +182,19 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                             );
                           } else {
                             final reportItem = state.reports[index];
-                            final patient = state.patients[reportItem.patientId];
+                            final patient =
+                                state.patients[reportItem.patientId];
                             return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 4.0, horizontal: 8.0),
                               child: ListTile(
                                 title: Text(reportItem.title),
-                                subtitle: Text(patient?.name ?? 'Unknown Patient'),
+                                subtitle:
+                                    Text(patient?.name ?? 'Unknown Patient'),
                                 trailing: const Icon(Icons.arrow_forward_ios),
                                 onTap: () {
-                                  context.push('/clinical_report_details/${reportItem.id}');
+                                  context.push(
+                                      '/clinical_report_details/${reportItem.id}');
                                 },
                               ),
                             );
@@ -191,7 +228,8 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
               onPressed: () {
                 debugPrint('Open in App selected for $url');
                 Navigator.of(context).pop();
-                context.push('/webview?title=${Uri.encodeComponent(title)}&url=${Uri.encodeComponent(url)}');
+                context.push(
+                    '/webview?title=${Uri.encodeComponent(title)}&url=${Uri.encodeComponent(url)}');
               },
             ),
             TextButton(

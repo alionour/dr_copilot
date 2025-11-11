@@ -17,11 +17,13 @@ class ClinicalReportService {
     return _reports.firstWhereOrNull((c) => c.id == reportId);
   }
 
-  Future<List<ClinicalReport>> getClinicalReportsForPatient(String patientId) async {
+  Future<List<ClinicalReport>> getClinicalReportsForPatient(
+      String patientId) async {
     return _reports.where((c) => c.patientId == patientId).toList();
   }
 
-  Future<ClinicalReport?> updateClinicalReport(ClinicalReport updatedReport) async {
+  Future<ClinicalReport?> updateClinicalReport(
+      ClinicalReport updatedReport) async {
     final index = _reports.indexWhere((c) => c.id == updatedReport.id);
     if (index != -1) {
       _reports[index] = updatedReport;

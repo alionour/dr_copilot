@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 
 abstract class GoogleDriveEvent extends Equatable {
@@ -24,7 +23,8 @@ class SearchGoogleDrive extends GoogleDriveEvent {
   });
 
   @override
-  List<Object> get props => [query, parentFolderId ?? '', clinicFolderId ?? '', folderStack ?? []];
+  List<Object> get props =>
+      [query, parentFolderId ?? '', clinicFolderId ?? '', folderStack ?? []];
 }
 
 class GoToFolder extends GoogleDriveEvent {

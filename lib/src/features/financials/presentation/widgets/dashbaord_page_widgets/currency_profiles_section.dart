@@ -133,8 +133,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                         if (state is FinancialsSuccess) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(state.message)),
+                            SnackBar(content: Text(state.message)),
                           );
                           context
                               .read<FinancialsBloc>()
@@ -160,15 +159,13 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                 return;
                               }
                               final profile = CurrencyProfileModel(
-                                id: Uuid().v4(), // Firestore will generate
-                                currency: selectedCurrency,
-                                name: nameController.text,
-                                description: description,
-                                createdAt:
-                                    Timestamp.fromDate(DateTime.now().toUtc()),
-                                createdBy:''
-                                
-                              );
+                                  id: Uuid().v4(), // Firestore will generate
+                                  currency: selectedCurrency,
+                                  name: nameController.text,
+                                  description: description,
+                                  createdAt: Timestamp.fromDate(
+                                      DateTime.now().toUtc()),
+                                  createdBy: '');
                               context
                                   .read<FinancialsBloc>()
                                   .add(AddCurrencyProfile(profile));
@@ -285,7 +282,8 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                           ),
                         ),
                         title: Text(profile.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
                         subtitle: Text(profile.currency,
                             style: const TextStyle(color: Colors.blueGrey)),
                         onTap: () {
@@ -295,12 +293,14 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 350),
+                                constraints:
+                                    const BoxConstraints(maxWidth: 350),
                                 child: Padding(
                                   padding: const EdgeInsets.all(24.0),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -330,12 +330,12 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                                 const SizedBox(height: 4),
                                                 Row(
                                                   children: [
-                                                    
                                                     Text(profile.currency,
                                                         style: const TextStyle(
                                                             fontWeight:
                                                                 FontWeight.w500,
-                                                            color: Colors.green)),
+                                                            color:
+                                                                Colors.green)),
                                                   ],
                                                 ),
                                               ],
@@ -357,13 +357,13 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                         
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
                                                   profile.description!,
                                                   style: const TextStyle(
-                                                      fontStyle: FontStyle.italic,
+                                                      fontStyle:
+                                                          FontStyle.italic,
                                                       color: Colors.blueGrey),
                                                   maxLines: 3,
                                                   overflow:
@@ -378,12 +378,10 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                         const SizedBox(height: 16),
                                       Row(
                                         children: [
-                                          
                                           const SizedBox(width: 8),
                                           Text(
-                                            DateFormat.yMMMMd()
-                                                .add_jm()
-                                                .format(profile.createdAt
+                                            DateFormat.yMMMMd().add_jm().format(
+                                                profile.createdAt
                                                     .toDate()
                                                     .toLocal()),
                                             style: const TextStyle(
@@ -393,7 +391,6 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                         ],
                                       ),
                                       const SizedBox(height: 24),
-                                      
                                     ],
                                   ),
                                 ),

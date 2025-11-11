@@ -79,51 +79,68 @@ class AccountPage extends StatelessWidget {
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text('personalInfo'.tr(), style: Theme.of(context).textTheme.titleMedium),
+                        child: Text('personalInfo'.tr(),
+                            style: Theme.of(context).textTheme.titleMedium),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('name'.tr(), style: Theme.of(context).textTheme.bodyLarge),
+                            Text('name'.tr(),
+                                style: Theme.of(context).textTheme.bodyLarge),
                             Row(
                               children: [
                                 if (user?.displayName != null)
                                   IconButton(
                                     icon: const Icon(Icons.copy, size: 16),
                                     onPressed: () {
-                                      Clipboard.setData(ClipboardData(text: user!.displayName!));
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('copiedToClipboard'.tr())),
+                                      Clipboard.setData(ClipboardData(
+                                          text: user!.displayName!));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text('copiedToClipboard'.tr())),
                                       );
                                     },
                                   ),
-                                Text(user?.displayName ?? 'not_available'.tr(), style: Theme.of(context).textTheme.bodyMedium),
+                                Text(user?.displayName ?? 'not_available'.tr(),
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium),
                               ],
                             ),
                           ],
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('email'.tr(), style: Theme.of(context).textTheme.bodyLarge),
+                            Text('email'.tr(),
+                                style: Theme.of(context).textTheme.bodyLarge),
                             Row(
                               children: [
                                 if (user?.email != null)
                                   IconButton(
                                     icon: const Icon(Icons.copy, size: 16),
                                     onPressed: () {
-                                      Clipboard.setData(ClipboardData(text: user!.email!));
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('copiedToClipboard'.tr())),
+                                      Clipboard.setData(
+                                          ClipboardData(text: user!.email!));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text('copiedToClipboard'.tr())),
                                       );
                                     },
                                   ),
-                                Text(user?.email ?? 'not_available'.tr(), style: Theme.of(context).textTheme.bodyMedium),
+                                Text(user?.email ?? 'not_available'.tr(),
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium),
                               ],
                             ),
                           ],
@@ -131,23 +148,32 @@ class AccountPage extends StatelessWidget {
                       ),
                       if (user?.uid != null)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('userId'.tr(), style: Theme.of(context).textTheme.bodyLarge),
+                              Text('userId'.tr(),
+                                  style: Theme.of(context).textTheme.bodyLarge),
                               Row(
                                 children: [
                                   IconButton(
                                     icon: const Icon(Icons.copy, size: 16),
                                     onPressed: () {
-                                      Clipboard.setData(ClipboardData(text: user!.uid));
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('copiedToClipboard'.tr())),
+                                      Clipboard.setData(
+                                          ClipboardData(text: user!.uid));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text('copiedToClipboard'.tr())),
                                       );
                                     },
                                   ),
-                                  Text(user!.uid, style: Theme.of(context).textTheme.bodyMedium),
+                                  Text(user!.uid,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
                                 ],
                               ),
                             ],
@@ -155,44 +181,68 @@ class AccountPage extends StatelessWidget {
                         ),
                       if (phoneNumber != null && phoneNumber.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('phoneNumber'.tr(), style: Theme.of(context).textTheme.bodyLarge),
-                              Text(phoneNumber, style: Theme.of(context).textTheme.bodyMedium),
+                              Text('phoneNumber'.tr(),
+                                  style: Theme.of(context).textTheme.bodyLarge),
+                              Text(phoneNumber,
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium),
                             ],
                           ),
                         ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('emailVerified'.tr(), style: Theme.of(context).textTheme.bodyLarge),
-                            Text(user?.emailVerified == true ? 'yes'.tr() : 'no'.tr(), style: Theme.of(context).textTheme.bodyMedium),
+                            Text('emailVerified'.tr(),
+                                style: Theme.of(context).textTheme.bodyLarge),
+                            Text(
+                                user?.emailVerified == true
+                                    ? 'yes'.tr()
+                                    : 'no'.tr(),
+                                style: Theme.of(context).textTheme.bodyMedium),
                           ],
                         ),
                       ),
                       if (creationTime != null)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('accountCreationTime'.tr(), style: Theme.of(context).textTheme.bodyLarge),
-                              Text(DateFormat.yMd().add_jm().format(creationTime), style: Theme.of(context).textTheme.bodyMedium),
+                              Text('accountCreationTime'.tr(),
+                                  style: Theme.of(context).textTheme.bodyLarge),
+                              Text(
+                                  DateFormat.yMd()
+                                      .add_jm()
+                                      .format(creationTime),
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium),
                             ],
                           ),
                         ),
                       if (lastSignInTime != null)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('lastSignInTime'.tr(), style: Theme.of(context).textTheme.bodyLarge),
-                              Text(DateFormat.yMd().add_jm().format(lastSignInTime), style: Theme.of(context).textTheme.bodyMedium),
+                              Text('lastSignInTime'.tr(),
+                                  style: Theme.of(context).textTheme.bodyLarge),
+                              Text(
+                                  DateFormat.yMd()
+                                      .add_jm()
+                                      .format(lastSignInTime),
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium),
                             ],
                           ),
                         ),
@@ -210,20 +260,31 @@ class AccountPage extends StatelessWidget {
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text('clinicInfo'.tr(), style: Theme.of(context).textTheme.titleMedium),
+                        child: Text('clinicInfo'.tr(),
+                            style: Theme.of(context).textTheme.titleMedium),
                       ),
                       if (ownerNotifier.clinicId != null)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('primaryClinic'.tr(), style: Theme.of(context).textTheme.bodyLarge),
-                              Text(ownerNotifier.clinics.firstWhereOrNull((c) => c.id == ownerNotifier.clinicId)?.name ?? 'not_available'.tr(), style: Theme.of(context).textTheme.bodyMedium),
+                              Text('primaryClinic'.tr(),
+                                  style: Theme.of(context).textTheme.bodyLarge),
+                              Text(
+                                  ownerNotifier.clinics
+                                          .firstWhereOrNull((c) =>
+                                              c.id == ownerNotifier.clinicId)
+                                          ?.name ??
+                                      'not_available'.tr(),
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium),
                             ],
                           ),
                         ),
-                      if (ownerNotifier.clinics.length > 1 && ownerNotifier.clinicId != null)
+                      if (ownerNotifier.clinics.length > 1 &&
+                          ownerNotifier.clinicId != null)
                         ExpansionTile(
                           title: Text('otherClinics'.tr()),
                           children: ownerNotifier.clinics

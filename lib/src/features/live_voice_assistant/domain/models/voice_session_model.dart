@@ -16,7 +16,8 @@ enum VoiceSessionStatus {
 }
 
 /// Converter for VoiceSessionStatus enum
-class VoiceSessionStatusConverter implements JsonConverter<VoiceSessionStatus, String> {
+class VoiceSessionStatusConverter
+    implements JsonConverter<VoiceSessionStatus, String> {
   const VoiceSessionStatusConverter();
 
   @override
@@ -39,16 +40,16 @@ class VoiceSessionModel {
   final String id;
   final String userId;
   final String? title;
-  
+
   @VoiceSessionStatusConverter()
   final VoiceSessionStatus status;
-  
+
   @TimestampConverter()
   final Timestamp startTime;
-  
+
   @TimestampConverter()
   final Timestamp? endTime;
-  
+
   final List<VoiceMessageModel> messages;
   final Map<String, dynamic> context;
   final String? selectedAiModel;
@@ -116,7 +117,8 @@ class VoiceSessionModel {
     return VoiceSessionModel(
       id: id,
       userId: userId,
-      title: title ?? 'Voice Session ${DateTime.now().toString().substring(0, 16)}',
+      title: title ??
+          'Voice Session ${DateTime.now().toString().substring(0, 16)}',
       status: VoiceSessionStatus.idle,
       startTime: Timestamp.now(),
       messages: [],
@@ -129,7 +131,8 @@ class VoiceSessionModel {
 
   /// Add a message to the session
   VoiceSessionModel addMessage(VoiceMessageModel message) {
-    final updatedMessages = List<VoiceMessageModel>.from(messages)..add(message);
+    final updatedMessages = List<VoiceMessageModel>.from(messages)
+      ..add(message);
     return copyWith(
       messages: updatedMessages,
       messageCount: updatedMessages.length,
@@ -139,10 +142,10 @@ class VoiceSessionModel {
   /// Update the last message in the session
   VoiceSessionModel updateLastMessage(VoiceMessageModel message) {
     if (messages.isEmpty) return addMessage(message);
-    
+
     final updatedMessages = List<VoiceMessageModel>.from(messages);
     updatedMessages[updatedMessages.length - 1] = message;
-    
+
     return copyWith(messages: updatedMessages);
   }
 
@@ -162,53 +165,57 @@ class VoiceSessionModel {
 
   /// Update context with new data
   VoiceSessionModel updateContext(Map<String, dynamic> newContext) {
-    final updatedContext = Map<String, dynamic>.from(context)..addAll(newContext);
+    final updatedContext = Map<String, dynamic>.from(context)
+      ..addAll(newContext);
     return copyWith(context: updatedContext);
   }
 
   /// Get the last message
-  VoiceMessageModel? get lastMessage => messages.isNotEmpty ? messages.last : null;
+  VoiceMessageModel? get lastMessage =>
+      messages.isNotEmpty ? messages.last : null;
 
   /// Get user messages only
-  List<VoiceMessageModel> get userMessages => 
+  List<VoiceMessageModel> get userMessages =>
       messages.where((m) => m.isUserMessage).toList();
 
   /// Get assistant messages only
-  List<VoiceMessageModel> get assistantMessages => 
+  List<VoiceMessageModel> get assistantMessages =>
       messages.where((m) => m.isAssistantMessage).toList();
 
   /// Get action messages only
-  List<VoiceMessageModel> get actionMessages => 
+  List<VoiceMessageModel> get actionMessages =>
       messages.where((m) => m.isAction).toList();
 
   /// Check if session is currently active
   bool get isCurrentlyActive => isActive && status != VoiceSessionStatus.ended;
 
   /// Check if session is in a voice interaction state
-  bool get isInVoiceMode => 
-      status == VoiceSessionStatus.listening || 
+  bool get isInVoiceMode =>
+      status == VoiceSessionStatus.listening ||
       status == VoiceSessionStatus.speaking ||
       status == VoiceSessionStatus.processing;
 
   /// Get session duration in minutes
   double get durationInMinutes {
     final end = endTime ?? Timestamp.now();
-    final duration = end.millisecondsSinceEpoch - startTime.millisecondsSinceEpoch;
+    final duration =
+        end.millisecondsSinceEpoch - startTime.millisecondsSinceEpoch;
     return duration / (1000 * 60); // Convert to minutes
   }
 
   /// Generate a summary title based on messages
   String generateTitle() {
     if (messages.isEmpty) return 'New Voice Session';
-    
-    final firstUserMessage = userMessages.isNotEmpty ? userMessages.first.content : '';
+
+    final firstUserMessage =
+        userMessages.isNotEmpty ? userMessages.first.content : '';
     if (firstUserMessage.isNotEmpty) {
       // Take first 30 characters and add ellipsis if longer
-      return firstUserMessage.length > 30 
+      return firstUserMessage.length > 30
           ? '${firstUserMessage.substring(0, 30)}...'
           : firstUserMessage;
     }
-    
+
     return 'Voice Session ${startTime.toDate().toString().substring(0, 16)}';
   }
 }

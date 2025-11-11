@@ -139,8 +139,9 @@ class LiveAssistantSessionActive extends LiveAssistantState {
   bool get hasPendingActions => pendingActions.isNotEmpty;
 
   /// Get actions that require confirmation
-  List<AssistantActionModel> get actionsRequiringConfirmation =>
-      pendingActions.where((action) => action.requiresConfirmation && !action.isConfirmed).toList();
+  List<AssistantActionModel> get actionsRequiringConfirmation => pendingActions
+      .where((action) => action.requiresConfirmation && !action.isConfirmed)
+      .toList();
 }
 
 /// State when session history is loaded

@@ -74,7 +74,8 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
         data.remove('id');
         final docRef =
             await FirebaseFirestore.instance.collection('invoices').add(data);
-        final newInvoice = invoice.copyWith(id: docRef.id,ownerId:ownerId ,createdBy: user.uid);
+        final newInvoice = invoice.copyWith(
+            id: docRef.id, ownerId: ownerId, createdBy: user.uid);
         return Right(newInvoice);
       }
       return Left(ServerFailure('User not authenticated', 401));

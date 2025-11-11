@@ -6,10 +6,12 @@ import 'package:equatable/equatable.dart';
 part 'chatgpt_project_event.dart';
 part 'chatgpt_project_state.dart';
 
-class ChatGptProjectBloc extends Bloc<ChatGptProjectEvent, ChatGptProjectState> {
+class ChatGptProjectBloc
+    extends Bloc<ChatGptProjectEvent, ChatGptProjectState> {
   final GetOrCreateProject getOrCreateProject;
 
-  ChatGptProjectBloc({required this.getOrCreateProject}) : super(ChatGptProjectInitial()) {
+  ChatGptProjectBloc({required this.getOrCreateProject})
+      : super(ChatGptProjectInitial()) {
     on<GetProject>((event, emit) async {
       emit(ChatGptProjectLoading());
       try {

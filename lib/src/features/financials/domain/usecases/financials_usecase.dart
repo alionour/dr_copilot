@@ -76,7 +76,6 @@ class FinancialsUseCase {
     return repository.updateCurrencyProfile(profile);
   }
 
-
   Future<Either<Failure, int>> getSessionsCount() {
     return repository.getSessionsCount();
   }

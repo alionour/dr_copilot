@@ -85,7 +85,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            context.read<CalendarBloc>().add(AuthenticateCalendar());
+                            context
+                                .read<CalendarBloc>()
+                                .add(AuthenticateCalendar());
                           },
                           child: Text('connectGoogleCalendar'.tr()),
                         ),

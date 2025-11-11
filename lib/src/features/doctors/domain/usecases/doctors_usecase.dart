@@ -27,7 +27,8 @@ class DoctorsUseCase {
     }
   }
 
-  Future<Either<Failure, List<DoctorModel>>> getDoctors({String? clinicId}) async {
+  Future<Either<Failure, List<DoctorModel>>> getDoctors(
+      {String? clinicId}) async {
     try {
       final doctors = await _doctorFirebaseApi.getDoctors(clinicId: clinicId);
       return Right(doctors);
@@ -36,7 +37,8 @@ class DoctorsUseCase {
     }
   }
 
-  Future<Either<Failure, void>> updateDoctor(String doctorId, DoctorModel doctor) async {
+  Future<Either<Failure, void>> updateDoctor(
+      String doctorId, DoctorModel doctor) async {
     try {
       await _doctorFirebaseApi.updateDoctor(doctorId, doctor);
       return const Right(null);

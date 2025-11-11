@@ -1,4 +1,5 @@
-import 'package:dr_copilot/src/features/auth/auth_injections.dart' as auth_injections;
+import 'package:dr_copilot/src/features/auth/auth_injections.dart'
+    as auth_injections;
 import 'package:dr_copilot/src/features/auth/data/remote/auth_firebase_api.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
@@ -21,7 +22,8 @@ Future<void> initInjectionsForTest({required FirebaseAuth firebaseAuth}) async {
 
   // Override AuthFirebaseApi to use the mock FirebaseAuth
   sl.unregister<AuthFirebaseApi>();
-  sl.registerLazySingleton<AuthFirebaseApi>(() => AuthFirebaseApi(sl<FirebaseAuth>()));
+  sl.registerLazySingleton<AuthFirebaseApi>(
+      () => AuthFirebaseApi(sl<FirebaseAuth>()));
 }
 
 void main() {
@@ -35,7 +37,8 @@ void main() {
       await initInjectionsForTest(firebaseAuth: mockAuth);
     });
 
-    testWidgets('should sign in with google and navigate to home page', (tester) async {
+    testWidgets('should sign in with google and navigate to home page',
+        (tester) async {
       // Start the app
       app.main();
       await tester.pumpAndSettle();

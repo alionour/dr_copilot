@@ -15,14 +15,12 @@ class TransactionsInitial extends TransactionsState {
   const TransactionsInitial() : super(const []);
 }
 
-
 class TransactionsLoadingMore extends TransactionsState {
   const TransactionsLoadingMore(super.transactions);
 
   @override
   List<Object?> get props => [transactions];
 }
-
 
 /// State representing that the count of transactions has been loaded.
 class TransactionsCountLoaded extends TransactionsState {
@@ -34,9 +32,7 @@ class TransactionsCountLoaded extends TransactionsState {
 
   @override
   List<Object?> get props => [count, transactions];
-
 }
-
 
 /// State when financial transactions are successfully loaded.
 class TransactionsLoaded extends TransactionsState {
@@ -55,25 +51,22 @@ class TransactionsLoading extends TransactionsState {
   List<Object?> get props => [transactions];
 }
 
-
 /// State when a financial operation is successful.
 class TransactionsSuccess extends TransactionsState {
   final String message;
 
-  const TransactionsSuccess(super.transactions,{required this.message});
+  const TransactionsSuccess(super.transactions, {required this.message});
 
   @override
   List<Object?> get props => [message];
 }
 
-
 /// State when an error occurs in transactions operations.
 class TransactionsError extends TransactionsState {
   final String message;
 
-  const TransactionsError(super.transactions,{required this.message});
+  const TransactionsError(super.transactions, {required this.message});
 
   @override
-  List<Object?> get props => [super.transactions,message];
+  List<Object?> get props => [super.transactions, message];
 }
-

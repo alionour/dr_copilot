@@ -16,6 +16,8 @@ import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 import 'package:dr_copilot/src/features/doctors/doctors_injections.dart';
 import 'package:dr_copilot/src/features/staff/staff_injections.dart';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 // Import other feature injection files as needed
 /// Initializes dependency injection for the application using GetIt.
 ///
@@ -35,6 +37,7 @@ final sl = GetIt.instance;
 Future<void> initInjections() async {
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
   initServicesInjections();
 
   // Features (order matters due to dependencies)

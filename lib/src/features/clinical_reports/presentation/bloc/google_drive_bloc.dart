@@ -1,4 +1,3 @@
-
 import 'package:http/http.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,7 +13,8 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
   final GoogleSignInHelper _googleSignInHelper = GoogleSignInHelper();
   final OwnerNotifier _ownerNotifier;
 
-  GoogleDriveBloc(this._googleDriveService, this._ownerNotifier) : super(GoogleDriveInitial()) {
+  GoogleDriveBloc(this._googleDriveService, this._ownerNotifier)
+      : super(GoogleDriveInitial()) {
     on<AuthenticateGoogleDrive>((event, emit) async {
       debugPrint('AuthenticateGoogleDrive event received.');
       emit(GoogleDriveLoading());
@@ -32,13 +32,16 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
         } else {
           final clinicId = _ownerNotifier.clinicId;
           if (clinicId == null) {
-            emit(const GoogleDriveError('Clinic ID not found. Cannot search for clinic folder.'));
+            emit(const GoogleDriveError(
+                'Clinic ID not found. Cannot search for clinic folder.'));
             return;
           }
-          final clinic = _ownerNotifier.clinics.firstWhereOrNull((c) => c.id == clinicId);
+          final clinic =
+              _ownerNotifier.clinics.firstWhereOrNull((c) => c.id == clinicId);
           final clinicName = clinic?.name;
           if (clinicName == null) {
-            emit(const GoogleDriveError('Clinic name not found for the current clinic ID. Cannot search for clinic folder.'));
+            emit(const GoogleDriveError(
+                'Clinic name not found for the current clinic ID. Cannot search for clinic folder.'));
             return;
           }
 
@@ -52,7 +55,10 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
             clinicFolderId = clinicFolders.first.id;
           }
 
-          add(SearchGoogleDrive(query: '', parentFolderId: clinicFolderId, clinicFolderId: clinicFolderId));
+          add(SearchGoogleDrive(
+              query: '',
+              parentFolderId: clinicFolderId,
+              clinicFolderId: clinicFolderId));
         }
       } catch (e) {
         debugPrint('Error during AuthenticateGoogleDrive: $e');
@@ -61,7 +67,8 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
     });
 
     on<SearchGoogleDrive>((event, emit) async {
-      debugPrint('SearchGoogleDrive event received with query: ${event.query}, parentFolderId: ${event.parentFolderId}');
+      debugPrint(
+          'SearchGoogleDrive event received with query: ${event.query}, parentFolderId: ${event.parentFolderId}');
       emit(GoogleDriveLoading());
       try {
         final files = await _googleDriveService.searchFiles(
@@ -84,7 +91,8 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
     on<GoToFolder>((event, emit) async {
       if (state is GoogleDriveAuthenticated) {
         final currentState = state as GoogleDriveAuthenticated;
-        final newFolderStack = List<String>.from(currentState.folderStack)..add(currentState.currentFolderId ?? '');
+        final newFolderStack = List<String>.from(currentState.folderStack)
+          ..add(currentState.currentFolderId ?? '');
         add(SearchGoogleDrive(
           parentFolderId: event.folderId,
           query: '',

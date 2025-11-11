@@ -1,4 +1,3 @@
-
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/live_voice_assistant/domain/models/assistant_action_model.dart';

@@ -67,7 +67,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
       _fetchCurrencyProfiles(); // Fetch currency profiles on init
-      context.read<DoctorsBloc>().add(const GetDoctors()); // Fetch doctors on init
+      context
+          .read<DoctorsBloc>()
+          .add(const GetDoctors()); // Fetch doctors on init
     });
     context
         .read<PatientsBloc>()

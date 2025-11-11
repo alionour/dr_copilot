@@ -7,7 +7,10 @@ class DoctorFirebaseApi {
 
   Future<void> addDoctor(DoctorModel doctor) async {
     try {
-      await _firestore.collection('doctors').doc(doctor.id).set(doctor.toJson());
+      await _firestore
+          .collection('doctors')
+          .doc(doctor.id)
+          .set(doctor.toJson());
     } catch (e) {
       throw ServerException(e.toString(), 500);
     }
@@ -40,7 +43,10 @@ class DoctorFirebaseApi {
 
   Future<void> updateDoctor(String doctorId, DoctorModel doctor) async {
     try {
-      await _firestore.collection('doctors').doc(doctorId).update(doctor.toJson());
+      await _firestore
+          .collection('doctors')
+          .doc(doctorId)
+          .update(doctor.toJson());
     } catch (e) {
       throw ServerException(e.toString(), 500);
     }

@@ -30,7 +30,7 @@ final appProviders = [
   /// This allows descendant widgets to listen for locale changes and rebuild accordingly.
   /// The [LocaleNotifier] manages the application's locale state.
   ChangeNotifierProvider(create: (context) => LocaleNotifier()),
-  
+
   /// Provides an instance of [OwnerNotifier] to the widget tree using [ChangeNotifierProvider].
   ///
   /// This allows descendant widgets to access the global ownerId for Firestore queries.

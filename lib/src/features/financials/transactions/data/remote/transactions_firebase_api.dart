@@ -16,8 +16,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   final ownerId = OwnerNotifier().ownerId;
 
   /// Ensures all queries are scoped to the current user.
-  Query _userScopedQuery() => _transactionsCollection.where('ownerId',
-      isEqualTo:ownerId);
+  Query _userScopedQuery() =>
+      _transactionsCollection.where('ownerId', isEqualTo: ownerId);
 
   /// Checks if the user is authenticated.
   ///
@@ -80,7 +80,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-         // The rest of the logic remains the same
+        // The rest of the logic remains the same
         final docSnapshot = await _transactionsCollection.doc(id).get();
 
         if (docSnapshot.exists) {
@@ -375,8 +375,6 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
-
-
 
   /// Aggregates and returns the total expenses for a given year and month using Firestore aggregation.
   @override

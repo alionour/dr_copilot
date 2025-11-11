@@ -112,7 +112,9 @@ void main() {
       expect(updatedModel.clinicIds, userModel.clinicIds);
     });
 
-    test('copyWith should create an identical instance when no values are provided', () {
+    test(
+        'copyWith should create an identical instance when no values are provided',
+        () {
       final updatedModel = userModel.copyWith();
 
       expect(updatedModel.uid, userModel.uid);

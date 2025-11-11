@@ -48,11 +48,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
 
   DoctorModel? _selectedDoctor;
 
-
   CurrencyProfileModel? _selectedCurrencyProfile;
   List<CurrencyProfileModel> _currencyProfiles = [];
   InvoiceStatus? _selectedInvoiceStatus;
-  final TextEditingController _partialPaymentController = TextEditingController();
+  final TextEditingController _partialPaymentController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -65,7 +65,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     context
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
-    context.read<DoctorsBloc>().add(const GetDoctors()); // Fetch doctors on init
+    context
+        .read<DoctorsBloc>()
+        .add(const GetDoctors()); // Fetch doctors on init
 
     final clinics = OwnerNotifier().clinics;
     if (clinics.isNotEmpty) {

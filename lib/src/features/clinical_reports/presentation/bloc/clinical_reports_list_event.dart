@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 

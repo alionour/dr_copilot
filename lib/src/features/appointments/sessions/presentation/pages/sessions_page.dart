@@ -52,7 +52,8 @@ class _SessionsPageState extends State<SessionsPage> {
 
   void _onScroll() {
     // Only trigger when scrolling down and near the end
-    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse &&
+    if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.reverse &&
         _scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<SessionsBloc>().state;

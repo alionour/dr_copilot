@@ -29,7 +29,7 @@ import 'package:mockito/mockito.dart' as _i1;
 
 class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
   _FakeEither_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+      : super(parent, parentInvocation);
 }
 
 /// A class which mocks [AbstractSessionsRepository].
@@ -47,39 +47,36 @@ class MockAbstractSessionsRepository extends _i1.Mock
     int? limit = 20,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#getSessions, [], {
+          #lastDocumentID: lastDocumentID,
+          #limit: limit,
+        }),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>.value(
+          _FakeEither_0<_i5.Failure, List<_i6.SessionModel>>(
+            this,
             Invocation.method(#getSessions, [], {
               #lastDocumentID: lastDocumentID,
               #limit: limit,
             }),
-            returnValue: _i4.Future<
-              _i2.Either<_i5.Failure, List<_i6.SessionModel>>
-            >.value(
-              _FakeEither_0<_i5.Failure, List<_i6.SessionModel>>(
-                this,
-                Invocation.method(#getSessions, [], {
-                  #lastDocumentID: lastDocumentID,
-                  #limit: limit,
-                }),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>> addSession(
     _i6.SessionModel? sessionModel,
   ) =>
       (super.noSuchMethod(
+        Invocation.method(#addSession, [sessionModel]),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>.value(
+          _FakeEither_0<_i5.Failure, _i6.SessionModel>(
+            this,
             Invocation.method(#addSession, [sessionModel]),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>.value(
-                  _FakeEither_0<_i5.Failure, _i6.SessionModel>(
-                    this,
-                    Invocation.method(#addSession, [sessionModel]),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>> updateSession(
@@ -87,92 +84,83 @@ class MockAbstractSessionsRepository extends _i1.Mock
     _i6.SessionModel? sessionModel,
   ) =>
       (super.noSuchMethod(
+        Invocation.method(#updateSession, [id, sessionModel]),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>.value(
+          _FakeEither_0<_i5.Failure, _i6.SessionModel>(
+            this,
             Invocation.method(#updateSession, [id, sessionModel]),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>.value(
-                  _FakeEither_0<_i5.Failure, _i6.SessionModel>(
-                    this,
-                    Invocation.method(#updateSession, [id, sessionModel]),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, _i6.SessionModel>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, void>> deleteSession(String? id) =>
       (super.noSuchMethod(
+        Invocation.method(#deleteSession, [id]),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, void>>.value(
+          _FakeEither_0<_i5.Failure, void>(
+            this,
             Invocation.method(#deleteSession, [id]),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, void>>.value(
-              _FakeEither_0<_i5.Failure, void>(
-                this,
-                Invocation.method(#deleteSession, [id]),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, void>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, void>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>> searchSessions({
     String? name,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#searchSessions, [], {#name: name}),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>.value(
+          _FakeEither_0<_i5.Failure, List<_i6.SessionModel>>(
+            this,
             Invocation.method(#searchSessions, [], {#name: name}),
-            returnValue: _i4.Future<
-              _i2.Either<_i5.Failure, List<_i6.SessionModel>>
-            >.value(
-              _FakeEither_0<_i5.Failure, List<_i6.SessionModel>>(
-                this,
-                Invocation.method(#searchSessions, [], {#name: name}),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>> getSessionsByDate(
     DateTime? date,
   ) =>
       (super.noSuchMethod(
+        Invocation.method(#getSessionsByDate, [date]),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>.value(
+          _FakeEither_0<_i5.Failure, List<_i6.SessionModel>>(
+            this,
             Invocation.method(#getSessionsByDate, [date]),
-            returnValue: _i4.Future<
-              _i2.Either<_i5.Failure, List<_i6.SessionModel>>
-            >.value(
-              _FakeEither_0<_i5.Failure, List<_i6.SessionModel>>(
-                this,
-                Invocation.method(#getSessionsByDate, [date]),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, List<_i6.SessionModel>>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, _i6.SessionType>> detectSessionType(
     String? patientId,
   ) =>
       (super.noSuchMethod(
+        Invocation.method(#detectSessionType, [patientId]),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, _i6.SessionType>>.value(
+          _FakeEither_0<_i5.Failure, _i6.SessionType>(
+            this,
             Invocation.method(#detectSessionType, [patientId]),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.Failure, _i6.SessionType>>.value(
-                  _FakeEither_0<_i5.Failure, _i6.SessionType>(
-                    this,
-                    Invocation.method(#detectSessionType, [patientId]),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, _i6.SessionType>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, _i6.SessionType>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, int>> getSessionsCount() =>
       (super.noSuchMethod(
+        Invocation.method(#getSessionsCount, []),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
+          _FakeEither_0<_i5.Failure, int>(
+            this,
             Invocation.method(#getSessionsCount, []),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
-              _FakeEither_0<_i5.Failure, int>(
-                this,
-                Invocation.method(#getSessionsCount, []),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, int>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, int>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, int>> getSessionsCountForMonth({
@@ -180,36 +168,34 @@ class MockAbstractSessionsRepository extends _i1.Mock
     required int? month,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#getSessionsCountForMonth, [], {
+          #year: year,
+          #month: month,
+        }),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
+          _FakeEither_0<_i5.Failure, int>(
+            this,
             Invocation.method(#getSessionsCountForMonth, [], {
               #year: year,
               #month: month,
             }),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
-              _FakeEither_0<_i5.Failure, int>(
-                this,
-                Invocation.method(#getSessionsCountForMonth, [], {
-                  #year: year,
-                  #month: month,
-                }),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, int>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, int>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, int>> getSessionsCountForYear({
     required int? year,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#getSessionsCountForYear, [], {#year: year}),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
+          _FakeEither_0<_i5.Failure, int>(
+            this,
             Invocation.method(#getSessionsCountForYear, [], {#year: year}),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, int>>.value(
-              _FakeEither_0<_i5.Failure, int>(
-                this,
-                Invocation.method(#getSessionsCountForYear, [], {#year: year}),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, int>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, int>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, double>> sumSessionCostsForMonth({
@@ -217,47 +203,44 @@ class MockAbstractSessionsRepository extends _i1.Mock
     required int? month,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#sumSessionCostsForMonth, [], {
+          #year: year,
+          #month: month,
+        }),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, double>>.value(
+          _FakeEither_0<_i5.Failure, double>(
+            this,
             Invocation.method(#sumSessionCostsForMonth, [], {
               #year: year,
               #month: month,
             }),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, double>>.value(
-              _FakeEither_0<_i5.Failure, double>(
-                this,
-                Invocation.method(#sumSessionCostsForMonth, [], {
-                  #year: year,
-                  #month: month,
-                }),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, double>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, double>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, double>> sumSessionCostsForYear({
     required int? year,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#sumSessionCostsForYear, [], {#year: year}),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, double>>.value(
+          _FakeEither_0<_i5.Failure, double>(
+            this,
             Invocation.method(#sumSessionCostsForYear, [], {#year: year}),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, double>>.value(
-              _FakeEither_0<_i5.Failure, double>(
-                this,
-                Invocation.method(#sumSessionCostsForYear, [], {#year: year}),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, double>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, double>>);
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, double>> sumAllSessionCostsForUser() =>
       (super.noSuchMethod(
+        Invocation.method(#sumAllSessionCostsForUser, []),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, double>>.value(
+          _FakeEither_0<_i5.Failure, double>(
+            this,
             Invocation.method(#sumAllSessionCostsForUser, []),
-            returnValue: _i4.Future<_i2.Either<_i5.Failure, double>>.value(
-              _FakeEither_0<_i5.Failure, double>(
-                this,
-                Invocation.method(#sumAllSessionCostsForUser, []),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Either<_i5.Failure, double>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.Failure, double>>);
 }
