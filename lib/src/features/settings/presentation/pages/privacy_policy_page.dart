@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
@@ -12,14 +13,11 @@ class PrivacyPolicyPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'privacyPolicyDescription'.tr(),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
+        child: Markdown(
+          data: 'privacyPolicyDescription'.tr(),
+          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+            p: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
       ),
     );
