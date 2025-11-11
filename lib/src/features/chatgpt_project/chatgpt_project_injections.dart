@@ -42,7 +42,10 @@ Future<void> initChatGptProjectInjections() async {
     () => ChatGptProjectRemoteDataSourceImpl(client: sl()),
   );
   sl.registerLazySingleton<ChatGptProjectListDatasource>(
-    () => ChatGptProjectListDatasourceImpl(),
+    () => ChatGptProjectListDatasourceImpl(
+      remoteDataSource: sl(),
+      apiKey: chatGptApiKey,
+    ),
   );
 
   // External
