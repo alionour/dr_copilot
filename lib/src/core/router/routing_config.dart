@@ -14,7 +14,7 @@ import 'package:dr_copilot/src/features/chatgpt_project/presentation/pages/chatg
 import 'package:dr_copilot/src/features/settings/presentation/pages/api_key_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
-import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_policy_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
@@ -133,9 +133,9 @@ class RoutingConfig {
             builder: (context, state) => const AboutPage(),
           ),
           GoRoute(
-            path: '/privacy_policy',
-            name: 'privacy_policy',
-            builder: (context, state) => const PrivacyPolicyPage(),
+            path: '/privacy',
+            name: 'privacy',
+            builder: (context, state) => const PrivacyPage(),
           ),
         ],
       ),
