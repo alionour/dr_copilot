@@ -36,9 +36,7 @@ enum Destination {
   clinicalReports(NavItemModel('clinical_reports', Icons.assignment_outlined),
       'Manage your clinical reports'),
   chatGptProject(NavItemModel('chatGptProject', Icons.hub_outlined),
-      'Manage your ChatGPT projects'),
-  privacyPolicy(NavItemModel('privacyPolicy', Icons.privacy_tip_outlined),
-      'View our privacy policy');
+      'Manage your ChatGPT projects');
 
   final NavItemModel model;
   final String message; // Tooltip or explanation for the destination

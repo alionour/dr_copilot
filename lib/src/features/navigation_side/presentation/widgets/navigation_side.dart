@@ -86,7 +86,6 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.financials: '/financials',
     Destination.clinicalReports: '/clinical_reports',
     Destination.chatGptProject: '/chatgpt_project',
-    Destination.privacyPolicy: '/privacy_policy',
   };
 
   @override
@@ -355,7 +354,6 @@ class _NavigationSideState extends State<NavigationSide> {
                         ...[
                           Destination.notifications,
                           Destination.settings,
-                          Destination.privacyPolicy,
                           Destination.chatGptProject,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
