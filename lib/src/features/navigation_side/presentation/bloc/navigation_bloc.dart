@@ -66,9 +66,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.chatGptProject:
         emit(state.copyWith(destination: Destination.chatGptProject));
         break;
-      case Destination.privacyPolicy:
-        emit(state.copyWith(destination: Destination.privacyPolicy));
-        break;
     }
   }
 
