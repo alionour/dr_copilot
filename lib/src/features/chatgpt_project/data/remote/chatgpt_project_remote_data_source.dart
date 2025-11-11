@@ -3,7 +3,7 @@ import 'package:dr_copilot/src/features/chatgpt_project/domain/models/chatgpt_pr
 import 'package:http/http.dart' as http;
 
 abstract class ChatGptProjectRemoteDataSource {
-  Future<ChatGptProjectModel?> getProjectByName(String name, String apiKey);
+  Future<List<ChatGptProjectModel>> getProjects(String apiKey);
   Future<ChatGptProjectModel> createProject(String name, String apiKey);
 }
 
@@ -14,8 +14,7 @@ class ChatGptProjectRemoteDataSourceImpl
   ChatGptProjectRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<ChatGptProjectModel?> getProjectByName(
-      String name, String apiKey) async {
+  Future<List<ChatGptProjectModel>> getProjects(String apiKey) async {
     final url = Uri.parse('https://api.openai.com/v1/assistants');
     final response = await client.get(
       url,
@@ -28,13 +27,10 @@ class ChatGptProjectRemoteDataSourceImpl
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final assistants = data['data'] as List;
-      for (final assistant in assistants) {
-        if (assistant['name'] == name) {
-          return ChatGptProjectModel(
-              id: assistant['id'], name: assistant['name']);
-        }
-      }
-      return null;
+      return assistants
+          .map((assistant) =>
+              ChatGptProjectModel(id: assistant['id'], name: assistant['name']))
+          .toList();
     } else {
       final errorData = jsonDecode(response.body);
       throw Exception(
