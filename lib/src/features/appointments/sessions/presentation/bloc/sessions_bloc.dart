@@ -66,7 +66,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         final sessions = List<SessionModel>.from(state.sessions)
           ..add(addedSession)
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
-        
+
         emit(SessionsLoaded(sessions));
 
         // After session is added, create the invoice with referenceId = sessionId
@@ -79,12 +79,11 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           title: 'Session Invoice',
           description:
               'Invoice for session with ${addedSession.patientId} at ${addedSession.startDateTime.toDate()}',
-          currencyProfileId:
-              event.currencyProfileId, // You may want to pass this from the UI or event
+          currencyProfileId: event
+              .currencyProfileId, // You may want to pass this from the UI or event
           issuedAt: addedSession.createdAt,
-          dueDate: Timestamp.fromDate(addedSession.startDateTime
-              .toDate()
-              .add(const Duration(days: 2))),
+          dueDate: Timestamp.fromDate(
+              addedSession.startDateTime.toDate().add(const Duration(days: 2))),
           ownerId: addedSession.ownerId,
           clinicId: addedSession.clinicId,
           customerType: CustomerType.patient,
@@ -92,7 +91,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           status: event.invoiceStatus,
           referenceId: addedSession.id,
         );
-        
+
         add(AddInvoice(invoice));
       },
     );
@@ -261,7 +260,6 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       failureOrInvoice.fold(
           (failure) => emit(SessionsError(state.sessions,
               message: _mapFailureToMessage(failure))), (invoice) {
-
         bool transactionAdded = false;
         if (invoice.status == InvoiceStatus.paid) {
           final transaction = TransactionModel(
@@ -463,7 +461,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           }
 
           debugPrint('All sessions processed successfully');
-                if (!context.mounted) return;
+          if (!context.mounted) return;
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -596,7 +594,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           }
 
           debugPrint('All sessions processed successfully');
-                if (!context.mounted) return;
+          if (!context.mounted) return;
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

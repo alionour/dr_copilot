@@ -1,4 +1,3 @@
-
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/core/usecase/usecase.dart';

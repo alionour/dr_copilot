@@ -626,7 +626,8 @@ class FinancialImplApi implements AbstractFinancialApi {
       if (response.statusCode == 201) {
         return Right(InvoiceModel.fromJson(json.decode(response.body)));
       } else {
-        return Left(ServerFailure('Failed to add invoice', response.statusCode));
+        return Left(
+            ServerFailure('Failed to add invoice', response.statusCode));
       }
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));
@@ -670,7 +671,7 @@ class FinancialImplApi implements AbstractFinancialApi {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> deleteInvoice(String id) async {
     try {
@@ -688,7 +689,8 @@ class FinancialImplApi implements AbstractFinancialApi {
 
   /// Deletes an invoice by its reference ID.
   @override
-  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId) async {
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId) async {
     try {
       final response =
           await http.delete(Uri.parse('$apiUrl/invoices/$referenceId'));
@@ -702,5 +704,4 @@ class FinancialImplApi implements AbstractFinancialApi {
       return Left(ServerFailure(e.toString(), 500));
     }
   }
-
 }

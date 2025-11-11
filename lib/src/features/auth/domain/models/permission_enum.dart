@@ -141,7 +141,8 @@ enum AppPermission {
 }
 
 // --- JSON converters for enum lists ---
-class PermissionListJsonConverter implements JsonConverter<List<AppPermission>, List<String>> {
+class PermissionListJsonConverter
+    implements JsonConverter<List<AppPermission>, List<String>> {
   const PermissionListJsonConverter();
 
   @override

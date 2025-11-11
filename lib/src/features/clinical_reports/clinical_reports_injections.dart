@@ -1,5 +1,3 @@
-
-
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/google_drive_bloc.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_bloc.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/clinical_report_details_bloc.dart';
@@ -15,6 +13,6 @@ void initClinicalReportsInjections() {
   sl.registerFactory(() => AddEditClinicalReportBloc(sl(), sl()));
   sl.registerFactory(() => ClinicalReportDetailsBloc(sl(), sl(), sl()));
   sl.registerFactoryParam<GoogleDriveBloc, OwnerNotifier, dynamic>(
-    (ownerNotifier, _) => GoogleDriveBloc(sl(), ownerNotifier));
+      (ownerNotifier, _) => GoogleDriveBloc(sl(), ownerNotifier));
   sl.registerLazySingleton(() => ClinicalReportService());
 }

@@ -165,7 +165,9 @@ class _BillCard extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                context.read<FinancialsBloc>().add(PayBill(bill));
+                                context
+                                    .read<FinancialsBloc>()
+                                    .add(PayBill(bill));
                               },
                               child: Text('pay'.tr()),
                             ),

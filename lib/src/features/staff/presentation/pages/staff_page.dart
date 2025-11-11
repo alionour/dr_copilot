@@ -1,4 +1,3 @@
-
 import 'package:dr_copilot/src/features/staff/presentation/bloc/staff_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-
 
 class StaffPage extends StatefulWidget {
   const StaffPage({super.key});
@@ -71,8 +69,9 @@ class _StaffPageState extends State<StaffPage> {
                     if (state is StaffLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is StaffLoaded) {
-
-                      final filteredStaff = state.staff.where((staff) => staff.clinicId == _currentClinicId).toList();
+                      final filteredStaff = state.staff
+                          .where((staff) => staff.clinicId == _currentClinicId)
+                          .toList();
 
                       if (filteredStaff.isEmpty) {
                         return Center(

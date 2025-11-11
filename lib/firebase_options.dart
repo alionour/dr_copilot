@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'drcopilot-bfc9e.firebasestorage.app',
     measurementId: 'G-SHYPP6YSQW',
   );
-
 }

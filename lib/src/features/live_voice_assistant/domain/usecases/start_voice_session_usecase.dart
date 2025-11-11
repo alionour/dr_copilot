@@ -19,14 +19,16 @@ class StartVoiceSessionUseCase {
       // Check microphone permission first
       final permissionResult = await repository.checkMicrophonePermission();
       if (permissionResult.isLeft()) {
-        return Left(permissionResult.fold((l) => l, (r) => ServerFailure('Permission check failed', 403)));
+        return Left(permissionResult.fold(
+            (l) => l, (r) => ServerFailure('Permission check failed', 403)));
       }
 
       final hasPermission = permissionResult.fold((l) => false, (r) => r);
       if (!hasPermission) {
         final requestResult = await repository.requestMicrophonePermission();
         if (requestResult.isLeft()) {
-          return Left(requestResult.fold((l) => l, (r) => ServerFailure('Permission request failed', 403)));
+          return Left(requestResult.fold((l) => l,
+              (r) => ServerFailure('Permission request failed', 403)));
         }
 
         final granted = requestResult.fold((l) => false, (r) => r);
@@ -38,13 +40,17 @@ class StartVoiceSessionUseCase {
       // Initialize speech recognition
       final speechInitResult = await repository.initializeSpeechRecognition();
       if (speechInitResult.isLeft()) {
-        return Left(speechInitResult.fold((l) => l, (r) => ServerFailure('Speech recognition initialization failed', 500)));
+        return Left(speechInitResult.fold(
+            (l) => l,
+            (r) => ServerFailure(
+                'Speech recognition initialization failed', 500)));
       }
 
       // Initialize text-to-speech
       final ttsInitResult = await repository.initializeTextToSpeech();
       if (ttsInitResult.isLeft()) {
-        return Left(ttsInitResult.fold((l) => l, (r) => ServerFailure('Text-to-speech initialization failed', 500)));
+        return Left(ttsInitResult.fold((l) => l,
+            (r) => ServerFailure('Text-to-speech initialization failed', 500)));
       }
 
       // Create the voice session
@@ -56,7 +62,8 @@ class StartVoiceSessionUseCase {
 
       return sessionResult;
     } catch (e) {
-      return Left(ServerFailure('Failed to start voice session: ${e.toString()}', 500));
+      return Left(
+          ServerFailure('Failed to start voice session: ${e.toString()}', 500));
     }
   }
 
@@ -64,25 +71,31 @@ class StartVoiceSessionUseCase {
   Future<Either<Failure, bool>> canStartVoiceSession() async {
     try {
       // Check if speech recognition is available
-      final speechAvailableResult = await repository.isSpeechRecognitionAvailable();
+      final speechAvailableResult =
+          await repository.isSpeechRecognitionAvailable();
       if (speechAvailableResult.isLeft()) {
-        return Left(speechAvailableResult.fold((l) => l, (r) => ServerFailure('Speech check failed', 500)));
+        return Left(speechAvailableResult.fold(
+            (l) => l, (r) => ServerFailure('Speech check failed', 500)));
       }
 
-      final speechAvailable = speechAvailableResult.fold((l) => false, (r) => r);
+      final speechAvailable =
+          speechAvailableResult.fold((l) => false, (r) => r);
       if (!speechAvailable) {
-        return Left(ServerFailure('Speech recognition not available on this device', 404));
+        return Left(ServerFailure(
+            'Speech recognition not available on this device', 404));
       }
 
       // Check microphone permission
       final permissionResult = await repository.checkMicrophonePermission();
       if (permissionResult.isLeft()) {
-        return Left(permissionResult.fold((l) => l, (r) => ServerFailure('Permission check failed', 403)));
+        return Left(permissionResult.fold(
+            (l) => l, (r) => ServerFailure('Permission check failed', 403)));
       }
 
       return Right(true);
     } catch (e) {
-      return Left(ServerFailure('Failed to check voice session availability: ${e.toString()}', 500));
+      return Left(ServerFailure(
+          'Failed to check voice session availability: ${e.toString()}', 500));
     }
   }
 

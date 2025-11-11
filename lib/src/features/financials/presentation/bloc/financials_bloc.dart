@@ -674,8 +674,10 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
               status: BillStatus.unpaid,
               createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
               createdBy: scheduledBill.createdBy,
-              ownerId: OwnerNotifier().ownerId!, //will be added at repository layer
-              clinicId: OwnerNotifier().clinicId!, //will be added at repository layer
+              ownerId:
+                  OwnerNotifier().ownerId!, //will be added at repository layer
+              clinicId:
+                  OwnerNotifier().clinicId!, //will be added at repository layer
             ))
         .toList();
   }
@@ -961,7 +963,6 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       status: TransactionStatus.completed, // Mark the transaction as completed
       referenceId: bill.id, // Reference the bill ID
       clinicId: bill.clinicId, // Associate the transaction with the clinic
-      
     );
 
     // Await the transaction creation

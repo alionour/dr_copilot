@@ -65,6 +65,7 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
   @override
   Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
       {DocumentSnapshot? lastDocument, int limit = 20}) {
-    return api.getPatientsByDate(date, lastDocument: lastDocument, limit: limit);
+    return api.getPatientsByDate(date,
+        lastDocument: lastDocument, limit: limit);
   }
 }

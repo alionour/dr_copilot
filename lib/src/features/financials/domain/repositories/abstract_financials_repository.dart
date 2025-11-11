@@ -23,8 +23,9 @@ abstract class AbstractFinancialsRepository {
   Future<Either<Failure, void>> deleteInvoice(String id);
 
   /// Deletes an invoice by its reference ID.
-  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId);
-  
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId);
+
   // --- Transaction CRUD ---
   Future<Either<Failure, void>> addTransaction(
       {required TransactionModel transaction});
@@ -88,7 +89,6 @@ abstract class AbstractFinancialsRepository {
   /// Updates an existing currency profile for the current user.
   Future<Either<Failure, CurrencyProfileModel>> updateCurrencyProfile(
       CurrencyProfileModel profile);
-
 
   /// Gets the count of sessions.
   Future<Either<Failure, int>> getSessionsCount();

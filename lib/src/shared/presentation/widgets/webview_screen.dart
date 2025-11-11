@@ -93,7 +93,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
         debugPrint('Current URL: $url');
       });
       await _webviewWindowsController!.setBackgroundColor(Colors.transparent);
-      await _webviewWindowsController!.setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);
+      await _webviewWindowsController!
+          .setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);
       await _webviewWindowsController!.loadUrl(widget.url);
 
       if (!mounted) return;
@@ -133,7 +134,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
               } else {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('couldNotLaunch'.tr(args: [widget.url]))),
+                  SnackBar(
+                      content: Text('couldNotLaunch'.tr(args: [widget.url]))),
                 );
               }
             },

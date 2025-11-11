@@ -10,7 +10,11 @@ import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pa
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
-import 'package:dr_copilot/src/features/chatgpt_project/presentation/pages/chatgpt_project_page.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/presentation/pages/chatgpt_project_list_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/api_key_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_policy_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
@@ -93,7 +97,15 @@ class RoutingConfig {
           GoRoute(
             path: '/chatgpt_project',
             name: 'chatgpt_project',
-            builder: (context, state) => const ChatGptProjectPage(),
+            builder: (context, state) => const ChatGptProjectListPage(),
+          ),
+          GoRoute(
+            path: '/settings/api_key',
+            name: 'api_key_settings',
+            builder: (context, state) {
+              final from = state.uri.queryParameters['from'];
+              return ApiKeySettingsPage(from: from);
+            },
           ),
           GoRoute(
             path: '/live_assistant',
@@ -109,6 +121,21 @@ class RoutingConfig {
             path: '/staff',
             name: 'staff',
             builder: (context, state) => const StaffPage(),
+          ),
+          GoRoute(
+            path: '/help_support',
+            name: 'help_support',
+            builder: (context, state) => const HelpSupportPage(),
+          ),
+          GoRoute(
+            path: '/about',
+            name: 'about',
+            builder: (context, state) => const AboutPage(),
+          ),
+          GoRoute(
+            path: '/privacy_policy',
+            name: 'privacy_policy',
+            builder: (context, state) => const PrivacyPolicyPage(),
           ),
         ],
       ),

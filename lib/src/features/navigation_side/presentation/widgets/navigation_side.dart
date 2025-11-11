@@ -8,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/navigation_side/domain/entities/destination.dart';
-
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
@@ -53,7 +53,8 @@ class _NavigationSideState extends State<NavigationSide> {
   }
 
   void _handleRouteChange() {
-    final currentRoute = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    final currentRoute =
+        GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
     Destination? newDestination;
 
     for (var entry in destinationToRoute.entries) {
@@ -63,7 +64,8 @@ class _NavigationSideState extends State<NavigationSide> {
       }
     }
 
-    if (newDestination != null && newDestination != context.read<NavigationBloc>().state.destination) {
+    if (newDestination != null &&
+        newDestination != context.read<NavigationBloc>().state.destination) {
       context.read<NavigationBloc>().add(NavigateToEvent(newDestination));
     }
   }
@@ -84,6 +86,7 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.financials: '/financials',
     Destination.clinicalReports: '/clinical_reports',
     Destination.chatGptProject: '/chatgpt_project',
+    Destination.privacyPolicy: '/privacy_policy',
   };
 
   @override
@@ -111,6 +114,16 @@ class _NavigationSideState extends State<NavigationSide> {
                     ),
                   ),
                   // Menu icon button (only when nav is closed)
+                  if (!_showMobileNav)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: NavMenuButton(
+                        showMobileNav: _showMobileNav,
+                        tooltip: 'Open navigation',
+                        onTap: _toggleMobileNav,
+                      ),
+                    ),
 
                   // Sidebar overlay
                   AnimatedPositioned(
@@ -215,11 +228,16 @@ class _NavigationSideState extends State<NavigationSide> {
                         if (data.isOpen)
                           SideMenuItemDataTitle(
                             title: 'coreOperations'.tr(),
-                            titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 8.0),
+                            titleStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                            padding: const EdgeInsetsDirectional.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                           ),
                         ...[
                           Destination.copilot,
@@ -239,11 +257,16 @@ class _NavigationSideState extends State<NavigationSide> {
                         if (data.isOpen)
                           SideMenuItemDataTitle(
                             title: tr('management'),
-                            titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 8.0),
+                            titleStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                            padding: const EdgeInsetsDirectional.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                           ),
                         ...[
                           Destination.patients,
@@ -264,11 +287,16 @@ class _NavigationSideState extends State<NavigationSide> {
                         if (data.isOpen)
                           SideMenuItemDataTitle(
                             title: tr('appointments'),
-                            titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 8.0),
+                            titleStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                            padding: const EdgeInsetsDirectional.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                           ),
                         ...[Destination.sessions, Destination.evaluations]
                             .map((e) => SideMenuItemDataTile(
@@ -285,11 +313,16 @@ class _NavigationSideState extends State<NavigationSide> {
                         if (data.isOpen)
                           SideMenuItemDataTitle(
                             title: tr('business'),
-                            titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 8.0),
+                            titleStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                            padding: const EdgeInsetsDirectional.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                           ),
                         ...[
                           Destination.financials,
@@ -308,15 +341,21 @@ class _NavigationSideState extends State<NavigationSide> {
                         if (data.isOpen)
                           SideMenuItemDataTitle(
                             title: tr('utilities'),
-                            titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: 16.0, vertical: 8.0),
+                            titleStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                ),
+                            padding: const EdgeInsetsDirectional.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
                           ),
                         ...[
                           Destination.notifications,
                           Destination.settings,
+                          Destination.privacyPolicy,
                           Destination.chatGptProject,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
@@ -330,7 +369,8 @@ class _NavigationSideState extends State<NavigationSide> {
                                   color: const Color(0xff0055c3)),
                             )),
                       ],
-                      footer: data.isOpen                          ? BlocBuilder<NavigationBloc, NavigationState>(
+                      footer: data.isOpen
+                          ? BlocBuilder<NavigationBloc, NavigationState>(
                               builder: (context, NavigationState state) {
                               final String profileImageUrl =
                                   state.user?.photoURL ?? '';

@@ -18,7 +18,7 @@ class AuthUseCase {
   /// Creates an instance of [AuthUseCase] with the required [repository].
   ///
   /// The [repository] parameter is used to handle authentication-related operations.
-  AuthUseCase( this.repository);
+  AuthUseCase(this.repository);
 
   /// Authenticates a user with the provided [email] and [password].
   ///

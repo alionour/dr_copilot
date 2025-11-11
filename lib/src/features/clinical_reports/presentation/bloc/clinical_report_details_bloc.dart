@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:dr_copilot/src/core/services/google_drive_service.dart';
@@ -7,16 +6,20 @@ import 'package:dr_copilot/src/features/patients/domain/services/patient_service
 import 'clinical_report_details_event.dart';
 import 'clinical_report_details_state.dart';
 
-class ClinicalReportDetailsBloc extends Bloc<ClinicalReportDetailsEvent, ClinicalReportDetailsState> {
+class ClinicalReportDetailsBloc
+    extends Bloc<ClinicalReportDetailsEvent, ClinicalReportDetailsState> {
   final ClinicalReportService _clinicalReportService;
   final PatientService _patientService;
   final GoogleDriveService _googleDriveService;
 
-  ClinicalReportDetailsBloc(this._clinicalReportService, this._patientService, this._googleDriveService) : super(ClinicalReportDetailsInitial()) {
+  ClinicalReportDetailsBloc(this._clinicalReportService, this._patientService,
+      this._googleDriveService)
+      : super(ClinicalReportDetailsInitial()) {
     on<LoadClinicalReportDetails>((event, emit) async {
       emit(ClinicalReportDetailsLoading());
       try {
-        final report = await _clinicalReportService.getClinicalReport(event.reportId);
+        final report =
+            await _clinicalReportService.getClinicalReport(event.reportId);
         if (report != null) {
           final patient = await _patientService.getPatient(report.patientId);
           if (patient != null) {
@@ -27,12 +30,12 @@ class ClinicalReportDetailsBloc extends Bloc<ClinicalReportDetailsEvent, Clinica
                 documents.add(file);
               }
             }
-            emit(ClinicalReportDetailsLoaded(report: report, patient: patient, documents: documents));
+            emit(ClinicalReportDetailsLoaded(
+                report: report, patient: patient, documents: documents));
           } else {
             emit(const ClinicalReportDetailsError('Patient not found'));
           }
-        }
-        else {
+        } else {
           emit(const ClinicalReportDetailsError('Clinical report not found'));
         }
       } catch (e) {

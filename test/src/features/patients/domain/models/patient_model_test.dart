@@ -110,7 +110,8 @@ void main() {
       expect(updatedModel.ownerId, patientModel.ownerId);
       expect(updatedModel.clinicId, patientModel.clinicId);
       expect(updatedModel.phoneNumber, patientModel.phoneNumber);
-      expect(updatedModel.alternativePhoneNumber, patientModel.alternativePhoneNumber);
+      expect(updatedModel.alternativePhoneNumber,
+          patientModel.alternativePhoneNumber);
       expect(updatedModel.treatingDoctor, patientModel.treatingDoctor);
       expect(updatedModel.occupation, patientModel.occupation);
       expect(updatedModel.createdAt, patientModel.createdAt);

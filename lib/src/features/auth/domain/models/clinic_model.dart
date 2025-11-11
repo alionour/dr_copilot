@@ -23,7 +23,8 @@ class ClinicModel {
     required this.createdAt,
   });
 
-  factory ClinicModel.fromJson(Map<String, dynamic> json) => _$ClinicModelFromJson(json);
+  factory ClinicModel.fromJson(Map<String, dynamic> json) =>
+      _$ClinicModelFromJson(json);
   Map<String, dynamic> toJson() => _$ClinicModelToJson(this);
 
   ClinicModel copyWith({

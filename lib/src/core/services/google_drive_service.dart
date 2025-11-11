@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -8,7 +7,8 @@ class GoogleDriveService {
   final GoogleSignInHelper _googleSignInHelper = GoogleSignInHelper();
 
   Future<http.Client?> _getAuthClient() async {
-    debugPrint('Attempting to get authenticated client from GoogleSignInHelper...');
+    debugPrint(
+        'Attempting to get authenticated client from GoogleSignInHelper...');
     final client = await _googleSignInHelper.client;
     if (client == null) {
       debugPrint('Authenticated client from GoogleSignInHelper is null.');
@@ -35,7 +35,8 @@ class GoogleDriveService {
     }
   }
 
-  Future<List<drive.File>> searchFiles({String? query, String? parentFolderId, String? mimeType}) async {
+  Future<List<drive.File>> searchFiles(
+      {String? query, String? parentFolderId, String? mimeType}) async {
     final client = await _getAuthClient();
     if (client == null) {
       return [];
@@ -69,7 +70,8 @@ class GoogleDriveService {
         debugPrint('Google Drive API returned no files for query: $q');
       } else {
         for (var file in result.files!) {
-          debugPrint('File: id=${file.id}, name=${file.name}, mimeType=${file.mimeType}, webViewLink=${file.webViewLink}');
+          debugPrint(
+              'File: id=${file.id}, name=${file.name}, mimeType=${file.mimeType}, webViewLink=${file.webViewLink}');
         }
       }
       return result.files ?? [];

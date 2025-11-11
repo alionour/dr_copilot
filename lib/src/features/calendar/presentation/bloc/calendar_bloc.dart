@@ -23,7 +23,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
   final Map<String, Event> _cachedEvents = {};
   final List<DateTimeRange> _fetchedRanges = [];
 
-  Future<void> _authenticateCalendar(AuthenticateCalendar event, Emitter<CalendarState> emit) async {
+  Future<void> _authenticateCalendar(
+      AuthenticateCalendar event, Emitter<CalendarState> emit) async {
     try {
       Client? client = await googleSignIn.ensureClientInitialized();
       if (client == null) {

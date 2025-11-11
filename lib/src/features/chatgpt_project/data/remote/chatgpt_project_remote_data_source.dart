@@ -7,13 +7,15 @@ abstract class ChatGptProjectRemoteDataSource {
   Future<ChatGptProjectModel> createProject(String name, String apiKey);
 }
 
-class ChatGptProjectRemoteDataSourceImpl implements ChatGptProjectRemoteDataSource {
+class ChatGptProjectRemoteDataSourceImpl
+    implements ChatGptProjectRemoteDataSource {
   final http.Client client;
 
   ChatGptProjectRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<ChatGptProjectModel?> getProjectByName(String name, String apiKey) async {
+  Future<ChatGptProjectModel?> getProjectByName(
+      String name, String apiKey) async {
     final url = Uri.parse('https://api.openai.com/v1/assistants');
     final response = await client.get(
       url,
@@ -28,13 +30,15 @@ class ChatGptProjectRemoteDataSourceImpl implements ChatGptProjectRemoteDataSour
       final assistants = data['data'] as List;
       for (final assistant in assistants) {
         if (assistant['name'] == name) {
-          return ChatGptProjectModel(id: assistant['id'], name: assistant['name']);
+          return ChatGptProjectModel(
+              id: assistant['id'], name: assistant['name']);
         }
       }
       return null;
     } else {
       final errorData = jsonDecode(response.body);
-      throw Exception('Failed to get projects: ${errorData['error']['message']}');
+      throw Exception(
+          'Failed to get projects: ${errorData['error']['message']}');
     }
   }
 
@@ -60,7 +64,8 @@ class ChatGptProjectRemoteDataSourceImpl implements ChatGptProjectRemoteDataSour
       return ChatGptProjectModel(id: data['id'], name: data['name']);
     } else {
       final errorData = jsonDecode(response.body);
-      throw Exception('Failed to create project: ${errorData['error']['message']}');
+      throw Exception(
+          'Failed to create project: ${errorData['error']['message']}');
     }
   }
 }

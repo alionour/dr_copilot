@@ -49,7 +49,8 @@ class OwnerNotifier with ChangeNotifier {
     } else if (data?['clinicIds'] is List &&
         (data?['clinicIds'] as List).isNotEmpty) {
       _clinicId = (data?['clinicIds'] as List).first;
-      debugPrint('[OwnerNotifier] Loaded first clinicId from clinicIds: $_clinicId');
+      debugPrint(
+          '[OwnerNotifier] Loaded first clinicId from clinicIds: $_clinicId');
     } else {
       _clinicId = null;
       debugPrint('[OwnerNotifier] No clinicId found.');
@@ -65,7 +66,8 @@ class OwnerNotifier with ChangeNotifier {
       debugPrint('[OwnerNotifier] Clinics found: ${clinicsSnap.docs.length}');
       _clinics = clinicsSnap.docs.map((doc) {
         final clinicData = doc.data();
-        debugPrint('[OwnerNotifier] Clinic doc: id=${doc.id}, data=$clinicData');
+        debugPrint(
+            '[OwnerNotifier] Clinic doc: id=${doc.id}, data=$clinicData');
         return ClinicModel.fromJson({
           'id': doc.id,
           ...clinicData,

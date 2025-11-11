@@ -1,4 +1,3 @@
-
 import 'package:dr_copilot/src/features/doctors/presentation/bloc/doctors_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +78,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
               },
             );
           } else if (state is DoctorsError) {
-            return Center(child: Text(state.message ?? 'An error occurred'.tr()));
+            return Center(
+                child: Text(state.message ?? 'An error occurred'.tr()));
           }
           return Center(child: Text('noDoctorsFound'.tr()));
         },

@@ -1,4 +1,3 @@
-
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
@@ -10,13 +9,14 @@ import 'package:dr_copilot/src/features/financials/domain/models/scheduled_bill_
 
 /// An abstract class that defines the API for financial-related operations.
 abstract class AbstractFinancialApi {
-  
   // --- Transaction CRUD ---
   /// Adds a new transaction for the user.
-  Future<Either<Failure, void>> addTransaction({required TransactionModel transaction});
+  Future<Either<Failure, void>> addTransaction(
+      {required TransactionModel transaction});
 
   /// Updates an existing transaction for the user.
-  Future<Either<Failure, TransactionModel>> updateTransaction({required TransactionModel transaction});
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      {required TransactionModel transaction});
 
   /// Deletes a transaction by its document ID.
   Future<Either<Failure, void>> deleteTransaction(String id);
@@ -25,7 +25,8 @@ abstract class AbstractFinancialApi {
   Future<Either<Failure, List<TransactionModel>>> fetchTransactions();
 
   /// Deletes a transaction by its reference ID.
-  Future<Either<Failure, void>> deleteTransactionByReferenceId(String referenceId);
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String referenceId);
 
   // --- Bill CRUD ---
   /// Adds a new bill for the user.
@@ -137,7 +138,6 @@ abstract class AbstractFinancialApi {
   /// Deletes a scheduled bill by its document ID.
   Future<Either<Failure, void>> deleteScheduledBill(String id);
 
-
   // Invoice CRUD
   Future<Either<Failure, void>> addInvoice({required InvoiceModel invoice});
 
@@ -148,5 +148,6 @@ abstract class AbstractFinancialApi {
   Future<Either<Failure, void>> deleteInvoice(String id);
 
   /// Deletes invoice by its reference ID.
-  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(String referenceId);
+  Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
+      String referenceId);
 }

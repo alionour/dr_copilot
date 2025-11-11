@@ -43,7 +43,8 @@ class GoalCard extends StatelessWidget {
                     LinearProgressIndicator(
                       value: progress,
                       minHeight: 10,
-                      backgroundColor: Color(goal.color).withValues(alpha: (0.15 * 255).toDouble()),
+                      backgroundColor: Color(goal.color)
+                          .withValues(alpha: (0.15 * 255).toDouble()),
                       valueColor:
                           AlwaysStoppedAnimation<Color>(Color(goal.color)),
                     ),
@@ -51,7 +52,8 @@ class GoalCard extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'progressLabelWithPercent'.tr(args: [(progress * 100).toStringAsFixed(0)]),
+                        'progressLabelWithPercent'
+                            .tr(args: [(progress * 100).toStringAsFixed(0)]),
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Color(goal.color),

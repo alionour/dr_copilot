@@ -104,25 +104,31 @@ class PatientDetailsPage extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.add),
                       onPressed: () {
-                        context.go('/clinical_reports/new', extra: patient.id); // Pass patientId as extra
+                        context.go('/clinical_reports/new',
+                            extra: patient.id); // Pass patientId as extra
                       },
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 FutureBuilder<List<ClinicalReport>>(
-                  future: getIt<ClinicalReportService>().getClinicalReportsForPatient(patient.id),
+                  future: getIt<ClinicalReportService>()
+                      .getClinicalReportsForPatient(patient.id),
                   builder: (context, reportSnapshot) {
-                    if (reportSnapshot.connectionState == ConnectionState.waiting) {
+                    if (reportSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (reportSnapshot.hasError) {
-                      return Center(child: Text('Error: ${reportSnapshot.error}'));
+                      return Center(
+                          child: Text('Error: ${reportSnapshot.error}'));
                     }
-                    final List<ClinicalReport> reports = reportSnapshot.data ?? [];
+                    final List<ClinicalReport> reports =
+                        reportSnapshot.data ?? [];
 
                     if (reports.isEmpty) {
-                      return Center(child: Text('noClinicalReportsFoundForPatient'.tr()));
+                      return Center(
+                          child: Text('noClinicalReportsFoundForPatient'.tr()));
                     }
 
                     return ListView.builder(
@@ -135,10 +141,14 @@ class PatientDetailsPage extends StatelessWidget {
                           margin: const EdgeInsets.symmetric(vertical: 4.0),
                           child: ListTile(
                             title: Text(reportItem.title),
-                            subtitle: Text(reportItem.date.toLocal().toString().split(' ')[0]),
+                            subtitle: Text(reportItem.date
+                                .toLocal()
+                                .toString()
+                                .split(' ')[0]),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onTap: () {
-                              context.go('/clinical_report_details/${reportItem.id}');
+                              context.go(
+                                  '/clinical_report_details/${reportItem.id}');
                             },
                           ),
                         );

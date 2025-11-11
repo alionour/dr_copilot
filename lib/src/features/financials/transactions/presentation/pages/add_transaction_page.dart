@@ -472,7 +472,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                               final isValid =
                                   await _validateReferenceId(context);
                               if (isValid) {
-                                      if (!context.mounted) return;
+                                if (!context.mounted) return;
 
                                 FocusScope.of(context)
                                     .unfocus(); // Unfocus after the last field

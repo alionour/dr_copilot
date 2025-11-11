@@ -1,4 +1,3 @@
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,9 +7,6 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/clini
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/clinical_report_details_event.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/clinical_report_details_state.dart';
 
-
-
-
 final getIt = GetIt.instance;
 
 class ClinicalReportDetailsPage extends StatefulWidget {
@@ -18,7 +14,8 @@ class ClinicalReportDetailsPage extends StatefulWidget {
   const ClinicalReportDetailsPage({super.key, required this.reportId});
 
   @override
-  State<ClinicalReportDetailsPage> createState() => _ClinicalReportDetailsPageState();
+  State<ClinicalReportDetailsPage> createState() =>
+      _ClinicalReportDetailsPageState();
 }
 
 class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
@@ -33,7 +30,8 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<ClinicalReportDetailsBloc>()..add(LoadClinicalReportDetails(widget.reportId)),
+      create: (context) => getIt<ClinicalReportDetailsBloc>()
+        ..add(LoadClinicalReportDetails(widget.reportId)),
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -42,7 +40,8 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
           ),
           title: Text('clinicalReportDetails'.tr()),
         ),
-        body: BlocBuilder<ClinicalReportDetailsBloc, ClinicalReportDetailsState>(
+        body:
+            BlocBuilder<ClinicalReportDetailsBloc, ClinicalReportDetailsState>(
           builder: (context, state) {
             if (state is ClinicalReportDetailsLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -79,7 +78,10 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
                               subtitle: Text('clinicalReportId'.tr()),
                             ),
                             ListTile(
-                              title: Text(reportItem.date.toLocal().toString().split(' ')[0]),
+                              title: Text(reportItem.date
+                                  .toLocal()
+                                  .toString()
+                                  .split(' ')[0]),
                               subtitle: Text('clinicalReportDate'.tr()),
                             ),
                             ListTile(
@@ -114,7 +116,8 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
                                 icon: const Icon(Icons.open_in_new),
                                 onPressed: () {
                                   if (doc.webViewLink != null) {
-                                    context.push('/webview?title=${doc.name ?? 'Document'}&url=${doc.webViewLink}');
+                                    context.push(
+                                        '/webview?title=${doc.name ?? 'Document'}&url=${doc.webViewLink}');
                                   }
                                 },
                               ),
@@ -140,4 +143,3 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
     );
   }
 }
-

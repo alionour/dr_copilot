@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/entities/clinical_report.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -20,7 +19,8 @@ class ClinicalReportDetailsLoaded extends ClinicalReportDetailsState {
   final PatientModel patient;
   final List<drive.File> documents;
 
-  const ClinicalReportDetailsLoaded({required this.report, required this.patient, required this.documents});
+  const ClinicalReportDetailsLoaded(
+      {required this.report, required this.patient, required this.documents});
 
   @override
   List<Object> get props => [report, patient, documents];

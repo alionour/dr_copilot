@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 
@@ -31,7 +30,8 @@ class GoogleDriveAuthenticated extends GoogleDriveState {
   });
 
   @override
-  List<Object> get props => [files, currentFolderId ?? '', clinicFolderId ?? '', folderStack];
+  List<Object> get props =>
+      [files, currentFolderId ?? '', clinicFolderId ?? '', folderStack];
 
   GoogleDriveAuthenticated copyWith({
     List<drive.File>? files,

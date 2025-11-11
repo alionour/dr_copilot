@@ -14,13 +14,7 @@ enum MessageType {
 }
 
 /// Enum for voice message status
-enum VoiceMessageStatus {
-  recording,
-  processing,
-  completed,
-  failed,
-  speaking
-}
+enum VoiceMessageStatus { recording, processing, completed, failed, speaking }
 
 /// Converter for MessageType enum
 class MessageTypeConverter implements JsonConverter<MessageType, String> {
@@ -41,7 +35,8 @@ class MessageTypeConverter implements JsonConverter<MessageType, String> {
 }
 
 /// Converter for VoiceMessageStatus enum
-class VoiceMessageStatusConverter implements JsonConverter<VoiceMessageStatus, String> {
+class VoiceMessageStatusConverter
+    implements JsonConverter<VoiceMessageStatus, String> {
   const VoiceMessageStatusConverter();
 
   @override
@@ -85,16 +80,16 @@ class VoiceMessageModel {
   final String content;
   final String? audioPath;
   final double? audioDuration;
-  
+
   @MessageTypeConverter()
   final MessageType type;
-  
+
   @VoiceMessageStatusConverter()
   final VoiceMessageStatus status;
-  
+
   @TimestampConverter()
   final Timestamp timestamp;
-  
+
   final String? actionType;
   final Map<String, dynamic>? actionData;
   final String? errorMessage;
@@ -228,10 +223,12 @@ class VoiceMessageModel {
   }
 
   /// Check if this is a user message
-  bool get isUserMessage => type == MessageType.userVoice || type == MessageType.userText;
+  bool get isUserMessage =>
+      type == MessageType.userVoice || type == MessageType.userText;
 
   /// Check if this is an assistant message
-  bool get isAssistantMessage => type == MessageType.assistantVoice || type == MessageType.assistantText;
+  bool get isAssistantMessage =>
+      type == MessageType.assistantVoice || type == MessageType.assistantText;
 
   /// Check if this message has audio
   bool get hasAudio => audioPath != null && audioPath!.isNotEmpty;

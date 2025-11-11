@@ -183,60 +183,59 @@ class _AddGoalBottomSheetState extends State<AddGoalBottomSheet> {
                     GoalModelBase goal;
                     if (type == GoalType.custom) {
                       goal = CustomGoalModel(
-                        id: '',
-                        title: title,
-                        description:
-                            (description == null || description!.trim().isEmpty)
-                                ? null
-                                : description!.trim(),
-                        goalType: type,
-                        metricName: customMetricName,
-                        targetValue: double.tryParse(customTargetValue) ?? 1.0,
-                        color: color.toARGB32(),
-                        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-                        year: customYear,
-                        month: customMonth,
-                        isMonthBased: customMonth != null,
-                        isYearBased: customYear != null,
-                        createdBy:''
-                      );
+                          id: '',
+                          title: title,
+                          description: (description == null ||
+                                  description!.trim().isEmpty)
+                              ? null
+                              : description!.trim(),
+                          goalType: type,
+                          metricName: customMetricName,
+                          targetValue:
+                              double.tryParse(customTargetValue) ?? 1.0,
+                          color: color.toARGB32(),
+                          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+                          year: customYear,
+                          month: customMonth,
+                          isMonthBased: customMonth != null,
+                          isYearBased: customYear != null,
+                          createdBy: '');
                     } else if (type.isCountBased) {
                       final isYearGoal = type == GoalType.sessionsYear ||
                           type == GoalType.evaluationsYear;
                       final isMonthGoal = type == GoalType.sessionsMonth ||
                           type == GoalType.evaluationsMonth;
                       goal = CountGoalModel(
-                        id: '',
-                        title: title,
-                        description:
-                            (description == null || description!.trim().isEmpty)
-                                ? null
-                                : description!.trim(),
-                        goalType: type,
-                        targetCount: int.tryParse(countTargetValue) ?? 1,
-                        color: color.toARGB32(),
-                        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-                        year: (isYearGoal || isMonthGoal) ? selectedYear : null,
-                        month: isMonthGoal ? selectedMonth : null,
-                        createdBy:''
-
-                      );
+                          id: '',
+                          title: title,
+                          description: (description == null ||
+                                  description!.trim().isEmpty)
+                              ? null
+                              : description!.trim(),
+                          goalType: type,
+                          targetCount: int.tryParse(countTargetValue) ?? 1,
+                          color: color.toARGB32(),
+                          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+                          year:
+                              (isYearGoal || isMonthGoal) ? selectedYear : null,
+                          month: isMonthGoal ? selectedMonth : null,
+                          createdBy: '');
                     } else {
                       goal = AmountGoalModel(
-                        id: '',
-                        title: title,
-                        description:
-                            (description == null || description!.trim().isEmpty)
-                                ? null
-                                : description!.trim(),
-                        goalType: type,
-                        targetAmount: double.tryParse(amountTargetValue) ?? 1.0,
-                        color: color.toARGB32(),
-                        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-                        year: selectedYear,
-                        month: selectedMonth,
-                        createdBy:''
-                      );
+                          id: '',
+                          title: title,
+                          description: (description == null ||
+                                  description!.trim().isEmpty)
+                              ? null
+                              : description!.trim(),
+                          goalType: type,
+                          targetAmount:
+                              double.tryParse(amountTargetValue) ?? 1.0,
+                          color: color.toARGB32(),
+                          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+                          year: selectedYear,
+                          month: selectedMonth,
+                          createdBy: '');
                     }
                     context.read<FinancialsBloc>().add(AddGoal(goal));
                     Navigator.pop(context);

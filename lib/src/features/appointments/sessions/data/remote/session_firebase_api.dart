@@ -12,9 +12,8 @@ import 'package:flutter/foundation.dart';
 /// and includes additional functionality such as fetching sessions by date
 /// and detecting session types.
 class SessionsFirebaseApi extends AbstractSessionsRepository {
+  final ownerId = OwnerNotifier().ownerId;
 
-  final ownerId = OwnerNotifier().ownerId; 
-  
   /// Reference to the Firestore collection for sessions.
   final CollectionReference _sessionsCollection =
       FirebaseFirestore.instance.collection('sessions');
@@ -277,8 +276,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   ///
   /// Returns a list of [SessionModel] objects or a [Failure] in case of an error.
   @override
-   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name, String? lastDocumentID, int limit = 20}) async {
+  @override
+  Future<Either<Failure, List<SessionModel>>> searchSessions(
+      {String? name, String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -300,14 +300,17 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           }
         }
 
-        Query queryRef = _sessionsCollection.where('ownerId', isEqualTo: ownerId);
+        Query queryRef =
+            _sessionsCollection.where('ownerId', isEqualTo: ownerId);
         if (patientIds.isNotEmpty) {
           // Firestore whereIn supports max 10 items, so take first 10
-          queryRef = queryRef.where('patientId', whereIn: patientIds.take(10).toList());
+          queryRef = queryRef.where('patientId',
+              whereIn: patientIds.take(10).toList());
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot = await _sessionsCollection.doc(lastDocumentID).get();
+          final lastDocumentSnapshot =
+              await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
@@ -317,13 +320,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
 
         final snapshot = await queryRef.get();
 
-        List<SessionModel> sessions = await Future.wait(snapshot.docs.map((doc) async {
+        List<SessionModel> sessions =
+            await Future.wait(snapshot.docs.map((doc) async {
           final data = doc.data() as Map<String, dynamic>?;
           if (data == null) {
             throw Exception('Document data is null');
           }
           // Fetch the patient name dynamically using the patient ID
-          final patientName = await getPatientNameById(data['patientId'] as String);
+          final patientName =
+              await getPatientNameById(data['patientId'] as String);
           if (patientName == null) {
             debugPrint('Patient name not found for ID: \\${data['patientId']}');
           }
@@ -347,7 +352,6 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
-
 
   /// Fetches sessions for a specific date.
   ///

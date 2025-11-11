@@ -15,7 +15,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
 
   final String _deepgramApiKey; // Placeholder for API key
 
-  SpeechRecognitionService({required String deepgramApiKey}) : _deepgramApiKey = deepgramApiKey;
+  SpeechRecognitionService({required String deepgramApiKey})
+      : _deepgramApiKey = deepgramApiKey;
   @override
   Future<Either<Failure, bool>> initialize() async {
     log('Deepgram API Key: $_deepgramApiKey');
@@ -41,7 +42,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       }
     } catch (e) {
       log('Error during speech recognition initialization: ${e.toString()}');
-      return Left(ServerFailure('Failed to initialize speech recognition: ${e.toString()}', 500));
+      return Left(ServerFailure(
+          'Failed to initialize speech recognition: ${e.toString()}', 500));
     }
   }
 
@@ -49,7 +51,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
   Future<Either<Failure, bool>> startListening() async {
     try {
       if (_deepgram == null) {
-        return Left(ServerFailure('Deepgram not initialized. Call initialize() first.', 500));
+        return Left(ServerFailure(
+            'Deepgram not initialized. Call initialize() first.', 500));
       }
 
       if (await _audioRecorder.isRecording()) {
@@ -73,21 +76,22 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
           'language': 'en-US',
           'interim_results': true,
         },
-      ).listen((deepgramEvent) {
-        if (deepgramEvent.isFinal) {
-          _recognitionController?.add(deepgramEvent.transcript ?? '');
-        }
-      },
-      onError: (error) {
-        _recognitionController?.addError(error);
-      },
-      onDone: () {
-      },
+      ).listen(
+        (deepgramEvent) {
+          if (deepgramEvent.isFinal) {
+            _recognitionController?.add(deepgramEvent.transcript ?? '');
+          }
+        },
+        onError: (error) {
+          _recognitionController?.addError(error);
+        },
+        onDone: () {},
       );
 
       return const Right(true);
     } catch (e) {
-      return Left(ServerFailure('Failed to start listening: ${e.toString()}', 500));
+      return Left(
+          ServerFailure('Failed to start listening: ${e.toString()}', 500));
     }
   }
 
@@ -101,13 +105,15 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       await _deepgramSubscription?.cancel();
       _deepgramSubscription = null;
 
-      final result = await _recognitionController?.stream.lastWhere((text) => text.isNotEmpty, orElse: () => '');
+      final result = await _recognitionController?.stream
+          .lastWhere((text) => text.isNotEmpty, orElse: () => '');
       await _recognitionController?.close();
       _recognitionController = null;
 
       return Right(result ?? '');
     } catch (e) {
-      return Left(ServerFailure('Failed to stop listening: ${e.toString()}', 500));
+      return Left(
+          ServerFailure('Failed to stop listening: ${e.toString()}', 500));
     }
   }
 
@@ -123,7 +129,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       _recognitionController = null;
       return const Right(true);
     } catch (e) {
-      return Left(ServerFailure('Failed to cancel listening: ${e.toString()}', 500));
+      return Left(
+          ServerFailure('Failed to cancel listening: ${e.toString()}', 500));
     }
   }
 
@@ -140,7 +147,9 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       );
     } catch (e) {
       log('Error checking speech recognition availability: ${e.toString()}');
-      return Left(ServerFailure('Failed to check speech recognition availability: ${e.toString()}', 500));
+      return Left(ServerFailure(
+          'Failed to check speech recognition availability: ${e.toString()}',
+          500));
     }
   }
 
@@ -150,7 +159,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       // Deepgram supports many languages. For simplicity, returning a few common ones.
       return const Right(['en-US', 'es-ES', 'fr-FR', 'de-DE']);
     } catch (e) {
-      return Left(ServerFailure('Failed to get available languages: ${e.toString()}', 500));
+      return Left(ServerFailure(
+          'Failed to get available languages: ${e.toString()}', 500));
     }
   }
 
@@ -160,7 +170,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       final status = await Permission.microphone.request();
       return Right(status.isGranted);
     } catch (e) {
-      return Left(PermissionFailure('Failed to request microphone permission: ${e.toString()}'));
+      return Left(PermissionFailure(
+          'Failed to request microphone permission: ${e.toString()}'));
     }
   }
 
@@ -170,17 +181,23 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       final status = await Permission.microphone.status;
       return Right(status.isGranted);
     } catch (e) {
-      return Left(PermissionFailure('Failed to check microphone permission: ${e.toString()}'));
+      return Left(PermissionFailure(
+          'Failed to check microphone permission: ${e.toString()}'));
     }
   }
 
   @override
   Stream<Either<Failure, String>> getRealtimeRecognitionStream() {
-    return _recognitionController?.stream.map((text) => Right(text)).handleError((error) {
-      if (error is Failure) {
-        throw error;
-      }
-      throw ServerFailure('Realtime recognition stream error: ${error.toString()}', 500);
-    }).map((event) => event as Either<Failure, String>) ?? Stream.value(Left(ServerFailure('Recognition stream not available.', 500)));
+    return _recognitionController?.stream
+            .map((text) => Right(text))
+            .handleError((error) {
+          if (error is Failure) {
+            throw error;
+          }
+          throw ServerFailure(
+              'Realtime recognition stream error: ${error.toString()}', 500);
+        }).map((event) => event as Either<Failure, String>) ??
+        Stream.value(
+            Left(ServerFailure('Recognition stream not available.', 500)));
   }
 }

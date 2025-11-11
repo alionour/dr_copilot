@@ -38,8 +38,10 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
 
   /// Searches sessions based on criteria.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions({String? name, String? lastDocumentID, int limit = 20}) {
-    return firebaseApi.searchSessions(name: name, lastDocumentID: lastDocumentID, limit: limit);
+  Future<Either<Failure, List<SessionModel>>> searchSessions(
+      {String? name, String? lastDocumentID, int limit = 20}) {
+    return firebaseApi.searchSessions(
+        name: name, lastDocumentID: lastDocumentID, limit: limit);
   }
 
   /// Gets sessions by a specific date.

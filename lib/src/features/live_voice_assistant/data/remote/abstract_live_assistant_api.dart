@@ -16,11 +16,12 @@ abstract class AbstractLiveAssistantApi {
   });
 
   Future<Either<Failure, VoiceSessionModel>> getVoiceSession(String sessionId);
-  
-  Future<Either<Failure, VoiceSessionModel>> updateVoiceSession(VoiceSessionModel session);
-  
+
+  Future<Either<Failure, VoiceSessionModel>> updateVoiceSession(
+      VoiceSessionModel session);
+
   Future<Either<Failure, bool>> deleteVoiceSession(String sessionId);
-  
+
   Future<Either<Failure, List<VoiceSessionModel>>> getUserVoiceSessions({
     required String userId,
     String? lastDocumentId,
@@ -28,33 +29,39 @@ abstract class AbstractLiveAssistantApi {
   });
 
   /// Voice Message Management
-  Future<Either<Failure, VoiceMessageModel>> addMessage(VoiceMessageModel message);
-  
-  Future<Either<Failure, List<VoiceMessageModel>>> getSessionMessages(String sessionId);
-  
-  Future<Either<Failure, VoiceMessageModel>> updateMessage(VoiceMessageModel message);
-  
+  Future<Either<Failure, VoiceMessageModel>> addMessage(
+      VoiceMessageModel message);
+
+  Future<Either<Failure, List<VoiceMessageModel>>> getSessionMessages(
+      String sessionId);
+
+  Future<Either<Failure, VoiceMessageModel>> updateMessage(
+      VoiceMessageModel message);
+
   Future<Either<Failure, bool>> deleteMessage(String messageId);
 
   /// Assistant Action Management
-  Future<Either<Failure, AssistantActionModel>> addAction(AssistantActionModel action);
-  
-  Future<Either<Failure, List<AssistantActionModel>>> getSessionActions(String sessionId);
-  
-  Future<Either<Failure, AssistantActionModel>> updateAction(AssistantActionModel action);
-  
+  Future<Either<Failure, AssistantActionModel>> addAction(
+      AssistantActionModel action);
+
+  Future<Either<Failure, List<AssistantActionModel>>> getSessionActions(
+      String sessionId);
+
+  Future<Either<Failure, AssistantActionModel>> updateAction(
+      AssistantActionModel action);
+
   Future<Either<Failure, bool>> deleteAction(String actionId);
 
   /// Session Statistics
   Future<Either<Failure, int>> getSessionsCount(String userId);
-  
+
   Future<Either<Failure, int>> getSessionsCountForMonth({
     required String userId,
     required int year,
     required int month,
   });
-  
+
   Future<Either<Failure, double>> getTotalSessionDuration(String userId);
-  
+
   Future<Either<Failure, int>> getTotalMessagesCount(String userId);
 }

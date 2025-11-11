@@ -66,7 +66,8 @@ class TransactionListItem extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: color.withValues(alpha: (0.08 * 255).toDouble()),
+                            color: color.withValues(
+                                alpha: (0.08 * 255).toDouble()),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(

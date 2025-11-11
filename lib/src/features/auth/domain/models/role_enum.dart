@@ -35,11 +35,14 @@ enum AppRole {
   }
 }
 
-class RoleListJsonConverter implements JsonConverter<List<AppRole>, List<dynamic>> {
+class RoleListJsonConverter
+    implements JsonConverter<List<AppRole>, List<dynamic>> {
   const RoleListJsonConverter();
   @override
-  List<AppRole> fromJson(List<dynamic> json) =>
-      json.map((e) => AppRole.values.firstWhere((role) => AppRole.admin.roleToString(role) == e as String)).toList();
+  List<AppRole> fromJson(List<dynamic> json) => json
+      .map((e) => AppRole.values.firstWhere(
+          (role) => AppRole.admin.roleToString(role) == e as String))
+      .toList();
   @override
   List<dynamic> toJson(List<AppRole> object) =>
       object.map((e) => AppRole.admin.roleToString(e)).toList();

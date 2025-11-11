@@ -168,25 +168,36 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.help),
-                    title: Text('helpSupport'.tr()),
+                    leading: const Icon(Icons.vpn_key),
+                    title: Text('openAIApiKey'.tr()),
                     selected: _selectedIndex == 5,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
                       });
-                      context.go('/help_support');
+                      context.push('/settings/api_key?from=settings');
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.info),
-                    title: Text('about'.tr()),
+                    leading: const Icon(Icons.help),
+                    title: Text('helpSupport'.tr()),
                     selected: _selectedIndex == 6,
                     onTap: () {
                       setState(() {
                         _selectedIndex = 6;
                       });
-                      context.go('/about');
+                      context.push('/help_support');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.info),
+                    title: Text('about'.tr()),
+                    selected: _selectedIndex == 7,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 7;
+                      });
+                      context.push('/about');
                     },
                   ),
                 ],

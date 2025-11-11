@@ -22,7 +22,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// from the Firebase Firestore database.
   final CollectionReference _usersCollection =
       FirebaseFirestore.instance.collection('users');
-  
+
   /// A reference to the 'user_invitations' collection in Firestore.
   ///
   /// This collection is used to store and retrieve user invitation-related data
@@ -195,9 +195,9 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       if (user == null) return null;
 
       /// Saves the authentication tokens obtained from Google sign-in for the given [user].
-      /// 
+      ///
       /// This method stores the tokens from [googleAuth] securely for future authenticated requests.
-      /// 
+      ///
       /// Throws an exception if saving the tokens fails.
       await _saveGoogleTokens(user, googleAuth);
 
@@ -205,7 +205,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       ///
       /// This method is called after user authentication to manage any additional
       /// onboarding steps required when a user is linked to more than one clinic.
-      /// 
+      ///
       /// Returns a [Future] that completes when the onboarding process is finished.
       return await _handleMultiClinicOnboarding(user);
     } on FirebaseAuthException catch (e) {
@@ -267,13 +267,13 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Checks if the user exists, processes invitations, or creates a new clinic as needed.
   Future<UserModel> _handleMultiClinicOnboarding(User user) async {
     /// A list to store the roles assigned to the user.
-    /// 
+    ///
     /// This list is initialized as empty and is intended to hold instances of [AppRole],
     /// representing the different roles that a user can have within the application.
     List<AppRole> roles = [];
 
     /// A list to store the permissions assigned to the app user.
-    /// 
+    ///
     /// This list is initialized as empty and can be populated with instances of
     /// [AppPermission] to represent the various permissions granted to the user.
     List<AppPermission> permissions = [];
@@ -282,7 +282,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     String? ownerId;
 
     /// A list to store the IDs of clinics associated with the user.
-    /// 
+    ///
     /// This list is initialized as empty and can be populated with clinic IDs
     /// retrieved from a remote source or user input.
     List<String> clinicIds = [];
@@ -291,6 +291,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     String? primaryClinicId;
 
     final userDocRef = _usersCollection.doc(user.uid);
+
     /// Creates a reference to the Firestore document corresponding to the given user's UID
     /// within the users collection.
     ///
@@ -313,10 +314,10 @@ class AuthFirebaseApi extends AbstractAuthRepository {
           (data?['permissions'] as List<dynamic>?)?.cast<String>() ?? [];
 
       /// Converts a list of role strings (`roleStrings`) to a list of [AppRole] enums.
-      /// 
+      ///
       /// For each string in `roleStrings`, attempts to find a matching [AppRole] by name.
       /// If no match is found, defaults to [AppRole.readonly].
-      /// 
+      ///
       /// Returns a list of [AppRole] corresponding to the input strings.
       roles = roleStrings
           .map((s) => AppRole.values
@@ -324,7 +325,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
           .toList();
 
       /// Converts a list of permission strings to a list of [AppPermission] enums.
-      /// 
+      ///
       /// For each string in [permissionStrings], attempts to find the corresponding
       /// [AppPermission] by matching the enum's `name` property. If no match is found,
       /// defaults to the first value in [AppPermission.values].
@@ -334,15 +335,15 @@ class AuthFirebaseApi extends AbstractAuthRepository {
           .toList();
 
       /// Retrieves the 'ownerId' field from the [data] map and assigns it to [ownerId].
-      /// 
+      ///
       /// The value is cast to a [String]? to handle cases where 'ownerId' may be absent or null.
       ownerId = data?['ownerId'] as String?;
-      
+
       /// Retrieves the list of clinic IDs from the provided [data] map.
-      /// 
-      /// Attempts to cast the 'clinicIds' entry to a `List<String>`. 
+      ///
+      /// Attempts to cast the 'clinicIds' entry to a `List<String>`.
       /// If the entry is null or not present, returns an empty list.
-      /// 
+      ///
       /// Example:
       /// ```dart
       /// // Given data = {'clinicIds': ['id1', 'id2']};
@@ -351,12 +352,11 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       ///
       /// This ensures `clinicIds` is always a non-null `List<String>`.
       clinicIds = (data?['clinicIds'] as List<dynamic>?)?.cast<String>() ?? [];
-      
+
       /// Retrieves the 'primaryClinicId' value from the [data] map and assigns it to [primaryClinicId].
-      /// 
+      ///
       /// The value is expected to be a [String], but may be `null` if the key does not exist or the value is not a string.
       primaryClinicId = data?['primaryClinicId'] as String?;
-
     } else {
       // User not found: check for invitation
       final invitations = await _userInvitations
@@ -376,7 +376,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
         ///
         /// Returns a [Future] that completes when all invitations have been accepted and the user document is created.
         await _acceptAllInvitationsAndCreateUser(user, invitations, userDocRef);
-        
+
         // Fetch the user doc again after creation
         final createdDoc = await userDocRef.get();
         final data = createdDoc.data() as Map<String, dynamic>?;
@@ -443,36 +443,36 @@ class AuthFirebaseApi extends AbstractAuthRepository {
           (inviteData?['permissions'] as List<dynamic>?)?.cast<String>() ?? [];
       final invitedClinicId = inviteData?['clinicId'] as String?;
       final invitedBy = inviteData?['invitedBy'] as String?;
-      
+
       /// Assigns the value of [invitedBy] to [firstOwnerId] if [firstOwnerId] is currently null.
-      /// 
+      ///
       /// This ensures that [firstOwnerId] has a value, defaulting to [invitedBy] when not already set.
       firstOwnerId ??= invitedBy;
-      
+
       /// Assigns the value of [invitedClinicId] to [firstClinicId] only if [firstClinicId] is currently null.
-      /// 
+      ///
       /// This ensures that [firstClinicId] has a value, preferring its existing value if set,
       /// or falling back to [invitedClinicId] otherwise.
       firstClinicId ??= invitedClinicId;
-      
+
       /// Adds all elements from the [invitedRoles] collection to the [allRoles] collection.
-      /// 
+      ///
       /// This operation appends the roles that have been invited to the existing list of all roles,
       /// ensuring that the [allRoles] list contains both the original and newly invited roles.
       allRoles.addAll(invitedRoles);
-      
+
       /// Adds all permissions from [invitedPermissions] to the [allPermissions] set.
-      /// 
+      ///
       /// This merges the permissions granted via invitation into the existing set of permissions.
       allPermissions.addAll(invitedPermissions);
-      
+
       /// Adds the [invitedClinicId] to the [allClinicIds] list if it is not null.
-      /// 
+      ///
       /// This ensures that only valid (non-null) clinic IDs are included in the list.
       if (invitedClinicId != null) allClinicIds.add(invitedClinicId);
-      
+
       /// Updates the referenced invite document in Firestore with the provided data.
-      /// 
+      ///
       /// This operation is asynchronous and will complete once the update is successful.
       /// Throws an exception if the update fails.
       await invite.reference.update({
@@ -510,7 +510,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     final ownerId = user.uid;
     final clinicsCollection = FirebaseFirestore.instance.collection('clinics');
     final newClinicRef = clinicsCollection.doc();
-    
+
     /// Sets the initial data for a new clinic in Firestore.
     ///
     /// The data includes:
@@ -529,7 +529,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
     final clinicIds = [newClinicRef.id];
     final primaryClinicId = newClinicRef.id;
-    
+
     /// Stores user authentication data in Firestore by setting the following fields:
     /// - `roles`: A list of role names assigned to the user.
     /// - `permissions`: A list of permission names granted to the user.
@@ -547,7 +547,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       'clinicIds': clinicIds,
       'primaryClinicId': primaryClinicId,
     });
-    
+
     return {
       'roles': roles,
       'permissions': permissions,

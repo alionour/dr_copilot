@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/entities/clinical_report.dart';
 

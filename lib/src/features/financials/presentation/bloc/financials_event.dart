@@ -154,7 +154,6 @@ class DeleteScheduledBill extends FinancialsEvent {
   List<Object?> get props => [id];
 }
 
-
 /// Event to fetch all  bills.
 class FetchBills extends FinancialsEvent {}
 
@@ -181,7 +180,6 @@ class DeleteBill extends FinancialsEvent {
   @override
   List<Object?> get props => [id];
 }
-
 
 /// Event to generate missing bills from scheduled bills (should be dispatched on app start or tab open)
 class GenerateBillsFromScheduled extends FinancialsEvent {
@@ -314,7 +312,6 @@ class FetchTotalByDirectionAndSource extends FinancialsEvent {
   @override
   List<Object?> get props => [direction, source, year, month];
 }
-
 
 ///Event to pay a bill
 class PayBill extends FinancialsEvent {

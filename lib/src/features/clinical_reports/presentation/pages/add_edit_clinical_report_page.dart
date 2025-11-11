@@ -1,4 +1,3 @@
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +8,6 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_e
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_event.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_state.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-
 
 final getIt = GetIt.instance;
 
@@ -22,12 +20,17 @@ class AddEditClinicalReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<AddEditClinicalReportBloc>()..add(LoadAddEditClinicalReport(reportId)),
-      child: BlocListener<AddEditClinicalReportBloc, AddEditClinicalReportState>(
+      create: (context) => getIt<AddEditClinicalReportBloc>()
+        ..add(LoadAddEditClinicalReport(reportId)),
+      child:
+          BlocListener<AddEditClinicalReportBloc, AddEditClinicalReportState>(
         listener: (context, state) {
           if (state is AddEditClinicalReportSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(reportId == null ? 'clinicalReportAddedSuccessfully'.tr() : 'clinicalReportUpdatedSuccessfully'.tr())),
+              SnackBar(
+                  content: Text(reportId == null
+                      ? 'clinicalReportAddedSuccessfully'.tr()
+                      : 'clinicalReportUpdatedSuccessfully'.tr())),
             );
             context.pop();
           }
@@ -37,7 +40,8 @@ class AddEditClinicalReportPage extends StatelessWidget {
             );
           }
         },
-        child: AddEditClinicalReportView(reportId: reportId, patientId: patientId),
+        child:
+            AddEditClinicalReportView(reportId: reportId, patientId: patientId),
       ),
     );
   }
@@ -50,7 +54,8 @@ class AddEditClinicalReportView extends StatefulWidget {
   const AddEditClinicalReportView({super.key, this.reportId, this.patientId});
 
   @override
-  State<AddEditClinicalReportView> createState() => _AddEditClinicalReportViewState();
+  State<AddEditClinicalReportView> createState() =>
+      _AddEditClinicalReportViewState();
 }
 
 class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
@@ -108,11 +113,14 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         documentUrls: _documentUrls,
       );
 
-      context.read<AddEditClinicalReportBloc>().add(SaveClinicalReport(newReport));
+      context
+          .read<AddEditClinicalReportBloc>()
+          .add(SaveClinicalReport(newReport));
     }
   }
 
-  void _showPatientSelectionDialog(BuildContext context, List<PatientModel> patients) {
+  void _showPatientSelectionDialog(
+      BuildContext context, List<PatientModel> patients) {
     showDialog(
       context: context,
       builder: (context) {
@@ -179,7 +187,9 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.reportId == null ? 'addClinicalReport'.tr() : 'editClinicalReport'.tr()),
+        title: Text(widget.reportId == null
+            ? 'addClinicalReport'.tr()
+            : 'editClinicalReport'.tr()),
       ),
       body: BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
         builder: (context, state) {
@@ -193,9 +203,11 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
               _descriptionController.text = state.report!.description;
               _selectedDate = state.report!.date;
               _documentUrls.addAll(state.report!.documentUrls);
-              _selectedPatient = state.patients.firstWhere((p) => p.id == state.report!.patientId);
+              _selectedPatient = state.patients
+                  .firstWhere((p) => p.id == state.report!.patientId);
             } else if (widget.patientId != null && _selectedPatient == null) {
-              _selectedPatient = state.patients.firstWhere((p) => p.id == widget.patientId);
+              _selectedPatient =
+                  state.patients.firstWhere((p) => p.id == widget.patientId);
             }
 
             return Padding(
@@ -205,10 +217,12 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                 child: ListView(
                   children: [
                     ListTile(
-                      title: Text(_selectedPatient?.name ?? 'selectPatient'.tr()),
+                      title:
+                          Text(_selectedPatient?.name ?? 'selectPatient'.tr()),
                       subtitle: Text('patient'.tr()),
                       trailing: const Icon(Icons.arrow_drop_down),
-                      onTap: () => _showPatientSelectionDialog(context, state.patients),
+                      onTap: () =>
+                          _showPatientSelectionDialog(context, state.patients),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -289,4 +303,3 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     );
   }
 }
-

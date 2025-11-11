@@ -33,8 +33,10 @@ abstract class AbstractLiveAssistantRepository {
     String? selectedAiModel,
   });
   Future<Either<Failure, VoiceSessionModel>> getVoiceSession(String sessionId);
-  Future<Either<Failure, List<VoiceSessionModel>>> getUserVoiceSessions(String userId);
-  Future<Either<Failure, VoiceSessionModel>> updateVoiceSession(VoiceSessionModel session);
+  Future<Either<Failure, List<VoiceSessionModel>>> getUserVoiceSessions(
+      String userId);
+  Future<Either<Failure, VoiceSessionModel>> updateVoiceSession(
+      VoiceSessionModel session);
   Future<Either<Failure, bool>> deleteVoiceSession(String sessionId);
   Future<Either<Failure, VoiceSessionModel>> endVoiceSession(String sessionId);
 
@@ -43,8 +45,10 @@ abstract class AbstractLiveAssistantRepository {
     required String sessionId,
     required VoiceMessageModel message,
   });
-  Future<Either<Failure, List<VoiceMessageModel>>> getSessionMessages(String sessionId);
-  Future<Either<Failure, VoiceMessageModel>> updateMessage(VoiceMessageModel message);
+  Future<Either<Failure, List<VoiceMessageModel>>> getSessionMessages(
+      String sessionId);
+  Future<Either<Failure, VoiceMessageModel>> updateMessage(
+      VoiceMessageModel message);
   Future<Either<Failure, bool>> deleteMessage(String messageId);
 
   /// AI Processing
@@ -60,21 +64,26 @@ abstract class AbstractLiveAssistantRepository {
   });
 
   /// Action Execution
-  Future<Either<Failure, AssistantActionModel>> executeAction(AssistantActionModel action);
-  Future<Either<Failure, List<AssistantActionModel>>> getSessionActions(String sessionId);
-  Future<Either<Failure, AssistantActionModel>> updateAction(AssistantActionModel action);
+  Future<Either<Failure, AssistantActionModel>> executeAction(
+      AssistantActionModel action);
+  Future<Either<Failure, List<AssistantActionModel>>> getSessionActions(
+      String sessionId);
+  Future<Either<Failure, AssistantActionModel>> updateAction(
+      AssistantActionModel action);
 
   /// Permission Management
   Future<Either<Failure, bool>> requestMicrophonePermission();
   Future<Either<Failure, bool>> checkMicrophonePermission();
 
   /// Audio File Management
-  Future<Either<Failure, String>> saveAudioFile(List<int> audioData, String fileName);
+  Future<Either<Failure, String>> saveAudioFile(
+      List<int> audioData, String fileName);
   Future<Either<Failure, List<int>>> loadAudioFile(String filePath);
   Future<Either<Failure, bool>> deleteAudioFile(String filePath);
 
   /// Context Management
-  Future<Either<Failure, Map<String, dynamic>>> getConversationContext(String sessionId);
+  Future<Either<Failure, Map<String, dynamic>>> getConversationContext(
+      String sessionId);
   Future<Either<Failure, bool>> updateConversationContext({
     required String sessionId,
     required Map<String, dynamic> context,
@@ -82,6 +91,8 @@ abstract class AbstractLiveAssistantRepository {
 
   /// Real-time Stream Operations
   Stream<Either<Failure, String>> getRealtimeSpeechRecognitionStream();
-  Stream<Either<Failure, VoiceSessionModel>> getVoiceSessionStream(String sessionId);
-  Stream<Either<Failure, List<VoiceMessageModel>>> getSessionMessagesStream(String sessionId);
+  Stream<Either<Failure, VoiceSessionModel>> getVoiceSessionStream(
+      String sessionId);
+  Stream<Either<Failure, List<VoiceMessageModel>>> getSessionMessagesStream(
+      String sessionId);
 }

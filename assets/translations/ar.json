@@ -325,6 +325,8 @@
   "privacy": "الخصوصية",
   "privacyDescription": "في د. كوبايلوت، نأخذ خصوصيتك على محمل الجد. توضح سياسة الخصوصية هذه أنواع المعلومات التي نجمعها، وكيف نستخدمها، والإجراءات التي نتخذها لحماية بياناتك.",
   "privacyPolicy": "سياسة الخصوصية",
+  "privacyPolicyDescription": "هذه هي صفحة سياسة الخصوصية.",
+  "privacyPolicy": "سياسة الخصوصية",
   "profit": "الربح",
   "progressLabel": "نسبة الإنجاز",
   "progressLabelWithPercent": "التقدم: {}%",
@@ -456,5 +458,14 @@
   "not_available": "غير متاح",
   "yourRightsDescription": "لديك الحق في الوصول إلى معلوماتك الشخصية وتحديثها وحذفها. إذا كانت لديك أي أسئلة أو مخاوف بشأن ممارسات الخصوصية لدينا، يرجى الاتصال بنا على privacy@drcopilot.com.",
   "clinical_reports": "التقارير السريرية",
-  "chatGptProject": "مشروع ChatGPT"
+  "chatGptProject": "مشروع ChatGPT",
+  "noChatGptProjectsFound": "لم يتم العثور على مشاريع ChatGPT.",
+  "apiKeySettings": "إعدادات مفتاح API",
+  "enterYourOpenAIApiKey": "أدخل مفتاح API الخاص بك لـ OpenAI",
+  "openAIApiKey": "مفتاح API لـ OpenAI",
+  "saveApiKey": "حفظ مفتاح API",
+  "apiKeySavedSuccessfully": "تم حفظ مفتاح API بنجاح",
+  "apiKeyWarning": "تحذير: يمنح مفتاح API الخاص بك حق الوصول إلى حساب OpenAI الخاص بك. حافظ على سريته ولا تشاركه. تخزينه على الجهاز ينطوي على مخاطر متأصلة.",
+  "deleteApiKey": "حذف مفتاح API",
+  "apiKeyDeletedSuccessfully": "تم حذف مفتاح API بنجاح"
 }
