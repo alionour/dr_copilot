@@ -18,6 +18,12 @@ abstract class AbstractSessionsRepository {
   /// Deletes a session by their ID.
   Future<Either<Failure, void>> deleteSession(String id);
 
+  /// Gets all sessions without pagination.
+  Future<Either<Failure, List<SessionModel>>> getAllSessions();
+
+  /// Gets a single session by its ID.
+  Future<Either<Failure, SessionModel>> getSessionById(String id);
+
   /// Searches sessions based on criteria.
   Future<Either<Failure, List<SessionModel>>> searchSessions({String? name});
 

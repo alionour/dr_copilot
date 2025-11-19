@@ -19,6 +19,12 @@ abstract class AbstractEvaluationsRepository {
   /// Deletes a evaluation by their ID.
   Future<Either<Failure, void>> deleteEvaluation(String id);
 
+  /// Gets all evaluations without pagination.
+  Future<Either<Failure, List<EvaluationModel>>> getAllEvaluations();
+
+  /// Gets a single evaluation by its ID.
+  Future<Either<Failure, EvaluationModel>> getEvaluationById(String id);
+
   /// Searches evaluations based on criteria.
   Future<Either<Failure, List<EvaluationModel>>> searchEvaluations(
       {String? name});

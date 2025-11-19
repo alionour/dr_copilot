@@ -17,9 +17,10 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.d
 import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
-import 'package:dr_copilot/src/features/live_voice_assistant/presentation/pages/live_voice_assistant_page.dart';
+
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
+import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
 import 'package:dr_copilot/src/shared/presentation/widgets/webview_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -107,11 +108,7 @@ class RoutingConfig {
               return ApiKeySettingsPage(from: from);
             },
           ),
-          GoRoute(
-            path: '/live_assistant',
-            name: 'live_assistant',
-            builder: (context, state) => const LiveVoiceAssistantPage(),
-          ),
+
           GoRoute(
             path: '/doctors',
             name: 'doctors',
@@ -121,6 +118,19 @@ class RoutingConfig {
             path: '/staff',
             name: 'staff',
             builder: (context, state) => const StaffPage(),
+          ),
+          GoRoute(
+            path: '/staff/add',
+            name: 'add_staff',
+            builder: (context, state) => const AddEditStaffPage(),
+          ),
+          GoRoute(
+            path: '/staff/:staffId',
+            name: 'edit_staff',
+            builder: (context, state) {
+              final staffId = state.pathParameters['staffId'];
+              return AddEditStaffPage(staffId: staffId);
+            },
           ),
           GoRoute(
             path: '/help_support',

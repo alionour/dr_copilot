@@ -51,6 +51,18 @@ class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
     return firebaseApi.getEvaluationsByDate(date);
   }
 
+  /// Gets a single evaluation by its ID.
+  @override
+  Future<Either<Failure, EvaluationModel>> getEvaluationById(String id) {
+    return firebaseApi.getEvaluationById(id);
+  }
+
+  /// Gets all evaluations without pagination.
+  @override
+  Future<Either<Failure, List<EvaluationModel>>> getAllEvaluations() {
+    return firebaseApi.getAllEvaluations();
+  }
+
   /// Gets the total count of evaluations in Firestore.
   @override
   Future<Either<Failure, int>> getEvaluationsCount() {

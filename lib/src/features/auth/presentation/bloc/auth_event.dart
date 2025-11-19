@@ -39,3 +39,14 @@ class SignOutEvent extends AuthEvent {
   @override
   List<Object> get props => [];
 }
+
+/// Event triggered to initiate the sign-in process using email and password.
+class SignInWithEmailAndPassword extends AuthEvent {
+  final String email;
+  final String password;
+
+  const SignInWithEmailAndPassword({required this.email, required this.password});
+
+  @override
+  List<Object> get props => [email, password];
+}

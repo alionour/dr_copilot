@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# Firebase credentials (NEVER COMMIT THIS!)
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Package files
+*.zip
+function.zip
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AWS
+.aws/

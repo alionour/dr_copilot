@@ -86,6 +86,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             });
             context.pop();
           } else if (state is PatientsError) {
+            debugPrint('SnackBar Error: ${state.message}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
@@ -395,8 +396,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
         );
         BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
       } else {
+        final message = 'userIdCannotBeNull'.tr();
+        debugPrint('SnackBar Error: $message');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('userIdCannotBeNull'.tr())),
+          SnackBar(content: Text(message)),
         );
       }
     }

@@ -209,7 +209,9 @@ class _PatientsPageState extends State<PatientsPage> {
                               if (!context.mounted) return;
                               context
                                   .read<PatientsBloc>()
-                                  .add(GetPatientsByDate(date: selectedDate));
+                                  .add(GetPatientsByDate(
+                                      year: selectedDate.year,
+                                      month: selectedDate.month));
                             }
                           },
                         ),
@@ -426,6 +428,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     if (state is PatientsSuccess) {
                       final message = state.message;
                       if (message != null) {
+                        debugPrint('SnackBar Success: $message');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(message),
@@ -434,6 +437,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       }
                     } else if (state is PatientsError) {
                       final message = state.message;
+                      debugPrint('SnackBar Error: $message');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(message)),
                       );

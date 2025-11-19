@@ -50,6 +50,18 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
     return firebaseApi.getSessionsByDate(date);
   }
 
+  /// Gets a single session by its ID.
+  @override
+  Future<Either<Failure, SessionModel>> getSessionById(String id) {
+    return firebaseApi.getSessionById(id);
+  }
+
+  /// Gets all sessions without pagination.
+  @override
+  Future<Either<Failure, List<SessionModel>>> getAllSessions() {
+    return firebaseApi.getAllSessions();
+  }
+
   /// Detects the type of session based on patient ID.
   @override
   Future<Either<Failure, SessionType>> detectSessionType(String patientId) {

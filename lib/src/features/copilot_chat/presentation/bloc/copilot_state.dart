@@ -38,4 +38,13 @@ class CachedMessagesLoaded extends CopilotState {
   List<Object> get props => [messages];
 }
 
+class CopilotFunctionCall extends CopilotState {
+  final FunctionCall functionCall;
+
+  const CopilotFunctionCall(this.functionCall);
+
+  @override
+  List<Object> get props => [functionCall];
+}
+
 class NewChatStarted extends CopilotState {}

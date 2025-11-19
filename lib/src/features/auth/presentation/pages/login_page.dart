@@ -11,6 +11,9 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authBloc = context.read<AuthBloc>();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
     return StreamBuilder(
       stream: authBloc.userAuthenticationStream(),
       builder: (context, snapshot) {
@@ -88,8 +91,61 @@ class LoginPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
+                    TextField(
+                      key: const Key('email_text_field'),
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: 'email'.tr(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        prefixIcon: const Icon(Icons.email),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 15),
+                    TextField(
+                      key: const Key('password_text_field'),
+                      controller: passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'password'.tr(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        prefixIcon: const Icon(Icons.lock),
+                      ),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      key: const Key('login_button'),
+                      onPressed: () {
+                        authBloc.add(SignInWithEmailAndPassword(
+                          email: emailController.text,
+                          password: passwordController.text,
+                        ));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 5,
+                      ),
+                      child: Text(
+                        'login'.tr(),
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: Text('or'.tr(),
+                          style: Theme.of(context).textTheme.bodyLarge),
+                    ),
+                    const SizedBox(height: 20),
                     Center(
                       child: ElevatedButton.icon(
+                        key: const Key('google_sign_in_button'),
                         onPressed: () {
                           authBloc.add(SignInWithGoogle());
                         },

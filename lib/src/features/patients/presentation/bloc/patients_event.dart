@@ -60,15 +60,18 @@ class DeletePatient extends PatientsEvent {
 }
 
 class GetPatientsByDate extends PatientsEvent {
-  final DateTime date;
+  final int year;
+  final int month;
 
   const GetPatientsByDate({
-    required this.date,
+    required this.year,
+    required this.month,
   });
 
   @override
   List<Object?> get props => [
-        date,
+        year,
+        month,
       ];
 }
 

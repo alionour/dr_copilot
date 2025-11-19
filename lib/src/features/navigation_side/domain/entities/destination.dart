@@ -10,33 +10,44 @@ class NavItemModel {
 
 /// Enum representing different navigation destinations.
 enum Destination {
+  // Core Operations
   copilot(
-      NavItemModel('copilot', Icons.dashboard_outlined), 'Navigate to Copilot'),
-  calendar(NavItemModel('calendar', Icons.calendar_month_outlined),
+      NavItemModel('copilot', Icons.psychology_outlined), 'Navigate to Copilot'),
+  calendar(NavItemModel('calendar', Icons.event_outlined),
       'View your calendar'),
-  settings(NavItemModel('settings', Icons.settings_suggest_outlined),
-      'Adjust your settings'),
-  notifications(NavItemModel('notifications', Icons.notifications_on_outlined),
-      'View notifications'),
-  chat(NavItemModel('chat', Icons.chat_outlined), 'Open chat'),
-  liveAssistant(
-      NavItemModel('liveAssistant', Icons.mic), 'Live Voice Assistant'),
-  patients(NavItemModel('patients', Icons.people), 'Manage your patients'),
+  
+  // Management
+  patients(NavItemModel('patients', Icons.person_search_outlined), 'Manage your patients'),
   doctors(
-      NavItemModel('doctors', Icons.person_2_outlined), 'Manage your doctors'),
-  staff(NavItemModel('staff', Icons.people_outline), 'Manage your staff'),
-  sessions(
-      NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),
-  evaluations(NavItemModel('evaluations', Icons.assessment_outlined),
-      'View evaluations'),
-  charts(
-      NavItemModel('charts', Icons.area_chart_outlined), 'Navigate to Charts'),
-  financials(NavItemModel('financials', Icons.attach_money_outlined),
-      'Manage your financials'),
-  clinicalReports(NavItemModel('clinical_reports', Icons.assignment_outlined),
+      NavItemModel('doctors', Icons.medical_services_outlined), 'Manage your doctors'),
+  staff(NavItemModel('staff', Icons.badge_outlined), 'Manage your staff'),
+  clinicalReports(NavItemModel('clinical_reports', Icons.description_outlined),
       'Manage your clinical reports'),
-  chatGptProject(NavItemModel('chatGptProject', Icons.hub_outlined),
-      'Manage your ChatGPT projects');
+  
+  // Appointments
+  sessions(
+      NavItemModel('sessions', Icons.event_seat_outlined), 'View your sessions'),
+  evaluations(NavItemModel('evaluations', Icons.assignment_turned_in_outlined),
+      'View evaluations'),
+  
+  // Business
+  financials(NavItemModel('financials', Icons.account_balance_wallet_outlined),
+      'Manage your financials'),
+  charts(
+      NavItemModel('charts', Icons.analytics_outlined), 'Navigate to Charts'),
+  
+  // Utilities
+  notifications(NavItemModel('notifications', Icons.notifications_outlined),
+      'View notifications'),
+  settings(NavItemModel('settings', Icons.settings_outlined),
+      'Adjust your settings'),
+  chatGptProject(NavItemModel('chatGptProject', Icons.api_outlined),
+      'Manage your ChatGPT projects'),
+  
+  // Additional (not currently in menu)
+  chat(NavItemModel('chat', Icons.chat_bubble_outline), 'Open chat'),
+  liveAssistant(
+      NavItemModel('liveAssistant', Icons.mic_outlined), 'Live Voice Assistant');
 
   final NavItemModel model;
   final String message; // Tooltip or explanation for the destination

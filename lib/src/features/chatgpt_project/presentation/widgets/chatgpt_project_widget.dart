@@ -1,8 +1,8 @@
-import 'package:dr_copilot/src/features/chatgpt_project/domain/models/chatgpt_project_model.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/domain/entities/chatgpt_project.dart';
 import 'package:flutter/material.dart';
 
 class ChatGptProjectWidget extends StatelessWidget {
-  final ChatGptProjectModel project;
+  final ChatGptProject project;
 
   const ChatGptProjectWidget({super.key, required this.project});
 

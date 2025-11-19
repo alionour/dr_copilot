@@ -67,5 +67,16 @@
 		</dict>
 	</array>
 	<!-- End of the Google Sign-in Section -->
+	
+	<!-- FCM Background Modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- Disable Firebase App Delegate Proxy -->
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
 </dict>
 </plist>

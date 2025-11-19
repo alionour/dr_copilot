@@ -493,6 +493,73 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
   }
 
+  /// Gets a single session by its ID.
+  @override
+  Future<Either<Failure, SessionModel>> getSessionById(String id) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final docSnapshot = await _sessionsCollection.doc(id).get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>?;
+        if (data == null) {
+          throw Exception('Document data is null');
+        }
+        final patientName = await getPatientNameById(data['patientId'] as String);
+        return Right(SessionModel.fromJson({
+          ...data,
+          'id': docSnapshot.id,
+          'patientName': patientName ?? 'No Name Available',
+        }));
+      } else {
+        return Left(ServerFailure('Session not found', 404));
+      }
+    } catch (e) {
+      debugPrint('Error getting session by ID: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Gets all sessions without pagination.
+  @override
+  Future<Either<Failure, List<SessionModel>>> getAllSessions() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final snapshot = await _sessionsCollection
+            .where('ownerId', isEqualTo: ownerId)
+            .orderBy('startDateTime', descending: true)
+            .get();
+
+        List<SessionModel> sessions =
+            await Future.wait(snapshot.docs.map((doc) async {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          final patientName =
+              await getPatientNameById(data['patientId'] as String);
+          if (patientName == null) {
+            debugPrint('Patient name not found for ID: ${data['patientId']}');
+          }
+          return SessionModel.fromJson({
+            ...data,
+            'id': doc.id,
+            'patientName': patientName ?? 'No Name Available',
+          });
+        }).toList());
+
+        return Right(sessions);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
   /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
   @override
   Future<Either<Failure, int>> getSessionsCount() async {

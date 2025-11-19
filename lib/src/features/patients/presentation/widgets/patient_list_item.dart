@@ -465,13 +465,13 @@ class _PatientListItemState extends State<PatientListItem> {
           _editableField = null; // Clear the editable field
         });
       } catch (e) {
+        final message = e.toString().contains('Unauthorized')
+            ? 'unauthorizedError'.tr()
+            : 'unexpectedError'.tr();
+        debugPrint('SnackBar Error: $message');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              e.toString().contains('Unauthorized')
-                  ? 'unauthorizedError'.tr()
-                  : 'unexpectedError'.tr(),
-            ),
+            content: Text(message),
           ),
         );
       }

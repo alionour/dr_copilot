@@ -3,9 +3,11 @@ import 'package:dr_copilot/src/core/localization/app_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'src/core/app/notifiers/owner_notifier.dart';
 import 'src/core/injections.dart';
+import 'src/core/services/fcm_service.dart';
 import 'firebase_options.dart';
 import 'src/core/app/app.dart';
 
@@ -25,6 +27,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Set background message handler for FCM
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   // Initialize dependency injections for the app
   // This is where you set up your service locator (GetIt) and register all the necessary services.

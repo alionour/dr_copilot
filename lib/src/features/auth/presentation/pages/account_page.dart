@@ -299,19 +299,20 @@ class AccountPage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 24), // Spacing between sections
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListTile(
-                  leading: const Icon(Icons.folder_open),
-                  title: Text('cases'.tr()),
-                  onTap: () {
-                    context.go('/cases');
-                  },
-                ),
-              ),
+              // const SizedBox(height: 24), // Spacing between sections
+              // Card(
+              //   margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              //   child: ListTile(
+              //     leading: const Icon(Icons.folder_open),
+              //     title: Text('cases'.tr()),
+              //     onTap: () {
+              //       context.go('/cases');
+              //     },
+              //   ),
+              // ),
               const SizedBox(height: 24), // Spacing before button
               ElevatedButton(
+                key: const Key('logout_button'),
                 onPressed: () async {
                   debugPrint('Sign-out button pressed');
                   context.read<AuthBloc>().add(SignOutEvent());

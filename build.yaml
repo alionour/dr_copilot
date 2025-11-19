@@ -1,0 +1,17 @@
+targets:
+  $default:
+    sources:
+      - "lib/**"
+      - "bin/**"
+      - "pubspec.yaml"
+      - "$package$"
+    builders:
+      json_serializable:
+        generate_for:
+          - "lib/**"
+      freezed:
+        generate_for:
+          - "lib/**"
+      l10n_mapper_generator:
+        generate_for:
+          - "lib/**"

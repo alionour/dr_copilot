@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:get_it/get_it.dart';
 import 'presentation/bloc/copilot_bloc.dart';
 import 'services/vertex_ai_service.dart';
@@ -28,7 +29,11 @@ void initCopilotInjections() {
   // Services
   sl.registerLazySingleton(() => VertexAIService(''));
   sl.registerLazySingleton(() => GPTService(''));
-  sl.registerLazySingleton(() => GeminiService(''));
+  sl.registerLazySingleton(
+    () => GeminiService(
+      Platform.environment['GEMINI_KEY'] ?? Platform.environment['GEMINI_KEY_2']!,
+    ),
+  );
   sl.registerLazySingleton(() => DeepSeekService(''));
   sl.registerLazySingleton(() => QwenService(''));
   sl.registerLazySingleton(() => ClaudeService(''));

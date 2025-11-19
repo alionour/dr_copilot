@@ -7,7 +7,8 @@ import 'package:dr_copilot/src/features/copilot_chat/copilot_injections.dart';
 import 'package:dr_copilot/src/features/clinical_reports/clinical_reports_injections.dart';
 import 'package:dr_copilot/src/features/chatgpt_project/chatgpt_project_injections.dart';
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
-import 'package:dr_copilot/src/features/live_voice_assistant/live_voice_assistant_injections.dart';
+import 'package:dr_copilot/src/features/notifications/notifications_injections.dart';
+
 import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
 import 'package:dr_copilot/src/features/settings/settings_injections.dart';
 import 'package:get_it/get_it.dart';
@@ -15,8 +16,13 @@ import 'package:dr_copilot/src/core/network/network_info.dart';
 import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 import 'package:dr_copilot/src/features/doctors/doctors_injections.dart';
 import 'package:dr_copilot/src/features/staff/staff_injections.dart';
+import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/abstract_speech_recognition_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/speech_recognition_service.dart';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/native_speech_recognition_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
 
 // Import other feature injection files as needed
 /// Initializes dependency injection for the application using GetIt.
@@ -96,14 +102,26 @@ Future<void> initInjections() async {
   /// Call this during the application's initialization phase.
   initCopilotInjections();
 
-  /// Initializes the dependency injections required for the Live Voice Assistant feature.
-  ///
-  /// This function sets up all necessary services, repositories, and use cases
-  /// related to voice interaction, speech recognition, text-to-speech, and AI
-  /// conversation management. It should be called during the application's
-  /// initialization phase to ensure voice assistant components are available.
-  /// NOTE: Must be called after copilot injections as it depends on AI services.
-  initLiveVoiceAssistantInjections();
+  // Register Speech Recognition Services
+  // Native service for Arabic and multilingual support
+  sl.registerLazySingleton<NativeSpeechRecognitionService>(
+    () => NativeSpeechRecognitionService(),
+  );
+  
+  // Deepgram service for English (high quality)
+  sl.registerLazySingleton<SpeechRecognitionService>(
+    () => SpeechRecognitionService(deepgramApiKey: ApiKeyHelper.deepgramKey),
+  );
+  
+  // Hybrid service that routes based on language
+  sl.registerLazySingleton<AbstractSpeechRecognitionService>(
+    () => HybridSpeechRecognitionService(
+      nativeService: sl<NativeSpeechRecognitionService>(),
+      deepgramService: sl<SpeechRecognitionService>(),
+    ),
+  );
+
+
 
   /// Initializes the dependency injections required for the settings feature.
   ///
@@ -120,4 +138,5 @@ Future<void> initInjections() async {
   initCalendarInjections();
   initClinicalReportsInjections();
   initChatGptProjectInjections();
+  initNotificationsInjections();
 }

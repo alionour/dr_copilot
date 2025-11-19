@@ -63,3 +63,12 @@ class PermissionFailure extends Failure {
   /// [code] is an optional error code associated with the permission failure.
   PermissionFailure(super.message, [super.code = 403]);
 }
+
+/// Represents a failure that occurs due to a missing or invalid API key.
+class ApiKeyFailure extends Failure {
+  /// Represents a failure that occurs when an API key is missing or invalid.
+  ///
+  /// [message] provides details about the API key failure.
+  /// [code] is an optional error code associated with the API key failure.
+  ApiKeyFailure(super.message, [super.code = 401]);
+}
