@@ -11,6 +11,85 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Helper function to get user data
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper function to check if user has specific role
+    function hasRole(role) {
+      return isAuthenticated() && role in getUserData().roles;
+    }
+
+    // Helper function to check if user has any of the specified roles
+    function hasAnyRole(roles) {
+      return isAuthenticated() && getUserData().roles.hasAny(roles);
+    }
+
+    // Helper function to check if user is super admin
+    function isSuperAdmin() {
+      return hasRole('superAdmin');
+    }
+
+    // Helper function to check if user is admin (clinic owner)
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Helper function to check if user belongs to clinic
+    function belongsToClinic(clinicId) {
+      return isAuthenticated() && clinicId in getUserData().clinicIds;
+    }
+
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (
+        isOwner(userId) || 
+        isSuperAdmin() || 
+        (isAdmin() && belongsToClinic(resource.data.primaryClinicId))
+      );
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (
+        isOwner(userId) || 
+        isSuperAdmin()
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Rules for the 'clinics' collection
+    match /clinics/{clinicId} {
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        resource.data.ownerId == request.auth.uid || 
+        belongsToClinic(clinicId)
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() || 
+        resource.data.ownerId == request.auth.uid
+      );
+      allow delete: if isSuperAdmin() || resource.data.ownerId == request.auth.uid;
+    }
+
+    // Rules for the 'user_invitations' collection
+    match /user_invitations/{invitationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.email == getUserData().email ||
+        resource.data.invitedBy == request.auth.uid ||
+        isSuperAdmin()
+      );
+      allow create: if isAuthenticated() && (isAdmin() || isSuperAdmin());
+      allow update: if isAuthenticated() && (
+        resource.data.email == getUserData().email ||
+        resource.data.invitedBy == request.auth.uid ||
+        isSuperAdmin()
+      );
+      allow delete: if isAuthenticated() && (
+        resource.data.invitedBy == request.auth.uid ||
+        isSuperAdmin()
+      );
+    }
+
     // Rules for the 'conversations' collection
     match /conversations/{conversationId} {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
@@ -28,8 +107,16 @@ service cloud.firestore {
     // Rules for the 'notifications' collection
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        isAdmin()
+      );
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Rules for other collections (appointments, patients, staff, etc.)
+    match /{collection}/{document=**} {
+      allow read, write: if isAuthenticated();
     }
   }
 }
