@@ -4,6 +4,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 /// Enum representing all roles in the app.
 enum AppRole {
+  superAdmin,
   admin,
   doctor,
   staff,
@@ -13,6 +14,8 @@ enum AppRole {
   /// Maps [AppRole] enum to its string value (as used in Firestore and role_permissions.dart).
   String roleToString(AppRole role) {
     switch (role) {
+      case AppRole.superAdmin:
+        return 'superAdmin';
       case AppRole.admin:
         return 'admin';
       case AppRole.doctor:

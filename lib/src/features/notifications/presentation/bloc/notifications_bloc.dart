@@ -58,33 +58,26 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     await _notificationsSubscription?.cancel();
     await _unreadCountSubscription?.cancel();
 
-    try {
-      await emit.forEach(
-        useCase.watchNotifications(event.userId),
-        onData: (notificationsResult) {
-          return notificationsResult.fold(
-            (failure) => NotificationsError(failure.message),
-            (notifications) {
-              final unreadCount = notifications.where((n) => !n.isRead).length;
-              
-              return NotificationsLoaded(
-                notifications: notifications,
-                unreadCount: unreadCount,
-              );
-            },
-          );
-        },
-        onError: (error, stackTrace) {
-          debugPrint('Error watching notifications: $error');
-          return NotificationsError(error.toString());
-        },
-      );
-    } catch (e) {
-      debugPrint('Error in _onWatchNotifications: $e');
-      if (!emit.isDone) {
-        emit(NotificationsError(e.toString()));
-      }
-    }
+    await emit.forEach(
+      useCase.watchNotifications(event.userId),
+      onData: (notificationsResult) {
+        return notificationsResult.fold(
+          (failure) => NotificationsError(failure.message),
+          (notifications) {
+            final unreadCount = notifications.where((n) => !n.isRead).length;
+            
+            return NotificationsLoaded(
+              notifications: notifications,
+              unreadCount: unreadCount,
+            );
+          },
+        );
+      },
+      onError: (error, stackTrace) {
+        debugPrint('Error watching notifications: $error');
+        return NotificationsError(error.toString());
+      },
+    );
   }
 
   Future<void> _onMarkAsRead(

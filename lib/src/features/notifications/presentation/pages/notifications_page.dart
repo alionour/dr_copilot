@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_bloc.dart';
@@ -51,13 +50,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
         
         if (userDoc.exists && mounted) {
           final user = UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
-          // Check if user is a main admin (clinic owner):
-          // 1. Has admin role
-          // 2. ownerId equals their own uid (they created their own clinic)
-          final isMainAdmin = user.roles.contains(AppRole.admin) && 
-                             user.ownerId == user.uid;
+          // Use the isMainAdmin helper method which checks for super admin or clinic owner
           setState(() {
-            _isAdmin = isMainAdmin;
+            _isAdmin = user.isMainAdmin;
           });
         }
       }

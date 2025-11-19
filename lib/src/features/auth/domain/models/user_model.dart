@@ -125,4 +125,43 @@ class UserModel {
       ownerId: '',
     );
   }
+
+  // Role checking helper methods
+  bool get isSuperAdmin => roles.contains(AppRole.superAdmin);
+  bool get isAdmin => roles.contains(AppRole.admin);
+  bool get isDoctor => roles.contains(AppRole.doctor);
+  bool get isStaff => roles.contains(AppRole.staff);
+  bool get isFinancial => roles.contains(AppRole.financial);
+  bool get isReadonly => roles.contains(AppRole.readonly);
+  
+  // Check if user is a clinic owner (admin with ownerId matching their uid)
+  bool get isOwner => isAdmin && ownerId == uid;
+  
+  // Check if user is main admin (super admin or clinic owner)
+  bool get isMainAdmin => isSuperAdmin || isOwner;
+  
+  // Check if user belongs to a specific clinic
+  bool belongsToClinic(String clinicId) {
+    return clinicIds?.contains(clinicId) ?? false;
+  }
+  
+  // Check if user has any of the specified roles
+  bool hasAnyRole(List<AppRole> checkRoles) {
+    return roles.any((role) => checkRoles.contains(role));
+  }
+  
+  // Check if user has all of the specified roles
+  bool hasAllRoles(List<AppRole> checkRoles) {
+    return checkRoles.every((role) => roles.contains(role));
+  }
+  
+  // Check if user has a specific permission
+  bool hasPermission(AppPermission permission) {
+    return permissions.contains(permission);
+  }
+  
+  // Check if user has any of the specified permissions
+  bool hasAnyPermission(List<AppPermission> checkPermissions) {
+    return permissions.any((perm) => checkPermissions.contains(perm));
+  }
 }

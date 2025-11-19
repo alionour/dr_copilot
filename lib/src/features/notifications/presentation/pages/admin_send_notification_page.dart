@@ -445,6 +445,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
 
   String _getRoleLabel(AppRole role) {
     switch (role) {
+      case AppRole.superAdmin:
+        return 'super_admin'.tr();
       case AppRole.admin:
         return 'admin'.tr();
       case AppRole.doctor:
