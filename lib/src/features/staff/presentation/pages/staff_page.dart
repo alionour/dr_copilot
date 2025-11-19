@@ -54,7 +54,7 @@ class _StaffPageState extends State<StaffPage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              context.go('/staff/new');
+              context.go('/staff/add');
             },
           ),
         ],
@@ -82,7 +82,7 @@ class _StaffPageState extends State<StaffPage> {
                               const SizedBox(height: 16.0),
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  context.go('/staff/new');
+                                  context.go('/staff/add');
                                 },
                                 icon: const Icon(Icons.add),
                                 label: Text('addStaff'.tr()),
@@ -106,7 +106,7 @@ class _StaffPageState extends State<StaffPage> {
                                     trailing: IconButton(
                                       icon: const Icon(Icons.edit),
                                       onPressed: () {
-                                        context.go('/staff/${staff.id}/edit');
+                                        context.go('/staff/${staff.id}');
                                       },
                                     ),
                                     onTap: () {

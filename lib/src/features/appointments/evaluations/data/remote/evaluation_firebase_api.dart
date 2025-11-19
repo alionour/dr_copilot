@@ -402,6 +402,73 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
   }
 
+  /// Gets all evaluations without pagination.
+  @override
+  Future<Either<Failure, List<EvaluationModel>>> getAllEvaluations() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final snapshot = await _evaluationsCollection
+            .where('ownerId', isEqualTo: ownerId)
+            .orderBy('startDateTime', descending: true)
+            .get();
+
+        List<EvaluationModel> evaluations =
+            await Future.wait(snapshot.docs.map((doc) async {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          final patientName =
+              await getPatientNameById(data['patientId'] as String);
+          if (patientName == null) {
+            debugPrint('Patient name not found for ID: ${data['patientId']}');
+          }
+          return EvaluationModel.fromJson({
+            ...data,
+            'id': doc.id,
+            'patientName': patientName ?? 'No Name Available',
+          });
+        }).toList());
+
+        return Right(evaluations);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Gets a single evaluation by its ID.
+  @override
+  Future<Either<Failure, EvaluationModel>> getEvaluationById(String id) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final docSnapshot = await _evaluationsCollection.doc(id).get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>?;
+        if (data == null) {
+          throw Exception('Document data is null');
+        }
+        final patientName = await getPatientNameById(data['patientId'] as String);
+        return Right(EvaluationModel.fromJson({
+          ...data,
+          'id': docSnapshot.id,
+          'patientName': patientName ?? 'No Name Available',
+        }));
+      } else {
+        return Left(ServerFailure('Evaluation not found', 404));
+      }
+    } catch (e) {
+      debugPrint('Error getting evaluation by ID: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
   @override
   Future<Either<Failure, int>> getEvaluationsCount() async {
     try {

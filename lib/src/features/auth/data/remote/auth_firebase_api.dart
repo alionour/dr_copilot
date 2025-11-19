@@ -101,7 +101,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   ///
   /// Throws an exception if authentication fails.
   @override
-  Future<UserModel?> loginWithEmailAndPassword(
+  Future<UserModel?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
       final UserCredential userCredential =

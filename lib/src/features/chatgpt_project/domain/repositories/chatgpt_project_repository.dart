@@ -1,6 +1,6 @@
-import 'package:dr_copilot/src/features/chatgpt_project/domain/models/chatgpt_project_model.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/domain/entities/chatgpt_project.dart';
 
 abstract class ChatGptProjectRepository {
-  Future<ChatGptProjectModel?> getProjectByName(String name);
-  Future<ChatGptProjectModel> createProject(String name);
+  Future<ChatGptProject?> getProjectByName(String name);
+  Future<ChatGptProject> createProject(String name);
 }

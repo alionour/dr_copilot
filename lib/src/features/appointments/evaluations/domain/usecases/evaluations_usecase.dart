@@ -44,6 +44,16 @@ class EvaluationsUseCase {
     return await repository.getEvaluationsByDate(date);
   }
 
+  /// Gets a single evaluation by its ID.
+  Future<Either<Failure, EvaluationModel>> getEvaluationById(String id) async {
+    return await repository.getEvaluationById(id);
+  }
+
+  /// Gets all evaluations without pagination.
+  Future<Either<Failure, List<EvaluationModel>>> getAllEvaluations() async {
+    return await repository.getAllEvaluations();
+  }
+
   /// Retrieves the total count of evaluations.
   ///
   /// Returns a [Future] that completes with an [Either] containing a [Failure]

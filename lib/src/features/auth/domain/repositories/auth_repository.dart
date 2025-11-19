@@ -12,7 +12,7 @@ abstract class AbstractAuthRepository {
   ///
   /// Throws an [AuthException] if the login fails due to invalid credentials
   /// or other authentication errors.
-  Future<UserModel?> loginWithEmailAndPassword(String email, String password);
+  Future<UserModel?> signInWithEmailAndPassword(String email, String password);
 
   /// Signs out the currently authenticated user.
   Future<void> signOut();

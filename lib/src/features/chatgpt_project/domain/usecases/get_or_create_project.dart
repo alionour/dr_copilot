@@ -1,4 +1,4 @@
-import 'package:dr_copilot/src/features/chatgpt_project/domain/models/chatgpt_project_model.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/domain/entities/chatgpt_project.dart';
 import 'package:dr_copilot/src/features/chatgpt_project/domain/repositories/chatgpt_project_repository.dart';
 
 class GetOrCreateProject {
@@ -6,7 +6,7 @@ class GetOrCreateProject {
 
   GetOrCreateProject(this.repository);
 
-  Future<ChatGptProjectModel> call(String name) async {
+  Future<ChatGptProject> call(String name) async {
     final project = await repository.getProjectByName(name);
     if (project != null) {
       return project;

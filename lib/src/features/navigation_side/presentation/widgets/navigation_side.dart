@@ -241,7 +241,6 @@ class _NavigationSideState extends State<NavigationSide> {
                         ...[
                           Destination.copilot,
                           Destination.calendar,
-                          Destination.liveAssistant,
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {
@@ -354,7 +353,7 @@ class _NavigationSideState extends State<NavigationSide> {
                         ...[
                           Destination.notifications,
                           Destination.settings,
-                          Destination.chatGptProject,
+                          // Destination.chatGptProject, // Hidden
                         ].map((e) => SideMenuItemDataTile(
                               isSelected: state.destination == e,
                               onTap: () {

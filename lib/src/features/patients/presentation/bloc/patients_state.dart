@@ -31,11 +31,12 @@ class PatientsLoadingMore extends PatientsState {
 
 class PatientsLoaded extends PatientsState {
   final bool isLoadingMore;
+  final DocumentSnapshot? lastDocument;
 
-  const PatientsLoaded(super.patients, {this.isLoadingMore = false});
+  const PatientsLoaded(super.patients, {this.isLoadingMore = false, this.lastDocument});
 
   @override
-  List<Object?> get props => [patients, isLoadingMore];
+  List<Object?> get props => [patients, isLoadingMore, lastDocument];
 }
 
 class PatientsSuccess extends PatientsState {

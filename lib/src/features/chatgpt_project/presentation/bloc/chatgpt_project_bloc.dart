@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:dr_copilot/src/features/chatgpt_project/domain/models/chatgpt_project_model.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/domain/entities/chatgpt_project.dart';
 import 'package:dr_copilot/src/features/chatgpt_project/domain/usecases/get_or_create_project.dart';
 import 'package:equatable/equatable.dart';
 

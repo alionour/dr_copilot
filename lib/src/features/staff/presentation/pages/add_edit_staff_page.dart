@@ -104,12 +104,14 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
   void _saveStaff() {
     if (_formKey.currentState!.validate()) {
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
+        debugPrint('SnackBar Error: ${'selectClinic'.tr()}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('selectClinic'.tr())),
         );
         return;
       }
       if (_selectedRole == null || _selectedRole!.isEmpty) {
+        debugPrint('SnackBar Error: ${'pleaseSelectRole'.tr()}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('pleaseSelectRole'.tr())),
         );
@@ -152,13 +154,17 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
       body: BlocListener<StaffBloc, StaffState>(
         listener: (context, state) {
           if (state is StaffSuccess) {
+            final message = state.message ?? 'Success'.tr();
+            debugPrint('SnackBar Success: $message');
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? 'Success'.tr())),
+              SnackBar(content: Text(message)),
             );
             context.pop();
           } else if (state is StaffError) {
+            final message = state.message ?? 'Error'.tr();
+            debugPrint('SnackBar Error: $message');
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? 'Error'.tr())),
+              SnackBar(content: Text(message)),
             );
           }
         },

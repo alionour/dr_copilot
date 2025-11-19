@@ -6,7 +6,7 @@ import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dar
 /// An abstract class that defines the repository for patient-related operations.
 abstract class AbstractPatientsRepository {
   /// Gets a list of patients with pagination.
-  Future<Either<Failure, List<PatientModel>>> getPatients({
+  Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>> getPatients({
     String? lastDocumentId,
     int? limit,
   });
@@ -31,8 +31,14 @@ abstract class AbstractPatientsRepository {
   });
 
   /// Gets patients by a specific date.
-  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(int year, int month,
       {DocumentSnapshot? lastDocument, int limit = 20});
+
+  /// Gets a single patient by their ID.
+  Future<Either<Failure, PatientModel>> getPatientById(String id);
+
+  /// Gets all patients without pagination.
+  Future<Either<Failure, List<PatientModel>>> getAllPatients();
 
   /// Gets the total count of patients in Firestore.
   Future<Either<Failure, int>> getPatientsCount();

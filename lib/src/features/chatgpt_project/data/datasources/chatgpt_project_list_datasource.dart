@@ -15,7 +15,7 @@ class ChatGptProjectListDatasourceImpl implements ChatGptProjectListDatasource {
   });
 
   @override
-  Future<List<ChatGptProjectModel>> getChatGptProjects() async {
-    return await remoteDataSource.getProjects(apiKey);
+  Future<List<ChatGptProjectModel>> getChatGptProjects() {
+    return remoteDataSource.getProjects(apiKey);
   }
 }

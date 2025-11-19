@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:dr_copilot/src/features/chatgpt_project/domain/models/chatgpt_project_model.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/data/models/chatgpt_project_model.dart';
+
 import 'package:http/http.dart' as http;
 
 abstract class ChatGptProjectRemoteDataSource {
@@ -28,8 +29,15 @@ class ChatGptProjectRemoteDataSourceImpl
       final data = jsonDecode(response.body);
       final assistants = data['data'] as List;
       return assistants
-          .map((assistant) =>
-              ChatGptProjectModel(id: assistant['id'], name: assistant['name']))
+          .map((assistant) => ChatGptProjectModel(
+                id: assistant['id'],
+                name: assistant['name'],
+                description: assistant['description'] ?? '',
+                createdAt: DateTime.fromMillisecondsSinceEpoch(
+                    assistant['created_at'] * 1000),
+                updatedAt: DateTime.fromMillisecondsSinceEpoch(
+                    assistant['updated_at'] * 1000),
+              ))
           .toList();
     } else {
       final errorData = jsonDecode(response.body);
@@ -57,7 +65,15 @@ class ChatGptProjectRemoteDataSourceImpl
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return ChatGptProjectModel(id: data['id'], name: data['name']);
+      return ChatGptProjectModel(
+        id: data['id'],
+        name: data['name'],
+        description: data['description'] ?? '',
+        createdAt:
+            DateTime.fromMillisecondsSinceEpoch(data['created_at'] * 1000),
+        updatedAt:
+            DateTime.fromMillisecondsSinceEpoch(data['updated_at'] * 1000),
+      );
     } else {
       final errorData = jsonDecode(response.body);
       throw Exception(

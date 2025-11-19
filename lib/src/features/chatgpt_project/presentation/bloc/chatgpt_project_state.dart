@@ -12,7 +12,7 @@ class ChatGptProjectInitial extends ChatGptProjectState {}
 class ChatGptProjectLoading extends ChatGptProjectState {}
 
 class ChatGptProjectLoaded extends ChatGptProjectState {
-  final ChatGptProjectModel project;
+  final ChatGptProject project;
 
   const ChatGptProjectLoaded({required this.project});
 

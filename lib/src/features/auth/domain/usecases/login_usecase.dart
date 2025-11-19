@@ -25,9 +25,9 @@ class AuthUseCase {
   /// Returns a [UserModel] object if authentication is successful.
   ///
   /// Throws an exception if authentication fails.
-  Future<UserModel?> loginWithEmailAndPassword(
+  Future<UserModel?> signInWithEmailAndPassword(
       String email, String password) async {
-    return await repository.loginWithEmailAndPassword(email, password);
+    return await repository.signInWithEmailAndPassword(email, password);
   }
 
   /// Signs out the currently authenticated user.

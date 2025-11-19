@@ -7,7 +7,8 @@ import '../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../../features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import '../../../features/financials/presentation/bloc/financials_bloc.dart';
-import '../../../features/live_voice_assistant/presentation/bloc/live_assistant_bloc.dart';
+import '../../../features/notifications/presentation/bloc/notifications_bloc.dart';
+
 import '../../../features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../../../features/patients/presentation/bloc/patients_bloc.dart';
 import '../../../features/doctors/presentation/bloc/doctors_bloc.dart';
@@ -138,15 +139,7 @@ final appBlocProviders = <BlocProvider<dynamic>>[
     create: (context) => sl<TransactionsBloc>(),
   ),
 
-  /// Provides an instance of [LiveAssistantBloc] to the widget tree.
-  ///
-  /// This [BlocProvider] creates and manages the lifecycle of [LiveAssistantBloc],
-  /// making it available to all descendant widgets that require access to
-  /// live voice assistant functionality including speech recognition, text-to-speech,
-  /// and AI conversation management.
-  BlocProvider<LiveAssistantBloc>(
-    create: (context) => sl<LiveAssistantBloc>(),
-  ),
+
 
   /// Provides an instance of [CalendarBloc] to the widget tree.
   ///
@@ -155,5 +148,14 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// calendar functionality including Google Calendar integration and event management.
   BlocProvider<CalendarBloc>(
     create: (context) => sl<CalendarBloc>(),
+  ),
+
+  /// Provides an instance of [NotificationsBloc] to the widget tree.
+  ///
+  /// This [BlocProvider] creates and manages the lifecycle of [NotificationsBloc],
+  /// making it available to all descendant widgets that require access to
+  /// notifications functionality including real-time updates from Firebase.
+  BlocProvider<NotificationsBloc>(
+    create: (context) => sl<NotificationsBloc>(),
   ),
 ];

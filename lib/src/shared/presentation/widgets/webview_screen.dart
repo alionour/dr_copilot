@@ -70,6 +70,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         ..addJavaScriptChannel(
           'Toaster',
           onMessageReceived: (JavaScriptMessage message) {
+            debugPrint('SnackBar Info: ${message.message}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(message.message)),
             );
@@ -104,6 +105,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     } on Exception catch (e) {
       debugPrint('Error initializing webview_windows: $e');
       if (!mounted) return;
+      debugPrint('SnackBar Error: Error initializing webview: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initializing webview: $e')),
       );
@@ -133,6 +135,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 await launchUrl(Uri.parse(widget.url));
               } else {
                 if (!context.mounted) return;
+                debugPrint('SnackBar Error: ${'couldNotLaunch'.tr(args: [widget.url])}');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: Text('couldNotLaunch'.tr(args: [widget.url]))),

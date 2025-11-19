@@ -8,8 +8,8 @@ class AuthRepositoryImpl implements AbstractAuthRepository {
   AuthRepositoryImpl(this.api);
 
   @override
-  Future<UserModel?> loginWithEmailAndPassword(String email, String password) {
-    return api.loginWithEmailAndPassword(email, password);
+  Future<UserModel?> signInWithEmailAndPassword(String email, String password) {
+    return api.signInWithEmailAndPassword(email, password);
   }
 
   @override

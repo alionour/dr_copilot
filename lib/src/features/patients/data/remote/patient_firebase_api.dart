@@ -24,7 +24,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   /// Firebase Authentication instance for user authentication.
   final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatients({
+  Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>> getPatients({
     String? lastDocumentId, // match the abstract interface
     int? limit,
   }) async {
@@ -64,7 +64,12 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           });
         }).toList();
 
-        return Right(patients);
+        DocumentSnapshot? newLastDocumentSnapshot;
+        if (snapshot.docs.isNotEmpty && patients.length == (limit ?? 20)) {
+          newLastDocumentSnapshot = snapshot.docs.last;
+        }
+
+        return Right(Tuple2(patients, newLastDocumentSnapshot));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -226,19 +231,18 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   }
 
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(int year, int month,
       {DocumentSnapshot? lastDocument, int limit = 20}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        final startOfMonth = DateTime(year, month, 1);
+        final endOfMonth = DateTime(year, month + 1, 1);
+
         Query queryRef = _patientsCollection
             .where('ownerId', isEqualTo: ownerId)
-            .where('createdAt',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(
-                    DateTime(date.year, date.month, date.day)))
-            .where('createdAt',
-                isLessThan: Timestamp.fromDate(
-                    DateTime(date.year, date.month, date.day + 1)))
+            .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+            .where('createdAt', isLessThan: Timestamp.fromDate(endOfMonth))
             .limit(limit);
 
         if (lastDocument != null) {
@@ -246,6 +250,68 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         }
 
         final snapshot = await queryRef.get();
+
+        List<PatientModel> patients = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          return PatientModel.fromJson({
+            ...data,
+            'id': doc.id, // Ensure the document ID is included
+          });
+        }).toList();
+
+        return Right(patients);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Gets a single patient by their ID.
+  @override
+  Future<Either<Failure, PatientModel>> getPatientById(String id) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final docSnapshot = await _patientsCollection.doc(id).get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>?;
+        if (data == null) {
+          throw Exception('Document data is null');
+        }
+        return Right(PatientModel.fromJson({
+          ...data,
+          'id': docSnapshot.id,
+        }));
+      } else {
+        return Left(ServerFailure('Patient not found', 404));
+      }
+    } catch (e) {
+      debugPrint('Error getting patient by ID: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Gets all patients without pagination.
+  @override
+  Future<Either<Failure, List<PatientModel>>> getAllPatients() async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final snapshot = await _patientsCollection
+            .where('ownerId', isEqualTo: ownerId)
+            .orderBy('createdAt', descending: true)
+            .get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>?;

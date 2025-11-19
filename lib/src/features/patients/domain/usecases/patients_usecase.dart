@@ -10,8 +10,8 @@ class PatientsUseCase {
   PatientsUseCase(this.repository);
 
   /// Gets a list of patients.
-  Future<Either<Failure, List<PatientModel>>> getPatients({
-    required String? lastDocumentId, // Corrected parameter name
+  Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>> getPatients({
+    String? lastDocumentId, // Corrected parameter name
     int? limit = 20,
   }) async {
     return await repository.getPatients(
@@ -55,10 +55,20 @@ class PatientsUseCase {
   }
 
   /// Gets patients by a specific date.
-  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(int year, int month,
       {DocumentSnapshot? lastDocument, int limit = 20}) async {
-    return await repository.getPatientsByDate(date,
+    return await repository.getPatientsByDate(year, month,
         lastDocument: lastDocument, limit: limit);
+  }
+
+  /// Gets a single patient by their ID.
+  Future<Either<Failure, PatientModel>> getPatientById(String id) async {
+    return await repository.getPatientById(id);
+  }
+
+  /// Gets all patients without pagination.
+  Future<Either<Failure, List<PatientModel>>> getAllPatients() async {
+    return await repository.getAllPatients();
   }
 
   // Gets Patients Count

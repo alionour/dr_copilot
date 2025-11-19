@@ -50,6 +50,16 @@ class SessionsUseCase {
     return await repository.detectSessionType(patientId);
   }
 
+  /// Gets a single session by its ID.
+  Future<Either<Failure, SessionModel>> getSessionById(String id) async {
+    return await repository.getSessionById(id);
+  }
+
+  /// Gets all sessions without pagination.
+  Future<Either<Failure, List<SessionModel>>> getAllSessions() async {
+    return await repository.getAllSessions();
+  }
+
   /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
   Future<Either<Failure, int>> getSessionsCount() async {
     return await repository.getSessionsCount();
