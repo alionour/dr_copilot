@@ -47,6 +47,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   final _actualPriceController = TextEditingController();
 
   DoctorModel? _selectedDoctor;
+  List<DoctorModel> _doctors = [];
 
   CurrencyProfileModel? _selectedCurrencyProfile;
   List<CurrencyProfileModel> _currencyProfiles = [];
@@ -211,7 +212,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     }
   }
 
-  final ownerId = OwnerNotifier().ownerId;
+  String? get ownerId => OwnerNotifier().ownerId;
 
   void _saveEvaluation() {
     if (_formKey.currentState!.validate()) {
@@ -404,6 +405,25 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
               }
             },
           ),
+          BlocListener<DoctorsBloc, DoctorsState>(
+            listener: (context, state) {
+              if (state is DoctorsLoaded) {
+                setState(() {
+                  _doctors = state.doctors;
+                  if (_doctors.isNotEmpty && _selectedDoctor == null) {
+                    _selectedDoctor = _doctors.first;
+                  }
+                });
+              } else if (state is DoctorsError) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
+            },
+          ),
         ],
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -450,6 +470,34 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'selectClinic'.tr();
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8.0),
+                            DropdownButtonFormField<DoctorModel>(
+                              value: _selectedDoctor,
+                              decoration: InputDecoration(
+                                labelText: 'selectDoctor'.tr(),
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items: _doctors.map((doctor) {
+                                return DropdownMenuItem<DoctorModel>(
+                                  value: doctor,
+                                  child: Text(doctor.name),
+                                );
+                              }).toList(),
+                              onChanged: (DoctorModel? newValue) {
+                                setState(() {
+                                  _selectedDoctor = newValue;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'pleaseSelectDoctor'.tr();
                                 }
                                 return null;
                               },

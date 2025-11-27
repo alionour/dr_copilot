@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -7,9 +8,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Service for handling Firebase Cloud Messaging (FCM) push notifications
 class FCMService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   String? _fcmToken;
   StreamSubscription<String>? _tokenSubscription;
 
@@ -18,6 +20,12 @@ class FCMService {
 
   /// Initialize FCM service
   Future<void> initialize(String userId) async {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isFuchsia)) {
+      debugPrint('[FCM] Skipping initialization on unsupported platform');
+      return;
+    }
+
     try {
       debugPrint('[FCM] Initializing FCM Service for user: $userId');
 
@@ -72,7 +80,8 @@ class FCMService {
 
   /// Initialize local notifications for foreground messages
   Future<void> _initializeLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -100,7 +109,8 @@ class FCMService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
   }
 
@@ -155,7 +165,8 @@ class FCMService {
           android: AndroidNotificationDetails(
             'high_importance_channel',
             'High Importance Notifications',
-            channelDescription: 'This channel is used for important notifications.',
+            channelDescription:
+                'This channel is used for important notifications.',
             importance: Importance.high,
             priority: Priority.high,
             icon: android?.smallIcon ?? '@mipmap/ic_launcher',

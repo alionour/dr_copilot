@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/repositories/abstract_sessions_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -12,7 +13,7 @@ import 'package:flutter/foundation.dart';
 /// and includes additional functionality such as fetching sessions by date
 /// and detecting session types.
 class SessionsFirebaseApi extends AbstractSessionsRepository {
-  final ownerId = OwnerNotifier().ownerId;
+  String? get clinicId => OwnerNotifier().clinicId;
 
   /// Reference to the Firestore collection for sessions.
   final CollectionReference _sessionsCollection =
@@ -47,13 +48,19 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef;
+        Query queryRef =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
               await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
-            queryRef = _sessionsCollection
-                .where('ownerId', isEqualTo: ownerId)
+            queryRef = queryRef
                 .orderBy('startDateTime', descending: true)
                 .startAfterDocument(lastDocumentSnapshot)
                 .limit(limit);
@@ -61,10 +68,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         } else {
-          queryRef = _sessionsCollection
-              .where('ownerId', isEqualTo: ownerId)
-              .orderBy('startDateTime', descending: true)
-              .limit(limit);
+          queryRef =
+              queryRef.orderBy('startDateTime', descending: true).limit(limit);
         }
 
         final snapshot = await queryRef.get();
@@ -130,12 +135,14 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final docRef = await _sessionsCollection.add({
           ...data,
           'createdBy': user.uid,
+          'doctorId': user.uid, // Ensure doctorId is set
         });
 
         // Create a new SessionModel with the generated document ID and patientName
         final createdSession = sessionModel.copyWith(
           id: docRef.id, // Assign the generated document ID
           createdBy: user.uid, // Ensure createdBy is set
+          doctorId: user.uid, // Ensure doctorId is set
           patientName:
               patientName, // Include the patient name in the returned model
         );
@@ -187,6 +194,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           }
 
           // Check if the authenticated user is authorized to update the document
+          // Relaxing this check for clinic-based access or keeping it if strict ownership is needed.
+          // For now, keeping it as is, assuming createdBy check is still valid or should be relaxed to clinicId check.
+          // Given the context, let's keep it but be aware.
           if (createdBy == user.uid) {
             final updatedData = sessionModel.toJson();
 
@@ -276,7 +286,6 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   ///
   /// Returns a list of [SessionModel] objects or a [Failure] in case of an error.
   @override
-  @override
   Future<Either<Failure, List<SessionModel>>> searchSessions(
       {String? name, String? lastDocumentID, int limit = 20}) async {
     if (!await _isAuthenticated()) {
@@ -301,7 +310,13 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         }
 
         Query queryRef =
-            _sessionsCollection.where('ownerId', isEqualTo: ownerId);
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
         if (patientIds.isNotEmpty) {
           // Firestore whereIn supports max 10 items, so take first 10
           queryRef = queryRef.where('patientId',
@@ -371,8 +386,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
-        Query queryRef = _sessionsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query queryRef =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        queryRef = queryRef
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -508,7 +530,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         if (data == null) {
           throw Exception('Document data is null');
         }
-        final patientName = await getPatientNameById(data['patientId'] as String);
+        final patientName =
+            await getPatientNameById(data['patientId'] as String);
         return Right(SessionModel.fromJson({
           ...data,
           'id': docSnapshot.id,
@@ -529,10 +552,16 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final snapshot = await _sessionsCollection
-            .where('ownerId', isEqualTo: ownerId)
-            .orderBy('startDateTime', descending: true)
-            .get();
+        Query queryRef =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        final snapshot =
+            await queryRef.orderBy('startDateTime', descending: true).get();
 
         List<SessionModel> sessions =
             await Future.wait(snapshot.docs.map((doc) async {
@@ -570,7 +599,14 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final query = _sessionsCollection.where('ownerId', isEqualTo: ownerId);
+        Query query =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
         final aggregateQuerySnapshot = await query.count().get();
         return Right(aggregateQuerySnapshot.count ?? 0);
       }
@@ -596,8 +632,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        final query = _sessionsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -624,8 +667,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        final query = _sessionsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -658,8 +708,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        final query = _sessionsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -692,8 +749,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        final query = _sessionsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -721,7 +785,14 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final query = _sessionsCollection.where('ownerId', isEqualTo: ownerId);
+        Query query =
+            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all sessions
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
         final aggregateQuerySnapshot =
             await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;

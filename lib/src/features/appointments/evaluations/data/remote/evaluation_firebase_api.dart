@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -16,7 +17,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   final CollectionReference _patientsCollection =
       FirebaseFirestore.instance.collection('patients');
 
-  final ownerId = OwnerNotifier().ownerId;
+  String? get clinicId => OwnerNotifier().clinicId;
 
   Future<bool> _isAuthenticated() async {
     final currentUser = await FirebaseAuth.instance.authStateChanges().first;
@@ -31,13 +32,19 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef;
+        Query queryRef =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
               await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
-            queryRef = _evaluationsCollection
-                .where('ownerId', isEqualTo: ownerId)
+            queryRef = queryRef
                 .orderBy('startDateTime', descending: true)
                 .startAfterDocument(lastDocumentSnapshot)
                 .limit(limit);
@@ -45,41 +52,11 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         } else {
-          queryRef = _evaluationsCollection
-              .where('ownerId', isEqualTo: ownerId)
-              .orderBy('startDateTime', descending: true)
-              .limit(limit);
-        }
-
-        debugPrint('Executing query for evaluations');
-        debugPrint('Query details: ownerId = $ownerId, limit = $limit');
-        if (lastDocumentID != null) {
-          debugPrint('Using lastDocumentID: $lastDocumentID');
+          queryRef =
+              queryRef.orderBy('startDateTime', descending: true).limit(limit);
         }
 
         final snapshot = await queryRef.get();
-
-        debugPrint('Query returned ${snapshot.docs.length} documents');
-        for (var doc in snapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          // Debugging each field to find null values
-          debugPrint('Document ID: ${doc.id}');
-          debugPrint('Field patientId: ${data['patientId']}');
-          debugPrint('Field patientName: ${data['patientName']}');
-          debugPrint('Field price: ${data['price']}');
-          debugPrint('Field startDateTime: ${data['startDateTime']}');
-          debugPrint('Field endDateTime: ${data['endDateTime']}');
-          debugPrint('Field userId: ${data['userId']}');
-          debugPrint('Field createdBy: ${data['createdBy']}');
-          debugPrint('Field updatedBy: ${data['updatedBy']}');
-          debugPrint('Field deletedBy: ${data['deletedBy']}');
-          debugPrint('Field createdAt: ${data['createdAt']}');
-          debugPrint('Field updatedAt: ${data['updatedAt']}');
-          debugPrint('Field deletedAt: ${data['deletedAt']}');
-        }
 
         List<EvaluationModel> evaluations =
             await Future.wait(snapshot.docs.map((doc) async {
@@ -128,10 +105,12 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         final docRef = await _evaluationsCollection.add({
           ...data,
           'createdBy': user.uid,
+          'doctorId': user.uid, // Ensure doctorId is set
         });
         final createdEvaluation = evaluationModel.copyWith(
           id: docRef.id, // Assign the generated document ID
           createdBy: user.uid, // Ensure createdBy is set
+          doctorId: user.uid, // Ensure doctorId is set
           patientName:
               patientName, // Include the patient name in the returned model
         );
@@ -266,7 +245,13 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         }
 
         Query queryRef =
-            _evaluationsCollection.where('ownerId', isEqualTo: ownerId);
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
         if (patientIds.isNotEmpty) {
           // Firestore whereIn supports max 10 items, so take first 10
           queryRef = queryRef.where('patientId',
@@ -332,8 +317,15 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
       if (user != null) {
         debugPrint(
             'Filtering evaluations for user: ${user.uid} on date: $date');
-        Query queryRef = _evaluationsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query queryRef =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        queryRef = queryRef
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -408,10 +400,16 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final snapshot = await _evaluationsCollection
-            .where('ownerId', isEqualTo: ownerId)
-            .orderBy('startDateTime', descending: true)
-            .get();
+        Query queryRef =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        final snapshot =
+            await queryRef.orderBy('startDateTime', descending: true).get();
 
         List<EvaluationModel> evaluations =
             await Future.wait(snapshot.docs.map((doc) async {
@@ -454,7 +452,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         if (data == null) {
           throw Exception('Document data is null');
         }
-        final patientName = await getPatientNameById(data['patientId'] as String);
+        final patientName =
+            await getPatientNameById(data['patientId'] as String);
         return Right(EvaluationModel.fromJson({
           ...data,
           'id': docSnapshot.id,
@@ -472,8 +471,20 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   @override
   Future<Either<Failure, int>> getEvaluationsCount() async {
     try {
-      final snapshot = await _evaluationsCollection.count().get();
-      return Right(snapshot.count ?? 0);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Query query =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        final snapshot = await query.count().get();
+        return Right(snapshot.count ?? 0);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
       return Left(ServerFailure(e.toString(), 404));
     }
@@ -494,8 +505,15 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        final query = _evaluationsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -522,8 +540,15 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        final query = _evaluationsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -552,8 +577,15 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        final query = _evaluationsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -583,8 +615,15 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        final query = _evaluationsCollection
-            .where('ownerId', isEqualTo: ownerId)
+        Query query =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
+        query = query
             .where('startDateTime',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(start))
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
@@ -611,8 +650,14 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final query =
-            _evaluationsCollection.where('ownerId', isEqualTo: ownerId);
+        Query query =
+            _evaluationsCollection.where('clinicId', isEqualTo: clinicId);
+
+        // Filter by doctorId if the user does not have permission to view all evaluations
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+          query = query.where('doctorId', isEqualTo: user.uid);
+        }
+
         final aggregateQuerySnapshot =
             await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;

@@ -22,7 +22,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   final TransactionsUseCase transactionsUseCase;
 
   /// The owner ID of the user, fetched from Firebase Auth.
-  final ownerId = OwnerNotifier().ownerId;
+  String? get ownerId => OwnerNotifier().ownerId;
 
   // Add a transaction
   @override

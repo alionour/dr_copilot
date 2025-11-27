@@ -13,7 +13,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   final CollectionReference _transactionsCollection =
       FirebaseFirestore.instance.collection('transactions');
 
-  final ownerId = OwnerNotifier().ownerId;
+  String? get ownerId => OwnerNotifier().ownerId;
 
   /// Ensures all queries are scoped to the current user.
   Query _userScopedQuery() =>

@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -42,17 +43,30 @@ class _PatientsPageState extends State<PatientsPage> {
       debugPrint('List focus node has focus: ${_listFocusNode.hasFocus}');
     });
     _scrollController.addListener(_onScroll);
+
+    // Listen to OwnerNotifier to re-fetch when clinicId changes/loads
+    context.read<OwnerNotifier>().addListener(_onOwnerNotifierChanged);
+
     context.read<PatientsBloc>().add(const GetPatients());
     context.read<PatientsBloc>().add(GetPatientsCount());
   }
 
   @override
   void dispose() {
+    context.read<OwnerNotifier>().removeListener(_onOwnerNotifierChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _listFocusNode.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onOwnerNotifierChanged() {
+    if (mounted) {
+      // Re-fetch patients when owner/clinic info changes
+      context.read<PatientsBloc>().add(const GetPatients());
+      context.read<PatientsBloc>().add(GetPatientsCount());
+    }
   }
 
   void _onScroll() {
@@ -207,9 +221,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                 _selectedAddress = null; // Clear address value
                               });
                               if (!context.mounted) return;
-                              context
-                                  .read<PatientsBloc>()
-                                  .add(GetPatientsByDate(
+                              context.read<PatientsBloc>().add(
+                                  GetPatientsByDate(
                                       year: selectedDate.year,
                                       month: selectedDate.month));
                             }

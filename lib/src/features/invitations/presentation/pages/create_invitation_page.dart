@@ -8,6 +8,7 @@ import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_event.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_defaults.dart';
 import 'package:dr_copilot/src/features/staff/domain/usecases/staff_usecase.dart';
 import 'package:dr_copilot/src/core/services/backend_service.dart';
 import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
@@ -145,9 +146,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       clinicId: widget.clinicId,
       invitedBy: widget.currentUserId,
       roles: _selectedRole != null ? [_selectedRole!.name] : [],
-      permissions: _selectedPermissions
-          .map((p) => AppPermission.permissionToString(p))
-          .toList(),
+      permissions: _selectedPermissions.map((p) => p.name).toList(),
       status: 'pending',
       createdAt: DateTime.now(),
     );
@@ -259,40 +258,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         ),
       ];
 
-  Widget _buildRolesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...AppRole.values.map((role) {
-          if (role == AppRole.superAdmin) return const SizedBox.shrink();
-          return RadioListTile<AppRole>(
-            // Changed to RadioListTile
-            title: Text(_getRoleDisplayName(role)),
-            subtitle: Text(
-                'Assign the ${_getRoleDisplayName(role).toLowerCase()} role'),
-            value: role,
-            groupValue:
-                _selectedRole, // groupValue is the currently selected role
-            onChanged: (AppRole? value) {
-              setState(() {
-                _selectedRole = value; // Update the single selected role
-                _updatePermissionsBasedOnRoles();
-              });
-            },
-          );
-        }),
-        if (_selectedRole == null) // Validation message for no role selected
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Please select a role to proceed.',
-              style: TextStyle(color: Colors.red),
-            ),
-          )
-      ],
-    );
-  }
-
   Widget _buildReviewSection() {
     final String email = _useManualEntry
         ? _emailController.text.trim()
@@ -309,7 +274,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         _buildReviewTile(
           icon: Icons.shield_outlined,
           title: 'Assigned Role',
-          subtitle: _selectedRole == null // Modified for single role
+          subtitle: _selectedRole == null
               ? 'No role selected'
               : _getRoleDisplayName(_selectedRole!),
         ),
@@ -317,7 +282,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         _buildReviewTile(
           icon: Icons.vpn_key_outlined,
           title: 'Granted Permissions',
-          subtitle: '', // Subtitle is handled by the Column widget below
+          subtitle: '',
         ),
         const SizedBox(height: 16),
         if (_selectedPermissions.isEmpty)
@@ -522,60 +487,77 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   void _updatePermissionsBasedOnRoles() {
     _selectedPermissions.clear();
     if (_selectedRole != null) {
-      // Modified for single role
-      _selectedPermissions.addAll(_getPermissionsForRole(_selectedRole!));
+      _selectedPermissions
+          .addAll(RoleDefaults.getPermissionsForRole(_selectedRole!));
     }
   }
 
-  List<AppPermission> _getPermissionsForRole(AppRole role) {
-    switch (role) {
-      case AppRole.admin:
-        return AppPermission.values;
-      case AppRole.doctor:
-        return [
-          // Patient
-          AppPermission.canViewPatient,
-          AppPermission.canAddPatient,
-          AppPermission.canEditPatient,
-          // Session
-          AppPermission.canViewSession,
-          AppPermission.canAddSession,
-          AppPermission.canEditSession,
-          // Evaluation
-          AppPermission.canViewEvaluation,
-          AppPermission.canAddEvaluation,
-          AppPermission.canEditEvaluation,
-          // Calendar
-          AppPermission.canViewCalendar,
-          AppPermission.canAddCalendarEvent,
-          AppPermission.canEditCalendar,
-          // Copilot
-          AppPermission.canUseCopilot,
-        ];
-      case AppRole.staff:
-        return [
-          AppPermission.canViewPatient,
-          AppPermission.canAddPatient, // Added for intake
-          AppPermission.canViewSession,
-          AppPermission.canViewCalendar, // Added for scheduling
-        ];
-      case AppRole.financial:
-        return [
-          AppPermission.canViewFinancials,
-          AppPermission.canAddFinancials,
-          AppPermission.canEditFinancials,
-          AppPermission.canViewReports, // Added for analysis
-          AppPermission.canViewCharts, // Added for analysis
-        ];
-      case AppRole.readonly:
-        return [
-          AppPermission.canViewPatient,
-          AppPermission.canViewSession,
-          AppPermission.canViewCalendar,
-        ];
-      default:
-        return [];
-    }
+  Widget _buildRolesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...AppRole.values.map((role) {
+          if (role == AppRole.superAdmin) return const SizedBox.shrink();
+          return RadioListTile<AppRole>(
+            title: Text(_getRoleDisplayName(role)),
+            subtitle: Text(
+                'Assign the ${_getRoleDisplayName(role).toLowerCase()} role'),
+            value: role,
+            groupValue: _selectedRole,
+            onChanged: (AppRole? value) {
+              setState(() {
+                _selectedRole = value;
+                _updatePermissionsBasedOnRoles();
+              });
+            },
+          );
+        }),
+        if (_selectedRole == null)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Please select a role to proceed.',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        if (_selectedRole != null) ...[
+          const Divider(height: 32),
+          ExpansionTile(
+            title: const Text('Customize Permissions'),
+            subtitle:
+                const Text('Advanced: Manually grant or revoke permissions'),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: AppPermission.values.map((permission) {
+                    final isSelected =
+                        _selectedPermissions.contains(permission);
+                    return CheckboxListTile(
+                      title: Text(_getPermissionDisplayName(permission)),
+                      subtitle: Text(
+                        _getPermissionDescription(permission),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      value: isSelected,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedPermissions.add(permission);
+                          } else {
+                            _selectedPermissions.remove(permission);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
   }
 
   String _getRoleDisplayName(AppRole role) {
@@ -631,89 +613,95 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   String _getPermissionDescription(AppPermission permission) {
     switch (permission) {
       // Patient management
-      case AppPermission.canViewPatient:
+      case AppPermission.viewAllPatients:
         return 'Allows viewing patient profiles and their complete medical records.';
-      case AppPermission.canEditPatient:
+      case AppPermission.viewOwnPatients:
+        return 'Allows viewing only your own patient profiles.';
+      case AppPermission.updatePatient:
         return 'Allows editing patient demographic and contact information.';
-      case AppPermission.canDeletePatient:
+      case AppPermission.deletePatient:
         return 'Allows permanently deleting a patient and all their associated data.';
-      case AppPermission.canAddPatient:
+      case AppPermission.createPatient:
         return 'Allows adding new patients to the clinic\'s database.';
 
       // Session management
-      case AppPermission.canViewSession:
+      case AppPermission.viewAllSessions:
         return 'Allows viewing details of patient therapy or consultation sessions.';
-      case AppPermission.canEditSession:
+      case AppPermission.viewOwnSessions:
+        return 'Allows viewing only your own sessions.';
+      case AppPermission.updateSession:
         return 'Allows modifying details of existing patient sessions.';
-      case AppPermission.canDeleteSession:
+      case AppPermission.deleteSession:
         return 'Allows deleting patient sessions from their record.';
-      case AppPermission.canAddSession:
+      case AppPermission.createSession:
         return 'Allows creating new sessions for patients.';
 
       // Evaluation management
-      case AppPermission.canViewEvaluation:
+      case AppPermission.viewAllEvaluations:
         return 'Allows viewing patient assessment and evaluation results.';
-      case AppPermission.canEditEvaluation:
+      case AppPermission.viewOwnEvaluations:
+        return 'Allows viewing only your own evaluations.';
+      case AppPermission.updateEvaluation:
         return 'Allows editing patient evaluation data and conclusions.';
-      case AppPermission.canDeleteEvaluation:
+      case AppPermission.deleteEvaluation:
         return 'Allows deleting evaluation records.';
-      case AppPermission.canAddEvaluation:
+      case AppPermission.createEvaluation:
         return 'Allows adding new patient evaluations.';
 
       // Financials
-      case AppPermission.canViewFinancials:
+      case AppPermission.viewFinancials:
         return 'Allows access to billing, invoices, and financial reports.';
-      case AppPermission.canEditFinancials:
-        return 'Allows modifying financial records, such as updating payment statuses.';
-      case AppPermission.canDeleteFinancials:
-        return 'Allows deleting financial transactions or records.';
-      case AppPermission.canAddFinancials:
-        return 'Allows creating new invoices or recording new payments.';
+      case AppPermission.manageInvoices:
+        return 'Allows creating and modifying invoices and payments.';
 
       // Copilot chat
-      case AppPermission.canUseCopilot:
+      case AppPermission.useCopilot:
         return 'Allows access to the AI-powered Dr. Copilot chat features.';
 
       // Calendar
-      case AppPermission.canViewCalendar:
+      case AppPermission.viewCalendar:
         return 'Allows viewing the clinic and personal appointment calendar.';
-      case AppPermission.canEditCalendar:
+      case AppPermission.editCalendarEvent:
         return 'Allows modifying existing appointments on the calendar.';
-      case AppPermission.canAddCalendarEvent:
+      case AppPermission.addCalendarEvent:
         return 'Allows adding new appointments or events to the calendar.';
-      case AppPermission.canDeleteCalendarEvent:
+      case AppPermission.deleteCalendarEvent:
         return 'Allows removing events from the calendar.';
 
       // Notifications
-      case AppPermission.canViewNotifications:
+      case AppPermission.viewNotifications:
         return 'Allows viewing system notifications and alerts.';
-      case AppPermission.canManageNotifications:
+      case AppPermission.manageNotifications:
         return 'Allows sending or configuring system-wide notifications.';
 
       // Settings
-      case AppPermission.canViewSettings:
+      case AppPermission.viewSettings:
         return 'Allows viewing clinic and application settings.';
-      case AppPermission.canEditSettings:
+      case AppPermission.editSettings:
         return 'Allows changing clinic settings and configurations.';
+      case AppPermission.manageSettings:
+        return 'Allows managing all settings.';
 
       // Admin
-      case AppPermission.canManageUsers:
+      case AppPermission.manageStaff:
+        return 'Allows managing staff members.';
+      case AppPermission.manageUsers:
         return 'Allows inviting, editing roles of, and removing users from the clinic.';
-      case AppPermission.canAssignRoles:
+      case AppPermission.assignRoles:
         return 'Allows changing the roles assigned to users.';
-      case AppPermission.canAssignPermissions:
+      case AppPermission.assignPermissions:
         return 'Allows assigning or revoking specific permissions for roles.';
 
       // Reports/Charts
-      case AppPermission.canViewReports:
+      case AppPermission.viewReports:
         return 'Allows generating and viewing detailed clinic reports.';
-      case AppPermission.canViewCharts:
+      case AppPermission.viewCharts:
         return 'Allows viewing data visualizations and performance charts.';
 
       // Help/Support
-      case AppPermission.canViewHelp:
+      case AppPermission.viewHelp:
         return 'Allows access to the help and documentation section.';
-      case AppPermission.canAccessSupport:
+      case AppPermission.accessSupport:
         return 'Allows the ability to contact customer support.';
     }
   }
