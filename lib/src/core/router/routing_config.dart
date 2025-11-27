@@ -7,7 +7,9 @@ import 'package:dr_copilot/src/features/notifications/presentation/pages/notific
 import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/copilot_page.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/add_session_page.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/add_evaluation_page.dart';
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
@@ -83,11 +85,25 @@ class RoutingConfig {
             path: '/sessions',
             name: 'sessions',
             builder: (context, state) => const SessionsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_session',
+                builder: (context, state) => const AddSessionPage(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/evaluations',
             name: 'evaluations',
             builder: (context, state) => const EvaluationsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_evaluation',
+                builder: (context, state) => const AddEvaluationPage(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/charts',

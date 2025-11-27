@@ -40,15 +40,30 @@ class _NavigationSideState extends State<NavigationSide> {
     });
   }
 
+  OwnerNotifier? _ownerNotifier;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Save reference to OwnerNotifier for safe disposal
+    final newOwnerNotifier = context.read<OwnerNotifier>();
+    if (_ownerNotifier != newOwnerNotifier) {
+      _ownerNotifier?.removeListener(_updateDestinations);
+      _ownerNotifier = newOwnerNotifier;
+      _ownerNotifier?.addListener(_updateDestinations);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _navigationFocusNode.requestFocus();
       // Save router delegate reference for safe disposal
       _routerDelegate = GoRouter.of(context).routerDelegate;
       _routerDelegate?.addListener(_handleRouteChange);
-      context.read<OwnerNotifier>().addListener(_updateDestinations);
+      // Listener is now added in didChangeDependencies
 
       // Initialize NavigationBloc with current AuthBloc state
       final authState = context.read<AuthBloc>().state;
@@ -63,16 +78,19 @@ class _NavigationSideState extends State<NavigationSide> {
   @override
   void dispose() {
     _routerDelegate?.removeListener(_handleRouteChange);
-    context.read<OwnerNotifier>().removeListener(_updateDestinations);
+    _ownerNotifier?.removeListener(_updateDestinations);
     _navigationFocusNode.dispose();
     super.dispose();
   }
 
   void _updateDestinations() async {
+    if (!mounted) return;
     final navBloc = context.read<NavigationBloc>();
     final ownerNotifier = context.read<OwnerNotifier>();
     final destinations = await NavigationHelper.getAllowedDestinations(
         navBloc.state.user, ownerNotifier.clinicId);
+
+    if (!mounted) return;
     navBloc.add(DestinationsUpdated(destinations));
   }
 
@@ -240,129 +258,181 @@ class _NavigationSideState extends State<NavigationSide> {
             padding: const EdgeInsets.all(8.0),
             child: BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, state) {
-                return SideMenu(
-                  controller: _sideMenuController,
-                  mode:
-                      SideMenuMode.open, // Keep it open by default for desktop
-                  hasResizer: false,
-                  hasResizerToggle: false,
-                  builder: (data) {
-                    return SideMenuData(
-                      header: data.isOpen
-                          ? InkWell(
-                              onTap: () {
-                                _sideMenuController.toggle();
-                              },
-                              child: Column(
-                                children: [
-                                  ListTile(
-                                    title: Text(
-                                      'drCopilot'.tr(),
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : null,
-                      items: state.allowedDestinations.entries
-                          .map((entry) {
-                            final category = entry.key;
-                            final destinations = entry.value;
-                            return [
-                              if (data.isOpen)
-                                SideMenuItemDataTitle(
-                                  title: category.tr(),
-                                  titleStyle: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                      ),
-                                  padding:
-                                      const EdgeInsetsDirectional.symmetric(
-                                          horizontal: 16.0, vertical: 8.0),
-                                ),
-                              ...destinations.map((e) => SideMenuItemDataTile(
-                                    isSelected: state.destination == e,
-                                    onTap: () {
-                                      context.go(destinationToRoute[e]!);
-                                      if (onItemTap != null) onItemTap();
-                                    },
-                                    title: tr(e.model.title),
-                                    tooltip: e.message,
-                                    icon: Icon(e.model.icon,
-                                        color: const Color(0xff0055c3)),
-                                  )),
-                            ];
-                          })
-                          .expand((element) => element)
-                          .toList(),
-                      footer: data.isOpen
-                          ? Column(
-                              children: [
-                                BlocBuilder<NavigationBloc, NavigationState>(
-                                  builder: (context, NavigationState state) {
-                                    final String profileImageUrl =
-                                        state.user?.photoURL ?? '';
-
-                                    // Debug logging
-                                    debugPrint(
-                                        '[NavigationSide] User in state: ${state.user?.uid}');
-                                    debugPrint(
-                                        '[NavigationSide] Display name: ${state.user?.displayName}');
-                                    debugPrint(
-                                        '[NavigationSide] Photo URL: ${state.user?.photoURL}');
-                                    debugPrint(
-                                        '[NavigationSide] Email: ${state.user?.email}');
-
-                                    return ListTile(
-                                      title:
-                                          Text(state.user?.displayName ?? ''),
-                                      leading: profileImageUrl.isNotEmpty
-                                          ? InkWell(
-                                              onTap: () {
-                                                context.push('/account');
-                                              },
-                                              child: Container(
-                                                decoration: const BoxDecoration(
-                                                    shape: BoxShape.circle),
-                                                child: ClipOval(
-                                                  child: CachedNetworkImage(
-                                                    imageUrl: profileImageUrl,
-                                                    cacheKey: state.user?.uid,
-                                                    placeholder: (ctx, url) =>
-                                                        const Icon(
-                                                            Icons.person_pin),
-                                                    errorWidget:
-                                                        (context, url, error) {
-                                                      debugPrint(
-                                                          'Failed to load image: $error');
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
+                return GestureDetector(
+                  onTap: () {
+                    _sideMenuController.toggle();
+                  },
+                  behavior: HitTestBehavior.translucent,
+                  child: SideMenu(
+                    controller: _sideMenuController,
+                    mode: SideMenuMode
+                        .open, // Keep it open by default for desktop
+                    hasResizer: false,
+                    hasResizerToggle: false,
+                    builder: (data) {
+                      return SideMenuData(
+                        header: data.isOpen
+                            ? InkWell(
+                                onTap: () {
+                                  _sideMenuController.toggle();
+                                },
+                                child: Column(
+                                  children: [
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        if (constraints.maxWidth < 60) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0, vertical: 8.0),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  'drCopilot'.tr(),
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16),
                                                 ),
                                               ),
-                                            )
-                                          : const Icon(Icons.person_3_outlined),
-                                    );
-                                  },
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_left),
-                                  onPressed: () {
-                                    _sideMenuController.toggle();
-                                  },
-                                ),
-                              ],
-                            )
-                          : null,
-                    );
-                  },
+                              )
+                            : null,
+                        items: state.allowedDestinations.entries
+                            .map((entry) {
+                              final category = entry.key;
+                              final destinations = entry.value;
+                              return [
+                                if (data.isOpen)
+                                  SideMenuItemDataTitle(
+                                    title: category.tr(),
+                                    titleStyle: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                        ),
+                                    padding:
+                                        const EdgeInsetsDirectional.symmetric(
+                                            horizontal: 16.0, vertical: 8.0),
+                                  ),
+                                ...destinations.map((e) => SideMenuItemDataTile(
+                                      isSelected: state.destination == e,
+                                      onTap: () {
+                                        context.go(destinationToRoute[e]!);
+                                        if (onItemTap != null) onItemTap();
+                                      },
+                                      title: tr(e.model.title),
+                                      tooltip: e.message,
+                                      icon: Icon(e.model.icon,
+                                          color: const Color(0xff0055c3)),
+                                    )),
+                              ];
+                            })
+                            .expand((element) => element)
+                            .toList(),
+                        footer: data.isOpen
+                            ? Column(
+                                children: [
+                                  BlocBuilder<NavigationBloc, NavigationState>(
+                                    builder: (context, NavigationState state) {
+                                      final String profileImageUrl =
+                                          state.user?.photoURL ?? '';
+
+                                      // Debug logging
+                                      debugPrint(
+                                          '[NavigationSide] User in state: ${state.user?.uid}');
+                                      debugPrint(
+                                          '[NavigationSide] Display name: ${state.user?.displayName}');
+                                      debugPrint(
+                                          '[NavigationSide] Photo URL: ${state.user?.photoURL}');
+                                      debugPrint(
+                                          '[NavigationSide] Email: ${state.user?.email}');
+
+                                      return LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          if (constraints.maxWidth < 60) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 16.0,
+                                                vertical: 8.0),
+                                            child: Row(
+                                              children: [
+                                                if (profileImageUrl.isNotEmpty)
+                                                  InkWell(
+                                                    onTap: () {
+                                                      context.push('/account');
+                                                    },
+                                                    child: Container(
+                                                      width: 40,
+                                                      height: 40,
+                                                      decoration:
+                                                          const BoxDecoration(
+                                                              shape: BoxShape
+                                                                  .circle),
+                                                      child: ClipOval(
+                                                        child:
+                                                            CachedNetworkImage(
+                                                          imageUrl:
+                                                              profileImageUrl,
+                                                          cacheKey:
+                                                              state.user?.uid,
+                                                          placeholder: (ctx,
+                                                                  url) =>
+                                                              const Icon(Icons
+                                                                  .person_pin),
+                                                          errorWidget: (context,
+                                                              url, error) {
+                                                            debugPrint(
+                                                                'Failed to load image: $error');
+                                                            return const SizedBox();
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                else
+                                                  const Icon(
+                                                      Icons.person_3_outlined,
+                                                      size: 40),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Text(
+                                                    state.user?.displayName ??
+                                                        '',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleMedium,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
+                              )
+                            : null,
+                      );
+                    },
+                  ),
                 );
               },
             ),

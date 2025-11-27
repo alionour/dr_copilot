@@ -22,14 +22,6 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     on<LoadMorePatients>(_onLoadMorePatients);
     on<GetPatientsByDate>(_onGetPatientsByDate);
     on<GetPatientsCount>(_onGetPatientsCount);
-
-    FirebaseFirestore.instance.collection('patients').snapshots().listen(
-      (snapshot) {
-        if (snapshot.docChanges.isNotEmpty) {
-          add(GetPatients());
-        }
-      },
-    );
   }
 
   Future<void> _onGetPatients(
@@ -137,7 +129,10 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       final currentState = state as PatientsLoaded;
       if (currentState.isLoadingMore) return;
 
-      emit(PatientsLoaded(currentState.patients, isLoadingMore: true, lastDocument: currentState.lastDocument)); // Pass existing lastDocument
+      emit(PatientsLoaded(currentState.patients,
+          isLoadingMore: true,
+          lastDocument:
+              currentState.lastDocument)); // Pass existing lastDocument
       await Future.delayed(const Duration(seconds: 1));
       final failureOrTuple = await _patientsUseCase.getPatients(
         lastDocumentId: event.lastDocumentId,
@@ -158,10 +153,12 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
               'Fetched ${newPatients.length} new patients: ${newPatients.map((p) => p.id).toList()}');
           final updatedPatients = List<PatientModel>.from(currentState.patients)
             ..addAll(newPatients.where((newPatient) => !currentState.patients
-                .any((existingPatient) => existingPatient.id == newPatient.id)));
+                .any(
+                    (existingPatient) => existingPatient.id == newPatient.id)));
           debugPrint(
               'Updated patients list contains ${updatedPatients.length} patients.');
-          emit(PatientsLoaded(updatedPatients, lastDocument: lastDocumentSnapshot)); // Pass new lastDocument
+          emit(PatientsLoaded(updatedPatients,
+              lastDocument: lastDocumentSnapshot)); // Pass new lastDocument
         },
       );
     }
