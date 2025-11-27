@@ -44,7 +44,7 @@
   "addNewBill": "إضافة فاتورة جديدة",
   "pay": "دفع",
   "doYouWantPayThisBill": "هل تريد دفع هذه الفاتورة",
-  "paidHasPaid": "تم الدفع",
+  "billHasPaid": "تم الدفع",
   "confirm": "تأكيد",
   "noBills": "لا توجد فواتير.",
   "billsAndPayments": "الفواتير والمدفوعات",
@@ -209,7 +209,7 @@
   "informationCollectionDescription": "نجمع المعلومات التي تقدمها لنا مباشرة، مثل عندما تنشئ حسابًا، أو تقوم بتحديث ملفك الشخصي، أو تستخدم خدماتنا. قد يشمل ذلك معلومات شخصية مثل اسمك وعنوان بريدك الإلكتروني ورقم هاتفك.",
   "informationUse": "استخدام المعلومات",
   "informationUseDescription": "نستخدم المعلومات التي نجمعها لتقديم خدماتنا وصيانتها وتحسينها. يشمل ذلك استخدام معلوماتك للتواصل معك، وتخصيص تجربتك، وضمان أمان بياناتك.",
-  "insurance": "التأمين",
+  "Insurance": "التأمين",
   "investment": "الاستثمار",
   "invoice": "فاتورة دخل",
   "invoiceStatus.unpaid": "غير مدفوع",
@@ -530,5 +530,14 @@
   "pleaseEnterValidEmail": "الرجاء إدخال بريد إلكتروني صالح",
   "pleaseEnterYourPassword": "الرجاء إدخال كلمة المرور",
   "passwordMinLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
-  "owners": "الملاك"
+  "owners": "الملاك",
+  "reach1000SessionsYear": "الوصول إلى 1000 جلسة سنويًا",
+  "notAuthorized": "أنت غير مخول للقيام بهذا الإجراء",
+  "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقًا.",
+  "loading": "جار التحميل...",
+  "noData": "لا توجد بيانات متاحة",
+  "increaseNetProfit15Percent": "زيادة صافي الربح بنسبة 15%",
+  "search": "بحث",
+  "achieve20PercentAnnualGrowth": "تحقيق نمو سنوي في الإيرادات بنسبة 20%",
+  "reduceMonthlyExpenses10Percent": "تقليل المصروفات الشهرية بنسبة 10%"
 }

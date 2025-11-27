@@ -466,7 +466,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                   style: const TextStyle(fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis),
               subtitle: Text('${person.email} • ${person.role}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   overflow: TextOverflow.ellipsis),
             ),
           );
@@ -513,11 +515,11 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           );
         }),
         if (_selectedRole == null)
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
               'Please select a role to proceed.',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
         if (_selectedRole != null) ...[

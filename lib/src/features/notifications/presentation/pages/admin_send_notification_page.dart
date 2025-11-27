@@ -14,14 +14,15 @@ class AdminSendNotificationPage extends StatefulWidget {
   const AdminSendNotificationPage({super.key});
 
   @override
-  State<AdminSendNotificationPage> createState() => _AdminSendNotificationPageState();
+  State<AdminSendNotificationPage> createState() =>
+      _AdminSendNotificationPageState();
 }
 
 class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
-  
+
   NotificationType _selectedType = NotificationType.system;
   NotificationTargetType _selectedTarget = NotificationTargetType.ownerClinics;
   final List<AppRole> _selectedRoles = [];
@@ -58,13 +59,14 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
           .get();
 
       if (userDoc.exists) {
-        _currentUser = UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
-        
+        _currentUser =
+            UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
+
         final clinicsSnapshot = await FirebaseFirestore.instance
             .collection('clinics')
             .where('ownerId', isEqualTo: _currentUser!.uid)
             .get();
-        
+
         setState(() {
           _userClinics = clinicsSnapshot.docs
               .map((doc) => ClinicModel.fromJson({...doc.data(), 'id': doc.id}))
@@ -88,14 +90,16 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_currentUser == null) return;
 
-    if (_selectedTarget == NotificationTargetType.specificRoles && _selectedRoles.isEmpty) {
+    if (_selectedTarget == NotificationTargetType.specificRoles &&
+        _selectedRoles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('select_at_least_one_role'.tr())),
       );
       return;
     }
 
-    if (_selectedTarget == NotificationTargetType.specificClinic && _selectedClinicIds.isEmpty) {
+    if (_selectedTarget == NotificationTargetType.specificClinic &&
+        _selectedClinicIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('select_at_least_one_clinic'.tr())),
       );
@@ -114,11 +118,16 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
       ),
       target: NotificationTarget(
         type: _selectedTarget,
-        targetRoles: _selectedTarget == NotificationTargetType.specificRoles ? _selectedRoles : null,
-        ownerId: _selectedTarget == NotificationTargetType.ownerClinics || 
-                 _selectedTarget == NotificationTargetType.specificClinic 
-                 ? _currentUser!.uid : null,
-        clinicIds: _selectedTarget == NotificationTargetType.specificClinic ? _selectedClinicIds : null,
+        targetRoles: _selectedTarget == NotificationTargetType.specificRoles
+            ? _selectedRoles
+            : null,
+        ownerId: _selectedTarget == NotificationTargetType.ownerClinics ||
+                _selectedTarget == NotificationTargetType.specificClinic
+            ? _currentUser!.uid
+            : null,
+        clinicIds: _selectedTarget == NotificationTargetType.specificClinic
+            ? _selectedClinicIds
+            : null,
       ),
     );
 
@@ -136,7 +145,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
           if (state is SendNotificationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('notification_sent_to_users'.tr()
+                content: Text('notification_sent_to_users'
+                    .tr()
                     .replaceAll('{count}', state.recipientCount.toString())),
                 backgroundColor: Colors.green,
               ),
@@ -175,9 +185,11 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
                       const SizedBox(height: 16),
                       _buildTargetDropdown(),
                       const SizedBox(height: 16),
-                      if (_selectedTarget == NotificationTargetType.specificRoles)
+                      if (_selectedTarget ==
+                          NotificationTargetType.specificRoles)
                         _buildRolesSelection(),
-                      if (_selectedTarget == NotificationTargetType.specificClinic)
+                      if (_selectedTarget ==
+                          NotificationTargetType.specificClinic)
                         _buildClinicsSelection(),
                       const SizedBox(height: 24),
                       _buildSendButton(),
@@ -213,7 +225,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
             const SizedBox(height: 8),
             Text(
               'notification_info_message'.tr(),
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -366,7 +379,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
             ..._userClinics.map((clinic) {
               return CheckboxListTile(
                 title: Text(clinic.name),
-                subtitle: clinic.location != null ? Text(clinic.location!) : null,
+                subtitle:
+                    clinic.location != null ? Text(clinic.location!) : null,
                 value: _selectedClinicIds.contains(clinic.id),
                 onChanged: (bool? value) {
                   setState(() {
@@ -399,9 +413,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
                 )
               : const Icon(Icons.send),
           label: Text(
-            isLoading
-                ? 'sending'.tr()
-                : 'send_notification'.tr(),
+            isLoading ? 'sending'.tr() : 'send_notification'.tr(),
           ),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -460,4 +472,3 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
     }
   }
 }
-
