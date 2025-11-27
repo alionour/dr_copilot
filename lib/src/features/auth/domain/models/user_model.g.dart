@@ -8,46 +8,24 @@ part of 'user_model.dart';
 
 UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       uid: json['uid'] as String,
-      displayName: json['displayName'] as String?,
       email: json['email'] as String?,
-      emailVerified: json['emailVerified'] as bool?,
-      isAnonymous: json['isAnonymous'] as bool?,
-      metadata: json['metadata'],
-      phoneNumber: json['phoneNumber'] as String?,
+      displayName: json['displayName'] as String?,
       photoURL: json['photoURL'] as String?,
-      providerData: json['providerData'] as List<dynamic>?,
-      refreshToken: json['refreshToken'] as String?,
-      tenantId: json['tenantId'] as String?,
-      permissions: json['permissions'] == null
-          ? const []
-          : const PermissionListJsonConverter()
-              .fromJson(json['permissions'] as List<String>),
-      roles: json['roles'] == null
-          ? const []
-          : const RoleListJsonConverter().fromJson(json['roles'] as List),
+      clinics: (json['clinics'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
+      primaryClinicId: json['primaryClinicId'] as String?,
       clinicIds: (json['clinicIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      primaryClinicId: json['primaryClinicId'] as String?,
-      ownerId: json['ownerId'] as String?,
     );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
       'uid': instance.uid,
-      'displayName': instance.displayName,
       'email': instance.email,
-      'emailVerified': instance.emailVerified,
-      'isAnonymous': instance.isAnonymous,
-      'metadata': instance.metadata,
-      'phoneNumber': instance.phoneNumber,
+      'displayName': instance.displayName,
       'photoURL': instance.photoURL,
-      'providerData': instance.providerData,
-      'refreshToken': instance.refreshToken,
-      'tenantId': instance.tenantId,
-      'ownerId': instance.ownerId,
-      'permissions':
-          const PermissionListJsonConverter().toJson(instance.permissions),
-      'roles': const RoleListJsonConverter().toJson(instance.roles),
-      'clinicIds': instance.clinicIds,
+      'clinics': instance.clinics,
       'primaryClinicId': instance.primaryClinicId,
+      'clinicIds': instance.clinicIds,
     };

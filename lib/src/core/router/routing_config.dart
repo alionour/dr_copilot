@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/auth/presentation/pages/signup_page.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/navigation_side.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
@@ -21,10 +22,18 @@ import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dar
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/invitations_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/create_invitation_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/accept_invitation_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/shared/presentation/widgets/webview_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
 class RoutingConfig {
   static final GoRouter router = GoRouter(
@@ -108,7 +117,6 @@ class RoutingConfig {
               return ApiKeySettingsPage(from: from);
             },
           ),
-
           GoRoute(
             path: '/doctors',
             name: 'doctors',
@@ -133,6 +141,43 @@ class RoutingConfig {
             },
           ),
           GoRoute(
+            path: '/invitations',
+            name: 'invitations',
+            builder: (context, state) {
+              return FutureBuilder<UserModel?>(
+                future: sl<AuthUseCase>().getCurrentUser(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  final clinicId = snapshot.data?.primaryClinicId ?? '';
+                  return InvitationsPage(clinicId: clinicId);
+                },
+              );
+            },
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'create-invitation',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>;
+                  final clinicId = extra['clinicId'] as String;
+                  final currentUserId = extra['currentUserId'] as String;
+
+                  return BlocProvider.value(
+                    value: sl<InvitationBloc>(),
+                    child: CreateInvitationPage(
+                      clinicId: clinicId,
+                      currentUserId: currentUserId,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          GoRoute(
             path: '/help_support',
             name: 'help_support',
             builder: (context, state) => const HelpSupportPage(),
@@ -153,6 +198,32 @@ class RoutingConfig {
         path: '/account',
         name: 'account',
         builder: (context, state) => const AccountPage(),
+      ),
+      GoRoute(
+        path: '/accept-invitation',
+        name: 'accept-invitation',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'];
+          if (token == null || token.isEmpty) {
+            return const ErrorRoutePage();
+          }
+          return AcceptInvitationPage(token: token);
+        },
+      ),
+      GoRoute(
+        path: '/signup',
+        name: 'signup',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return SignupPage(
+            invitationToken: extra?['invitationToken'] as String?,
+            email: extra?['email'] as String?,
+            name: extra?['name'] as String?,
+            clinicName: extra?['clinicName'] as String?,
+            clinicId: extra?['clinicId'] as String?,
+            role: extra?['role'] as String?,
+          );
+        },
       ),
       GoRoute(
         path: '/webview',

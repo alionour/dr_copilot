@@ -8,7 +8,8 @@ import 'package:dr_copilot/src/features/notifications/presentation/pages/admin_s
 import 'package:dr_copilot/src/features/notifications/presentation/pages/debug_notification_sender_page.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/widgets/notification_list_item.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/send_notification/send_notification_bloc.dart';
-import 'package:dr_copilot/src/features/notifications/notifications_injections.dart' as notif_sl;
+import 'package:dr_copilot/src/features/notifications/notifications_injections.dart'
+    as notif_sl;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -33,7 +34,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser != null) {
         _userId = firebaseUser.uid;
-        context.read<NotificationsBloc>().add(WatchNotificationsEvent(_userId!));
+        context
+            .read<NotificationsBloc>()
+            .add(WatchNotificationsEvent(_userId!));
         _checkIfAdmin();
       }
     }
@@ -47,13 +50,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
             .collection('users')
             .doc(firebaseUser.uid)
             .get();
-        
+
         if (userDoc.exists && mounted) {
-          final user = UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
-          // Use the isMainAdmin helper method which checks for super admin or clinic owner
-          setState(() {
-            _isAdmin = user.isMainAdmin;
-          });
+          final user =
+              UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
+          // Check if user is admin in their primary clinic
+          if (user.primaryClinicId != null) {
+            final isAdmin = await user.isAdminInClinic(user.primaryClinicId!);
+            setState(() {
+              _isAdmin = isAdmin;
+            });
+          }
         }
       }
     } catch (e) {
@@ -78,7 +85,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   tooltip: 'markAllAsRead'.tr(),
                   onPressed: () {
                     if (_userId != null) {
-                      context.read<NotificationsBloc>().add(MarkAllAsReadEvent(_userId!));
+                      context
+                          .read<NotificationsBloc>()
+                          .add(MarkAllAsReadEvent(_userId!));
                     }
                   },
                 );
@@ -107,7 +116,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
             ),
           BlocBuilder<NotificationsBloc, NotificationsState>(
             builder: (context, state) {
-              if (state is NotificationsLoaded && state.notifications.isNotEmpty) {
+              if (state is NotificationsLoaded &&
+                  state.notifications.isNotEmpty) {
                 return PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
@@ -120,9 +130,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       value: 'deleteAll',
                       child: Row(
                         children: [
-                          const Icon(Icons.delete_sweep, color: Colors.red, size: 20),
+                          const Icon(Icons.delete_sweep,
+                              color: Colors.red, size: 20),
                           const SizedBox(width: 8),
-                          Text('deleteAll'.tr(), style: const TextStyle(color: Colors.red)),
+                          Text('deleteAll'.tr(),
+                              style: const TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
@@ -165,7 +177,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ElevatedButton.icon(
                     onPressed: () {
                       if (_userId != null) {
-                        context.read<NotificationsBloc>().add(RefreshNotificationsEvent(_userId!));
+                        context
+                            .read<NotificationsBloc>()
+                            .add(RefreshNotificationsEvent(_userId!));
                       }
                     },
                     icon: const Icon(Icons.refresh),
@@ -210,7 +224,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
             return RefreshIndicator(
               onRefresh: () async {
                 if (_userId != null) {
-                  context.read<NotificationsBloc>().add(RefreshNotificationsEvent(_userId!));
+                  context
+                      .read<NotificationsBloc>()
+                      .add(RefreshNotificationsEvent(_userId!));
                 }
               },
               child: Column(
@@ -218,7 +234,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   if (state.unreadCount > 0)
                     Container(
                       padding: const EdgeInsets.all(8),
-                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primaryContainer
+                          .withValues(alpha: 0.3),
                       child: Row(
                         children: [
                           const SizedBox(width: 8),
@@ -280,7 +299,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               ),
             );
           }
-          
+
           return const Center(child: CircularProgressIndicator());
         },
       ),
@@ -317,7 +336,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
           TextButton(
             onPressed: () {
-              context.read<NotificationsBloc>().add(DeleteNotificationEvent(notificationId));
+              context
+                  .read<NotificationsBloc>()
+                  .add(DeleteNotificationEvent(notificationId));
               Navigator.of(context).pop();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -342,7 +363,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
           TextButton(
             onPressed: () {
               if (_userId != null) {
-                context.read<NotificationsBloc>().add(DeleteAllNotificationsEvent(_userId!));
+                context
+                    .read<NotificationsBloc>()
+                    .add(DeleteAllNotificationsEvent(_userId!));
               }
               Navigator.of(context).pop();
             },
@@ -369,7 +392,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     try {
       final now = DateTime.now();
       final formatter = DateFormat('HH:mm:ss');
-      
+
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': _userId,
         'title': '🧪 ${'testNotification'.tr()}',

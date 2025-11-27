@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInWithGoogle>(_signInWithGoogle);
     on<SignInWithEmailAndPassword>(_signInWithEmailAndPassword);
     on<SignOutEvent>(_onSignOut);
+    on<AuthCheckRequested>(_onAuthCheckRequested);
   }
 
   final AuthUseCase authUseCase;
@@ -31,15 +32,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _signInWithGoogle(
       SignInWithGoogle event, Emitter<AuthState> emit) async {
     try {
+      emit(const AuthLoading());
       debugPrint('SignInWithGoogle event triggered');
       final user = await authUseCase.signInWithGoogle();
       if (user != null) {
         // Initialize FCM for the user
         await _initializeFCM(user.uid);
-        
+
         // Optionally store user data if needed
         emit(AuthSignedIn(
-            message: 'User signed in successfully', userId: user.uid));
+            message: 'User signed in successfully', user: user));
       } else {
         emit(const AuthError(message: 'Google sign-in aborted'));
       }
@@ -56,15 +58,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _signInWithEmailAndPassword(
       SignInWithEmailAndPassword event, Emitter<AuthState> emit) async {
     try {
+      emit(const AuthLoading());
       debugPrint('SignInWithEmailAndPassword event triggered');
       final user = await authUseCase.signInWithEmailAndPassword(
           event.email, event.password);
       if (user != null) {
         // Initialize FCM for the user
         await _initializeFCM(user.uid);
-        
+
         emit(AuthSignedIn(
-            message: 'User signed in successfully', userId: user.uid));
+            message: 'User signed in successfully', user: user));
       } else {
         emit(const AuthError(message: 'Sign-in failed'));
       }
@@ -109,5 +112,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// Returns a stream of authentication state changes (UserModel? or null).
   Stream<UserModel?> userAuthenticationStream() {
     return authUseCase.authStateChanges();
+  }
+
+  /// Handles the AuthCheckRequested event.
+  Future<void> _onAuthCheckRequested(
+    AuthCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    await emit.forEach(
+      authUseCase.authStateChanges(),
+      onData: (user) {
+        if (user != null) {
+          _initializeFCM(user.uid);
+          return AuthSignedIn(message: 'User restored', user: user);
+        }
+        return AuthSignedOut();
+      },
+      onError: (error, stackTrace) => AuthError(message: error.toString()),
+    );
   }
 }

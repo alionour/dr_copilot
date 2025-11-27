@@ -45,8 +45,17 @@ class SignInWithEmailAndPassword extends AuthEvent {
   final String email;
   final String password;
 
-  const SignInWithEmailAndPassword({required this.email, required this.password});
+  const SignInWithEmailAndPassword(
+      {required this.email, required this.password});
 
   @override
   List<Object> get props => [email, password];
+}
+
+/// Event triggered to check if a user is already authenticated.
+class AuthCheckRequested extends AuthEvent {
+  const AuthCheckRequested();
+
+  @override
+  List<Object> get props => [];
 }

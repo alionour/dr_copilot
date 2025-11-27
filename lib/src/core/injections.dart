@@ -8,6 +8,7 @@ import 'package:dr_copilot/src/features/clinical_reports/clinical_reports_inject
 import 'package:dr_copilot/src/features/chatgpt_project/chatgpt_project_injections.dart';
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
 import 'package:dr_copilot/src/features/notifications/notifications_injections.dart';
+import 'package:dr_copilot/src/features/invitations/invitations_injections.dart';
 
 import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
 import 'package:dr_copilot/src/features/settings/settings_injections.dart';
@@ -139,4 +140,5 @@ Future<void> initInjections() async {
   initClinicalReportsInjections();
   initChatGptProjectInjections();
   initNotificationsInjections();
+  initInvitationsInjections();
 }
