@@ -19,15 +19,17 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
   final _actionUrlController = TextEditingController();
-  
+
   NotificationType _selectedType = NotificationType.system;
-  NotificationSenderType _selectedSenderType = NotificationSenderType.programmer;
-  NotificationTargetType _selectedTargetType = NotificationTargetType.allClinicOwners;
-  
+  NotificationSenderType _selectedSenderType =
+      NotificationSenderType.programmer;
+  NotificationTargetType _selectedTargetType =
+      NotificationTargetType.allClinicOwners;
+
   final Set<AppRole> _selectedRoles = {};
   String? _ownerId;
   final List<String> _selectedClinicIds = [];
-  
+
   bool _isLoading = false;
 
   @override
@@ -59,17 +61,18 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
       ),
       target: NotificationTarget(
         type: _selectedTargetType,
-        targetRoles: _selectedTargetType == NotificationTargetType.specificRoles 
-            ? _selectedRoles.toList() 
+        targetRoles: _selectedTargetType == NotificationTargetType.specificRoles
+            ? _selectedRoles.toList()
             : null,
-        ownerId: _selectedTargetType == NotificationTargetType.ownerClinics 
-            ? _ownerId 
+        ownerId: _selectedTargetType == NotificationTargetType.ownerClinics
+            ? _ownerId
             : null,
-        clinicIds: _selectedTargetType == NotificationTargetType.specificClinic 
-            ? _selectedClinicIds 
+        clinicIds: _selectedTargetType == NotificationTargetType.specificClinic
+            ? _selectedClinicIds
             : null,
       ),
-      actionUrl: _actionUrlController.text.isEmpty ? null : _actionUrlController.text,
+      actionUrl:
+          _actionUrlController.text.isEmpty ? null : _actionUrlController.text,
     );
 
     context.read<NotificationsBloc>().add(SendBulkNotificationEvent(template));
@@ -132,7 +135,6 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
                 TextFormField(
                   controller: _titleController,
                   decoration: const InputDecoration(
@@ -147,7 +149,6 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
                 TextFormField(
                   controller: _messageController,
                   decoration: const InputDecoration(
@@ -163,7 +164,6 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
                 DropdownButtonFormField<NotificationType>(
                   value: _selectedType,
                   decoration: const InputDecoration(
@@ -183,7 +183,6 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
                 DropdownButtonFormField<NotificationSenderType>(
                   value: _selectedSenderType,
                   decoration: const InputDecoration(
@@ -203,7 +202,6 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
                 DropdownButtonFormField<NotificationTargetType>(
                   value: _selectedTargetType,
                   decoration: const InputDecoration(
@@ -226,10 +224,8 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
                 if (_selectedTargetType == NotificationTargetType.specificRoles)
                   _buildRoleSelector(),
-                
                 if (_selectedTargetType == NotificationTargetType.ownerClinics)
                   TextFormField(
                     decoration: const InputDecoration(
@@ -246,8 +242,8 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                       return null;
                     },
                   ),
-                
-                if (_selectedTargetType == NotificationTargetType.specificClinic)
+                if (_selectedTargetType ==
+                    NotificationTargetType.specificClinic)
                   TextFormField(
                     decoration: const InputDecoration(
                       labelText: 'Clinic IDs (comma-separated)',
@@ -256,7 +252,10 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                     onChanged: (value) {
                       _selectedClinicIds.clear();
                       _selectedClinicIds.addAll(
-                        value.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty),
+                        value
+                            .split(',')
+                            .map((e) => e.trim())
+                            .where((e) => e.isNotEmpty),
                       );
                     },
                     validator: (value) {
@@ -266,9 +265,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                       return null;
                     },
                   ),
-                
                 const SizedBox(height: 16),
-                
                 TextFormField(
                   controller: _actionUrlController,
                   decoration: const InputDecoration(
@@ -277,18 +274,20 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
                 ElevatedButton(
                   onPressed: _isLoading ? null : _sendNotification,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
+                      ? CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onPrimary)
+                      : Text(
                           'Send Notification',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.onPrimary),
                         ),
                 ),
               ],

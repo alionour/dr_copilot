@@ -253,7 +253,7 @@ class _NavigationSideState extends State<NavigationSide> {
           },
           child: Container(
             color: bloc.state.isNavigationFocused
-                ? Colors.blue.withAlpha((0.2 * 255).toInt())
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
                 : Colors.transparent,
             padding: const EdgeInsets.all(8.0),
             child: BlocBuilder<NavigationBloc, NavigationState>(
@@ -291,10 +291,16 @@ class _NavigationSideState extends State<NavigationSide> {
                                               Expanded(
                                                 child: Text(
                                                   'drCopilot'.tr(),
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleLarge
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurface,
+                                                      ),
                                                 ),
                                               ),
                                             ],
@@ -336,7 +342,9 @@ class _NavigationSideState extends State<NavigationSide> {
                                       title: tr(e.model.title),
                                       tooltip: e.message,
                                       icon: Icon(e.model.icon,
-                                          color: const Color(0xff0055c3)),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     )),
                               ];
                             })
@@ -417,7 +425,13 @@ class _NavigationSideState extends State<NavigationSide> {
                                                         TextOverflow.ellipsis,
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .titleMedium,
+                                                        .titleMedium
+                                                        ?.copyWith(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                        ),
                                                   ),
                                                 ),
                                               ],

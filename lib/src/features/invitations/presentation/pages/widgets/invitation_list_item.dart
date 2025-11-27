@@ -52,13 +52,15 @@ class InvitationListItem extends StatelessWidget {
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
+                  Text('Delete',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.error)),
                 ],
               ),
             ),
@@ -73,7 +75,8 @@ class InvitationListItem extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Invitation'),
-        content: Text('Are you sure you want to delete the invitation for ${invitation.email}?'),
+        content: Text(
+            'Are you sure you want to delete the invitation for ${invitation.email}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
