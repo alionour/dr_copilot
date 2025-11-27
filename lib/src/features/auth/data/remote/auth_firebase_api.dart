@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
-import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
-import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
@@ -38,7 +37,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Handles native Google sign-in for Android and iOS.
   Future<GoogleSignInResult?> _nativeGoogleSignIn() async {
-    final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
     final account = await googleSignInHelper.signIn();
     if (account == null) return null;
     final authentication = await account.authentication;
@@ -60,7 +58,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Handles web Google sign-in.
   Future<GoogleSignInResult?> _webGoogleSignIn() async {
-    final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
     final account = await googleSignInHelper.signIn();
     if (account == null) return null;
     final authentication = await account.authentication;
@@ -82,7 +79,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Handles Google sign-in for all platforms (Windows/Linux).
   Future<GoogleSignInResult?> _allPlatformsGoogleSignIn() async {
-    final GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();
     final authentication = await googleSignInHelper.signInAllPlatforms();
     if (authentication == null) return null;
     return GoogleSignInResult(
@@ -266,29 +262,14 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Handles onboarding logic for multi-clinic support.
   /// Checks if the user exists, processes invitations, or creates a new clinic as needed.
   Future<UserModel> _handleMultiClinicOnboarding(User user) async {
-    /// A list to store the roles assigned to the user.
-    ///
-    /// This list is initialized as empty and is intended to hold instances of [AppRole],
-    /// representing the different roles that a user can have within the application.
-    List<AppRole> roles = [];
-
-    /// A list to store the permissions assigned to the app user.
-    ///
-    /// This list is initialized as empty and can be populated with instances of
-    /// [AppPermission] to represent the various permissions granted to the user.
-    List<AppPermission> permissions = [];
-
-    /// The unique identifier of the owner, which may be null if not assigned.
-    String? ownerId;
-
     /// A list to store the IDs of clinics associated with the user.
-    ///
-    /// This list is initialized as empty and can be populated with clinic IDs
-    /// retrieved from a remote source or user input.
     List<String> clinicIds = [];
 
     /// The ID of the primary clinic, if specified.
     String? primaryClinicId;
+
+    /// List of rich clinic data
+    List<Map<String, dynamic>>? richClinics;
 
     final userDocRef = _usersCollection.doc(user.uid);
 
@@ -304,58 +285,35 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     final userDoc = await userDocRef.get();
 
     if (userDoc.exists) {
-      // User exists: fetch roles, permissions, ownerId, clinicIds
+      // User exists: fetch clinic data
       final data = userDoc.data() as Map<String, dynamic>?;
 
-      final roleStrings =
-          (data?['roles'] as List<dynamic>?)?.cast<String>() ?? [];
+      // Process rich clinics with timestamp conversion
+      richClinics = (data?['clinics'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .map((clinic) {
+            if (clinic['joinedAt'] is Timestamp) {
+              clinic['joinedAt'] =
+                  (clinic['joinedAt'] as Timestamp).toDate().toIso8601String();
+            }
+            return clinic;
+          }).toList() ??
+          [];
 
-      final permissionStrings =
-          (data?['permissions'] as List<dynamic>?)?.cast<String>() ?? [];
+      // Extract IDs from rich clinics
+      final Set<String> allClinicIds = {};
+      for (var clinic in richClinics) {
+        if (clinic['clinicId'] != null) {
+          allClinicIds.add(clinic['clinicId'] as String);
+        }
+      }
 
-      /// Converts a list of role strings (`roleStrings`) to a list of [AppRole] enums.
-      ///
-      /// For each string in `roleStrings`, attempts to find a matching [AppRole] by name.
-      /// If no match is found, defaults to [AppRole.readonly].
-      ///
-      /// Returns a list of [AppRole] corresponding to the input strings.
-      roles = roleStrings
-          .map((s) => AppRole.values
-              .firstWhere((r) => r.name == s, orElse: () => AppRole.readonly))
-          .toList();
+      // Fallback for legacy (if any)
+      final legacyIds =
+          (data?['clinicIds'] as List<dynamic>?)?.cast<String>() ?? [];
+      allClinicIds.addAll(legacyIds);
 
-      /// Converts a list of permission strings to a list of [AppPermission] enums.
-      ///
-      /// For each string in [permissionStrings], attempts to find the corresponding
-      /// [AppPermission] by matching the enum's `name` property. If no match is found,
-      /// defaults to the first value in [AppPermission.values].
-      permissions = permissionStrings
-          .map((s) => AppPermission.values.firstWhere((p) => p.name == s,
-              orElse: () => AppPermission.values.first))
-          .toList();
-
-      /// Retrieves the 'ownerId' field from the [data] map and assigns it to [ownerId].
-      ///
-      /// The value is cast to a [String]? to handle cases where 'ownerId' may be absent or null.
-      ownerId = data?['ownerId'] as String?;
-
-      /// Retrieves the list of clinic IDs from the provided [data] map.
-      ///
-      /// Attempts to cast the 'clinicIds' entry to a `List<String>`.
-      /// If the entry is null or not present, returns an empty list.
-      ///
-      /// Example:
-      /// ```dart
-      /// // Given data = {'clinicIds': ['id1', 'id2']};
-      /// // clinicIds will be ['id1', 'id2']
-      /// ```
-      ///
-      /// This ensures `clinicIds` is always a non-null `List<String>`.
-      clinicIds = (data?['clinicIds'] as List<dynamic>?)?.cast<String>() ?? [];
-
-      /// Retrieves the 'primaryClinicId' value from the [data] map and assigns it to [primaryClinicId].
-      ///
-      /// The value is expected to be a [String], but may be `null` if the key does not exist or the value is not a string.
+      clinicIds = allClinicIds.toList();
       primaryClinicId = data?['primaryClinicId'] as String?;
     } else {
       // User not found: check for invitation
@@ -380,28 +338,12 @@ class AuthFirebaseApi extends AbstractAuthRepository {
         // Fetch the user doc again after creation
         final createdDoc = await userDocRef.get();
         final data = createdDoc.data() as Map<String, dynamic>?;
-        final roleStrings =
-            (data?['roles'] as List<dynamic>?)?.cast<String>() ?? [];
-        final permissionStrings =
-            (data?['permissions'] as List<dynamic>?)?.cast<String>() ?? [];
-        roles = roleStrings
-            .map((s) => AppRole.values
-                .firstWhere((r) => r.name == s, orElse: () => AppRole.readonly))
-            .toList();
-        permissions = permissionStrings
-            .map((s) => AppPermission.values.firstWhere((p) => p.name == s,
-                orElse: () => AppPermission.values.first))
-            .toList();
-        ownerId = data?['ownerId'] as String?;
         clinicIds =
             (data?['clinicIds'] as List<dynamic>?)?.cast<String>() ?? [];
         primaryClinicId = data?['primaryClinicId'] as String?;
       } else {
         // No invitation: sign up as owner (admin) for a new clinic
         final result = await _createOwnerAndClinic(user, userDocRef);
-        roles = result['roles'];
-        permissions = result['permissions'];
-        ownerId = result['ownerId'];
         clinicIds = result['clinicIds'];
         primaryClinicId = result['primaryClinicId'];
       }
@@ -418,85 +360,41 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       providerData: user.providerData,
       refreshToken: user.refreshToken,
       tenantId: user.tenantId,
-      roles: roles,
-      permissions: permissions,
       clinicIds: clinicIds,
+      clinics: richClinics,
       primaryClinicId: primaryClinicId,
-      ownerId: ownerId,
     );
   }
 
-  /// Accepts all invitations for the user, aggregates roles/permissions/clinicIds, and creates the user doc.
+  /// Accepts all invitations for the user, aggregates clinicIds, and creates the user doc.
   Future<void> _acceptAllInvitationsAndCreateUser(
       User user, QuerySnapshot invitations, DocumentReference docRef) async {
-    Set<String> allRoles = {};
-    Set<String> allPermissions = {};
     Set<String> allClinicIds = {};
-    String? firstOwnerId;
     String? firstClinicId;
 
     for (final invite in invitations.docs) {
       final inviteData = invite.data() as Map<String, dynamic>?;
-      final invitedRoles =
-          (inviteData?['roles'] as List<dynamic>?)?.cast<String>() ?? [];
-      final invitedPermissions =
-          (inviteData?['permissions'] as List<dynamic>?)?.cast<String>() ?? [];
       final invitedClinicId = inviteData?['clinicId'] as String?;
-      final invitedBy = inviteData?['invitedBy'] as String?;
 
-      /// Assigns the value of [invitedBy] to [firstOwnerId] if [firstOwnerId] is currently null.
-      ///
-      /// This ensures that [firstOwnerId] has a value, defaulting to [invitedBy] when not already set.
-      firstOwnerId ??= invitedBy;
-
-      /// Assigns the value of [invitedClinicId] to [firstClinicId] only if [firstClinicId] is currently null.
-      ///
-      /// This ensures that [firstClinicId] has a value, preferring its existing value if set,
-      /// or falling back to [invitedClinicId] otherwise.
       firstClinicId ??= invitedClinicId;
 
-      /// Adds all elements from the [invitedRoles] collection to the [allRoles] collection.
-      ///
-      /// This operation appends the roles that have been invited to the existing list of all roles,
-      /// ensuring that the [allRoles] list contains both the original and newly invited roles.
-      allRoles.addAll(invitedRoles);
-
-      /// Adds all permissions from [invitedPermissions] to the [allPermissions] set.
-      ///
-      /// This merges the permissions granted via invitation into the existing set of permissions.
-      allPermissions.addAll(invitedPermissions);
-
-      /// Adds the [invitedClinicId] to the [allClinicIds] list if it is not null.
-      ///
-      /// This ensures that only valid (non-null) clinic IDs are included in the list.
       if (invitedClinicId != null) allClinicIds.add(invitedClinicId);
 
-      /// Updates the referenced invite document in Firestore with the provided data.
-      ///
-      /// This operation is asynchronous and will complete once the update is successful.
-      /// Throws an exception if the update fails.
       await invite.reference.update({
         'status': 'accepted',
         'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc())
       });
     }
-    final roles = allRoles
-        .map((s) => AppRole.values
-            .firstWhere((r) => r.name == s, orElse: () => AppRole.readonly))
-        .toList();
-    final permissions = allPermissions
-        .map((s) => AppPermission.values.firstWhere((p) => p.name == s,
-            orElse: () => AppPermission.values.first))
-        .toList();
-    final ownerId = firstOwnerId ?? '';
+
     final clinicIds = allClinicIds.toList();
     final primaryClinicId = firstClinicId;
+
+    // Write minimal user data - backend will handle the rest via invitation acceptance
     await docRef.set({
-      'roles': roles.map((r) => r.name).toList(),
-      'permissions': permissions.map((p) => p.name).toList(),
       'email': user.email,
+      'displayName': user.displayName,
+      'photoURL': user.photoURL,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      'ownerId': ownerId,
       'clinicIds': clinicIds,
       'primaryClinicId': primaryClinicId,
     });
@@ -505,23 +403,12 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Creates a new owner/admin user and a new clinic, returns all relevant onboarding info.
   Future<Map<String, dynamic>> _createOwnerAndClinic(
       User user, DocumentReference docRef) async {
-    final roles = [AppRole.admin];
-    final permissions = <AppPermission>[];
-    final ownerId = user.uid;
     final clinicsCollection = FirebaseFirestore.instance.collection('clinics');
     final newClinicRef = clinicsCollection.doc();
 
-    /// Sets the initial data for a new clinic in Firestore.
-    ///
-    /// The data includes:
-    /// - `ownerId`: The unique identifier of the clinic owner.
-    /// - `createdAt`: The UTC timestamp of clinic creation.
-    /// - `name`: The display name of the user, or their email, or 'Clinic' as a fallback.
-    /// - `adminEmail`: The email address of the clinic administrator.
-    ///
-    /// This operation is performed on the reference to the new clinic document.
+    // Create clinic with owner
     await newClinicRef.set({
-      'ownerId': ownerId,
+      'ownerId': user.uid,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
       'name': user.displayName ?? user.email ?? 'Clinic',
       'adminEmail': user.email,
@@ -530,28 +417,25 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     final clinicIds = [newClinicRef.id];
     final primaryClinicId = newClinicRef.id;
 
-    /// Stores user authentication data in Firestore by setting the following fields:
-    /// - `roles`: A list of role names assigned to the user.
-    /// - `permissions`: A list of permission names granted to the user.
-    /// - `email`: The user's email address.
-    /// - `createdAt`: The UTC timestamp when the user was created.
-    /// - `ownerId`: The ID of the owner associated with the user.
-    /// - `clinicIds`: A list of clinic IDs associated with the user.
-    /// - `primaryClinicId`: The primary clinic ID for the user.
+    // Create user document with clinic membership
     await docRef.set({
-      'roles': roles.map((r) => r.name).toList(),
-      'permissions': permissions.map((p) => p.name).toList(),
       'email': user.email,
+      'displayName': user.displayName,
+      'photoURL': user.photoURL,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      'ownerId': ownerId,
       'clinicIds': clinicIds,
       'primaryClinicId': primaryClinicId,
+      'clinics': [
+        {
+          'clinicId': newClinicRef.id,
+          'clinicName': user.displayName ?? user.email ?? 'Clinic',
+          'role': 'Admin',
+          'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+        }
+      ],
     });
 
     return {
-      'roles': roles,
-      'permissions': permissions,
-      'ownerId': ownerId,
       'clinicIds': clinicIds,
       'primaryClinicId': primaryClinicId,
     };
@@ -594,9 +478,61 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Returns the current authenticated user as a Firebase [User], or null if not signed in.
   @override
   Future<UserModel?> getCurrentUser() async {
-    // cast the current user to a UserModel object
     final user = _firebaseAuth.currentUser;
     if (user == null) return null;
+
+    // Fetch user data from Firestore to get roles and permissions
+    try {
+      final userDoc = await _usersCollection.doc(user.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>?;
+
+        final richClinics = (data?['clinics'] as List<dynamic>?)
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .map((clinic) {
+              // Convert Timestamp to ISO String for safe serialization
+              if (clinic['joinedAt'] is Timestamp) {
+                clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
+                    .toDate()
+                    .toIso8601String();
+              }
+              return clinic;
+            }).toList() ??
+            [];
+
+        // Merge IDs
+        final Set<String> allClinicIds = {};
+        for (var clinic in richClinics) {
+          if (clinic['clinicId'] != null) {
+            allClinicIds.add(clinic['clinicId'] as String);
+          }
+        }
+
+        final clinicIds = allClinicIds.toList();
+        final primaryClinicId = data?['primaryClinicId'] as String?;
+
+        return UserModel(
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified,
+          isAnonymous: user.isAnonymous,
+          metadata: user.metadata,
+          phoneNumber: user.phoneNumber,
+          providerData: user.providerData,
+          refreshToken: user.refreshToken,
+          tenantId: user.tenantId,
+          clinicIds: clinicIds,
+          clinics: richClinics,
+          primaryClinicId: primaryClinicId,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error fetching user data from Firestore: $e');
+    }
+
+    // Fallback to basic user model if Firestore fetch fails
     return UserModel(
       uid: user.uid,
       displayName: user.displayName,
@@ -609,7 +545,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       providerData: user.providerData,
       refreshToken: user.refreshToken,
       tenantId: user.tenantId,
-      // Optionally, you may want to fetch roles/permissions from Firestore here if needed
     );
   }
 
@@ -645,22 +580,60 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// ```
   @override
   Stream<UserModel?> authStateChanges() {
-    return _firebaseAuth.authStateChanges().map((user) {
+    return _firebaseAuth.authStateChanges().asyncMap((user) async {
       if (user == null) return null;
-      return UserModel(
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        emailVerified: user.emailVerified,
-        isAnonymous: user.isAnonymous,
-        metadata: user.metadata,
-        phoneNumber: user.phoneNumber,
-        providerData: user.providerData,
-        refreshToken: user.refreshToken,
-        tenantId: user.tenantId,
-        // Optionally, you may want to fetch roles/permissions from Firestore here if needed
-      );
+      try {
+        final userDoc = await _usersCollection.doc(user.uid).get();
+        if (userDoc.exists) {
+          final data = userDoc.data() as Map<String, dynamic>?;
+
+          final richClinics = (data?['clinics'] as List<dynamic>?)
+                  ?.map((e) => Map<String, dynamic>.from(e as Map))
+                  .map((clinic) {
+                // Convert Timestamp to ISO String for safe serialization
+                if (clinic['joinedAt'] is Timestamp) {
+                  clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
+                      .toDate()
+                      .toIso8601String();
+                }
+                return clinic;
+              }).toList() ??
+              [];
+
+          // Merge IDs
+          final Set<String> allClinicIds = {};
+          for (var clinic in richClinics) {
+            if (clinic['clinicId'] != null) {
+              allClinicIds.add(clinic['clinicId'] as String);
+            }
+          }
+
+          final clinicIds = allClinicIds.toList();
+          final primaryClinicId = data?['primaryClinicId'] as String?;
+
+          return UserModel(
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            emailVerified: user.emailVerified,
+            isAnonymous: user.isAnonymous,
+            metadata: user.metadata,
+            phoneNumber: user.phoneNumber,
+            providerData: user.providerData,
+            refreshToken: user.refreshToken,
+            tenantId: user.tenantId,
+            clinicIds: clinicIds,
+            clinics: richClinics,
+            primaryClinicId: primaryClinicId,
+          );
+        }
+      } catch (e) {
+        debugPrint(
+            'Error fetching user data from Firestore in authStateChanges: $e');
+      }
+      // Fallback to basic user model if Firestore fetch fails
+      return UserModel.fromFirebaseUser(user);
     });
   }
 }
