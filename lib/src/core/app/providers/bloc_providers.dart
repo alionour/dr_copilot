@@ -32,7 +32,8 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// This provider should be placed above any widgets that need to interact with
   /// authentication logic, such as login, logout, or user session management.
-  BlocProvider<AuthBloc>(create: (context) => sl<AuthBloc>()),
+  BlocProvider<AuthBloc>(
+      create: (context) => sl<AuthBloc>()..add(const AuthCheckRequested())),
 
   /// Provides a [NavigationBloc] instance to the widget tree.
   ///
@@ -41,9 +42,9 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// Usage of this provider allows descendant widgets to access and interact with
   /// the [NavigationBloc] for navigation and user data management.
-  BlocProvider<NavigationBloc>(
-      create: (context) => sl<NavigationBloc>()..add(GetUserData())),
-
+      BlocProvider<NavigationBloc>(
+        create: (context) => sl<NavigationBloc>(),
+      ),
   /// Provides an instance of [PatientsBloc] to the widget tree.
   ///
   /// This [BlocProvider] is responsible for creating and managing the lifecycle
@@ -138,8 +139,6 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   BlocProvider<TransactionsBloc>(
     create: (context) => sl<TransactionsBloc>(),
   ),
-
-
 
   /// Provides an instance of [CalendarBloc] to the widget tree.
   ///

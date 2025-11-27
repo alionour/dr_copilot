@@ -27,7 +27,7 @@ class AccountPage extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
       ),

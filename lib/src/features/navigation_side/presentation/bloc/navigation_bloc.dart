@@ -1,7 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/features/navigation_side/domain/entities/destination.dart';
 
@@ -10,13 +8,23 @@ part 'navigation_state.dart';
 
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   NavigationBloc()
-      : super(const NavigationState(null, Destination.copilot, true)) {
+      : super(const NavigationState(null, Destination.copilot, true,
+            allowedDestinations: {})) {
     on<NavigateToEvent>(navigateTo);
-    on<GetUserData>(getUserData);
     on<NavigateUpEvent>(navigateUp);
     on<NavigateDownEvent>(navigateDown);
     on<ChangeFocusEvent>(changeFocus);
-    add(GetUserData());
+    on<UserChanged>(_onUserChanged);
+    on<DestinationsUpdated>(_onDestinationsUpdated);
+  }
+
+  void _onDestinationsUpdated(
+      DestinationsUpdated event, Emitter<NavigationState> emit) {
+    emit(state.copyWith(allowedDestinations: event.destinations));
+  }
+
+  void _onUserChanged(UserChanged event, Emitter<NavigationState> emit) {
+    emit(state.copyWith(user: Value(event.user)));
   }
 
   void navigateTo(NavigateToEvent event, Emitter emit) {
@@ -47,6 +55,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
         break;
       case Destination.staff:
         emit(state.copyWith(destination: Destination.staff));
+        break;
+      case Destination.invitations:
+        emit(state.copyWith(destination: Destination.invitations));
         break;
       case Destination.sessions:
         emit(state.copyWith(destination: Destination.sessions));
@@ -84,24 +95,5 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
   void changeFocus(ChangeFocusEvent event, Emitter emit) {
     emit(state.copyWith(isNavigationFocused: event.isFocused));
-  }
-
-  /// Fetch user data from Firebase
-  void getUserData(GetUserData event, Emitter emit) async {
-    debugPrint('getUserData called');
-    try {
-      final firebaseUser = FirebaseAuth.instance.currentUser;
-      debugPrint('Firebase currentUser: $firebaseUser');
-      UserModel? userModel;
-      if (firebaseUser != null) {
-        userModel = UserModel.fromFirebaseUser(firebaseUser);
-        debugPrint('UserModel created: $userModel');
-      }
-      emit(state.copyWith(user: userModel));
-      debugPrint('Emitted state with user: $userModel');
-    } catch (error) {
-      debugPrint('Error fetching user data: $error');
-      emit(state.copyWith(user: null));
-    }
   }
 }

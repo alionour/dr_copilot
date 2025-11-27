@@ -5,7 +5,7 @@ class StaffModel extends Staff {
   const StaffModel({
     required super.id,
     required super.name,
-    super.email,
+    required super.email,
     super.phoneNumber,
     required super.role,
     required super.clinicId,
@@ -19,6 +19,9 @@ class StaffModel extends Staff {
   }
 
   factory StaffModel.fromJson(Map<String, dynamic> json) {
+    if (json['email'] == null) {
+      throw const FormatException("email field is missing");
+    }
     return StaffModel(
       id: json['id'],
       name: json['name'],

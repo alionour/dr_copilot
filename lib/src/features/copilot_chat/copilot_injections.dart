@@ -1,4 +1,5 @@
-import 'dart:io';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get_it/get_it.dart';
 import 'presentation/bloc/copilot_bloc.dart';
 import 'services/vertex_ai_service.dart';
@@ -7,6 +8,8 @@ import 'services/gemini_service.dart';
 import 'services/deepseek_service.dart';
 import 'services/qwen_service.dart';
 import 'services/claude_service.dart';
+import '../../core/helper/platform_env_io.dart'
+    if (dart.library.html) '../../core/helper/platform_env_web.dart';
 
 final sl = GetIt.instance;
 
@@ -31,7 +34,11 @@ void initCopilotInjections() {
   sl.registerLazySingleton(() => GPTService(''));
   sl.registerLazySingleton(
     () => GeminiService(
-      Platform.environment['GEMINI_KEY'] ?? Platform.environment['GEMINI_KEY_2']!,
+      kIsWeb
+          ? getPlatformEnv('GEMINI_KEY')
+          : (getPlatformEnv('GEMINI_KEY').isEmpty
+              ? getPlatformEnv('GEMINI_KEY_2')
+              : getPlatformEnv('GEMINI_KEY')),
     ),
   );
   sl.registerLazySingleton(() => DeepSeekService(''));

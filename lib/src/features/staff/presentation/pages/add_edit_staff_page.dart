@@ -85,7 +85,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         _initialStaff = staff;
         _nameController.text = staff.name;
         _selectedRole = staff.role;
-        _emailController.text = staff.email ?? '';
+        _emailController.text = staff.email;
         _phoneNumberController.text = staff.phoneNumber ?? '';
         _selectedClinicId = staff.clinicId;
       }

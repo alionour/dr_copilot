@@ -52,24 +52,22 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
-/// Represents the state when a user has successfully signed in.
-///
-/// This state can be used to trigger UI updates or logic that should occur
-/// after authentication is complete.
 class AuthSignedIn extends AuthState {
-  /// An optional message that provides additional information about the authentication state.
-  ///
-  /// This can be used to convey error messages, status updates, or other relevant details.
-  /// If no message is available, this value will be `null`.
-  final String? message;
+  final String message;
+  final UserModel? user;
 
-  /// The unique identifier of the user, or `null` if the user is not authenticated.
-  final String? userId;
-
-  /// State emitted when the user is successfully signed in.
-  /// This state indicates that the user has been authenticated and can access protected resources.
-  const AuthSignedIn({required this.message, this.userId});
+  const AuthSignedIn({required this.message, this.user});
 
   @override
-  List<Object?> get props => [message, userId];
+  List<Object?> get props => [message, user];
+}
+
+/// Represents the state when an authentication process is in progress.
+///
+/// This state is typically used to show a loading indicator in the UI.
+class AuthLoading extends AuthState {
+  const AuthLoading();
+
+  @override
+  List<Object> get props => [];
 }

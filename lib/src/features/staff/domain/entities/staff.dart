@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 class Staff extends Equatable {
   final String id;
   final String name;
-  final String? email;
+  final String email;
   final String? phoneNumber;
   final String role;
   final String clinicId;
@@ -13,7 +13,7 @@ class Staff extends Equatable {
   const Staff({
     required this.id,
     required this.name,
-    this.email,
+    required this.email,
     this.phoneNumber,
     required this.role,
     required this.clinicId,

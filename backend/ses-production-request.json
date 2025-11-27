@@ -1,0 +1,9 @@
+{
+    "MailType": "TRANSACTIONAL",
+    "WebsiteURL": "https://drcopilot.app",
+    "UseCaseDescription": "Dr. Copilot is a medical clinic management application that helps healthcare facilities manage their operations. We send transactional invitation emails to doctors, nurses, and staff members when clinic administrators add them to the system. These emails contain secure invitation links for new users to join their assigned clinic. Emails are only sent when explicitly requested by authorized clinic administrators through our application. We have implemented proper bounce and complaint handling processes, and maintain a suppression list for unsubscribed users.",
+    "AdditionalContactEmailAddresses": [
+        "alionour22@gmail.com"
+    ],
+    "ProductionAccessEnabled": true
+}

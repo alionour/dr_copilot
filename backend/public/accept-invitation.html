@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Copilot - Accept Invitation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .invitation-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .invitation-card h2 {
+            color: #2d3748;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .button-primary {
+            background: #4285F4;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #3367D6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>Dr. Copilot</h1>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p id="loading-text">Verifying invitation...</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div id="error-message"></div>
+
+            <div class="invitation-card">
+                <h2>You're Invited!</h2>
+                <div class="detail-row">
+                    <span class="detail-label">Clinic</span>
+                    <span class="detail-value" id="clinic-name">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Role</span>
+                    <span class="detail-value" id="role">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value" id="email">-</span>
+                </div>
+            </div>
+
+            <button id="google-signin" class="button button-primary">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="white"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="white"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="white"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="white"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6APKuTlDJP9gGT9usJGj1Ub1Eev592PU",
+            authDomain: "drcopilot-bfc9e.firebaseapp.com",
+            projectId: "drcopilot-bfc9e",
+            storageBucket: "drcopilot-bfc9e.firebasestorage.app",
+            messagingSenderId: "253522261255",
+            appId: "1:253522261255:web:b0c3541bbd0e1da51001a2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const BACKEND_URL = window.location.origin;
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        async function verifyInvitation() {
+            if (!token) {
+                showError('Invalid invitation link.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/invitations/verify?token=${token}`);
+                const data = await response.json();
+
+                if (data.valid) {
+                    displayInvitation(data.invitation);
+                } else {
+                    showError(data.error || 'Invalid or expired invitation.');
+                }
+            } catch (error) {
+                showError('Failed to verify invitation.');
+                console.error(error);
+            }
+        }
+
+        function displayInvitation(invitation) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('clinic-name').textContent = invitation.clinicName;
+            document.getElementById('role').textContent = invitation.role;
+            document.getElementById('email').textContent = invitation.recipientEmail;
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('error-message').innerHTML = `<div class="error">${message}</div>`;
+            document.getElementById('google-signin').disabled = true;
+        }
+
+        function showSuccess(message) {
+            document.getElementById('error-message').innerHTML = `<div class="success">${message}</div>`;
+            document.getElementById('google-signin').style.display = 'none';
+        }
+
+        document.getElementById('google-signin').addEventListener('click', async () => {
+            const button = document.getElementById('google-signin');
+            button.disabled = true;
+            button.textContent = 'Opening Google Sign-In...';
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+
+                // Try popup first
+                try {
+                    const result = await auth.signInWithPopup(provider);
+                    await acceptInvitation(result.user);
+                } catch (popupError) {
+                    // If popup fails (blocked/SSL), fall back to redirect
+                    console.log('Popup failed, using redirect:', popupError);
+                    button.textContent = 'Redirecting...';
+                    await auth.signInWithRedirect(provider);
+                }
+            } catch (error) {
+                showError('Sign-in failed. Please try again.');
+                console.error(error);
+                button.disabled = false;
+                button.innerHTML = '<svg class="google-icon" viewBox="0 0 24 24"><path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google';
+            }
+        });
+
+        async function acceptInvitation(user) {
+            console.log('Accepting invitation for user:', user.email);
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('loading-text').textContent = 'Accepting invitation...';
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/invitations/accept`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, userId: user.uid })
+                });
+
+                const data = await response.json();
+                console.log('Accept response:', data);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                if (data.success || response.ok) {
+                    showSuccess('✅ Invitation accepted! You can now close this window and open the desktop app.');
+                } else {
+                    showError(data.error || 'Failed to accept invitation.');
+                }
+            } catch (error) {
+                console.error('Accept error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                showError('Failed to accept invitation.');
+            }
+        }
+
+        // Check for redirect result on load
+        auth.getRedirectResult().then(result => {
+            if (result && result.user) {
+                console.log('Got redirect result:', result.user.email);
+                acceptInvitation(result.user);
+            } else {
+                verifyInvitation();
+            }
+        }).catch(error => {
+            console.error('Redirect result error:', error);
+            verifyInvitation();
+        });
+    </script>
+</body>
+
+</html>
