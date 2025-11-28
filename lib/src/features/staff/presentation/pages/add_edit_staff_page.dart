@@ -147,7 +147,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
       ),

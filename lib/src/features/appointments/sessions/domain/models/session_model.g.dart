@@ -12,8 +12,7 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       price: (json['price'] as num).toDouble(),
       startDateTime: const TimestampConverter().fromJson(json['startDateTime']),
       endDateTime: const TimestampConverter().fromJson(json['endDateTime']),
-      sessionType:
-          $enumDecodeNullable(_$SessionTypeEnumMap, json['sessionType']),
+      sessionType: json['sessionType'] as String?,
       ownerId: json['ownerId'] as String,
       clinicId: json['clinicId'] as String,
       createdBy: json['createdBy'] as String,
@@ -34,7 +33,7 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'startDateTime':
           const TimestampConverter().toJson(instance.startDateTime),
       'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
-      'sessionType': _$SessionTypeEnumMap[instance.sessionType],
+      'sessionType': instance.sessionType,
       'ownerId': instance.ownerId,
       'clinicId': instance.clinicId,
       'createdBy': instance.createdBy,
@@ -48,10 +47,3 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
           const NullableTimestampConverter().toJson(instance.updatedAt),
       'doctorId': instance.doctorId,
     };
-
-const _$SessionTypeEnumMap = {
-  SessionType.pediatricIntensive: 'pediatricIntensive',
-  SessionType.adultIntensive: 'adultIntensive',
-  SessionType.standard: 'standard',
-  SessionType.traction: 'traction',
-};

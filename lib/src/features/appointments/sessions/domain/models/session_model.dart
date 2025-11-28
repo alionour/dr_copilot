@@ -3,17 +3,29 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'session_model.g.dart';
 
-/// Enum for session types
-enum SessionType {
-  pediatricIntensive('Pediatric Intensive', 100.0),
-  adultIntensive('Adult Intensive', 150.0),
-  standard('Standard', 120.0),
-  traction('Traction', 150.0);
+/// Class for session type presets
+class SessionTypePresets {
+  static const String pediatricIntensive = 'Pediatric Intensive';
+  static const String adultIntensive = 'Adult Intensive';
+  static const String standard = 'Standard';
+  static const String traction = 'Traction';
+  static const String custom = 'Custom';
 
-  final String text;
-  final double basePrice;
+  static const List<String> values = [
+    pediatricIntensive,
+    adultIntensive,
+    standard,
+    traction,
+    custom,
+  ];
 
-  const SessionType(this.text, this.basePrice);
+  static const Map<String, double> basePrices = {
+    pediatricIntensive: 100.0,
+    adultIntensive: 150.0,
+    standard: 120.0,
+    traction: 150.0,
+    custom: 0.0,
+  };
 }
 
 class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
@@ -70,7 +82,7 @@ class SessionModel {
   @TimestampConverter()
   final Timestamp endDateTime;
 
-  final SessionType? sessionType;
+  final String? sessionType;
   final String ownerId;
   final String clinicId;
   final String createdBy;
@@ -119,7 +131,7 @@ class SessionModel {
     double? price,
     Timestamp? startDateTime,
     Timestamp? endDateTime,
-    SessionType? sessionType,
+    String? sessionType,
     String? ownerId,
     String? clinicId,
     String? createdBy,

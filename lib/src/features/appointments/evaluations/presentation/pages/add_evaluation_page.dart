@@ -17,7 +17,8 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 
 class AddEvaluationPage extends StatefulWidget {
-  const AddEvaluationPage({super.key});
+  final EvaluationModel? evaluation;
+  const AddEvaluationPage({super.key, this.evaluation});
 
   @override
   State<AddEvaluationPage> createState() => _AddEvaluationPageState();
@@ -31,19 +32,20 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   final _actualPriceFocusNode = FocusNode();
   Timestamp? _startDate =
       Timestamp.fromDate(DateTime.now()); // Initialize with the current date
-  Timestamp? _endDate = Timestamp.fromDate(DateTime.now().add(const Duration(
-      minutes: 30))); // Initialize with the current date + 1 hour
+  Timestamp? _endDate = Timestamp.fromDate(DateTime.now().add(
+      const Duration(hours: 1))); // Initialize with the current date + 1 hour
   String _selectedCalendar = 'Evaluations'; // Default calendar matches the list
   String query = '';
   final FocusNode _searchFocusNode = FocusNode();
   List<PatientModel> _filteredPatients = [];
+  PatientModel? _selectedPatient;
 
   final List<String> _calendars = ['Evaluations'];
   final Map<String, Color> _calendarColors = {
     'Evaluations': Colors.red,
   };
 
-  double _estimatedPrice = 120.0; // Default estimated price
+  double _estimatedPrice = 250.0; // Default estimated price
   final _actualPriceController = TextEditingController();
 
   DoctorModel? _selectedDoctor;
@@ -61,18 +63,28 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
       _fetchCurrencyProfiles(); // Fetch currency profiles on init
+      context.read<DoctorsBloc>().add(const GetDoctors());
     });
-    debugPrint('Fetching patients on init');
-    context
-        .read<PatientsBloc>()
-        .add(const GetPatients()); // Fetch patients on init
-    context
-        .read<DoctorsBloc>()
-        .add(const GetDoctors()); // Fetch doctors on init
+    context.read<PatientsBloc>().add(const GetPatients());
 
-    final clinics = OwnerNotifier().clinics;
-    if (clinics.isNotEmpty) {
-      _selectedClinicId = clinics.first.id;
+    if (widget.evaluation != null) {
+      _selectedClinicId = widget.evaluation!.clinicId;
+      _startDate = widget.evaluation!.startDateTime;
+      _endDate = widget.evaluation!.endDateTime;
+      _actualPriceController.text = widget.evaluation!.price.toString();
+      _patientNameController.text = widget.evaluation!.patientName;
+      _selectedPatient = PatientModel(
+        id: widget.evaluation!.patientId,
+        name: widget.evaluation!.patientName,
+        ownerId: widget.evaluation!.ownerId,
+        clinicId: widget.evaluation!.clinicId,
+      );
+      // _selectedDoctor will be set when doctors are loaded
+    } else {
+      final clinics = OwnerNotifier().clinics;
+      if (clinics.isNotEmpty) {
+        _selectedClinicId = clinics.first.id;
+      }
     }
   }
 
@@ -88,8 +100,6 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           );
         },
         (profiles) {
-          debugPrint(
-              'Fetched currency profiles: ${profiles.map((p) => p.currency).toList()}');
           setState(() {
             _currencyProfiles = profiles.map((profile) => profile).toList();
           });
@@ -97,21 +107,17 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       );
     } catch (e) {
       debugPrint('Error in _fetchCurrencyProfiles: $e');
-      if (!mounted) return; // Ensure context is still valid after async gap
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
       );
     }
     if (_currencyProfiles.isNotEmpty) {
-      _selectedCurrencyProfile ??= _currencyProfiles
-          .first; // Set the first profile as default if none is selected
+      _selectedCurrencyProfile ??= _currencyProfiles.first;
     }
   }
 
   String? _validateTime() {
-    if (_startDate == null || _endDate == null) {
-      return 'startAndEndTimesRequired'.tr();
-    }
     if (_endDate!.toDate().isBefore(_startDate!.toDate())) {
       return 'endTimeAfterStartTime'.tr();
     }
@@ -121,12 +127,6 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       return 'maximumAllowedDuration'.tr();
     }
     return null;
-  }
-
-  void _updateEstimatedPrice() {
-    final duration =
-        _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
-    _estimatedPrice = 120.0 * duration;
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
@@ -161,7 +161,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       });
       if (!context.mounted) return;
 
-      await _selectTime(context, isStart); // Automatically move to time picker
+      await _selectTime(context, isStart);
     }
   }
 
@@ -207,69 +207,82 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         } else {
           _endDate = Timestamp.fromDate(roundedDateTime);
         }
-        _updateEstimatedPrice(); // Update price when time changes
       });
     }
   }
 
-  String? get ownerId => OwnerNotifier().ownerId;
-
   void _saveEvaluation() {
     if (_formKey.currentState!.validate()) {
-      if (_startDate == null || _endDate == null) {
+      if (_selectedPatient == null) {
+        // Try to find patient from list if name matches
+        try {
+          _selectedPatient = _filteredPatients.firstWhere(
+            (p) => p.name == _patientNameController.text,
+          );
+        } catch (e) {
+          // Patient not found
+        }
+      }
+
+      if (_selectedPatient == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('startAndEndTimesRequired'.tr())),
+          SnackBar(content: Text('pleaseSelectPatient'.tr())),
         );
         return;
       }
+
+      if (_selectedCurrencyProfile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Please select a currency profile before adding a evaluation.')),
+        );
+        return;
+      }
+
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please select a clinic.')),
         );
         return;
       }
-      final selectedPatient = _filteredPatients.firstWhere(
-        (patient) => patient.name == _patientNameController.text,
-        orElse: () => PatientModel(id: '', name: '', ownerId: '', clinicId: ''),
-      );
-      if (selectedPatient.id.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('invalidPatientSelected'.tr())),
-        );
-        return;
-      }
-      // Ensure invoice status is selected
-      if (_selectedInvoiceStatus == null) {
+
+      if (_selectedInvoiceStatus == null && widget.evaluation == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please select an invoice status.')),
         );
         return;
       }
-      // Ensure currency profile is selected
-      if (_selectedCurrencyProfile == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select a currency profile.')),
-        );
-        return;
-      }
-      final evaluationData = EvaluationModel(
-        id: const Uuid().v4(),
-        patientId: selectedPatient.id,
-        patientName: _patientNameController.text,
+
+      final now = Timestamp.fromDate(DateTime.now().toUtc());
+
+      final evaluation = EvaluationModel(
+        id: widget.evaluation?.id ?? const Uuid().v4(),
+        patientId: _selectedPatient!.id,
+        patientName: _selectedPatient!.name,
         startDateTime: _startDate!,
         endDateTime: _endDate!,
-        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+        createdAt: widget.evaluation?.createdAt ?? now,
         price: double.parse(_actualPriceController.text),
-        ownerId: ownerId ?? '',
-        createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
+        ownerId: widget.evaluation?.ownerId ??
+            FirebaseAuth.instance.currentUser?.uid ??
+            '',
         clinicId: _selectedClinicId!,
-        doctorId: _selectedDoctor?.id, // Add the selected doctor's ID
+        createdBy: widget.evaluation?.createdBy ??
+            FirebaseAuth.instance.currentUser?.uid ??
+            '',
+        doctorId: _selectedDoctor?.id,
       );
-      context.read<EvaluationsBloc>().add(AddEvaluation(
-            evaluationData,
+
+      if (widget.evaluation != null) {
+        context
+            .read<EvaluationsBloc>()
+            .add(UpdateEvaluation(evaluation.id, evaluation));
+      } else {
+        context.read<EvaluationsBloc>().add(AddEvaluation(evaluation,
             invoiceStatus: _selectedInvoiceStatus!,
-            currencyProfileId: _selectedCurrencyProfile!.currency,
-          ));
+            currencyProfileId: _selectedCurrencyProfile!.id));
+      }
     }
   }
 
@@ -282,83 +295,17 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     super.dispose();
   }
 
-//   Future<void> _addTransactionsFromInvoices() async {
-//   try {
-//     debugPrint('Fetching all invoices to add as transactions...');
-//                 final EvaluationsUseCase _evaluationUseCase =
-//                 EvaluationsUseCase(EvaluationsFirebaseApi());
-
-//                 final FinancialsUseCase financialsUseCase = FinancialsUseCase(
-//                 FinancialsRepositoryImpl(FinancialsFirebaseApi(
-//                     evaluationsUseCase: _evaluationUseCase,
-//                     transactionsUseCase:
-//                         TransactionsUseCase(TransactionsFirebaseApi()),
-//                     sessionsUseCase: SessionsUseCase(
-//                         SessionsRepositoryImpl(SessionsFirebaseApi())))));// Make sure to import and initialize properly
-//     final transactionsUseCase = TransactionsUseCase(TransactionsFirebaseApi());
-
-//     final failureOrInvoices = await financialsUseCase.fetchInvoices();
-//     failureOrInvoices.fold(
-//       (failure) {
-//         debugPrint('Failed to fetch invoices: ${failure.message}');
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Failed to fetch invoices: ${failure.message}'.tr())),
-//         );
-//       },
-//       (invoices) async {
-//         debugPrint('Fetched ${invoices.length} invoices');
-//         int addedCount = 0;
-//         for (final invoice in invoices) {
-//           // Only add transactions for paid or partially paid invoices
-//           if (invoice.status == InvoiceStatus.paid || invoice.status == InvoiceStatus.partiallyPaid) {
-//             final transaction = TransactionModel(
-//               id: const Uuid().v4(),
-//               amount: invoice.amount,
-//               description: invoice.description ,
-//               transactionDate: invoice.createdAt,
-//               transactionSource: TransactionSource.invoice,
-//               direction: TransactionDirection.fromSource(TransactionSource.invoice),
-//               createdAt: invoice.createdAt,
-//               createdBy: invoice.createdBy,
-//               userId: invoice.userId,
-//               currencyProfileId: invoice.currencyProfileId,
-//               referenceId: invoice.id,
-//               status: TransactionStatus.completed,
-
-//             );
-//             await transactionsUseCase.addTransaction(transaction);
-//             addedCount++;
-//           }
-//         }
-//         debugPrint('Added $addedCount transactions from invoices.');
-//         if (!mounted) return; // Ensure context is still valid after async gap
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Added $addedCount transactions from invoices'.tr())),
-//         );
-//       },
-//     );
-//   } catch (e) {
-//     debugPrint('Error adding transactions from invoices: $e');
-//     if (!mounted) return; // Ensure context is still valid after async gap
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text('Failed to add transactions from invoices'.tr())),
-//     );
-//   }
-// }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _addTransactionsFromInvoices,
-      //   child: const Icon(Icons.keyboard_hide),
-      // ),
       appBar: AppBar(
-        title: Text('addEvaluation'.tr()),
+        title: Text(widget.evaluation != null
+            ? 'Edit Evaluation'
+            : 'addEvaluation'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home'); // Navigate back to home
+            context.pop();
           },
         ),
       ),
@@ -366,14 +313,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         listeners: [
           BlocListener<PatientsBloc, PatientsState>(
             listener: (context, state) {
-              debugPrint('PatientsBloc state: $state');
               if (state is PatientsSuccess) {
                 final message = state.message;
                 if (message != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                    ),
+                    SnackBar(content: Text(message)),
                   );
                 }
               } else if (state is PatientsError) {
@@ -390,9 +334,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                 final message = state.message;
                 if (message != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                    ),
+                    SnackBar(content: Text(message)),
                   );
                 }
               } else if (state is EvaluationsError) {
@@ -411,7 +353,16 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                 setState(() {
                   _doctors = state.doctors;
                   if (_doctors.isNotEmpty && _selectedDoctor == null) {
-                    _selectedDoctor = _doctors.first;
+                    if (widget.evaluation != null &&
+                        widget.evaluation!.doctorId != null) {
+                      try {
+                        _selectedDoctor = _doctors.firstWhere(
+                            (d) => d.id == widget.evaluation!.doctorId);
+                      } catch (e) {
+                        // Doctor not found
+                      }
+                    }
+                    _selectedDoctor ??= _doctors.first;
                   }
                 });
               } else if (state is DoctorsError) {
@@ -460,13 +411,15 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                   child: Text(clinic.name),
                                 );
                               }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  if (newValue != null) {
-                                    _selectedClinicId = newValue;
-                                  }
-                                });
-                              },
+                              onChanged: widget.evaluation != null
+                                  ? null
+                                  : (String? newValue) {
+                                      setState(() {
+                                        if (newValue != null) {
+                                          _selectedClinicId = newValue;
+                                        }
+                                      });
+                                    },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'selectClinic'.tr();
@@ -507,11 +460,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               focusNode: _searchFocusNode,
                               child: BlocBuilder<PatientsBloc, PatientsState>(
                                 builder: (context, state) {
-                                  debugPrint(
-                                      'Building UI with PatientsBloc state: $state');
                                   if (state is PatientsLoaded) {
-                                    debugPrint(
-                                        'Patients loaded: ${state.patients}');
                                     _filteredPatients =
                                         state.patients.where((patient) {
                                       return patient.name
@@ -524,11 +473,13 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       TextFormField(
                                         controller: _patientNameController,
                                         focusNode: _patientNameFocusNode,
+                                        readOnly: widget.evaluation != null,
                                         decoration: InputDecoration(
                                           labelText: 'patientName'.tr(),
                                           hintText: 'searchPatients'.tr(),
                                           prefixIcon: const Icon(Icons.search),
                                           border: InputBorder.none,
+                                          enabled: widget.evaluation == null,
                                         ),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
@@ -540,30 +491,27 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                           setState(() {
                                             query = newQuery;
                                           });
-                                          context.read<PatientsBloc>().add(
-                                              SearchPatients(
-                                                  name:
-                                                      query)); // Trigger search event
+                                          context
+                                              .read<PatientsBloc>()
+                                              .add(SearchPatients(name: query));
                                         },
                                         onFieldSubmitted: (_) {
                                           FocusScope.of(context).requestFocus(
                                               _actualPriceFocusNode);
                                         },
                                       ),
-                                      if (_filteredPatients.isNotEmpty)
+                                      if (_filteredPatients.isNotEmpty &&
+                                          widget.evaluation == null)
                                         Container(
                                           constraints: const BoxConstraints(
-                                            maxHeight:
-                                                200, // Limit height for scrolling
+                                            maxHeight: 200,
                                           ),
                                           child: ListView.builder(
                                             shrinkWrap: true,
-                                            itemCount: _filteredPatients
-                                                        .length >
-                                                    5
-                                                ? 2
-                                                : _filteredPatients
-                                                    .length, // Show only 5 items
+                                            itemCount:
+                                                _filteredPatients.length > 5
+                                                    ? 5
+                                                    : _filteredPatients.length,
                                             itemBuilder: (context, index) {
                                               return ListTile(
                                                 title: Text(
@@ -575,6 +523,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                             .text =
                                                         _filteredPatients[index]
                                                             .name;
+                                                    _selectedPatient =
+                                                        _filteredPatients[
+                                                            index];
                                                     _filteredPatients = [];
                                                   });
                                                   FocusScope.of(context)
@@ -586,7 +537,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                           ),
                                         ),
                                       if (_filteredPatients.isEmpty &&
-                                          query.isNotEmpty)
+                                          query.isNotEmpty &&
+                                          widget.evaluation == null)
                                         Column(
                                           children: [
                                             Text('noPatients'.tr()),
@@ -601,7 +553,6 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                     icon: const Icon(
                                                         Icons.arrow_forward),
                                                     onPressed: () {
-                                                      // Navigate to add patient page
                                                       context
                                                           .go('/patients/new');
                                                     },
@@ -618,8 +569,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             Container(
-                              alignment: AlignmentDirectional
-                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+                              alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'startDateTime'.tr(),
                                 style: Theme.of(context)
@@ -669,8 +619,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             Container(
-                              alignment: AlignmentDirectional
-                                  .centerStart, // Replaced Align with Container for RTL/LTR support
+                              alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'endDateTime'.tr(),
                                 style: Theme.of(context)
@@ -720,9 +669,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             Container(
-                              alignment: AlignmentDirectional
-                                  .centerStart, // Replaced Align with Container for RTL/LTR support
-
+                              alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
                                 style: Theme.of(context)
@@ -734,9 +681,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             const SizedBox(height: 8.0),
                             if (_validateTime() != null)
                               Container(
-                                alignment: AlignmentDirectional
-                                    .centerStart, // Replaced Align with Container for RTL/LTR support
-
+                                alignment: AlignmentDirectional.centerStart,
                                 child: Text(
                                   _validateTime()!,
                                   style: const TextStyle(
@@ -747,9 +692,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               ),
                             const SizedBox(height: 8.0),
                             Container(
-                              alignment: AlignmentDirectional
-                                  .centerStart, // Replaced Align with Container for RTL/LTR support
-
+                              alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'actualPrice'.tr(),
                                 style: Theme.of(context)
@@ -816,147 +759,152 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             const SizedBox(height: 8.0),
-                            Card(
-                              color: Colors.blue
-                                  .shade50, // Light blue background for the invoice section
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'invoice'.tr(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue
-                                                .shade900, // Darker blue for the title
-                                          ),
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: DropdownButtonFormField<
-                                              CurrencyProfileModel>(
-                                            value: _selectedCurrencyProfile,
-                                            decoration: InputDecoration(
-                                              labelText: 'currencyProfile'.tr(),
-                                              labelStyle: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                            if (widget.evaluation == null)
+                              Card(
+                                color: Colors.blue.shade50,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'invoice'.tr(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
                                             ),
-                                            items: _currencyProfiles.map(
-                                                (CurrencyProfileModel profile) {
-                                              return DropdownMenuItem<
-                                                  CurrencyProfileModel>(
-                                                value: profile,
-                                                child:
-                                                    Text(profile.currency.tr()),
-                                              );
-                                            }).toList(),
-                                            onChanged: (CurrencyProfileModel?
-                                                newValue) {
-                                              setState(() {
-                                                _selectedCurrencyProfile =
-                                                    newValue;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.refresh),
-                                          onPressed: _fetchCurrencyProfiles,
-                                          tooltip:
-                                              'refreshCurrencyProfiles'.tr(),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: DropdownButtonFormField<
-                                              InvoiceStatus>(
-                                            value: _selectedInvoiceStatus,
-                                            decoration: InputDecoration(
-                                              labelText: 'invoiceStatus'.tr(),
-                                              labelStyle: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                            ),
-                                            items: InvoiceStatus.values
-                                                .map((InvoiceStatus status) {
-                                              return DropdownMenuItem<
-                                                  InvoiceStatus>(
-                                                value: status,
-                                                child: Text(
-                                                    'invoiceStatus.${status.name}'
-                                                        .tr()), // Display localized name
-                                              );
-                                            }).toList(),
-                                            onChanged:
-                                                (InvoiceStatus? newValue) {
-                                              setState(() {
-                                                _selectedInvoiceStatus =
-                                                    newValue;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    if (_selectedInvoiceStatus ==
-                                        InvoiceStatus.partiallyPaid)
-                                      TextFormField(
-                                        controller: _partialPaymentController,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                        ],
-                                        decoration: InputDecoration(
-                                          labelText: 'amount'.tr(),
-                                          border: const OutlineInputBorder(),
-                                        ),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'enterValidAmount'.tr();
-                                          }
-                                          final amount = double.tryParse(value);
-                                          if (amount == null || amount <= 0) {
-                                            return 'enterValidAmountGreaterThanZero'
-                                                .tr();
-                                          }
-                                          if (amount > 1000000) {
-                                            return 'amountCannotExceedOneMillion'
-                                                .tr();
-                                          }
-                                          return null;
-                                        },
                                       ),
-                                  ],
+                                      const SizedBox(height: 8.0),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: DropdownButtonFormField<
+                                                CurrencyProfileModel>(
+                                              value: _selectedCurrencyProfile,
+                                              decoration: InputDecoration(
+                                                labelText:
+                                                    'currencyProfile'.tr(),
+                                                labelStyle: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              items: _currencyProfiles.map(
+                                                  (CurrencyProfileModel
+                                                      profile) {
+                                                return DropdownMenuItem<
+                                                    CurrencyProfileModel>(
+                                                  value: profile,
+                                                  child: Text(
+                                                      profile.currency.tr()),
+                                                );
+                                              }).toList(),
+                                              onChanged: (CurrencyProfileModel?
+                                                  newValue) {
+                                                setState(() {
+                                                  _selectedCurrencyProfile =
+                                                      newValue;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.refresh),
+                                            onPressed: _fetchCurrencyProfiles,
+                                            tooltip:
+                                                'refreshCurrencyProfiles'.tr(),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: DropdownButtonFormField<
+                                                InvoiceStatus>(
+                                              value: _selectedInvoiceStatus,
+                                              decoration: InputDecoration(
+                                                labelText: 'invoiceStatus'.tr(),
+                                                labelStyle: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              items: InvoiceStatus.values
+                                                  .map((InvoiceStatus status) {
+                                                return DropdownMenuItem<
+                                                    InvoiceStatus>(
+                                                  value: status,
+                                                  child: Text(
+                                                      'invoiceStatus.${status.name}'
+                                                          .tr()),
+                                                );
+                                              }).toList(),
+                                              onChanged:
+                                                  (InvoiceStatus? newValue) {
+                                                setState(() {
+                                                  _selectedInvoiceStatus =
+                                                      newValue;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      if (_selectedInvoiceStatus ==
+                                          InvoiceStatus.partiallyPaid)
+                                        TextFormField(
+                                          controller: _partialPaymentController,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly,
+                                          ],
+                                          decoration: InputDecoration(
+                                            labelText: 'amount'.tr(),
+                                            border: const OutlineInputBorder(),
+                                          ),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'enterValidAmount'.tr();
+                                            }
+                                            final amount =
+                                                double.tryParse(value);
+                                            if (amount == null || amount <= 0) {
+                                              return 'enterValidAmountGreaterThanZero'
+                                                  .tr();
+                                            }
+                                            if (amount > 1000000) {
+                                              return 'amountCannotExceedOneMillion'
+                                                  .tr();
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
                             const SizedBox(height: 8.0),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed:
-                                    _saveEvaluation, // Call _saveEvent on button press
+                                onPressed: _saveEvaluation,
                                 child: Text('saveAppointment'.tr()),
                               ),
                             ),

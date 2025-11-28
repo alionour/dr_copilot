@@ -25,8 +25,8 @@ class ThemeNotifier extends ChangeNotifier {
 
   ThemeData get currentTheme {
     return _isDarkMode
-        ? FlexColorScheme.dark(scheme: FlexScheme.mandyRed).toTheme
-        : FlexColorScheme.light(scheme: FlexScheme.mandyRed).toTheme;
+        ? FlexColorScheme.dark(scheme: FlexScheme.tealM3).toTheme
+        : FlexColorScheme.light(scheme: FlexScheme.tealM3).toTheme;
   }
 
   void toggleTheme() {

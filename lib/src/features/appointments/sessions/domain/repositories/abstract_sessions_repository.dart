@@ -31,7 +31,7 @@ abstract class AbstractSessionsRepository {
   Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date);
 
   /// Detects the type of session based on patient ID.
-  Future<Either<Failure, SessionType>> detectSessionType(String patientId);
+  Future<Either<Failure, String>> detectSessionType(String patientId);
 
   /// Returns the count of sessions as an [int] or a [Failure] in case of an error.
   Future<Either<Failure, int>> getSessionsCount();

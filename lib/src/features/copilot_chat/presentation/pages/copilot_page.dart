@@ -1018,18 +1018,9 @@ class _CopilotPageState extends State<CopilotPage> {
         return;
       }
 
-      SessionType? sessionType;
-      if (sessionTypeString != null) {
-        try {
-          sessionType = SessionType.values.firstWhere(
-              (type) => type.toString().split('.').last == sessionTypeString);
-        } catch (e) {
-          _showTypingEffect(
-              'Invalid session type. Available types: pediatricIntensive, adultIntensive, standard, traction.');
-          _functionCallArgs.clear();
-          return;
-        }
-      }
+      String? sessionType = sessionTypeString;
+      // You might want to validate against presets or allow any string
+      // For now, we allow any string as per the refactor to support custom types
 
       _showTypingEffect(
           'Adding session for patient ID: $patientId, price: $price, from: $startDateTime to: $endDateTime');
@@ -1144,18 +1135,9 @@ class _CopilotPageState extends State<CopilotPage> {
               }
             }
 
-            SessionType? sessionType;
-            if (sessionTypeString != null) {
-              try {
-                sessionType = SessionType.values.firstWhere((type) =>
-                    type.toString().split('.').last == sessionTypeString);
-              } catch (e) {
-                _showTypingEffect(
-                    'Invalid session type. Available types: pediatricIntensive, adultIntensive, standard, traction.');
-                _functionCallArgs.clear();
-                return;
-              }
-            }
+            String? sessionType = sessionTypeString;
+            // You might want to validate against presets or allow any string
+            // For now, we allow any string as per the refactor to support custom types
 
             final updatedSession = existingSession.copyWith(
               patientId: patientId,

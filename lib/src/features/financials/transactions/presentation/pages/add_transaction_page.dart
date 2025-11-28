@@ -202,7 +202,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
       ),

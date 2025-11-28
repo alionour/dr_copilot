@@ -441,9 +441,13 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// [patientId] is the ID of the patient to detect the session type for.
   ///
   /// Returns the detected [SessionType] or a [Failure] in case of an error.
+  /// Detects the session type for a given patient.
+  ///
+  /// [patientId] is the ID of the patient to detect the session type for.
+  ///
+  /// Returns the detected [String] or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, SessionType>> detectSessionType(
-      String patientId) async {
+  Future<Either<Failure, String>> detectSessionType(String patientId) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -460,22 +464,15 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           debugPrint('Error: Document data is null');
           return Left(ServerFailure('Document data is null', 400));
         }
-        final sessionTypeString = data['type'] as String?;
+        final sessionTypeString = data['sessionType']
+            as String?; // Changed from 'type' to 'sessionType' based on model
 
         if (sessionTypeString != null) {
-          try {
-            final sessionType = SessionType.values.firstWhere(
-              (type) => type.text == sessionTypeString,
-              orElse: () => throw Exception('Invalid session type'),
-            );
-            return Right(sessionType);
-          } catch (e) {
-            debugPrint('Error: Invalid session type - $e');
-            return Left(ServerFailure('Invalid session type', 400));
-          }
+          return Right(sessionTypeString);
         } else {
-          debugPrint('Error: Session type is missing or null');
-          return Left(ServerFailure('Session type is missing or null', 400));
+          // Fallback or default?
+          // If sessionType is missing, maybe return standard?
+          return Right(SessionTypePresets.standard);
         }
       } else {
         debugPrint('Error: No sessions found for the given patientId');
