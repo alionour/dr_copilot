@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/logic/function_call_handler.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/message_list_view.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/conversation_sidebar.dart';
@@ -25,13 +25,12 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
+
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
+
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 
 class CopilotPage extends StatefulWidget {
@@ -56,6 +55,7 @@ class _CopilotPageState extends State<CopilotPage> {
   final _audioRecorder = AudioRecorder();
 
   late final ConversationRepository _conversationRepo;
+  late final FunctionCallHandler _functionCallHandler;
   String? _currentConversationId;
   bool _isSidebarVisible = false; // Sidebar hidden by default
 
@@ -85,6 +85,12 @@ class _CopilotPageState extends State<CopilotPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _initSpeechRecognitionService();
+    _functionCallHandler = FunctionCallHandler(
+      patientsUseCase: GetIt.instance<PatientsUseCase>(),
+      sessionsUseCase: GetIt.instance<SessionsUseCase>(),
+      evaluationsUseCase: GetIt.instance<EvaluationsUseCase>(),
+      ownerNotifier: Provider.of<OwnerNotifier>(context, listen: false),
+    );
   }
 
   Future<void> _initSpeechRecognitionService() async {
@@ -118,7 +124,8 @@ class _CopilotPageState extends State<CopilotPage> {
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: errorMessage));
                   debugPrint(
-                      'SnackBar Info: Error message copied to clipboard.'); // Log to console
+                    'SnackBar Info: Error message copied to clipboard.',
+                  ); // Log to console
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Error message copied to clipboard.'),
@@ -227,7 +234,7 @@ class _CopilotPageState extends State<CopilotPage> {
         _messages.add({
           "isUser": true,
           "message": _controller.text,
-          "image": base64Encode(_pickedImage!)
+          "image": base64Encode(_pickedImage!),
         });
       });
 
@@ -249,18 +256,24 @@ class _CopilotPageState extends State<CopilotPage> {
       }
 
       if (!mounted) return;
-      context.read<CopilotBloc>().add(UploadImageEvent(
+      context.read<CopilotBloc>().add(
+        UploadImageEvent(
           selectedModel: _selectedModel,
           imageBytes: _pickedImage!,
-          text: _controller.text));
+          text: _controller.text,
+        ),
+      );
       setState(() {
         _pickedImage = null;
       });
     } else if (_controller.text.isNotEmpty) {
       final messageId = const Uuid().v4();
       setState(() {
-        _messages.add(
-            {"id": messageId, "isUser": true, "message": _controller.text});
+        _messages.add({
+          "id": messageId,
+          "isUser": true,
+          "message": _controller.text,
+        });
       });
 
       // Create or add to conversation
@@ -285,10 +298,13 @@ class _CopilotPageState extends State<CopilotPage> {
       final recentMessages = _messages.length > 8
           ? _messages.sublist(_messages.length - 8)
           : _messages;
-      context.read<CopilotBloc>().add(GenerateResponseEvent(
+      context.read<CopilotBloc>().add(
+        GenerateResponseEvent(
           query: _controller.text,
           selectedModel: _selectedModel,
-          messageHistory: recentMessages));
+          messageHistory: recentMessages,
+        ),
+      );
     }
     _controller.clear();
     _scrollToBottom();
@@ -331,7 +347,9 @@ class _CopilotPageState extends State<CopilotPage> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
@@ -347,13 +365,13 @@ class _CopilotPageState extends State<CopilotPage> {
                             setState(() {
                               _messages.add({
                                 "isUser": false,
-                                "message": 'Error: ${state.error}'
+                                "message": 'Error: ${state.error}',
                               });
                             });
                             _scrollToBottom();
-                            context
-                                .read<CopilotBloc>()
-                                .add(CacheMessagesEvent(_messages));
+                            context.read<CopilotBloc>().add(
+                              CacheMessagesEvent(_messages),
+                            );
                           } else if (state is CachedMessagesLoaded) {
                             setState(() {
                               _messages.addAll(state.messages);
@@ -387,9 +405,9 @@ class _CopilotPageState extends State<CopilotPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         height: MediaQuery.of(context).size.height * 0.08,
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Row(
@@ -411,8 +429,9 @@ class _CopilotPageState extends State<CopilotPage> {
                                         color: Colors.transparent,
                                         child: InkWell(
                                           onTap: _cancelImage,
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           child: const Padding(
                                             padding: EdgeInsets.all(2.0),
                                             child: Icon(
@@ -429,8 +448,9 @@ class _CopilotPageState extends State<CopilotPage> {
                               ),
                             Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
                                 child: TextFormField(
                                   controller: _controller,
                                   focusNode: _focusNode,
@@ -438,15 +458,15 @@ class _CopilotPageState extends State<CopilotPage> {
                                     hintText: "messageDrCopilot".tr(),
                                     border: InputBorder.none,
                                     hintStyle: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface, // Text color
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface, // Text color
                                   ),
                                   maxLines: 1,
                                   textInputAction: TextInputAction.send,
@@ -464,9 +484,9 @@ class _CopilotPageState extends State<CopilotPage> {
                                   icon: const Icon(Icons.send),
                                   color: isEnabled
                                       ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                 );
                               },
                             ),
@@ -481,36 +501,39 @@ class _CopilotPageState extends State<CopilotPage> {
                                         _isListeningSpeech.value = true;
                                         final speechRecognitionService =
                                             GetIt.instance<
-                                                AbstractSpeechRecognitionService>();
+                                              AbstractSpeechRecognitionService
+                                            >();
 
                                         // Update language based on current APP locale before starting (not device locale)
                                         final currentLocale = context.locale;
                                         debugPrint(
-                                            '[CopilotPage] Voice input starting with app locale: ${currentLocale.languageCode}');
+                                          '[CopilotPage] Voice input starting with app locale: ${currentLocale.languageCode}',
+                                        );
                                         if (speechRecognitionService
                                             is HybridSpeechRecognitionService) {
                                           speechRecognitionService.setLanguage(
-                                              currentLocale.languageCode);
+                                            currentLocale.languageCode,
+                                          );
                                         }
 
                                         final startResult =
                                             await speechRecognitionService
                                                 .startListening();
-                                        startResult.fold(
-                                          (failure) {
-                                            _isListeningSpeech.value = false;
-                                            _showTypingEffect(
-                                                'Error starting speech recognition: ${failure.message}');
-                                          },
-                                          (_) {},
-                                        );
+                                        startResult.fold((failure) {
+                                          _isListeningSpeech.value = false;
+                                          _showTypingEffect(
+                                            'Error starting speech recognition: ${failure.message}',
+                                          );
+                                        }, (_) {});
                                       },
                                       onLongPressEnd: (_) async {
                                         final speechRecognitionService =
                                             GetIt.instance<
-                                                AbstractSpeechRecognitionService>();
+                                              AbstractSpeechRecognitionService
+                                            >();
                                         debugPrint(
-                                            '[CopilotPage] Stopping speech recognition...');
+                                          '[CopilotPage] Stopping speech recognition...',
+                                        );
                                         final stopResult =
                                             await speechRecognitionService
                                                 .stopListening();
@@ -518,13 +541,16 @@ class _CopilotPageState extends State<CopilotPage> {
                                         stopResult.fold(
                                           (failure) {
                                             debugPrint(
-                                                '[CopilotPage] Error stopping: ${failure.message}');
+                                              '[CopilotPage] Error stopping: ${failure.message}',
+                                            );
                                             _showTypingEffect(
-                                                'Error stopping speech recognition: ${failure.message}');
+                                              'Error stopping speech recognition: ${failure.message}',
+                                            );
                                           },
                                           (transcript) {
                                             debugPrint(
-                                                '[CopilotPage] Received transcript: "$transcript" (length: ${transcript.length}, isEmpty: ${transcript.isEmpty})');
+                                              '[CopilotPage] Received transcript: "$transcript" (length: ${transcript.length}, isEmpty: ${transcript.isEmpty})',
+                                            );
                                             if (transcript.isNotEmpty) {
                                               final currentText =
                                                   _controller.text;
@@ -535,10 +561,12 @@ class _CopilotPageState extends State<CopilotPage> {
                                                 _controller.text = transcript;
                                               }
                                               debugPrint(
-                                                  '[CopilotPage] Text field updated with transcript');
+                                                '[CopilotPage] Text field updated with transcript',
+                                              );
                                             } else {
                                               debugPrint(
-                                                  '[CopilotPage] WARNING: Transcript is empty, not updating text field');
+                                                '[CopilotPage] WARNING: Transcript is empty, not updating text field',
+                                              );
                                             }
                                           },
                                         );
@@ -547,29 +575,32 @@ class _CopilotPageState extends State<CopilotPage> {
                                         alignment: Alignment.center,
                                         children: [
                                           AnimatedOpacity(
-                                            opacity:
-                                                isListeningSpeech ? 1.0 : 0.0,
+                                            opacity: isListeningSpeech
+                                                ? 1.0
+                                                : 0.0,
                                             duration: const Duration(
-                                                milliseconds: 200),
+                                              milliseconds: 200,
+                                            ),
                                             child: Container(
                                               width: 48.0,
                                               height: 48.0,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: Colors.red
-                                                    .withValues(alpha: 0.2),
+                                                color: Colors.red.withValues(
+                                                  alpha: 0.2,
+                                                ),
                                                 boxShadow: [
                                                   BoxShadow(
                                                     color: Colors.red
                                                         .withValues(alpha: 0.5),
                                                     blurRadius:
                                                         isListeningSpeech
-                                                            ? 20.0
-                                                            : 0.0,
+                                                        ? 20.0
+                                                        : 0.0,
                                                     spreadRadius:
                                                         isListeningSpeech
-                                                            ? 10.0
-                                                            : 0.0,
+                                                        ? 10.0
+                                                        : 0.0,
                                                   ),
                                                 ],
                                               ),
@@ -579,15 +610,15 @@ class _CopilotPageState extends State<CopilotPage> {
                                             isListeningSpeech
                                                 ? Icons.mic
                                                 : isRecording
-                                                    ? Icons.stop_circle
-                                                    : Icons.mic,
+                                                ? Icons.stop_circle
+                                                : Icons.mic,
                                             size: 24.0,
                                             color:
                                                 isListeningSpeech || isRecording
-                                                    ? Colors.red
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurfaceVariant,
+                                                ? Colors.red
+                                                : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                           ),
                                         ],
                                       ),
@@ -599,16 +630,16 @@ class _CopilotPageState extends State<CopilotPage> {
                             IconButton(
                               onPressed: _pickImage,
                               icon: const Icon(Icons.add_a_photo_outlined),
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             IconButton(
                               onPressed: null, // Disabled for now
                               icon: const Icon(Icons.chat_bubble_outline),
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             DropdownButton<String>(
                               value: _selectedModel,
@@ -620,13 +651,15 @@ class _CopilotPageState extends State<CopilotPage> {
                                     }
                                   : null,
                               items: _availableModels
-                                  .map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
+                                  .map<DropdownMenuItem<String>>((
+                                    String value,
+                                  ) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  })
+                                  .toList(),
                             ),
                           ],
                         ),
@@ -687,8 +720,9 @@ class _CopilotPageState extends State<CopilotPage> {
         timer.cancel();
         // Format the message as markdown
         setState(() {
-          _messages[index]["message"] =
-              _formatMarkdown(_messages[index]["message"]);
+          _messages[index]["message"] = _formatMarkdown(
+            _messages[index]["message"],
+          );
         });
         context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
 
@@ -774,15 +808,17 @@ class _CopilotPageState extends State<CopilotPage> {
                 }
               }
             },
-            child: Text('Delete',
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _handleFunctionCall([FunctionCall? initialFunctionCall]) {
+  void _handleFunctionCall([FunctionCall? initialFunctionCall]) async {
     if (initialFunctionCall != null) {
       _functionCallArgs = {
         'functionName': initialFunctionCall.name,
@@ -793,952 +829,302 @@ class _CopilotPageState extends State<CopilotPage> {
     final functionName = _functionCallArgs['functionName'] as String?;
     if (functionName == null) return;
 
+    // Helper to check and ask for parameters
+    bool checkAndAsk(String param, String question) {
+      if (_functionCallArgs[param] == null) {
+        _askForParameter(param, question);
+        return false;
+      }
+      return true;
+    }
+
     if (functionName == 'add_patient') {
-      String? name = _functionCallArgs['name'] as String?;
-      int? age;
-      if (_functionCallArgs['age'] is String) {
-        age = int.tryParse(_functionCallArgs['age'] as String);
-      } else {
-        age = _functionCallArgs['age'] as int?;
-      }
-      String? gender = _functionCallArgs['gender'] as String?;
-      String? address = _functionCallArgs['address'] as String?;
-      String? phoneNumber = _functionCallArgs['phoneNumber'] as String?;
-      String? alternativePhoneNumber =
-          _functionCallArgs['alternativePhoneNumber'] as String?;
-      String? treatingDoctor = _functionCallArgs['treatingDoctor'] as String?;
-      String? occupation = _functionCallArgs['occupation'] as String?;
-
-      // Collect missing parameters
-      if (name == null) {
-        _askForParameter('name', 'What is the name of the patient?');
+      if (!checkAndAsk('name', 'What is the name of the patient?')) return;
+      if (!checkAndAsk('age', 'What is the age of the patient?')) return;
+      if (!checkAndAsk('gender', 'What is the gender of the patient?')) return;
+      if (!checkAndAsk('address', 'What is the address of the patient?')) {
         return;
       }
-      if (age == null) {
-        _askForParameter('age', 'What is the age of the patient?');
+      if (!checkAndAsk(
+        'phoneNumber',
+        'What is the phone number of the patient?',
+      ))
         return;
-      }
-      if (gender == null) {
-        _askForParameter('gender', 'What is the gender of the patient?');
-        return;
-      }
-      if (address == null) {
-        _askForParameter('address', 'What is the address of the patient?');
-        return;
-      }
-      if (phoneNumber == null) {
-        _askForParameter(
-            'phoneNumber', 'What is the phone number of the patient?');
-        return;
-      }
-      // Optional fields, only ask if the user explicitly mentioned them or if they are needed for a specific flow.
-      // For now, we will assume if they are not provided, they are not needed.
 
-      // All required parameters collected, execute the function.
-      _showTypingEffect(
-          'Adding patient: $name, age: $age, gender: $gender, address: $address, phone: $phoneNumber');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
-      final ownerId = ownerNotifier.ownerId;
-      final clinicId =
-          ownerNotifier.clinicId; // Assuming a default clinic for now
-
-      if (ownerId == null || clinicId == null) {
-        _showTypingEffect(
-            'Error: Owner ID or Clinic ID not available. Cannot add patient.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      final patientModel = PatientModel(
-        id: const Uuid().v4(),
-        name: name,
-        age: age,
-        gender: gender,
-        address: address,
-        ownerId: ownerId,
-        clinicId: clinicId,
-        phoneNumber: phoneNumber,
-        alternativePhoneNumber: alternativePhoneNumber,
-        treatingDoctor: treatingDoctor,
-        occupation: occupation,
-        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-      );
-
-      patientsUseCase.addPatient(patientModel).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error adding patient: ${failure.message}'),
-          (patient) =>
-              _showTypingEffect('Patient ${patient.name} added successfully!'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'edit_patient') {
-      String? id = _functionCallArgs['id'] as String?;
-      String? name = _functionCallArgs['name'] as String?;
-      int? age;
-      if (_functionCallArgs['age'] is String) {
-        age = int.tryParse(_functionCallArgs['age'] as String);
-      } else {
-        age = _functionCallArgs['age'] as int?;
-      }
-      String? gender = _functionCallArgs['gender'] as String?;
-      String? address = _functionCallArgs['address'] as String?;
-      String? phoneNumber = _functionCallArgs['phoneNumber'] as String?;
-      String? alternativePhoneNumber =
-          _functionCallArgs['alternativePhoneNumber'] as String?;
-      String? treatingDoctor = _functionCallArgs['treatingDoctor'] as String?;
-      String? occupation = _functionCallArgs['occupation'] as String?;
-
-      if (id == null) {
-        _askForParameter(
-            'id', 'What is the ID of the patient you want to edit?');
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the patient you want to edit?',
+      )) {
         return;
       }
+      // Check if at least one optional param is present
+      bool hasOptional =
+          [
+            'name',
+            'age',
+            'gender',
+            'address',
+            'phoneNumber',
+            'alternativePhoneNumber',
+            'treatingDoctor',
+            'occupation',
+          ].any(
+            (key) =>
+                _functionCallArgs.containsKey(key) &&
+                _functionCallArgs[key] != null,
+          );
 
-      // Check if at least one editable parameter is provided
-      if (name == null &&
-          age == null &&
-          gender == null &&
-          address == null &&
-          phoneNumber == null &&
-          alternativePhoneNumber == null &&
-          treatingDoctor == null &&
-          occupation == null) {
+      if (!hasOptional) {
         _showTypingEffect(
-            'Please provide at least one field to update for the patient.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      _showTypingEffect('Editing patient with ID: $id');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
-      final ownerId = ownerNotifier.ownerId;
-      final clinicId = ownerNotifier.clinicId;
-
-      if (ownerId == null || clinicId == null) {
-        _showTypingEffect(
-            'Error: Owner ID or Clinic ID not available. Cannot edit patient.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      // Create a PatientModel with only the provided fields for update
-      final updatedPatient = PatientModel(
-        id: id,
-        name: name ??
-            '', // Name is required in PatientModel, so provide a default if null
-        age: age,
-        gender: gender,
-        address: address,
-        ownerId: ownerId,
-        clinicId: clinicId,
-        phoneNumber: phoneNumber,
-        alternativePhoneNumber: alternativePhoneNumber,
-        treatingDoctor: treatingDoctor,
-        occupation: occupation,
-        createdAt: Timestamp.fromDate(DateTime.now()
-            .toUtc()), // This will be overwritten by the existing patient's createdAt
-      );
-
-      patientsUseCase.updatePatient(id, updatedPatient).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error editing patient: ${failure.message}'),
-          (patient) => _showTypingEffect(
-              'Patient ${patient.name} (ID: ${patient.id}) updated successfully!'),
+          'Please provide at least one field to update for the patient.',
         );
-      });
-
-      _functionCallArgs.clear();
+        _functionCallArgs.clear();
+        return;
+      }
+      _executeFunction(functionName);
     } else if (functionName == 'delete_patient') {
-      String? id = _functionCallArgs['id'] as String?;
-
-      if (id == null) {
-        _askForParameter(
-            'id', 'What is the ID of the patient you want to delete?');
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the patient you want to delete?',
+      ))
         return;
-      }
-
-      _showTypingEffect('Deleting patient with ID: $id');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-      patientsUseCase.deletePatient(id).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error deleting patient: ${failure.message}'),
-          (_) =>
-              _showTypingEffect('Patient with ID: $id deleted successfully!'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'add_session') {
-      String? patientId = _functionCallArgs['patientId'] as String?;
-      double? price = _functionCallArgs['price'] as double?;
-      String? startDateTimeString =
-          _functionCallArgs['startDateTime'] as String?;
-      String? endDateTimeString = _functionCallArgs['endDateTime'] as String?;
-      String? sessionTypeString = _functionCallArgs['sessionType'] as String?;
-      String? patientName = _functionCallArgs['patientName'] as String?;
-      String? doctorId = _functionCallArgs['doctorId'] as String?;
-
-      if (patientId == null) {
-        _askForParameter(
-            'patientId', 'What is the ID of the patient for this session?');
+      if (!checkAndAsk(
+        'patientId',
+        'What is the ID of the patient for this session?',
+      )) {
         return;
       }
-      if (price == null) {
-        _askForParameter('price', 'What is the price of the session?');
+      if (!checkAndAsk('price', 'What is the price of the session?')) return;
+      if (!checkAndAsk(
+        'startDateTime',
+        'What is the start date and time of the session (e.g., 2023-11-15T10:00:00)?',
+      )) {
         return;
       }
-      if (startDateTimeString == null) {
-        _askForParameter('startDateTime',
-            'What is the start date and time of the session (e.g., 2023-11-15T10:00:00)?');
+      if (!checkAndAsk(
+        'endDateTime',
+        'What is the end date and time of the session (e.g., 2023-11-15T11:00:00)?',
+      )) {
         return;
       }
-      if (endDateTimeString == null) {
-        _askForParameter('endDateTime',
-            'What is the end date and time of the session (e.g., 2023-11-15T11:00:00)?');
-        return;
-      }
-
-      final startDateTime = DateTime.tryParse(startDateTimeString);
-      final endDateTime = DateTime.tryParse(endDateTimeString);
-
-      if (startDateTime == null || endDateTime == null) {
-        _showTypingEffect(
-            'Invalid date/time format. Please use ISO 8601 format (e.g., 2023-11-15T10:00:00).');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      String? sessionType = sessionTypeString;
-      // You might want to validate against presets or allow any string
-      // For now, we allow any string as per the refactor to support custom types
-
-      _showTypingEffect(
-          'Adding session for patient ID: $patientId, price: $price, from: $startDateTime to: $endDateTime');
-
-      final sessionsUseCase = GetIt.instance<SessionsUseCase>();
-      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
-      final ownerId = ownerNotifier.ownerId;
-      final clinicId = ownerNotifier.clinicId;
-      final createdBy = FirebaseAuth.instance.currentUser?.uid;
-
-      if (ownerId == null || clinicId == null || createdBy == null) {
-        _showTypingEffect(
-            'Error: Owner ID, Clinic ID, or User ID not available. Cannot add session.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      final sessionModel = SessionModel(
-        id: const Uuid().v4(),
-        patientId: patientId,
-        price: price,
-        startDateTime: Timestamp.fromDate(startDateTime),
-        endDateTime: Timestamp.fromDate(endDateTime),
-        sessionType: sessionType,
-        ownerId: ownerId,
-        clinicId: clinicId,
-        createdBy: createdBy,
-        patientName: patientName,
-        doctorId: doctorId,
-        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-      );
-
-      sessionsUseCase.addSession(sessionModel).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error adding session: ${failure.message}'),
-          (session) => _showTypingEffect(
-              'Session (ID: ${session.id}) added successfully for patient ${session.patientId}!'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'edit_session') {
-      String? id = _functionCallArgs['id'] as String?;
-      String? patientId = _functionCallArgs['patientId'] as String?;
-      double? price = _functionCallArgs['price'] as double?;
-      String? startDateTimeString =
-          _functionCallArgs['startDateTime'] as String?;
-      String? endDateTimeString = _functionCallArgs['endDateTime'] as String?;
-      String? sessionTypeString = _functionCallArgs['sessionType'] as String?;
-      String? patientName = _functionCallArgs['patientName'] as String?;
-      String? doctorId = _functionCallArgs['doctorId'] as String?;
-
-      if (id == null) {
-        _askForParameter(
-            'id', 'What is the ID of the session you want to edit?');
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the session you want to edit?',
+      )) {
         return;
       }
-
-      if (patientId == null &&
-          price == null &&
-          startDateTimeString == null &&
-          endDateTimeString == null &&
-          sessionTypeString == null &&
-          patientName == null &&
-          doctorId == null) {
+      bool hasOptional =
+          [
+            'patientId',
+            'price',
+            'startDateTime',
+            'endDateTime',
+            'sessionType',
+            'patientName',
+            'doctorId',
+          ].any(
+            (key) =>
+                _functionCallArgs.containsKey(key) &&
+                _functionCallArgs[key] != null,
+          );
+      if (!hasOptional) {
         _showTypingEffect(
-            'Please provide at least one field to update for the session.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      _showTypingEffect('Editing session with ID: $id');
-
-      final sessionsUseCase = GetIt.instance<SessionsUseCase>();
-      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
-      final ownerId = ownerNotifier.ownerId;
-      final clinicId = ownerNotifier.clinicId;
-      final updatedBy = FirebaseAuth.instance.currentUser?.uid;
-
-      if (ownerId == null || clinicId == null || updatedBy == null) {
-        _showTypingEffect(
-            'Error: Owner ID, Clinic ID, or User ID not available. Cannot edit session.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      sessionsUseCase.getSessionById(id).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error fetching session: ${failure.message}'),
-          (existingSession) {
-            DateTime? startDateTime;
-            if (startDateTimeString != null) {
-              startDateTime = DateTime.tryParse(startDateTimeString);
-              if (startDateTime == null) {
-                _showTypingEffect(
-                    'Invalid start date/time format. Please use ISO 8601 format (e.g., 2023-11-15T10:00:00).');
-                _functionCallArgs.clear();
-                return;
-              }
-            }
-
-            DateTime? endDateTime;
-            if (endDateTimeString != null) {
-              endDateTime = DateTime.tryParse(endDateTimeString);
-              if (endDateTime == null) {
-                _showTypingEffect(
-                    'Invalid end date/time format. Please use ISO 8601 format (e.g., 2023-11-15T11:00:00).');
-                _functionCallArgs.clear();
-                return;
-              }
-            }
-
-            String? sessionType = sessionTypeString;
-            // You might want to validate against presets or allow any string
-            // For now, we allow any string as per the refactor to support custom types
-
-            final updatedSession = existingSession.copyWith(
-              patientId: patientId,
-              price: price,
-              startDateTime: startDateTime != null
-                  ? Timestamp.fromDate(startDateTime)
-                  : null,
-              endDateTime:
-                  endDateTime != null ? Timestamp.fromDate(endDateTime) : null,
-              sessionType: sessionType,
-              patientName: patientName,
-              doctorId: doctorId,
-              updatedBy: updatedBy,
-              updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
-            );
-
-            sessionsUseCase.updateSession(id, updatedSession).then((result) {
-              result.fold(
-                (failure) => _showTypingEffect(
-                    'Error editing session: ${failure.message}'),
-                (session) => _showTypingEffect(
-                    'Session (ID: ${session.id}) updated successfully!'),
-              );
-            });
-          },
+          'Please provide at least one field to update for the session.',
         );
-      });
-
-      _functionCallArgs.clear();
+        _functionCallArgs.clear();
+        return;
+      }
+      _executeFunction(functionName);
     } else if (functionName == 'delete_session') {
-      String? id = _functionCallArgs['id'] as String?;
-
-      if (id == null) {
-        _askForParameter(
-            'id', 'What is the ID of the session you want to delete?');
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the session you want to delete?',
+      ))
         return;
-      }
-
-      _showTypingEffect('Deleting session with ID: $id');
-
-      final sessionsUseCase = GetIt.instance<SessionsUseCase>();
-      sessionsUseCase.deleteSession(id).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error deleting session: ${failure.message}'),
-          (_) =>
-              _showTypingEffect('Session with ID: $id deleted successfully!'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'add_evaluation') {
-      String? patientId = _functionCallArgs['patientId'] as String?;
-      String? patientName = _functionCallArgs['patientName'] as String?;
-      double? price = _functionCallArgs['price'] as double?;
-      String? startDateTimeString =
-          _functionCallArgs['startDateTime'] as String?;
-      String? endDateTimeString = _functionCallArgs['endDateTime'] as String?;
-      String? doctorId = _functionCallArgs['doctorId'] as String?;
-
-      if (patientId == null) {
-        _askForParameter(
-            'patientId', 'What is the ID of the patient for this evaluation?');
+      if (!checkAndAsk(
+        'patientId',
+        'What is the ID of the patient for this evaluation?',
+      )) {
         return;
       }
-      if (patientName == null) {
-        _askForParameter('patientName',
-            'What is the name of the patient for this evaluation?');
+      if (!checkAndAsk(
+        'patientName',
+        'What is the name of the patient for this evaluation?',
+      ))
+        return;
+      if (!checkAndAsk('price', 'What is the price of the evaluation?')) return;
+      if (!checkAndAsk(
+        'startDateTime',
+        'What is the start date and time of the evaluation (e.g., 2023-11-15T10:00:00)?',
+      )) {
         return;
       }
-      if (price == null) {
-        _askForParameter('price', 'What is the price of the evaluation?');
+      if (!checkAndAsk(
+        'endDateTime',
+        'What is the end date and time of the evaluation (e.g., 2023-11-15T11:00:00)?',
+      )) {
         return;
       }
-      if (startDateTimeString == null) {
-        _askForParameter('startDateTime',
-            'What is the start date and time of the evaluation (e.g., 2023-11-15T10:00:00)?');
-        return;
-      }
-      if (endDateTimeString == null) {
-        _askForParameter('endDateTime',
-            'What is the end date and time of the evaluation (e.g., 2023-11-15T11:00:00)?');
-        return;
-      }
-
-      final startDateTime = DateTime.tryParse(startDateTimeString);
-      final endDateTime = DateTime.tryParse(endDateTimeString);
-
-      if (startDateTime == null || endDateTime == null) {
-        _showTypingEffect(
-            'Invalid date/time format. Please use ISO 8601 format (e.g., 2023-11-15T10:00:00).');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      _showTypingEffect(
-          'Adding evaluation for patient ID: $patientId, name: $patientName, price: $price, from: $startDateTime to: $endDateTime');
-
-      final evaluationsUseCase = GetIt.instance<EvaluationsUseCase>();
-      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
-      final ownerId = ownerNotifier.ownerId;
-      final clinicId = ownerNotifier.clinicId;
-      final createdBy = FirebaseAuth.instance.currentUser?.uid;
-
-      if (ownerId == null || clinicId == null || createdBy == null) {
-        _showTypingEffect(
-            'Error: Owner ID, Clinic ID, or User ID not available. Cannot add evaluation.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      final evaluationModel = EvaluationModel(
-        id: const Uuid().v4(),
-        patientId: patientId,
-        patientName: patientName,
-        price: price,
-        startDateTime: Timestamp.fromDate(startDateTime),
-        endDateTime: Timestamp.fromDate(endDateTime),
-        ownerId: ownerId,
-        clinicId: clinicId,
-        createdBy: createdBy,
-        doctorId: doctorId,
-        createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-      );
-
-      evaluationsUseCase.addEvaluation(evaluationModel).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error adding evaluation: ${failure.message}'),
-          (evaluation) => _showTypingEffect(
-              'Evaluation (ID: ${evaluation.id}) added successfully for patient ${evaluation.patientName}!'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'edit_evaluation') {
-      String? id = _functionCallArgs['id'] as String?;
-      String? patientId = _functionCallArgs['patientId'] as String?;
-      String? patientName = _functionCallArgs['patientName'] as String?;
-      double? price = _functionCallArgs['price'] as double?;
-      String? startDateTimeString =
-          _functionCallArgs['startDateTime'] as String?;
-      String? endDateTimeString = _functionCallArgs['endDateTime'] as String?;
-      String? doctorId = _functionCallArgs['doctorId'] as String?;
-
-      if (id == null) {
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the evaluation you want to edit?',
+      )) {
+        return;
+      }
+      bool hasOptional =
+          [
+            'patientId',
+            'patientName',
+            'price',
+            'startDateTime',
+            'endDateTime',
+            'doctorId',
+          ].any(
+            (key) =>
+                _functionCallArgs.containsKey(key) &&
+                _functionCallArgs[key] != null,
+          );
+      if (!hasOptional) {
+        _showTypingEffect(
+          'Please provide at least one field to update for the evaluation.',
+        );
+        _functionCallArgs.clear();
+        return;
+      }
+      _executeFunction(functionName);
+    } else if (functionName == 'delete_evaluation') {
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the evaluation you want to delete?',
+      )) {
+        return;
+      }
+      _executeFunction(functionName);
+    } else if (functionName == 'get_patient') {
+      if (_functionCallArgs['id'] == null &&
+          _functionCallArgs['name'] == null) {
         _askForParameter(
-            'id', 'What is the ID of the evaluation you want to edit?');
-        return;
-      }
-
-      if (patientId == null &&
-          patientName == null &&
-          price == null &&
-          startDateTimeString == null &&
-          endDateTimeString == null &&
-          doctorId == null) {
-        _showTypingEffect(
-            'Please provide at least one field to update for the evaluation.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      _showTypingEffect('Editing evaluation with ID: $id');
-
-      final evaluationsUseCase = GetIt.instance<EvaluationsUseCase>();
-      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
-      final ownerId = ownerNotifier.ownerId;
-      final clinicId = ownerNotifier.clinicId;
-      final updatedBy = FirebaseAuth.instance.currentUser?.uid;
-
-      if (ownerId == null || clinicId == null || updatedBy == null) {
-        _showTypingEffect(
-            'Error: Owner ID, Clinic ID, or User ID not available. Cannot edit evaluation.');
-        _functionCallArgs.clear();
-        return;
-      }
-
-      evaluationsUseCase.getEvaluationById(id).then((result) {
-        result.fold(
-          (failure) => _showTypingEffect(
-              'Error fetching evaluation: ${failure.message}'),
-          (existingEvaluation) {
-            DateTime? startDateTime;
-            if (startDateTimeString != null) {
-              startDateTime = DateTime.tryParse(startDateTimeString);
-              if (startDateTime == null) {
-                _showTypingEffect(
-                    'Invalid start date/time format. Please use ISO 8601 format (e.g., 2023-11-15T10:00:00).');
-                _functionCallArgs.clear();
-                return;
-              }
-            }
-
-            DateTime? endDateTime;
-            if (endDateTimeString != null) {
-              endDateTime = DateTime.tryParse(endDateTimeString);
-              if (endDateTime == null) {
-                _showTypingEffect(
-                    'Invalid end date/time format. Please use ISO 8601 format (e.g., 2023-11-15T11:00:00).');
-                _functionCallArgs.clear();
-                return;
-              }
-            }
-
-            final updatedEvaluation = existingEvaluation.copyWith(
-              patientId: patientId,
-              patientName: patientName,
-              price: price,
-              startDateTime: startDateTime != null
-                  ? Timestamp.fromDate(startDateTime)
-                  : null,
-              endDateTime:
-                  endDateTime != null ? Timestamp.fromDate(endDateTime) : null,
-              doctorId: doctorId,
-              updatedBy: updatedBy,
-              updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
-            );
-
-            evaluationsUseCase
-                .updateEvaluation(id, updatedEvaluation)
-                .then((result) {
-              result.fold(
-                (failure) => _showTypingEffect(
-                    'Error editing evaluation: ${failure.message}'),
-                (evaluation) => _showTypingEffect(
-                    'Evaluation (ID: ${evaluation.id}) updated successfully!'),
-              );
-            });
-          },
+          'name',
+          'What is the ID or name of the patient you want to retrieve?',
         );
-      });
-
-      _functionCallArgs.clear();
-    } else if (functionName == 'get_patient') {
-      String? id = _functionCallArgs['id'] as String?;
-      String? name = _functionCallArgs['name'] as String?;
-
-      if (id == null && name == null) {
-        _askForParameter('id',
-            'What is the ID or name of the patient you want to retrieve?');
-        _askForParameter('name',
-            'What is the ID or name of the patient you want to retrieve?'); // This is a placeholder, will be handled by _currentParameterBeingAsked
         return;
       }
-
-      _showTypingEffect('Retrieving patient information...');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-
-      if (id != null) {
-        patientsUseCase.getPatientById(id).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error retrieving patient: ${failure.message}'),
-            (patient) => _showTypingEffect(
-                'Patient found: ${patient.name}, Age: ${patient.age}, Gender: ${patient.gender}, Address: ${patient.address}, Phone: ${patient.phoneNumber}'),
-          );
-        });
-      } else if (name != null) {
-        patientsUseCase.searchPatients(name: name).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error searching patients: ${failure.message}'),
-            (patients) {
-              if (patients.isNotEmpty) {
-                String response = 'Patients found:';
-                for (var patient in patients) {
-                  response +=
-                      '\n- ${patient.name} (ID: ${patient.id}, Age: ${patient.age}, Gender: ${patient.gender})';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect('No patients found with the name: $name');
-              }
-            },
-          );
-        });
-      }
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'list_patients') {
-      String? name = _functionCallArgs['name'] as String?;
-
-      _showTypingEffect('Listing patients...');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-
-      patientsUseCase.getAllPatients().then((result) {
-        // Changed to getAllPatients
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error listing patients: ${failure.message}'),
-          (patients) {
-            List<PatientModel> filteredPatients = patients;
-            if (name != null && name.isNotEmpty) {
-              filteredPatients = patients
-                  .where((patient) =>
-                      patient.name.toLowerCase().contains(name.toLowerCase()))
-                  .toList();
-            }
-
-            if (filteredPatients.isNotEmpty) {
-              String response = 'Patients:';
-              for (var patient in filteredPatients) {
-                response +=
-                    '\n- ${patient.name} (ID: ${patient.id}, Age: ${patient.age}, Gender: ${patient.gender})';
-              }
-              _showTypingEffect(response);
-            } else {
-              _showTypingEffect('No patients found.');
-            }
-          },
-        );
-      });
-
-      _functionCallArgs.clear();
-    } else if (functionName == 'get_patient') {
-      String? id = _functionCallArgs['id'] as String?;
-      String? name = _functionCallArgs['name'] as String?;
-
-      if (id == null && name == null) {
-        _askForParameter('id',
-            'What is the ID or name of the patient you want to retrieve?');
-        _askForParameter('name',
-            'What is the ID or name of the patient you want to retrieve?'); // This is a placeholder, will be handled by _currentParameterBeingAsked
-        return;
-      }
-
-      _showTypingEffect('Retrieving patient information...');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-
-      if (id != null) {
-        patientsUseCase.getPatientById(id).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error retrieving patient: ${failure.message}'),
-            (patient) => _showTypingEffect(
-                'Patient found: ${patient.name}, Age: ${patient.age}, Gender: ${patient.gender}, Address: ${patient.address}, Phone: ${patient.phoneNumber}'),
-          );
-        });
-      } else if (name != null) {
-        patientsUseCase.searchPatients(name: name).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error searching patients: ${failure.message}'),
-            (patients) {
-              if (patients.isNotEmpty) {
-                String response = 'Patients found:';
-                for (var patient in patients) {
-                  response +=
-                      '\n- ${patient.name} (ID: ${patient.id}, Age: ${patient.age}, Gender: ${patient.gender})';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect('No patients found with the name: $name');
-              }
-            },
-          );
-        });
-      }
-
-      _functionCallArgs.clear();
-    } else if (functionName == 'list_patients') {
-      String? name = _functionCallArgs['name'] as String?;
-
-      _showTypingEffect('Listing patients...');
-
-      final patientsUseCase = GetIt.instance<PatientsUseCase>();
-
-      patientsUseCase.getAllPatients().then((result) {
-        // Changed to getAllPatients
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error listing patients: ${failure.message}'),
-          (patients) {
-            List<PatientModel> filteredPatients = patients;
-            if (name != null && name.isNotEmpty) {
-              filteredPatients = patients
-                  .where((patient) =>
-                      patient.name.toLowerCase().contains(name.toLowerCase()))
-                  .toList();
-            }
-
-            if (filteredPatients.isNotEmpty) {
-              String response = 'Patients:';
-              for (var patient in filteredPatients) {
-                response +=
-                    '\n- ${patient.name} (ID: ${patient.id}, Age: ${patient.age}, Gender: ${patient.gender})';
-              }
-              _showTypingEffect(response);
-            } else {
-              _showTypingEffect('No patients found.');
-            }
-          },
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'get_session') {
-      String? id = _functionCallArgs['id'] as String?;
-
-      if (id == null) {
-        _askForParameter(
-            'id', 'What is the ID of the session you want to retrieve?');
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the session you want to retrieve?',
+      )) {
         return;
       }
-
-      _showTypingEffect('Retrieving session information...');
-
-      final sessionsUseCase = GetIt.instance<SessionsUseCase>();
-
-      sessionsUseCase.getSessionById(id).then((result) {
-        result.fold(
-          (failure) =>
-              _showTypingEffect('Error retrieving session: ${failure.message}'),
-          (session) => _showTypingEffect(
-              'Session found: Patient ID: ${session.patientId}, Price: ${session.price}, Start: ${session.startDateTime.toDate()}, End: ${session.endDateTime.toDate()}'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'list_sessions') {
-      String? patientName = _functionCallArgs['patientName'] as String?;
-      String? dateString = _functionCallArgs['date'] as String?;
-
-      _showTypingEffect('Listing sessions...');
-
-      final sessionsUseCase = GetIt.instance<SessionsUseCase>();
-
-      if (patientName != null && patientName.isNotEmpty) {
-        sessionsUseCase.searchSessions(name: patientName).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error searching sessions: ${failure.message}'),
-            (sessions) {
-              if (sessions.isNotEmpty) {
-                String response = 'Sessions found for patient "$patientName":';
-                for (var session in sessions) {
-                  response +=
-                      '\n- ID: ${session.id}, Price: ${session.price}, Start: ${session.startDateTime.toDate()}, End: ${session.endDateTime.toDate()}';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect(
-                    'No sessions found for patient "$patientName".');
-              }
-            },
-          );
-        });
-      } else if (dateString != null && dateString.isNotEmpty) {
-        DateTime? date = DateTime.tryParse(dateString);
-        if (date == null) {
-          _showTypingEffect('Invalid date format. Please use YYYY-MM-DD.');
-          _functionCallArgs.clear();
-          return;
-        }
-        sessionsUseCase.getSessionsByDate(date).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error getting sessions by date: ${failure.message}'),
-            (sessions) {
-              if (sessions.isNotEmpty) {
-                String response = 'Sessions found for date "$dateString":';
-                for (var session in sessions) {
-                  response +=
-                      '\n- ID: ${session.id}, Patient ID: ${session.patientId}, Price: ${session.price}, Start: ${session.startDateTime.toDate()}, End: ${session.endDateTime.toDate()}';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect('No sessions found for date "$dateString".');
-              }
-            },
-          );
-        });
-      } else {
-        sessionsUseCase.getAllSessions().then((result) {
-          // Changed to getAllSessions
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error listing all sessions: ${failure.message}'),
-            (sessions) {
-              if (sessions.isNotEmpty) {
-                String response = 'All sessions:';
-                for (var session in sessions) {
-                  response +=
-                      '\n- ID: ${session.id}, Patient ID: ${session.patientId}, Price: ${session.price}, Start: ${session.startDateTime.toDate()}, End: ${session.endDateTime.toDate()}';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect('No sessions found.');
-              }
-            },
-          );
-        });
-      }
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'get_evaluation') {
-      String? id = _functionCallArgs['id'] as String?;
-
-      if (id == null) {
-        _askForParameter(
-            'id', 'What is the ID of the evaluation you want to retrieve?');
+      if (!checkAndAsk(
+        'id',
+        'What is the ID of the evaluation you want to retrieve?',
+      )) {
         return;
       }
-
-      _showTypingEffect('Retrieving evaluation information...');
-
-      final evaluationsUseCase = GetIt.instance<EvaluationsUseCase>();
-
-      evaluationsUseCase.getEvaluationById(id).then((result) {
-        result.fold(
-          (failure) => _showTypingEffect(
-              'Error retrieving evaluation: ${failure.message}'),
-          (evaluation) => _showTypingEffect(
-              'Evaluation found: Patient ID: ${evaluation.patientId}, Patient Name: ${evaluation.patientName}, Price: ${evaluation.price}, Start: ${evaluation.startDateTime.toDate()}, End: ${evaluation.endDateTime.toDate()}'),
-        );
-      });
-
-      _functionCallArgs.clear();
+      _executeFunction(functionName);
     } else if (functionName == 'list_evaluations') {
-      String? patientName = _functionCallArgs['patientName'] as String?;
-      String? dateString = _functionCallArgs['date'] as String?;
-
-      _showTypingEffect('Listing evaluations...');
-
-      final evaluationsUseCase = GetIt.instance<EvaluationsUseCase>();
-
-      if (patientName != null && patientName.isNotEmpty) {
-        evaluationsUseCase.searchEvaluations(name: patientName).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error searching evaluations: ${failure.message}'),
-            (evaluations) {
-              if (evaluations.isNotEmpty) {
-                String response =
-                    'Evaluations found for patient "$patientName":';
-                for (var evaluation in evaluations) {
-                  response +=
-                      '\n- ID: ${evaluation.id}, Price: ${evaluation.price}, Start: ${evaluation.startDateTime.toDate()}, End: ${evaluation.endDateTime.toDate()}';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect(
-                    'No evaluations found for patient "$patientName".');
-              }
-            },
-          );
-        });
-      } else if (dateString != null && dateString.isNotEmpty) {
-        DateTime? date = DateTime.tryParse(dateString);
-        if (date == null) {
-          _showTypingEffect('Invalid date format. Please use YYYY-MM-DD.');
-          _functionCallArgs.clear();
-          return;
-        }
-        evaluationsUseCase.getEvaluationsByDate(date).then((result) {
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error getting evaluations by date: ${failure.message}'),
-            (evaluations) {
-              if (evaluations.isNotEmpty) {
-                String response = 'Evaluations found for date "$dateString":';
-                for (var evaluation in evaluations) {
-                  response +=
-                      '\n- ID: ${evaluation.id}, Patient ID: ${evaluation.patientId}, Price: ${evaluation.price}, Start: ${evaluation.startDateTime.toDate()}, End: ${evaluation.endDateTime.toDate()}';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect(
-                    'No evaluations found for date "$dateString".');
-              }
-            },
-          );
-        });
-      } else {
-        evaluationsUseCase.getAllEvaluations().then((result) {
-          // Changed to getAllEvaluations
-          result.fold(
-            (failure) => _showTypingEffect(
-                'Error listing all evaluations: ${failure.message}'),
-            (evaluations) {
-              if (evaluations.isNotEmpty) {
-                String response = 'All evaluations:';
-                for (var evaluation in evaluations) {
-                  response +=
-                      '\n- ID: ${evaluation.id}, Patient ID: ${evaluation.patientId}, Price: ${evaluation.price}, Start: ${evaluation.startDateTime.toDate()}, End: ${evaluation.endDateTime.toDate()}';
-                }
-                _showTypingEffect(response);
-              } else {
-                _showTypingEffect('No evaluations found.');
-              }
-            },
-          );
-        });
-      }
-
+      _executeFunction(functionName);
+    } else {
+      _showTypingEffect('Unknown function: $functionName');
       _functionCallArgs.clear();
     }
+  }
+
+  void _executeFunction(String functionName) async {
+    _showTypingEffect('Executing $functionName...');
+
+    final Map<String, dynamic> cleanArgs = Map.from(_functionCallArgs);
+    cleanArgs.remove('functionName');
+
+    // Basic type conversion for common fields
+    if (cleanArgs.containsKey('age') && cleanArgs['age'] is String) {
+      cleanArgs['age'] = int.tryParse(cleanArgs['age']);
+    }
+    if (cleanArgs.containsKey('price') && cleanArgs['price'] is String) {
+      cleanArgs['price'] = double.tryParse(cleanArgs['price']);
+    }
+
+    final functionCall = FunctionCall(functionName, cleanArgs);
+    final result = await _functionCallHandler.handleFunctionCall(functionCall);
+
+    if (result.containsKey('error')) {
+      _showTypingEffect('Error: ${result['error']}');
+    } else if (result.containsKey('message')) {
+      _showTypingEffect(result['message']);
+    } else if (result.containsKey('patients')) {
+      final patients = result['patients'] as List;
+      if (patients.isEmpty) {
+        _showTypingEffect('No patients found.');
+      } else {
+        String response = 'Patients found:';
+        for (var p in patients) {
+          response +=
+              '\n- ${p['name']} (ID: ${p['id']}, Age: ${p['age']}, Gender: ${p['gender']})';
+        }
+        _showTypingEffect(response);
+      }
+    } else if (result.containsKey('sessions')) {
+      final sessions = result['sessions'] as List;
+      if (sessions.isEmpty) {
+        _showTypingEffect('No sessions found.');
+      } else {
+        String response = 'Sessions found:';
+        for (var s in sessions) {
+          response +=
+              '\n- ID: ${s['id']}, Patient: ${s['patientName']}, Date: ${s['startDateTime']}';
+        }
+        _showTypingEffect(response);
+      }
+    } else if (result.containsKey('evaluations')) {
+      final evaluations = result['evaluations'] as List;
+      if (evaluations.isEmpty) {
+        _showTypingEffect('No evaluations found.');
+      } else {
+        String response = 'Evaluations found:';
+        for (var e in evaluations) {
+          response +=
+              '\n- ID: ${e['id']}, Patient: ${e['patientName']}, Date: ${e['startDateTime']}';
+        }
+        _showTypingEffect(response);
+      }
+    } else {
+      // Handle single object returns (get_patient, get_session, etc)
+      if (functionName == 'get_patient') {
+        _showTypingEffect(
+          'Patient found: ${result['name']}, Age: ${result['age']}, Gender: ${result['gender']}, Phone: ${result['phoneNumber']}',
+        );
+      } else if (functionName == 'get_session') {
+        _showTypingEffect(
+          'Session found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}',
+        );
+      } else if (functionName == 'get_evaluation') {
+        _showTypingEffect(
+          'Evaluation found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}',
+        );
+      } else {
+        _showTypingEffect('Function executed successfully: $result');
+      }
+    }
+
+    _functionCallArgs.clear();
   }
 
   void _showRenameDialog(String conversationId, String currentTitle) {

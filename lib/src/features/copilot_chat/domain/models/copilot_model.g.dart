@@ -7,10 +7,10 @@ part of 'copilot_model.dart';
 // **************************************************************************
 
 CopilotModel _$CopilotModelFromJson(Map<String, dynamic> json) => CopilotModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      role: json['role'] as String,
-    );
+  id: json['id'] as String,
+  name: json['name'] as String,
+  role: json['role'] as String,
+);
 
 Map<String, dynamic> _$CopilotModelToJson(CopilotModel instance) =>
     <String, dynamic>{

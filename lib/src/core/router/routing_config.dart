@@ -17,11 +17,18 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/e
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/add_edit_clinical_report_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/create_clinical_report_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_report_details_page.dart';
 import 'package:dr_copilot/src/features/chatgpt_project/presentation/pages/chatgpt_project_list_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/api_key_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/notifications_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/security_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/data_storage_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/appearance_settings_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 
@@ -69,6 +76,26 @@ class RoutingConfig {
             path: '/settings',
             name: 'settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/notifications',
+            name: 'notifications_settings',
+            builder: (context, state) => const NotificationsSettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/security',
+            name: 'security_settings',
+            builder: (context, state) => const SecuritySettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/data_storage',
+            name: 'data_storage_settings',
+            builder: (context, state) => const DataStorageSettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/appearance',
+            name: 'appearance_settings',
+            builder: (context, state) => const AppearanceSettingsPage(),
           ),
           GoRoute(
             path: '/notifications',
@@ -154,6 +181,37 @@ class RoutingConfig {
             path: '/clinical_reports',
             name: 'clinical_reports',
             builder: (context, state) => const ClinicalReportsListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'create_clinical_report',
+                builder: (context, state) => const CreateClinicalReportPage(),
+              ),
+              GoRoute(
+                path: 'new',
+                name: 'add_clinical_report',
+                builder: (context, state) {
+                  final patientId = state.uri.queryParameters['patientId'];
+                  return AddEditClinicalReportPage(patientId: patientId);
+                },
+              ),
+              GoRoute(
+                path: 'clinical_report_details/:reportId',
+                name: 'clinical_report_details',
+                builder: (context, state) {
+                  final reportId = state.pathParameters['reportId']!;
+                  return ClinicalReportDetailsPage(reportId: reportId);
+                },
+              ),
+              GoRoute(
+                path: ':reportId/edit',
+                name: 'edit_clinical_report',
+                builder: (context, state) {
+                  final reportId = state.pathParameters['reportId']!;
+                  return AddEditClinicalReportPage(reportId: reportId);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/chatgpt_project',
@@ -313,11 +371,7 @@ class ErrorRoutePage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.red,
-              ),
+              const Icon(Icons.error_outline, size: 80, color: Colors.red),
               const SizedBox(height: 16),
               Text(
                 'errorPageMessage'.tr(),

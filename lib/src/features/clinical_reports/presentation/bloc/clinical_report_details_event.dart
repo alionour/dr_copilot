@@ -15,3 +15,13 @@ class LoadClinicalReportDetails extends ClinicalReportDetailsEvent {
   @override
   List<Object> get props => [reportId];
 }
+
+class ExportClinicalReportToGoogleDocs extends ClinicalReportDetailsEvent {
+  final String reportId;
+  final String contentJson;
+
+  const ExportClinicalReportToGoogleDocs(this.reportId, this.contentJson);
+
+  @override
+  List<Object> get props => [reportId, contentJson];
+}

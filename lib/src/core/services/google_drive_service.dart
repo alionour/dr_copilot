@@ -80,4 +80,32 @@ class GoogleDriveService {
       rethrow;
     }
   }
+
+  Future<drive.File?> createFile(
+      String name, String content, String mimeType) async {
+    final client = await _getAuthClient();
+    if (client == null) {
+      return null;
+    }
+
+    final driveApi = drive.DriveApi(client);
+    try {
+      final fileToCreate = drive.File()
+        ..name = name
+        ..mimeType = 'application/vnd.google-apps.document';
+
+      final media =
+          drive.Media(Stream.fromIterable([content.codeUnits]), content.length);
+
+      final file = await driveApi.files.create(
+        fileToCreate,
+        uploadMedia: media,
+        $fields: 'id, name, webViewLink',
+      );
+      return file;
+    } catch (e) {
+      debugPrint('Error calling Google Drive API files.create: $e');
+      rethrow;
+    }
+  }
 }

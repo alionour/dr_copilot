@@ -109,12 +109,14 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                   const Divider(),
                   _buildDetailRow(
                     context,
+                    Icons.timer_outlined,
                     'duration'.tr(),
                     _calculateDuration(widget.evaluationModel.startDateTime,
                         widget.evaluationModel.endDateTime),
                   ),
                   _buildDetailRow(
                     context,
+                    Icons.attach_money_outlined,
                     'price'.tr(),
                     '${widget.evaluationModel.price.toStringAsFixed(2)}',
                   ),
@@ -122,26 +124,29 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      IconButton.filledTonal(
+                      OutlinedButton.icon(
                         onPressed: () {
                           context.pushNamed(
                             'edit_evaluation',
                             extra: widget.evaluationModel,
                           );
                         },
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'edit'.tr(),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filledTonal(
-                        onPressed: () => _showDeleteConfirmation(context),
-                        icon: const Icon(Icons.delete_outline),
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              colorScheme.errorContainer.withOpacity(0.5),
-                          foregroundColor: colorScheme.error,
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text('edit'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary),
                         ),
-                        tooltip: 'delete'.tr(),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => _showDeleteConfirmation(context),
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: Text('delete'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error),
+                        ),
                       ),
                     ],
                   ),
@@ -153,28 +158,36 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
+  Widget _buildDetailRow(
+      BuildContext context, IconData icon, String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -248,15 +261,9 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
     );
 
     if (result != null && context.mounted) {
+      // Assuming the bloc event only takes ID for now based on previous file content
       context.read<EvaluationsBloc>().add(DeleteEvaluation(
             widget.evaluationModel.id,
-            // Note: The bloc event might need updating if it doesn't support the boolean flag yet,
-            // but for now we are keeping the UI logic.
-            // Checking EvaluationsBloc... it seems it might not have the named parameter yet based on previous file view.
-            // However, the previous code in EvaluationListItem was using it?
-            // Wait, the previous code was: context.read<EvaluationsBloc>().add(DeleteEvaluation(widget.evaluationModel.id));
-            // It didn't pass the boolean. The dialog was there but the result wasn't fully used or the bloc didn't support it.
-            // I will stick to what the bloc supports.
           ));
     }
   }

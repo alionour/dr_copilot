@@ -1,63 +1,58 @@
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
+import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:collection/collection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PatientService {
-  final List<PatientModel> _patients = []; // In-memory storage for mock data
+  final PatientFirebaseApi _api = PatientFirebaseApi();
 
-  // For generating unique IDs
-  int _nextId = 1;
-
-  // Add some mock patients for testing
-  PatientService() {
-    _patients.add(PatientModel(
-      id: 'patient_1',
-      name: 'Alice Smith',
-      age: 30,
-      gender: 'Female',
-      address: '123 Main St',
-      ownerId: 'owner_1',
-      clinicId: 'clinic_1',
-      phoneNumber: '111-222-3333',
-      createdAt: Timestamp.now(),
-    ));
-    _patients.add(PatientModel(
-      id: 'patient_2',
-      name: 'Bob Johnson',
-      age: 45,
-      gender: 'Male',
-      address: '456 Oak Ave',
-      ownerId: 'owner_1',
-      clinicId: 'clinic_1',
-      phoneNumber: '444-555-6666',
-      createdAt: Timestamp.now(),
-    ));
+  Future<Either<Failure, PatientModel>> createPatient(
+      PatientModel newPatient) async {
+    return _api.addPatient(newPatient);
   }
 
-  Future<PatientModel> createPatient(PatientModel newPatient) async {
-    final patientWithId = newPatient.copyWith(id: 'patient_${_nextId++}');
-    _patients.add(patientWithId);
-    return patientWithId;
+  Future<Either<Failure, PatientModel>> getPatient(String patientId) async {
+    return _api.getPatientById(patientId);
   }
 
-  Future<PatientModel?> getPatient(String patientId) async {
-    return _patients.firstWhereOrNull((p) => p.id == patientId);
+  Future<Either<Failure, List<PatientModel>>> getAllPatients() async {
+    return _api.getAllPatients();
   }
 
-  Future<List<PatientModel>> getAllPatients() async {
-    return _patients;
+  Future<Either<Failure, PatientModel>> updatePatient(
+      PatientModel updatedPatient) async {
+    return _api.updatePatient(updatedPatient.id, updatedPatient);
   }
 
-  Future<PatientModel?> updatePatient(PatientModel updatedPatient) async {
-    final index = _patients.indexWhere((p) => p.id == updatedPatient.id);
-    if (index != -1) {
-      _patients[index] = updatedPatient;
-      return updatedPatient;
-    }
-    return null;
+  Future<Either<Failure, void>> deletePatient(String patientId) async {
+    return _api.deletePatient(patientId);
   }
 
-  Future<void> deletePatient(String patientId) async {
-    _patients.removeWhere((p) => p.id == patientId);
+  Future<Either<Failure, List<PatientModel>>> searchPatients({
+    String? name,
+    int? minAge,
+    int? maxAge,
+    String? address,
+    String? gender,
+  }) async {
+    return _api.searchPatients(
+      name: name,
+      minAge: minAge,
+      maxAge: maxAge,
+      address: address,
+      gender: gender,
+    );
+  }
+
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(
+      int year, int month,
+      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+    return _api.getPatientsByDate(year, month,
+        lastDocument: lastDocument, limit: limit);
+  }
+
+  Future<Either<Failure, int>> getPatientsCount() async {
+    return _api.getPatientsCount();
   }
 }

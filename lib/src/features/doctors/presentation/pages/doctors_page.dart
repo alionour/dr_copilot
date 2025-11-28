@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/doctors/presentation/bloc/doctors_bloc.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/widgets/doctor_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,21 +60,11 @@ class _DoctorsPageState extends State<DoctorsPage> {
               itemCount: state.doctors.length,
               itemBuilder: (context, index) {
                 final doctor = state.doctors[index];
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(doctor.name),
-                    subtitle: Text(doctor.specialty),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        context.go('/doctors/${doctor.id}/edit');
-                      },
-                    ),
-                    onTap: () {
-                      // Optionally navigate to doctor details page
-                    },
-                  ),
+                return DoctorListItem(
+                  doctorModel: doctor,
+                  onTap: () {
+                    // Optionally navigate to doctor details page
+                  },
                 );
               },
             );

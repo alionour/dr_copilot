@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <5.0.0'
+  sdk: '>=3.8.0 <5.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -106,6 +106,9 @@ dependencies:
     git:
       url: https://github.com/saif-ellafi/flutter_tts.git
       ref: fix-windows-build
+
+  flutter_quill: ^11.5.0
+  vsc_quill_delta_to_html: ^1.0.3
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6

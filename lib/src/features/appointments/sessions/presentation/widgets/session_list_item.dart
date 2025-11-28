@@ -53,7 +53,7 @@ class _SessionListItemState extends State<SessionListItem> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: colorScheme.secondaryContainer,
+                    backgroundColor: colorScheme.primaryContainer,
                     child: Text(
                       (widget.sessionModel.patientName?.isNotEmpty ?? false)
                           ? widget.sessionModel.patientName![0].toUpperCase()
@@ -61,7 +61,7 @@ class _SessionListItemState extends State<SessionListItem> {
                       style: GoogleFonts.poppins(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.onSecondaryContainer,
+                        color: colorScheme.onPrimaryContainer,
                       ),
                     ),
                   ),
@@ -106,19 +106,23 @@ class _SessionListItemState extends State<SessionListItem> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
                 children: [
+                  const Divider(),
                   _buildDetailRow(
                     context,
+                    Icons.category_outlined,
                     'sessionType'.tr(),
                     widget.sessionModel.sessionType ?? 'standard',
                   ),
                   _buildDetailRow(
                     context,
+                    Icons.timer_outlined,
                     'duration'.tr(),
                     _calculateDuration(widget.sessionModel.startDateTime,
                         widget.sessionModel.endDateTime),
                   ),
                   _buildDetailRow(
                     context,
+                    Icons.attach_money_outlined,
                     'price'.tr(),
                     '${widget.sessionModel.price.toStringAsFixed(2)}',
                   ),
@@ -126,26 +130,29 @@ class _SessionListItemState extends State<SessionListItem> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      IconButton.filledTonal(
+                      OutlinedButton.icon(
                         onPressed: () {
                           context.pushNamed(
                             'edit_session',
                             extra: widget.sessionModel,
                           );
                         },
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'edit'.tr(),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filledTonal(
-                        onPressed: () => _showDeleteConfirmation(context),
-                        icon: const Icon(Icons.delete_outline),
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              colorScheme.errorContainer.withOpacity(0.5),
-                          foregroundColor: colorScheme.error,
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text('edit'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary),
                         ),
-                        tooltip: 'delete'.tr(),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => _showDeleteConfirmation(context),
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: Text('delete'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error),
+                        ),
                       ),
                     ],
                   ),
@@ -157,28 +164,36 @@ class _SessionListItemState extends State<SessionListItem> {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
+  Widget _buildDetailRow(
+      BuildContext context, IconData icon, String label, String value) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

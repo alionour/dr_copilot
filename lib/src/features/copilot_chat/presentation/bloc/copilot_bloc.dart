@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
+import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart';
@@ -9,9 +11,8 @@ import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 part 'copilot_event.dart';
 part 'copilot_state.dart';
@@ -40,42 +41,33 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     on<StartNewChatEvent>(_onStartNewChat);
   }
 
+  AIService _getService(String modelName) {
+    switch (modelName) {
+      case 'MedPaLM':
+        return vertexAIService;
+      case 'GPT':
+        return gptService;
+      case 'DeepSeek':
+        return deepSeekService;
+      case 'Qwen':
+        return qwenService;
+      case 'Claude':
+        return claudeService;
+      case 'Gemini':
+      default:
+        return geminiService;
+    }
+  }
+
   Future<void> _onGenerateResponse(
       GenerateResponseEvent event, Emitter<CopilotState> emit) async {
     emit(CopilotLoading());
     try {
-      if (event.selectedModel == 'MedPaLM') {
-        final response = await vertexAIService.getMedPaLMResponse(
-          event.query,
-          messageHistory: event.messageHistory,
-        );
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'GPT') {
-        final response = await gptService.getGPTResponse(
-          event.query,
-          messageHistory: event.messageHistory,
-        );
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'DeepSeek') {
-        final response = await deepSeekService.getDeepSeekResponse(
-          event.query,
-          messageHistory: event.messageHistory,
-        );
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'Qwen') {
-        final response = await qwenService.getQwenResponse(
-          event.query,
-          messageHistory: event.messageHistory,
-        );
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'Claude') {
-        final response = await claudeService.getClaudeResponse(
-          event.query,
-          messageHistory: event.messageHistory,
-        );
-        emit(CopilotResponseGenerated(response));
-      } else {
-        final response = await geminiService.getGeminiResponse(
+      final service = _getService(event.selectedModel);
+
+      // Special handling for Gemini to support function calling which returns a different type
+      if (service is GeminiService) {
+        final response = await service.getGeminiResponse(
           event.query,
           messageHistory: event.messageHistory,
         );
@@ -85,6 +77,12 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
         } else {
           emit(CopilotResponseGenerated(response.text ?? ''));
         }
+      } else {
+        final response = await service.generateResponse(
+          event.query,
+          messageHistory: event.messageHistory,
+        );
+        emit(CopilotResponseGenerated(response));
       }
     } catch (e) {
       if (e is Failure) {
@@ -98,30 +96,13 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   Future<void> _onUploadImage(
       UploadImageEvent event, Emitter<CopilotState> emit) async {
     emit(CopilotLoading());
-    if (event.selectedModel == 'Gemini') {
-      emit(const CopilotError('Image upload is not supported for Gemini model at the moment.'));
-      return;
-    }
     try {
-      if (event.selectedModel == 'MedPaLM') {
-        final response = await vertexAIService.getMedPaLMResponse(event.text);
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'GPT') {
-        final response = await gptService.getGPTResponse(event.text);
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'DeepSeek') {
-        final response = await deepSeekService.getDeepSeekResponse(event.text);
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'Qwen') {
-        final response = await qwenService.getQwenResponse(event.text);
-        emit(CopilotResponseGenerated(response));
-      } else if (event.selectedModel == 'Claude') {
-        final response = await claudeService.getClaudeResponse(event.text);
-        emit(CopilotResponseGenerated(response));
-      } else {
-        // This part should not be reached if the model is Gemini.
-        emit(const CopilotError('Unsupported model for image upload.'));
-      }
+      final service = _getService(event.selectedModel);
+      final response = await service.generateResponseWithImage(
+        event.text,
+        event.imageBytes,
+      );
+      emit(CopilotResponseGenerated(response));
     } catch (e) {
       if (e is Failure) {
         emit(_mapFailureToMessage(e));

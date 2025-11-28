@@ -1,27 +1,24 @@
-import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:easy_localization/easy_localization.dart' as localization;
+import 'package:easy_localization/easy_localization.dart';
 
-class PatientListItemModern extends StatefulWidget {
-  final PatientModel patientModel;
+class DoctorListItem extends StatefulWidget {
+  final DoctorModel doctorModel;
   final VoidCallback onTap;
 
-  const PatientListItemModern({
+  const DoctorListItem({
     super.key,
-    required this.patientModel,
+    required this.doctorModel,
     required this.onTap,
   });
 
   @override
-  State<PatientListItemModern> createState() => _PatientListItemModernState();
+  State<DoctorListItem> createState() => _DoctorListItemState();
 }
 
-class _PatientListItemModernState extends State<PatientListItemModern> {
+class _DoctorListItemState extends State<DoctorListItem> {
   bool _isExpanded = false;
 
   @override
@@ -34,7 +31,7 @@ class _PatientListItemModernState extends State<PatientListItemModern> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.0),
       ),
-      elevation: 2, // Softer shadow
+      elevation: 2,
       shadowColor: colorScheme.shadow.withOpacity(0.1),
       child: Column(
         children: [
@@ -51,11 +48,11 @@ class _PatientListItemModernState extends State<PatientListItemModern> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 28, // Larger avatar
+                    radius: 28,
                     backgroundColor: colorScheme.primaryContainer,
                     child: Text(
-                      widget.patientModel.name.isNotEmpty
-                          ? widget.patientModel.name[0].toUpperCase()
+                      widget.doctorModel.name.isNotEmpty
+                          ? widget.doctorModel.name[0].toUpperCase()
                           : '?',
                       style: GoogleFonts.poppins(
                         fontSize: 24,
@@ -70,7 +67,7 @@ class _PatientListItemModernState extends State<PatientListItemModern> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.patientModel.name,
+                          widget.doctorModel.name,
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -79,7 +76,7 @@ class _PatientListItemModernState extends State<PatientListItemModern> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${'age'.tr()}: ${widget.patientModel.age ?? 'N/A'} • ${widget.patientModel.gender ?? 'N/A'}',
+                          widget.doctorModel.specialty,
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: colorScheme.onSurfaceVariant,
@@ -106,47 +103,32 @@ class _PatientListItemModernState extends State<PatientListItemModern> {
               child: Column(
                 children: [
                   const Divider(),
-                  _buildDetailRow(context, 'address'.tr(), 'address',
-                      widget.patientModel.address),
-                  _buildDetailRow(context, 'phoneNumber'.tr(), 'phoneNumber',
-                      widget.patientModel.phoneNumber),
                   _buildDetailRow(
-                      context,
-                      'alternativePhoneNumber'.tr(),
-                      'alternativePhoneNumber',
-                      widget.patientModel.alternativePhoneNumber),
-                  _buildDetailRow(context, 'treatingDoctor'.tr(),
-                      'treatingDoctor', widget.patientModel.treatingDoctor),
-                  _buildDetailRow(context, 'occupation'.tr(), 'occupation',
-                      widget.patientModel.occupation),
+                    context,
+                    Icons.email_outlined,
+                    'email'.tr(),
+                    widget.doctorModel.email,
+                  ),
+                  _buildDetailRow(
+                    context,
+                    Icons.phone_outlined,
+                    'phoneNumber'.tr(),
+                    widget.doctorModel.phoneNumber,
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      IconButton.filledTonal(
+                      OutlinedButton.icon(
                         onPressed: () {
-                          context.pushNamed(
-                            'edit_patient',
-                            extra: widget.patientModel,
-                          );
+                          context.go('/doctors/${widget.doctorModel.id}/edit');
                         },
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'edit'.tr(),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filledTonal(
-                        onPressed: () {
-                          context
-                              .read<PatientsBloc>()
-                              .add(DeletePatient(widget.patientModel.id));
-                        },
-                        icon: const Icon(Icons.delete_outline),
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              colorScheme.errorContainer.withOpacity(0.5),
-                          foregroundColor: colorScheme.error,
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text('edit'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary),
                         ),
-                        tooltip: 'delete'.tr(),
                       ),
                     ],
                   ),
@@ -159,30 +141,36 @@ class _PatientListItemModernState extends State<PatientListItemModern> {
   }
 
   Widget _buildDetailRow(
-      BuildContext context, String label, String key, String? value) {
+      BuildContext context, IconData icon, String label, String? value) {
     final displayValue = value ?? 'N/A';
-
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              displayValue,
-              style: GoogleFonts.inter(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  displayValue,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

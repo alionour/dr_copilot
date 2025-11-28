@@ -25,24 +25,22 @@ EvaluationModel _$EvaluationModelFromJson(Map<String, dynamic> json) =>
       doctorId: json['doctorId'] as String?,
     );
 
-Map<String, dynamic> _$EvaluationModelToJson(EvaluationModel instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'patientId': instance.patientId,
-      'patientName': instance.patientName,
-      'price': instance.price,
-      'startDateTime':
-          const TimestampConverter().toJson(instance.startDateTime),
-      'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
-      'ownerId': instance.ownerId,
-      'clinicId': instance.clinicId,
-      'createdBy': instance.createdBy,
-      'updatedBy': instance.updatedBy,
-      'deletedBy': instance.deletedBy,
-      'createdAt': const TimestampConverter().toJson(instance.createdAt),
-      'updatedAt':
-          const NullableTimestampConverter().toJson(instance.updatedAt),
-      'deletedAt':
-          const NullableTimestampConverter().toJson(instance.deletedAt),
-      'doctorId': instance.doctorId,
-    };
+Map<String, dynamic> _$EvaluationModelToJson(
+  EvaluationModel instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'patientId': instance.patientId,
+  'patientName': instance.patientName,
+  'price': instance.price,
+  'startDateTime': const TimestampConverter().toJson(instance.startDateTime),
+  'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
+  'ownerId': instance.ownerId,
+  'clinicId': instance.clinicId,
+  'createdBy': instance.createdBy,
+  'updatedBy': instance.updatedBy,
+  'deletedBy': instance.deletedBy,
+  'createdAt': const TimestampConverter().toJson(instance.createdAt),
+  'updatedAt': const NullableTimestampConverter().toJson(instance.updatedAt),
+  'deletedAt': const NullableTimestampConverter().toJson(instance.deletedAt),
+  'doctorId': instance.doctorId,
+};
