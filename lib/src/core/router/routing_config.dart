@@ -1,4 +1,6 @@
 import 'package:dr_copilot/src/features/auth/presentation/pages/signup_page.dart';
+import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/navigation_side.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
@@ -8,8 +10,10 @@ import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/copilot_
 import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/add_session_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/add_evaluation_page.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
@@ -80,6 +84,21 @@ class RoutingConfig {
             path: '/patients',
             name: 'patients',
             builder: (context, state) => const PatientsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_patient',
+                builder: (context, state) => const AddPatientPage(),
+              ),
+              GoRoute(
+                path: 'edit',
+                name: 'edit_patient',
+                builder: (context, state) {
+                  final patient = state.extra as PatientModel;
+                  return AddPatientPage(patient: patient);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/sessions',
@@ -90,6 +109,14 @@ class RoutingConfig {
                 path: 'new',
                 name: 'add_session',
                 builder: (context, state) => const AddSessionPage(),
+              ),
+              GoRoute(
+                path: 'edit',
+                name: 'edit_session',
+                builder: (context, state) {
+                  final session = state.extra as SessionModel;
+                  return AddSessionPage(session: session);
+                },
               ),
             ],
           ),
@@ -102,6 +129,14 @@ class RoutingConfig {
                 path: 'new',
                 name: 'add_evaluation',
                 builder: (context, state) => const AddEvaluationPage(),
+              ),
+              GoRoute(
+                path: 'edit',
+                name: 'edit_evaluation',
+                builder: (context, state) {
+                  final evaluation = state.extra as EvaluationModel;
+                  return AddEvaluationPage(evaluation: evaluation);
+                },
               ),
             ],
           ),

@@ -14,8 +14,9 @@ import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
+  final PatientModel? patient;
   // Constructor for AddPatientPage
-  const AddPatientPage({super.key});
+  const AddPatientPage({super.key, this.patient});
 
   @override
   State<AddPatientPage> createState() => _AddPatientPageState();
@@ -51,6 +52,18 @@ class _AddPatientPageState extends State<AddPatientPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.patient != null) {
+      _nameController.text = widget.patient!.name;
+      _ageController.text = widget.patient!.age?.toString() ?? '';
+      _addressController.text = widget.patient!.address ?? '';
+      _phoneNumberController.text = widget.patient!.phoneNumber ?? '';
+      _alternativePhoneNumberController.text =
+          widget.patient!.alternativePhoneNumber ?? '';
+      _treatingDoctorController.text = widget.patient!.treatingDoctor ?? '';
+      _occupationController.text = widget.patient!.occupation ?? '';
+      _selectedGender = widget.patient!.gender ?? 'Male';
+      _selectedClinicId = widget.patient!.clinicId;
+    }
     // Request focus to the name field when the page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_nameFocusNode);
@@ -62,11 +75,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('addPatient'.tr()),
+        title: Text(
+            widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
       ),
@@ -343,7 +357,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _submitForm,
-                                child: Text('addPatient'.tr()),
+                                child: Text(widget.patient != null
+                                    ? 'saveChanges'.tr()
+                                    : 'addPatient'.tr()),
                               ),
                             ),
                           ],
@@ -394,7 +410,13 @@ class _AddPatientPageState extends State<AddPatientPage> {
               ? _occupationController.text
               : null,
         );
-        BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
+        if (widget.patient != null) {
+          BlocProvider.of<PatientsBloc>(context).add(UpdatePatient(
+              widget.patient!.id,
+              patientModel.copyWith(id: widget.patient!.id)));
+        } else {
+          BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
+        }
       } else {
         final message = 'userIdCannotBeNull'.tr();
         debugPrint('SnackBar Error: $message');

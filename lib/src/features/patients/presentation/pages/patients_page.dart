@@ -1,7 +1,7 @@
 import 'package:dr_copilot/src/features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
-import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
+import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item_modern.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -27,13 +27,13 @@ class _PatientsPageState extends State<PatientsPage> {
   final FocusNode _listFocusNode = FocusNode();
   final FocusNode _searchFocusNode = FocusNode();
   int _selectedIndex = 0;
-  bool _showFilters = false; // State to toggle filter icons
+  bool _showFilters = false;
   DateTime? _selectedDate;
   String? _selectedGender;
   int? _minAge;
   int? _maxAge;
-  String? _selectedAddress; // Add a variable to store the selected address
-  bool _canLoadMore = true; // Add a flag to control loading more patients
+  String? _selectedAddress;
+  bool _canLoadMore = true;
   int? _firestorePatientsCount;
 
   @override
@@ -44,7 +44,6 @@ class _PatientsPageState extends State<PatientsPage> {
     });
     _scrollController.addListener(_onScroll);
 
-    // Listen to OwnerNotifier to re-fetch when clinicId changes/loads
     context.read<OwnerNotifier>().addListener(_onOwnerNotifierChanged);
 
     context.read<PatientsBloc>().add(const GetPatients());
@@ -63,14 +62,12 @@ class _PatientsPageState extends State<PatientsPage> {
 
   void _onOwnerNotifierChanged() {
     if (mounted) {
-      // Re-fetch patients when owner/clinic info changes
       context.read<PatientsBloc>().add(const GetPatients());
       context.read<PatientsBloc>().add(GetPatientsCount());
     }
   }
 
   void _onScroll() {
-    // Only trigger when scrolling down and near the end
     if (_scrollController.position.userScrollDirection ==
             ScrollDirection.reverse &&
         _scrollController.position.pixels >=
@@ -122,10 +119,11 @@ class _PatientsPageState extends State<PatientsPage> {
                     onChanged: (newQuery) {
                       setState(() {
                         query = newQuery;
-                        _selectedIndex = 0; // Reset selection on new query
+                        _selectedIndex = 0;
                       });
-                      context.read<PatientsBloc>().add(
-                          SearchPatients(name: query)); // Trigger search event
+                      context
+                          .read<PatientsBloc>()
+                          .add(SearchPatients(name: query));
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -154,13 +152,6 @@ class _PatientsPageState extends State<PatientsPage> {
                   decoration: BoxDecoration(
                     color:
                         Theme.of(context).colorScheme.surfaceContainerHighest,
-                    // border: Border.all(
-                    //   color: Theme.of(context)
-                    //       .colorScheme
-                    //       .primary
-                    //       .withOpacity(0.3), // Adjusted color to be less intense
-                    //   width: 0.3, // Made the border thinner
-                    // ),
                     borderRadius: BorderRadius.circular(12.0),
                     boxShadow: [
                       BoxShadow(
@@ -182,13 +173,11 @@ class _PatientsPageState extends State<PatientsPage> {
                         tooltip: 'toggleFilters'.tr(),
                         onPressed: () {
                           setState(() {
-                            _showFilters =
-                                !_showFilters; // Toggle filter visibility
+                            _showFilters = !_showFilters;
                           });
                         },
                       ),
                       if (_showFilters) ...[
-                        // Update the filter logic to clear previous filter values when a new filter is selected, unless mixed filters are allowed.
                         IconButton(
                           icon: Row(
                             children: [
@@ -218,7 +207,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                 _selectedGender = null;
                                 _minAge = null;
                                 _maxAge = null;
-                                _selectedAddress = null; // Clear address value
+                                _selectedAddress = null;
                               });
                               if (!context.mounted) return;
                               context.read<PatientsBloc>().add(
@@ -246,7 +235,7 @@ class _PatientsPageState extends State<PatientsPage> {
                               _selectedDate = null;
                               _minAge = null;
                               _maxAge = null;
-                              _selectedAddress = null; // Clear address value
+                              _selectedAddress = null;
                             });
                             context
                                 .read<PatientsBloc>()
@@ -271,7 +260,7 @@ class _PatientsPageState extends State<PatientsPage> {
                               _selectedDate = null;
                               _minAge = null;
                               _maxAge = null;
-                              _selectedAddress = null; // Clear address value
+                              _selectedAddress = null;
                             });
                             context
                                 .read<PatientsBloc>()
@@ -346,8 +335,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                             _maxAge = maxAge;
                                             _selectedDate = null;
                                             _selectedGender = null;
-                                            _selectedAddress =
-                                                null; // Clear address value
+                                            _selectedAddress = null;
                                           });
                                           context.read<PatientsBloc>().add(
                                               SearchPatients(
@@ -441,7 +429,6 @@ class _PatientsPageState extends State<PatientsPage> {
                     if (state is PatientsSuccess) {
                       final message = state.message;
                       if (message != null) {
-                        debugPrint('SnackBar Success: $message');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(message),
@@ -450,7 +437,6 @@ class _PatientsPageState extends State<PatientsPage> {
                       }
                     } else if (state is PatientsError) {
                       final message = state.message;
-                      debugPrint('SnackBar Error: $message');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(message)),
                       );
@@ -468,8 +454,7 @@ class _PatientsPageState extends State<PatientsPage> {
                           baseColor: Colors.grey[300]!,
                           highlightColor: Colors.grey[100]!,
                           child: ListView.builder(
-                            itemCount:
-                                10, // Placeholder count for shimmer effect
+                            itemCount: 10,
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -500,7 +485,6 @@ class _PatientsPageState extends State<PatientsPage> {
                           );
                         }
 
-                        // Group patients by creation date
                         final groupedPatients = <String, List<PatientModel>>{};
                         for (var patient in patients) {
                           if (patient.createdAt != null) {
@@ -516,7 +500,6 @@ class _PatientsPageState extends State<PatientsPage> {
                           }
                         }
 
-                        // Sort grouped sessions by date in descending order
                         final sortedGroupedPatients = groupedPatients.entries
                             .toList()
                           ..sort((a, b) => b.key.compareTo(a.key));
@@ -607,7 +590,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                                   .primary
                                                   .withValues(alpha: 0.2)
                                               : Colors.transparent,
-                                          child: PatientListItem(
+                                          child: PatientListItemModern(
                                             patientModel: patient,
                                             onTap: () {
                                               setState(() {
@@ -664,51 +647,20 @@ class _PatientsPageState extends State<PatientsPage> {
     );
   }
 
-  /// Returns a human-readable label for a given date string.
   String _getDateLabel(String date) {
     final today = DateTime.now();
     final parsedDate = DateTime.parse(date);
     if (parsedDate.year == today.year &&
         parsedDate.month == today.month &&
         parsedDate.day == today.day) {
-      return 'today'.tr(); // Use translation for 'Today'
+      return 'today'.tr();
     } else if (parsedDate.year == today.year &&
         parsedDate.month == today.month &&
         parsedDate.day == today.day - 1) {
-      return 'yesterday'.tr(); // Use translation for 'Yesterday'
+      return 'yesterday'.tr();
     } else {
       return DateFormat('MMMM dd, yyyy', context.locale.toString())
           .format(parsedDate);
     }
-  }
-
-  /// Moves the selection down in the list.
-  ///
-  /// This method updates the selected index and scrolls the list to the new position.
-  /// @param length The length of the list.
-  void moveSelectionDown(int length) {
-    setState(() {
-      _selectedIndex = (_selectedIndex + 1) % length;
-    });
-    _scrollController.animateTo(
-      _selectedIndex * 50.0,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  /// Moves the selection up in the list.
-  ///
-  /// This method updates the selected index and scrolls the list to the new position.
-  /// @param length The length of the list.
-  void moveSelectionUp(int length) {
-    setState(() {
-      _selectedIndex = (_selectedIndex - 1 + length) % length;
-    });
-    _scrollController.animateTo(
-      _selectedIndex * 50.0,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-    );
   }
 }

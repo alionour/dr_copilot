@@ -63,8 +63,9 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   }
 
   /// Detects the type of session based on patient ID.
+  /// Detects the type of session based on patient ID.
   @override
-  Future<Either<Failure, SessionType>> detectSessionType(String patientId) {
+  Future<Either<Failure, String>> detectSessionType(String patientId) {
     return firebaseApi.detectSessionType(patientId);
   }
 

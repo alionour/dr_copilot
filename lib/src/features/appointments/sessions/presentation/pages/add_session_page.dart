@@ -17,7 +17,8 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 class AddSessionPage extends StatefulWidget {
-  const AddSessionPage({super.key});
+  final SessionModel? session;
+  const AddSessionPage({super.key, this.session});
 
   @override
   State<AddSessionPage> createState() => _AddSessionPageState();
@@ -38,14 +39,15 @@ class _AddSessionPageState extends State<AddSessionPage> {
   String query = '';
   final FocusNode _searchFocusNode = FocusNode();
   List<PatientModel> _filteredPatients = [];
-  SessionType _selectedSessionType =
-      SessionType.standard; // Default session type
+  String _selectedSessionType =
+      SessionTypePresets.standard; // Default session type
   PatientModel? _selectedPatient; // Add a field to store the selected patient
+  final _customSessionTypeController = TextEditingController();
 
   final List<String> _calendars = ['Sessions'];
 
-  double _estimatedPrice =
-      SessionType.standard.basePrice; // Default estimated price for 'Standard'
+  double _estimatedPrice = SessionTypePresets.basePrices[
+      SessionTypePresets.standard]!; // Default estimated price for 'Standard'
   final _actualPriceController = TextEditingController();
 
   CurrencyProfileModel? _selectedCurrencyProfile;
@@ -75,9 +77,39 @@ class _AddSessionPageState extends State<AddSessionPage> {
         .read<PatientsBloc>()
         .add(const GetPatients()); // Fetch patients on init
 
-    final clinics = OwnerNotifier().clinics;
-    if (clinics.isNotEmpty) {
-      _selectedClinicId = clinics.first.id;
+    if (widget.session != null) {
+      _selectedClinicId = widget.session!.clinicId;
+      _startDate = widget.session!.startDateTime;
+      _endDate = widget.session!.endDateTime;
+      _selectedSessionType =
+          widget.session!.sessionType ?? SessionTypePresets.standard;
+
+      // Check if the loaded type is one of the presets
+      if (!SessionTypePresets.values.contains(_selectedSessionType)) {
+        // If not a preset, it's a custom type.
+        // But wait, our logic says we select "Custom" in dropdown and type the name in text field.
+        // So if it's not a preset, we should set dropdown to 'Custom' and text field to the value.
+        _customSessionTypeController.text = _selectedSessionType;
+        _selectedSessionType = SessionTypePresets.custom;
+      }
+
+      _actualPriceController.text = widget.session!.price.toString();
+      _patientNameController.text = widget.session!.patientName ?? '';
+      // We need to set _selectedPatient. Since we only have ID and Name in SessionModel,
+      // we might need to fetch the full patient or create a dummy one if we just need ID.
+      // For now, let's create a partial model sufficient for validation.
+      _selectedPatient = PatientModel(
+        id: widget.session!.patientId,
+        name: widget.session!.patientName ?? '',
+        ownerId: widget.session!.ownerId,
+        clinicId: widget.session!.clinicId,
+      );
+      // _selectedDoctor will be set when doctors are loaded if we match the ID
+    } else {
+      final clinics = OwnerNotifier().clinics;
+      if (clinics.isNotEmpty) {
+        _selectedClinicId = clinics.first.id;
+      }
     }
   }
 
@@ -128,20 +160,25 @@ class _AddSessionPageState extends State<AddSessionPage> {
   void _updateEstimatedPrice() {
     final duration =
         _endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0;
-    switch (_selectedSessionType) {
-      case SessionType.adultIntensive:
-        _estimatedPrice =
-            duration <= 1.0 ? 150.0 : 200.0; // 1 hour or 1.5 hours
-        break;
-      case SessionType.pediatricIntensive:
-        _estimatedPrice = 100.0 * duration;
-        break;
-      case SessionType.traction:
-        _estimatedPrice = 150.0 * duration;
-        break;
-      case SessionType.standard:
-        _estimatedPrice = 120.0 * duration;
-        break;
+
+    if (_selectedSessionType == SessionTypePresets.custom) {
+      _estimatedPrice = 0.0; // Or keep previous? Let's say 0 for custom.
+    } else if (SessionTypePresets.basePrices
+        .containsKey(_selectedSessionType)) {
+      final basePrice = SessionTypePresets.basePrices[_selectedSessionType]!;
+      // Apply specific logic if needed, or just basePrice * duration
+      // The previous logic had specific multipliers. Let's replicate them if possible or simplify.
+      // Previous logic:
+      // Adult Intensive: duration <= 1.0 ? 150 : 200
+      // Pediatric: 100 * duration
+      // Traction: 150 * duration
+      // Standard: 120 * duration
+
+      if (_selectedSessionType == SessionTypePresets.adultIntensive) {
+        _estimatedPrice = duration <= 1.0 ? 150.0 : 200.0;
+      } else {
+        _estimatedPrice = basePrice * duration;
+      }
     }
   }
 
@@ -260,35 +297,55 @@ class _AddSessionPageState extends State<AddSessionPage> {
       }
 
       // Ensure invoice status is selected
-      if (_selectedInvoiceStatus == null) {
+      if (_selectedInvoiceStatus == null && widget.session == null) {
+        // Only check invoice status for new sessions
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please select an invoice status.')),
         );
         return;
       }
 
+      String finalSessionType = _selectedSessionType;
+      if (_selectedSessionType == SessionTypePresets.custom) {
+        if (_customSessionTypeController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please enter a custom session type name.')),
+          );
+          return;
+        }
+        finalSessionType = _customSessionTypeController.text;
+      }
+
       final now = Timestamp.fromDate(DateTime.now().toUtc());
 
       final session = SessionModel(
-        id: const Uuid().v4(),
+        id: widget.session?.id ?? const Uuid().v4(),
         patientId: _selectedPatient!.id, // Use the selected patient's ID
         patientName:
             _selectedPatient!.name, // Include the selected patient's name
         startDateTime: _startDate!,
         endDateTime: _endDate!,
-        createdAt: now,
-        sessionType: _selectedSessionType,
+        createdAt: widget.session?.createdAt ?? now,
+        sessionType: finalSessionType,
         price: double.parse(_actualPriceController.text),
-        ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        ownerId: widget.session?.ownerId ??
+            FirebaseAuth.instance.currentUser?.uid ??
+            '',
         clinicId: _selectedClinicId!,
-        createdBy: FirebaseAuth.instance.currentUser?.uid ?? '',
+        createdBy: widget.session?.createdBy ??
+            FirebaseAuth.instance.currentUser?.uid ??
+            '',
         doctorId: _selectedDoctor?.id, // Add the selected doctor's ID
       );
 
-      // Pass the selected currencyProfileId to the bloc as well
-      context.read<SessionsBloc>().add(AddSession(session,
-          invoiceStatus: _selectedInvoiceStatus!,
-          currencyProfileId: _selectedCurrencyProfile!.id));
+      if (widget.session != null) {
+        context.read<SessionsBloc>().add(UpdateSession(session.id, session));
+      } else {
+        // Pass the selected currencyProfileId to the bloc as well
+        context.read<SessionsBloc>().add(AddSession(session,
+            invoiceStatus: _selectedInvoiceStatus!,
+            currencyProfileId: _selectedCurrencyProfile!.id));
+      }
     }
   }
 
@@ -299,6 +356,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
     _patientNameController.dispose();
     _actualPriceFocusNode.dispose();
     _actualPriceController.dispose();
+    _customSessionTypeController.dispose();
     super.dispose();
   }
 
@@ -321,11 +379,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
       //     context.read<SessionsBloc>().processEvaluations(context);
       //   }),
       appBar: AppBar(
-        title: Text('addSession'.tr()),
+        title:
+            Text(widget.session != null ? 'Edit Session' : 'addSession'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home'); // Navigate back to home
+            context.pop(); // Navigate back to previous route
           },
         ),
       ),
@@ -381,7 +440,16 @@ class _AddSessionPageState extends State<AddSessionPage> {
                 setState(() {
                   _doctors = state.doctors;
                   if (_doctors.isNotEmpty && _selectedDoctor == null) {
-                    _selectedDoctor = _doctors.first;
+                    if (widget.session != null &&
+                        widget.session!.doctorId != null) {
+                      try {
+                        _selectedDoctor = _doctors.firstWhere(
+                            (d) => d.id == widget.session!.doctorId);
+                      } catch (e) {
+                        // Doctor not found in list
+                      }
+                    }
+                    _selectedDoctor ??= _doctors.first;
                   }
                 });
               } else if (state is DoctorsError) {
@@ -431,13 +499,15 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       .name), // Replace with clinic name if available
                                 );
                               }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  if (newValue != null) {
-                                    _selectedClinicId = newValue;
-                                  }
-                                });
-                              },
+                              onChanged: widget.session != null
+                                  ? null // Disable if editing
+                                  : (String? newValue) {
+                                      setState(() {
+                                        if (newValue != null) {
+                                          _selectedClinicId = newValue;
+                                        }
+                                      });
+                                    },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'selectClinic'.tr();
@@ -491,11 +561,13 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       TextFormField(
                                         controller: _patientNameController,
                                         focusNode: _patientNameFocusNode,
+                                        readOnly: widget.session != null,
                                         decoration: InputDecoration(
                                           labelText: 'patientName'.tr(),
                                           hintText: 'searchPatients'.tr(),
                                           prefixIcon: const Icon(Icons.search),
                                           border: InputBorder.none,
+                                          enabled: widget.session == null,
                                         ),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
@@ -691,6 +763,49 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 ),
                               ),
                             const SizedBox(height: 8.0),
+                            DropdownButtonFormField<String>(
+                              value: _selectedSessionType,
+                              decoration: InputDecoration(
+                                labelText: 'sessionType'.tr(),
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              items:
+                                  SessionTypePresets.values.map((String type) {
+                                return DropdownMenuItem<String>(
+                                  value: type,
+                                  child: Text(type),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedSessionType = newValue!;
+                                  _updateEstimatedPrice();
+                                });
+                              },
+                            ),
+                            if (_selectedSessionType ==
+                                SessionTypePresets.custom) ...[
+                              const SizedBox(height: 8.0),
+                              TextFormField(
+                                controller: _customSessionTypeController,
+                                decoration: InputDecoration(
+                                  labelText: 'Custom Session Type Name',
+                                  border: const OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (_selectedSessionType ==
+                                          SessionTypePresets.custom &&
+                                      (value == null || value.isEmpty)) {
+                                    return 'Please enter a name for the custom session type';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                            const SizedBox(height: 8.0),
                             Container(
                               alignment: AlignmentDirectional
                                   .centerStart, // Replaced Align with Container for RTL/LTR support
@@ -759,202 +874,153 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               },
                             ),
                             const SizedBox(height: 8.0),
-                            Container(
-                              alignment: AlignmentDirectional
-                                  .centerStart, // Replaced Align with Container for RTL/LTR support
-                              child: Text(
-                                'sessionType'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ),
                             const SizedBox(height: 8.0),
-                            Container(
-                              alignment: AlignmentDirectional
-                                  .centerStart, // Replaced Align with Container for RTL/LTR support
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: ToggleButtons(
-                                  isSelected: SessionType.values
-                                      .map((type) =>
-                                          _selectedSessionType == type)
-                                      .toList(),
-                                  onPressed: (index) {
-                                    setState(() {
-                                      _selectedSessionType =
-                                          SessionType.values[index];
-                                      _updateEstimatedPrice(); // Update price when session type changes
-                                    });
-                                  },
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  selectedColor: Colors.white,
-                                  fillColor: Colors.blueAccent,
-                                  children: SessionType.values.map((type) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12.0, vertical: 6.0),
-                                      child: Text(
-                                        'sessionType.${type.name}'.tr(),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: _selectedSessionType == type
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
+                            if (widget.session == null)
+                              Card(
+                                color: Colors.blue.shade50,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            const SizedBox(height: 8.0),
-                            const SizedBox(height: 8.0),
-                            Card(
-                              color: Colors.blue
-                                  .shade50, // Light blue background for the invoice section
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'invoice'.tr(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue
-                                                .shade900, // Darker blue for the title
-                                          ),
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: DropdownButtonFormField<
-                                              CurrencyProfileModel>(
-                                            value: _selectedCurrencyProfile,
-                                            decoration: InputDecoration(
-                                              labelText: 'currencyProfile'.tr(),
-                                              labelStyle: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                elevation: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'invoice'.tr(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
                                             ),
-                                            items: _currencyProfiles.map(
-                                                (CurrencyProfileModel profile) {
-                                              return DropdownMenuItem<
-                                                  CurrencyProfileModel>(
-                                                value: profile,
-                                                child:
-                                                    Text(profile.currency.tr()),
-                                              );
-                                            }).toList(),
-                                            onChanged: (CurrencyProfileModel?
-                                                newValue) {
-                                              setState(() {
-                                                _selectedCurrencyProfile =
-                                                    newValue;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.refresh),
-                                          onPressed: _fetchCurrencyProfiles,
-                                          tooltip:
-                                              'refreshCurrencyProfiles'.tr(),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: DropdownButtonFormField<
-                                              InvoiceStatus>(
-                                            value: _selectedInvoiceStatus,
-                                            decoration: InputDecoration(
-                                              labelText: 'invoiceStatus'.tr(),
-                                              labelStyle: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: DropdownButtonFormField<
+                                                CurrencyProfileModel>(
+                                              value: _selectedCurrencyProfile,
+                                              decoration: InputDecoration(
+                                                labelText:
+                                                    'currencyProfile'.tr(),
+                                                labelStyle: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
                                                       fontWeight:
-                                                          FontWeight.bold),
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              items: _currencyProfiles.map(
+                                                  (CurrencyProfileModel
+                                                      profile) {
+                                                return DropdownMenuItem<
+                                                    CurrencyProfileModel>(
+                                                  value: profile,
+                                                  child: Text(
+                                                      profile.currency.tr()),
+                                                );
+                                              }).toList(),
+                                              onChanged: (CurrencyProfileModel?
+                                                  newValue) {
+                                                setState(() {
+                                                  _selectedCurrencyProfile =
+                                                      newValue;
+                                                });
+                                              },
                                             ),
-                                            items: InvoiceStatus.values
-                                                .map((InvoiceStatus status) {
-                                              return DropdownMenuItem<
-                                                  InvoiceStatus>(
-                                                value: status,
-                                                child: Text(
-                                                    'invoiceStatus.${status.name}'
-                                                        .tr()), // Display localized name
-                                              );
-                                            }).toList(),
-                                            onChanged:
-                                                (InvoiceStatus? newValue) {
-                                              setState(() {
-                                                _selectedInvoiceStatus =
-                                                    newValue;
-                                              });
-                                            },
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    if (_selectedInvoiceStatus ==
-                                        InvoiceStatus.partiallyPaid)
-                                      TextFormField(
-                                        controller: _partialPaymentController,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
+                                          IconButton(
+                                            icon: const Icon(Icons.refresh),
+                                            onPressed: _fetchCurrencyProfiles,
+                                            tooltip:
+                                                'refreshCurrencyProfiles'.tr(),
+                                          ),
                                         ],
-                                        decoration: InputDecoration(
-                                          labelText: 'amount'.tr(),
-                                          border: const OutlineInputBorder(),
-                                        ),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'enterValidAmount'.tr();
-                                          }
-                                          final amount = double.tryParse(value);
-                                          if (amount == null || amount <= 0) {
-                                            return 'enterValidAmountGreaterThanZero'
-                                                .tr();
-                                          }
-                                          if (amount > 1000000) {
-                                            return 'amountCannotExceedOneMillion'
-                                                .tr();
-                                          }
-                                          return null;
-                                        },
                                       ),
-                                  ],
+                                      const SizedBox(height: 8.0),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: DropdownButtonFormField<
+                                                InvoiceStatus>(
+                                              value: _selectedInvoiceStatus,
+                                              decoration: InputDecoration(
+                                                labelText: 'invoiceStatus'.tr(),
+                                                labelStyle: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              items: InvoiceStatus.values
+                                                  .map((InvoiceStatus status) {
+                                                return DropdownMenuItem<
+                                                    InvoiceStatus>(
+                                                  value: status,
+                                                  child: Text(
+                                                      'invoiceStatus.${status.name}'
+                                                          .tr()),
+                                                );
+                                              }).toList(),
+                                              onChanged:
+                                                  (InvoiceStatus? newValue) {
+                                                setState(() {
+                                                  _selectedInvoiceStatus =
+                                                      newValue;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      if (_selectedInvoiceStatus ==
+                                          InvoiceStatus.partiallyPaid)
+                                        TextFormField(
+                                          controller: _partialPaymentController,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly,
+                                          ],
+                                          decoration: InputDecoration(
+                                            labelText: 'amount'.tr(),
+                                            border: const OutlineInputBorder(),
+                                          ),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'enterValidAmount'.tr();
+                                            }
+                                            final amount =
+                                                double.tryParse(value);
+                                            if (amount == null || amount <= 0) {
+                                              return 'enterValidAmountGreaterThanZero'
+                                                  .tr();
+                                            }
+                                            if (amount > 1000000) {
+                                              return 'amountCannotExceedOneMillion'
+                                                  .tr();
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
                             const SizedBox(height: 8.0),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed:
-                                    _saveSession, // Call _saveEvent on button press
+                                onPressed: _saveSession,
                                 child: Text('saveAppointment'.tr()),
                               ),
                             ),

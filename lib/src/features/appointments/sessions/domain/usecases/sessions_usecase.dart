@@ -45,8 +45,7 @@ class SessionsUseCase {
   }
 
   /// Detects the type of session based on patient name.
-  Future<Either<Failure, SessionType>> detectSessionType(
-      String patientId) async {
+  Future<Either<Failure, String>> detectSessionType(String patientId) async {
     return await repository.detectSessionType(patientId);
   }
 

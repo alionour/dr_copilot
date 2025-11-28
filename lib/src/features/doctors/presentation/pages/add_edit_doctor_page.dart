@@ -126,7 +126,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
       ),
@@ -149,7 +149,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message ?? 'Success'.tr())),
             );
-            context.go('/home');
+            context.pop();
           } else if (state is DoctorsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message ?? 'Error'.tr())),
