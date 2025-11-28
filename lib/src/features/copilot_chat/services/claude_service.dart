@@ -1,41 +1,51 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:http/http.dart' as http;
 
-class ClaudeService {
+class ClaudeService implements AIService {
   final String apiKey;
 
   ClaudeService(this.apiKey);
 
-  Future<String> getClaudeResponse(
+  @override
+  Future<String> generateResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
   }) async {
+    return getClaudeResponse(query, messageHistory: messageHistory);
+  }
+
+  @override
+  Future<String> generateResponseWithImage(
+    String query,
+    Uint8List imageBytes, {
+    List<Map<String, dynamic>> messageHistory = const [],
+  }) async {
+    // Claude 3 supports vision.
+    // We need to construct the request correctly for vision.
+    // The existing method `getClaudeResponseFromBytes` seems to use a made-up URL.
+
     final url = Uri.parse('https://api.anthropic.com/v1/messages');
-    
-    // Build messages array with history
-    final List<Map<String, dynamic>> messages = [];
-    
-    // Add message history
-    for (var message in messageHistory) {
-      final isUser = message['isUser'] as bool? ?? false;
-      final text = message['message'] as String? ?? '';
-      
-      if (text.isNotEmpty) {
-        messages.add({
-          'role': isUser ? 'user' : 'assistant',
-          'content': text,
-        });
-      }
-    }
-    
-    // Add current query
+
+    final messages = <Map<String, dynamic>>[];
+
     messages.add({
       'role': 'user',
-      'content': query,
+      'content': [
+        {
+          'type': 'image',
+          'source': {
+            'type': 'base64',
+            'media_type': 'image/jpeg', // Assuming jpeg for now, ideally detect
+            'data': base64Encode(imageBytes),
+          }
+        },
+        {'type': 'text', 'text': query}
+      ]
     });
-    
+
     final response = await http.post(
       url,
       headers: {
@@ -46,7 +56,60 @@ class ClaudeService {
       body: jsonEncode({
         'model': 'claude-3-5-sonnet-20241022',
         'max_tokens': 1024,
-        'system': 'You are Dr. Copilot, an advanced AI medical manager designed to assist healthcare professionals.',
+        'system':
+            'You are Dr. Copilot, an advanced AI medical manager designed to assist healthcare professionals.',
+        'messages': messages,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['content'][0]['text'];
+    } else {
+      throw Exception('Failed to get response from Claude: ${response.body}');
+    }
+  }
+
+  Future<String> getClaudeResponse(
+    String query, {
+    List<Map<String, dynamic>> messageHistory = const [],
+  }) async {
+    final url = Uri.parse('https://api.anthropic.com/v1/messages');
+
+    // Build messages array with history
+    final List<Map<String, dynamic>> messages = [];
+
+    // Add message history
+    for (var message in messageHistory) {
+      final isUser = message['isUser'] as bool? ?? false;
+      final text = message['message'] as String? ?? '';
+
+      if (text.isNotEmpty) {
+        messages.add({
+          'role': isUser ? 'user' : 'assistant',
+          'content': text,
+        });
+      }
+    }
+
+    // Add current query
+    messages.add({
+      'role': 'user',
+      'content': query,
+    });
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: jsonEncode({
+        'model': 'claude-3-5-sonnet-20241022',
+        'max_tokens': 1024,
+        'system':
+            'You are Dr. Copilot, an advanced AI medical manager designed to assist healthcare professionals.',
         'messages': messages,
       }),
     );

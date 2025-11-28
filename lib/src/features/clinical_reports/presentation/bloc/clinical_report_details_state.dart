@@ -18,12 +18,51 @@ class ClinicalReportDetailsLoaded extends ClinicalReportDetailsState {
   final ClinicalReport report;
   final PatientModel patient;
   final List<drive.File> documents;
+  final String? contentJson;
+  final String? exportStatus; // 'loading', 'success', 'error'
+  final String? exportUrl;
+  final String? exportError;
 
   const ClinicalReportDetailsLoaded(
-      {required this.report, required this.patient, required this.documents});
+      {required this.report,
+      required this.patient,
+      required this.documents,
+      this.contentJson,
+      this.exportStatus,
+      this.exportUrl,
+      this.exportError});
+
+  ClinicalReportDetailsLoaded copyWith({
+    ClinicalReport? report,
+    PatientModel? patient,
+    List<drive.File>? documents,
+    String? contentJson,
+    String? exportStatus,
+    String? exportUrl,
+    String? exportError,
+  }) {
+    return ClinicalReportDetailsLoaded(
+      report: report ?? this.report,
+      patient: patient ?? this.patient,
+      documents: documents ?? this.documents,
+      contentJson: contentJson ?? this.contentJson,
+      exportStatus:
+          exportStatus, // Don't persist status by default unless passed
+      exportUrl: exportUrl,
+      exportError: exportError,
+    );
+  }
 
   @override
-  List<Object> get props => [report, patient, documents];
+  List<Object> get props => [
+        report,
+        patient,
+        documents,
+        if (contentJson != null) contentJson!,
+        if (exportStatus != null) exportStatus!,
+        if (exportUrl != null) exportUrl!,
+        if (exportError != null) exportError!
+      ];
 }
 
 class ClinicalReportDetailsError extends ClinicalReportDetailsState {

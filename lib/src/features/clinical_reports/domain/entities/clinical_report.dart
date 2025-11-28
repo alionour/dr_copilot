@@ -7,6 +7,7 @@ class ClinicalReport extends Equatable {
   final String description;
   final DateTime date;
   final List<String> documentUrls;
+  final String? contentUrl;
 
   const ClinicalReport({
     required this.id,
@@ -15,6 +16,7 @@ class ClinicalReport extends Equatable {
     required this.description,
     required this.date,
     this.documentUrls = const [],
+    this.contentUrl,
   });
 
   ClinicalReport copyWith({
@@ -24,6 +26,7 @@ class ClinicalReport extends Equatable {
     String? description,
     DateTime? date,
     List<String>? documentUrls,
+    String? contentUrl,
   }) {
     return ClinicalReport(
       id: id ?? this.id,
@@ -32,6 +35,7 @@ class ClinicalReport extends Equatable {
       description: description ?? this.description,
       date: date ?? this.date,
       documentUrls: documentUrls ?? this.documentUrls,
+      contentUrl: contentUrl ?? this.contentUrl,
     );
   }
 
@@ -43,5 +47,6 @@ class ClinicalReport extends Equatable {
         description,
         date,
         documentUrls,
+        contentUrl,
       ];
 }

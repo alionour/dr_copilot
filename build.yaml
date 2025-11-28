@@ -3,6 +3,7 @@ targets:
     sources:
       - "lib/**"
       - "bin/**"
+      - "test/**"
       - "pubspec.yaml"
       - "$package$"
     builders:

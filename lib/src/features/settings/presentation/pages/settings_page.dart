@@ -17,13 +17,23 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final FocusNode _focusNode = FocusNode();
-  int _selectedIndex = 0;
-
   @override
   void initState() {
     super.initState();
     context.read<SettingsBloc>().add(LoadSettingsEvent());
+  }
+
+  Widget _buildSectionHeader(String titleKey) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: Text(
+        titleKey.tr(),
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+      ),
+    );
   }
 
   @override
@@ -33,178 +43,117 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('settings'.tr()),
-        leading: Icon(Icons.settings),
-        actions: [navMenuButton ?? SizedBox()],
+        leading: const Icon(Icons.settings),
+        actions: [navMenuButton ?? const SizedBox()],
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0.5,
       ),
-      body: Focus(
-        focusNode: _focusNode,
-        autofocus: true,
-        onKeyEvent: (FocusNode node, KeyEvent event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              setState(() {
-                _selectedIndex =
-                    (_selectedIndex + 1) % 8; // 8 items in the list
-              });
-              return KeyEventResult.handled;
-            } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              setState(() {
-                _selectedIndex =
-                    (_selectedIndex - 1 + 8) % 8; // 8 items in the list
-              });
-              return KeyEventResult.handled;
-            }
-          }
-          return KeyEventResult.ignored;
-        },
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: ListView(
-                children: <Widget>[
-                  BlocBuilder<SettingsBloc, SettingsState>(
-                    builder: (context, state) {
-                      return ListTile(
-                        leading: const Icon(Icons.color_lens),
-                        title: Text(
-                          state is SettingsDarkMode
-                              ? 'lightMode'.tr()
-                              : 'darkMode'.tr(),
-                        ),
-                        selected: _selectedIndex == 0,
-                        onTap: () {
-                          setState(() {
-                            _selectedIndex = 0;
-                          });
-                          context.read<SettingsBloc>().add(ToggleThemeEvent());
-                          context.read<ThemeNotifier>().toggleTheme();
-                        },
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.lock),
-                    title: Text('privacy'.tr()),
-                    selected: _selectedIndex == 1,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 1;
-                      });
-                      context.go('/privacy');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.notifications),
-                    title: Text('notifications'.tr()),
-                    selected: _selectedIndex == 2,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 2;
-                      });
-                      // Handle notifications settings tap
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.language),
-                    title: Text('language'.tr()),
-                    selected: _selectedIndex == 3,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 3;
-                      });
-                    },
-                    trailing: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: context.locale
-                            .languageCode, // Use EasyLocalization's locale
-                        onChanged: (String? newLocale) {
-                          if (newLocale != null) {
-                            context
-                                .read<SettingsBloc>()
-                                .add(ChangeLocaleEvent(newLocale));
-                            context.setLocale(Locale(newLocale));
-                          }
-                        },
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'en',
-                            child: Row(
-                              children: [
-                                Icon(Icons.language, color: Colors.blue),
-                                SizedBox(width: 8),
-                                Text('English'),
-                              ],
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'ar',
-                            child: Row(
-                              children: [
-                                Icon(Icons.language, color: Colors.green),
-                                SizedBox(width: 8),
-                                Text('Arabic'),
-                              ],
-                            ),
-                          ),
-                        ],
-                        dropdownColor: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Colors.black),
-                      ),
+      body: ListView(
+        children: <Widget>[
+          _buildSectionHeader('general'),
+          BlocBuilder<SettingsBloc, SettingsState>(
+            builder: (context, state) {
+              return ListTile(
+                leading: const Icon(Icons.color_lens),
+                title: Text(
+                  state is SettingsDarkMode
+                      ? 'lightMode'.tr()
+                      : 'darkMode'.tr(),
+                ),
+                onTap: () {
+                  context.read<SettingsBloc>().add(ToggleThemeEvent());
+                  context.read<ThemeNotifier>().toggleTheme();
+                },
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text('language'.tr()),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: context.locale.languageCode,
+                onChanged: (String? newLocale) {
+                  if (newLocale != null) {
+                    context
+                        .read<SettingsBloc>()
+                        .add(ChangeLocaleEvent(newLocale));
+                    context.setLocale(Locale(newLocale));
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(
+                    value: 'en',
+                    child: Row(
+                      children: [
+                        Icon(Icons.language, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text('English'),
+                      ],
                     ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.security),
-                    title: Text('security'.tr()),
-                    selected: _selectedIndex == 4,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 4;
-                      });
-                      // Handle security settings tap
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.vpn_key),
-                    title: Text('openAIApiKey'.tr()),
-                    selected: _selectedIndex == 5,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 5;
-                      });
-                      context.push('/settings/api_key?from=settings');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.help),
-                    title: Text('helpSupport'.tr()),
-                    selected: _selectedIndex == 6,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 6;
-                      });
-                      context.push('/help_support');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.info),
-                    title: Text('about'.tr()),
-                    selected: _selectedIndex == 7,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 7;
-                      });
-                      context.push('/about');
-                    },
+                  DropdownMenuItem(
+                    value: 'ar',
+                    child: Row(
+                      children: [
+                        Icon(Icons.language, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text('Arabic'),
+                      ],
+                    ),
                   ),
                 ],
+                dropdownColor: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                icon: Icon(Icons.arrow_drop_down,
+                    color: Theme.of(context).iconTheme.color),
               ),
             ),
-          ],
-        ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.palette),
+            title: Text('appearance'.tr()),
+            onTap: () => context.push('/settings/appearance'),
+          ),
+          _buildSectionHeader('appSettings'),
+          ListTile(
+            leading: const Icon(Icons.notifications),
+            title: Text('notifications'.tr()),
+            onTap: () => context.push('/settings/notifications'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.storage),
+            title: Text('dataAndStorage'.tr()),
+            onTap: () => context.push('/settings/data_storage'),
+          ),
+          _buildSectionHeader('accountAndSecurity'),
+          ListTile(
+            leading: const Icon(Icons.security),
+            title: Text('security'.tr()),
+            onTap: () => context.push('/settings/security'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.vpn_key),
+            title: Text('openAIApiKey'.tr()),
+            onTap: () => context.push('/settings/api_key?from=settings'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.lock),
+            title: Text('privacy'.tr()),
+            onTap: () => context.push('/privacy'),
+          ),
+          _buildSectionHeader('support'),
+          ListTile(
+            leading: const Icon(Icons.help),
+            title: Text('helpSupport'.tr()),
+            onTap: () => context.push('/help_support'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: Text('about'.tr()),
+            onTap: () => context.push('/about'),
+          ),
+        ],
       ),
     );
   }

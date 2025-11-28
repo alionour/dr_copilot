@@ -26,16 +26,14 @@ class ClinicalReportsListPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              context.go('/clinical_reports/new');
+              context.go('/clinical_reports/create');
             },
           ),
         ],
       ),
       body: MultiBlocProvider(
         providers: [
-          BlocProvider(
-            create: (context) => getIt<ClinicalReportsListBloc>(),
-          ),
+          BlocProvider(create: (context) => getIt<ClinicalReportsListBloc>()),
           BlocProvider(
             create: (context) =>
                 getIt<GoogleDriveBloc>(param1: context.read<OwnerNotifier>()),
@@ -59,162 +57,133 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
   @override
   void initState() {
     super.initState();
-    // Dispatch the event here, as this widget is a child of MultiBlocProvider
+    // Load reports from Firestore by default
+    context.read<ClinicalReportsListBloc>().add(LoadClinicalReportsList());
+    // Optionally check Google Drive auth status without blocking
     context.read<GoogleDriveBloc>().add(AuthenticateGoogleDrive());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GoogleDriveBloc, GoogleDriveState>(
-      builder: (context, driveState) {
-        if (driveState is GoogleDriveLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (driveState is GoogleDriveError) {
-          return Center(child: Text('Error: ${driveState.message}'));
-        }
-        if (driveState is GoogleDriveAuthenticationRequired) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('googleDriveAuthRequired'.tr()),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context
-                        .read<GoogleDriveBloc>()
-                        .add(AuthenticateGoogleDrive());
-                  },
-                  child: Text('connectGoogleDrive'.tr()),
+    return Column(
+      children: [
+        // Optional Google Drive Status / Connect Button
+        BlocBuilder<GoogleDriveBloc, GoogleDriveState>(
+          builder: (context, driveState) {
+            if (driveState is GoogleDriveAuthenticationRequired) {
+              return Container(
+                color: Colors.orange.shade50,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
                 ),
-              ],
-            ),
-          );
-        }
-        if (driveState is GoogleDriveAuthenticated) {
-          // If authenticated, then load clinical reports from Google Drive files
-          context
-              .read<ClinicalReportsListBloc>()
-              .add(LoadClinicalReportsFromDrive(driveState.files));
-          return BlocBuilder<ClinicalReportsListBloc, ClinicalReportsListState>(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange.shade800,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'googleDriveNotConnected'.tr(),
+                        style: TextStyle(color: Colors.orange.shade900),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        context.read<GoogleDriveBloc>().add(
+                          AuthenticateGoogleDrive(),
+                        );
+                      },
+                      child: Text('connect'.tr()),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+        Expanded(
+          child: BlocBuilder<ClinicalReportsListBloc, ClinicalReportsListState>(
             builder: (context, state) {
               if (state is ClinicalReportsListLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
               if (state is ClinicalReportsListError) {
-                return Center(child: Text('Error: ${state.message}'));
+                return Center(child: SelectableText('Error: ${state.message}'));
               }
               if (state is ClinicalReportsListLoaded) {
-                final currentDriveState = context.read<GoogleDriveBloc>().state
-                    as GoogleDriveAuthenticated;
-                final bool canGoBack =
-                    currentDriveState.folderStack.isNotEmpty ||
-                        (currentDriveState.currentFolderId != null &&
-                            currentDriveState.currentFolderId !=
-                                currentDriveState.clinicFolderId);
-
-                return Column(
-                  children: [
-                    if (canGoBack)
-                      ListTile(
-                        leading: const Icon(Icons.arrow_back),
-                        title: Text('goBack'.tr()),
-                        onTap: () {
-                          context.read<GoogleDriveBloc>().add(GoBack());
-                        },
-                      ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: state.isFromDrive
-                            ? state.driveFiles.length
-                            : state.reports.length,
-                        itemBuilder: (context, index) {
-                          if (state.isFromDrive) {
-                            final file = state.driveFiles[index];
-                            final isFolder = file.mimeType ==
-                                'application/vnd.google-apps.folder';
-
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 4.0, horizontal: 8.0),
-                              child: ListTile(
-                                leading: Icon(isFolder
-                                    ? Icons.folder
-                                    : Icons.insert_drive_file),
-                                title: Text(file.name ?? 'Untitled'),
-                                subtitle: Text(file.modifiedTime != null
-                                    ? DateFormat.yMd()
-                                        .add_jm()
-                                        .format(file.modifiedTime!)
-                                    : 'N/A'),
-                                trailing: isFolder
-                                    ? const Icon(Icons.arrow_forward_ios)
-                                    : null,
-                                onTap: () async {
-                                  debugPrint(
-                                      'File tapped: ${file.name}, webViewLink: ${file.webViewLink}');
-                                  if (isFolder) {
-                                    context.read<GoogleDriveBloc>().add(
-                                        GoToFolder(file.id!, file.name ?? ''));
-                                  } else {
-                                    if (file.webViewLink != null) {
-                                      debugPrint(
-                                          'Calling _showOpenOptionsDialog for file: ${file.name}');
-                                      _showOpenOptionsDialog(
-                                          context,
-                                          file.name ?? 'File',
-                                          file.webViewLink!); // Show dialog
-                                    } else {
-                                      debugPrint(
-                                          'webViewLink is null for file: ${file.name}');
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                'No webViewLink available for ${file.name}')),
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
-                            );
-                          } else {
-                            final reportItem = state.reports[index];
-                            final patient =
-                                state.patients[reportItem.patientId];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 4.0, horizontal: 8.0),
-                              child: ListTile(
-                                title: Text(reportItem.title),
-                                subtitle:
-                                    Text(patient?.name ?? 'Unknown Patient'),
-                                trailing: const Icon(Icons.arrow_forward_ios),
-                                onTap: () {
-                                  context.push(
-                                      '/clinical_report_details/${reportItem.id}');
-                                },
-                              ),
-                            );
-                          }
-                        },
-                      ),
+                if (state.reports.isEmpty && !state.isFromDrive) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.assignment_outlined,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text('noClinicalReportsFound'.tr()),
+                      ],
                     ),
-                  ],
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: state.isFromDrive
+                      ? state.driveFiles.length
+                      : state.reports.length,
+                  itemBuilder: (context, index) {
+                    if (state.isFromDrive) {
+                      // ... (Drive file rendering logic - kept for future use if we add toggle)
+                      final file = state.driveFiles[index];
+                      return ListTile(title: Text(file.name ?? 'Untitled'));
+                    } else {
+                      final reportItem = state.reports[index];
+                      final patient = state.patients[reportItem.patientId];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 4.0,
+                          horizontal: 8.0,
+                        ),
+                        child: ListTile(
+                          title: Text(reportItem.title),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(patient?.name ?? 'Unknown Patient'),
+                              Text(
+                                DateFormat.yMd().format(reportItem.date),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onTap: () {
+                            context.push(
+                              '/clinical_reports/clinical_report_details/${reportItem.id}',
+                            );
+                          },
+                        ),
+                      );
+                    }
+                  },
                 );
               }
               return const Center(child: Text('Something went wrong.'));
             },
-          );
-        }
-        return const Center(child: Text('Something went wrong.'));
-      },
+          ),
+        ),
+      ],
     );
   }
 
+  // ignore: unused_element
   void _showOpenOptionsDialog(BuildContext context, String title, String url) {
+    // ... (Keep existing method if needed, though mostly for Drive files)
     debugPrint('Inside _showOpenOptionsDialog for title: $title, url: $url');
     showDialog(
       context: context,
@@ -229,7 +198,8 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                 debugPrint('Open in App selected for $url');
                 Navigator.of(context).pop();
                 context.push(
-                    '/webview?title=${Uri.encodeComponent(title)}&url=${Uri.encodeComponent(url)}');
+                  '/webview?title=${Uri.encodeComponent(title)}&url=${Uri.encodeComponent(url)}',
+                );
               },
             ),
             TextButton(

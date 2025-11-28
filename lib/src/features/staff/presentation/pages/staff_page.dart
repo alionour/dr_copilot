@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/staff/presentation/bloc/staff_bloc.dart';
+import 'package:dr_copilot/src/features/staff/presentation/widgets/staff_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -98,21 +99,11 @@ class _StaffPageState extends State<StaffPage> {
                               itemCount: filteredStaff.length,
                               itemBuilder: (context, index) {
                                 final staff = filteredStaff[index];
-                                return Card(
-                                  margin: const EdgeInsets.all(8.0),
-                                  child: ListTile(
-                                    title: Text(staff.name),
-                                    subtitle: Text(staff.role),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () {
-                                        context.go('/staff/${staff.id}');
-                                      },
-                                    ),
-                                    onTap: () {
-                                      // Optionally navigate to staff details page
-                                    },
-                                  ),
+                                return StaffListItem(
+                                  staffModel: staff,
+                                  onTap: () {
+                                    // Optionally navigate to staff details page
+                                  },
                                 );
                               },
                             ),
