@@ -27,58 +27,75 @@ class AddEditClinicalReportLoaded extends AddEditClinicalReportState {
   final String? pendingAISelectionEdit;
   final String? pendingAIInsert;
 
+  final String? generatedContent;
+  final String? refinedInstruction;
+  final String? refinedClinicalData;
+
   const AddEditClinicalReportLoaded({
-    this.report,
     required this.patients,
+    this.report,
     this.contentJson,
-    this.originalContent,
-    this.isReviewingAIChanges = false,
     this.isAILoading = false,
+    this.isReviewingAIChanges = false,
+    this.originalContent,
     this.instructions = const [],
     this.chatMessages = const [],
     this.pendingAISelectionEdit,
     this.pendingAIInsert,
+    this.generatedContent,
+    this.refinedInstruction,
+    this.refinedClinicalData,
   });
-
-  AddEditClinicalReportLoaded copyWith({
-    ClinicalReport? report,
-    List<PatientModel>? patients,
-    String? contentJson,
-    String? originalContent,
-    bool? isReviewingAIChanges,
-    bool? isAILoading,
-    List<ClinicalReportInstruction>? instructions,
-    List<ClinicalReportChatMessage>? chatMessages,
-    String? pendingAISelectionEdit,
-    String? pendingAIInsert,
-  }) {
-    return AddEditClinicalReportLoaded(
-      report: report ?? this.report,
-      patients: patients ?? this.patients,
-      contentJson: contentJson ?? this.contentJson,
-      originalContent: originalContent ?? this.originalContent,
-      isReviewingAIChanges: isReviewingAIChanges ?? this.isReviewingAIChanges,
-      isAILoading: isAILoading ?? this.isAILoading,
-      instructions: instructions ?? this.instructions,
-      chatMessages: chatMessages ?? this.chatMessages,
-      pendingAISelectionEdit: pendingAISelectionEdit,
-      pendingAIInsert: pendingAIInsert,
-    );
-  }
 
   @override
   List<Object?> get props => [
-    report,
     patients,
+    report,
     contentJson,
-    originalContent,
-    isReviewingAIChanges,
     isAILoading,
+    isReviewingAIChanges,
+    originalContent,
     instructions,
     chatMessages,
     pendingAISelectionEdit,
     pendingAIInsert,
+    generatedContent,
+    refinedInstruction,
+    refinedClinicalData,
   ];
+
+  AddEditClinicalReportLoaded copyWith({
+    List<PatientModel>? patients,
+    ClinicalReport? report,
+    String? contentJson,
+    bool? isAILoading,
+    bool? isReviewingAIChanges,
+    String? originalContent,
+    List<ClinicalReportInstruction>? instructions,
+    List<ClinicalReportChatMessage>? chatMessages,
+    String? pendingAISelectionEdit,
+    String? pendingAIInsert,
+    String? generatedContent,
+    String? refinedInstruction,
+    String? refinedClinicalData,
+  }) {
+    return AddEditClinicalReportLoaded(
+      patients: patients ?? this.patients,
+      report: report ?? this.report,
+      contentJson: contentJson ?? this.contentJson,
+      isAILoading: isAILoading ?? this.isAILoading,
+      isReviewingAIChanges: isReviewingAIChanges ?? this.isReviewingAIChanges,
+      originalContent: originalContent ?? this.originalContent,
+      instructions: instructions ?? this.instructions,
+      chatMessages: chatMessages ?? this.chatMessages,
+      pendingAISelectionEdit:
+          pendingAISelectionEdit ?? this.pendingAISelectionEdit,
+      pendingAIInsert: pendingAIInsert ?? this.pendingAIInsert,
+      generatedContent: generatedContent ?? this.generatedContent,
+      refinedInstruction: refinedInstruction ?? this.refinedInstruction,
+      refinedClinicalData: refinedClinicalData ?? this.refinedClinicalData,
+    );
+  }
 }
 
 class AddEditClinicalReportSuccess extends AddEditClinicalReportState {

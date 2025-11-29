@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 class StaffPage extends StatefulWidget {
   const StaffPage({super.key});
@@ -75,21 +76,13 @@ class _StaffPageState extends State<StaffPage> {
                           .toList();
 
                       if (filteredStaff.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('noStaffFound'.tr()),
-                              const SizedBox(height: 16.0),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  context.go('/staff/add');
-                                },
-                                icon: const Icon(Icons.add),
-                                label: Text('addStaff'.tr()),
-                              ),
-                            ],
-                          ),
+                        return EmptyStateWidget(
+                          message: 'noStaffFound'.tr(),
+                          title: 'noStaff'.tr(),
+                          actionLabel: 'addStaff'.tr(),
+                          onActionPressed: () {
+                            context.go('/staff/add');
+                          },
                         );
                       }
                       return Column(
@@ -113,7 +106,10 @@ class _StaffPageState extends State<StaffPage> {
                     } else if (state is StaffError) {
                       return Center(child: Text('An error occurred'.tr()));
                     } else {
-                      return Center(child: Text('noStaffFound'.tr()));
+                      return EmptyStateWidget(
+                        message: 'noStaffFound'.tr(),
+                        title: 'noStaff'.tr(),
+                      );
                     }
                   },
                 ),

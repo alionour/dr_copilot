@@ -8,15 +8,25 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_e
 class AIChatPanel extends StatefulWidget {
   final VoidCallback onClose;
   final bool hasSelection;
-  final Function(String) onApply;
+  final Function(String, String?) onGenerate;
+  final Function(String) onInsert;
+  final VoidCallback onDiscard;
   final Function(String, String) onSaveInstruction;
+  final Function(String) onDeleteInstruction;
+  final Function(String) onRefineInstruction;
+  final Function(String) onRefineClinicalData;
 
   const AIChatPanel({
     super.key,
     required this.onClose,
     required this.hasSelection,
-    required this.onApply,
+    required this.onGenerate,
+    required this.onInsert,
+    required this.onDiscard,
     required this.onSaveInstruction,
+    required this.onDeleteInstruction,
+    required this.onRefineInstruction,
+    required this.onRefineClinicalData,
   });
 
   @override
@@ -25,10 +35,12 @@ class AIChatPanel extends StatefulWidget {
 
 class _AIChatPanelState extends State<AIChatPanel> {
   final TextEditingController _instructionController = TextEditingController();
+  final TextEditingController _clinicalDataController = TextEditingController();
 
   @override
   void dispose() {
     _instructionController.dispose();
+    _clinicalDataController.dispose();
     super.dispose();
   }
 
@@ -41,7 +53,7 @@ class _AIChatPanelState extends State<AIChatPanel> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(-2, 0),
           ),
@@ -64,7 +76,9 @@ class _AIChatPanelState extends State<AIChatPanel> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -197,6 +211,32 @@ class _AIChatPanelState extends State<AIChatPanel> {
     BuildContext context,
     AddEditClinicalReportLoaded state,
   ) {
+    // Update controllers if refined text is available and different
+    if (state.refinedInstruction != null &&
+        state.refinedInstruction != _instructionController.text) {
+      // Only update if user hasn't typed significantly more?
+      // Or just update and let user undo?
+      // Let's update and notify via snackbar or just update.
+      // We need to be careful about loops.
+      // The Bloc clears refined text after consumption? No, we need to consume it.
+      // Let's use a post-frame callback or just set it if different.
+      // Actually, we should consume the event.
+      // But we are in build. We can't dispatch events here easily without loops.
+      // Better: The Bloc emits the state, we update controller, then we dispatch "Consumed".
+      // But if we dispatch consumed, it rebuilds with null, which is fine.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _instructionController.text = state.refinedInstruction!;
+        context.read<AddEditClinicalReportBloc>().add(AIRefineConsumed());
+      });
+    }
+    if (state.refinedClinicalData != null &&
+        state.refinedClinicalData != _clinicalDataController.text) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _clinicalDataController.text = state.refinedClinicalData!;
+        context.read<AddEditClinicalReportBloc>().add(AIRefineConsumed());
+      });
+    }
+
     return ListView(
       padding: const EdgeInsets.all(20.0),
       children: [
@@ -214,10 +254,13 @@ class _AIChatPanelState extends State<AIChatPanel> {
             spacing: 8,
             runSpacing: 8,
             children: state.instructions.map((instruction) {
-              return ActionChip(
+              return InputChip(
                 label: Text(instruction.label),
                 onPressed: () {
                   _instructionController.text = instruction.instruction;
+                },
+                onDeleted: () {
+                  widget.onDeleteInstruction(instruction.id);
                 },
                 avatar: const Icon(Icons.description, size: 16),
                 backgroundColor: Colors.white,
@@ -230,6 +273,50 @@ class _AIChatPanelState extends State<AIChatPanel> {
           ),
           const SizedBox(height: 24),
         ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Clinical Data (Optional)',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: TextField(
+            controller: _clinicalDataController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'e.g., Patient has high fever, history of diabetes...',
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  Icons.auto_fix_high,
+                  size: 20,
+                  color: Theme.of(context).primaryColor,
+                ),
+                tooltip: 'Refine with AI',
+                onPressed: () {
+                  if (_clinicalDataController.text.isNotEmpty) {
+                    widget.onRefineClinicalData(_clinicalDataController.text);
+                  }
+                },
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -268,38 +355,114 @@ class _AIChatPanelState extends State<AIChatPanel> {
             onChanged: (value) {
               setState(() {}); // Rebuild to show/hide Save button
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'e.g., "Make it more concise", "Fix grammar"',
               border: InputBorder.none,
-              contentPadding: EdgeInsets.all(16),
+              contentPadding: const EdgeInsets.all(16),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  Icons.auto_fix_high,
+                  size: 20,
+                  color: Theme.of(context).primaryColor,
+                ),
+                tooltip: 'Refine with AI',
+                onPressed: () {
+                  if (_instructionController.text.isNotEmpty) {
+                    widget.onRefineInstruction(_instructionController.text);
+                  }
+                },
+              ),
             ),
           ),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: ElevatedButton(
-            onPressed: () {
-              if (_instructionController.text.isNotEmpty) {
-                widget.onApply(_instructionController.text);
-                _instructionController.clear();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+        if (state.generatedContent != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.shade100),
             ),
-            child: Text(
-              widget.hasSelection ? 'Apply Edit' : 'Generate & Insert',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.auto_awesome,
+                      size: 16,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Generated Response',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(state.generatedContent!),
+              ],
             ),
           ),
-        ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onDiscard,
+                  child: const Text('Discard'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => widget.onInsert(state.generatedContent!),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Insert at Cursor'),
+                ),
+              ),
+            ],
+          ),
+        ] else
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                if (_instructionController.text.isNotEmpty) {
+                  widget.onGenerate(
+                    _instructionController.text,
+                    _clinicalDataController.text.isNotEmpty
+                        ? _clinicalDataController.text
+                        : null,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                widget.hasSelection ? 'Apply Edit' : 'Generate Response',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -367,7 +530,7 @@ class _AIChatPanelState extends State<AIChatPanel> {
                           boxShadow: [
                             if (!isUser)
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

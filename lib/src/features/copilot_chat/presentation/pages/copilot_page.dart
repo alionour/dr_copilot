@@ -848,8 +848,9 @@ class _CopilotPageState extends State<CopilotPage> {
       if (!checkAndAsk(
         'phoneNumber',
         'What is the phone number of the patient?',
-      ))
+      )) {
         return;
+      }
 
       _executeFunction(functionName);
     } else if (functionName == 'edit_patient') {
@@ -888,8 +889,9 @@ class _CopilotPageState extends State<CopilotPage> {
       if (!checkAndAsk(
         'id',
         'What is the ID of the patient you want to delete?',
-      ))
+      )) {
         return;
+      }
       _executeFunction(functionName);
     } else if (functionName == 'add_session') {
       if (!checkAndAsk(
@@ -945,8 +947,9 @@ class _CopilotPageState extends State<CopilotPage> {
       if (!checkAndAsk(
         'id',
         'What is the ID of the session you want to delete?',
-      ))
+      )) {
         return;
+      }
       _executeFunction(functionName);
     } else if (functionName == 'add_evaluation') {
       if (!checkAndAsk(
@@ -958,8 +961,9 @@ class _CopilotPageState extends State<CopilotPage> {
       if (!checkAndAsk(
         'patientName',
         'What is the name of the patient for this evaluation?',
-      ))
+      )) {
         return;
+      }
       if (!checkAndAsk('price', 'What is the price of the evaluation?')) return;
       if (!checkAndAsk(
         'startDateTime',

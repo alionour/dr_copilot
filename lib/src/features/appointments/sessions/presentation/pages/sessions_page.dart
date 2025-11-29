@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 class SessionsPage extends StatefulWidget {
   const SessionsPage({super.key});
@@ -60,10 +61,9 @@ class _SessionsPageState extends State<SessionsPage> {
       if (state is SessionsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
           _canLoadMore = false;
-          context.read<SessionsBloc>().add(LoadMoreSessions(
-                lastDocumentId: state.sessions.last.id,
-                limit: 20,
-              ));
+          context.read<SessionsBloc>().add(
+            LoadMoreSessions(lastDocumentId: state.sessions.last.id, limit: 20),
+          );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -87,17 +87,20 @@ class _SessionsPageState extends State<SessionsPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'searchSessions'.tr(),
-                      prefixIcon: Icon(Icons.search,
-                          color: Theme.of(context).colorScheme.onSurface),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 0.3),
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 0.3,
+                        ),
                       ),
                       hintStyle: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     onChanged: (newQuery) {
                       setState(() {
@@ -105,7 +108,8 @@ class _SessionsPageState extends State<SessionsPage> {
                         _selectedIndex = 0; // Reset selection on new query
                       });
                       context.read<SessionsBloc>().add(
-                          SearchSessions(name: query)); // Trigger search event
+                        SearchSessions(name: query),
+                      ); // Trigger search event
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -138,17 +142,18 @@ class _SessionsPageState extends State<SessionsPage> {
                 borderRadius: BorderRadius.circular(12.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withValues(alpha: 0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
@@ -188,9 +193,9 @@ class _SessionsPageState extends State<SessionsPage> {
                           });
                           if (!context.mounted) return;
 
-                          context
-                              .read<SessionsBloc>()
-                              .add(GetSessionsByDate(date: selectedDate));
+                          context.read<SessionsBloc>().add(
+                            GetSessionsByDate(date: selectedDate),
+                          );
                         }
                       },
                     ),
@@ -207,18 +212,16 @@ class _SessionsPageState extends State<SessionsPage> {
           if (state is SessionsSuccess) {
             final message = state.message;
             if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             }
           } else if (state is SessionsError) {
             final message = state.message;
             if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             }
           } else if (state is SessionsCountLoaded) {
             setState(() {
@@ -230,8 +233,9 @@ class _SessionsPageState extends State<SessionsPage> {
           builder: (context, state) {
             if (state is SessionsLoading) {
               return Shimmer.fromColors(
-                baseColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                baseColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 highlightColor: Theme.of(context).colorScheme.surface,
                 child: ListView.builder(
                   itemCount: 10,
@@ -245,22 +249,20 @@ class _SessionsPageState extends State<SessionsPage> {
                 ),
               );
             } else if (state is SessionsLoaded ||
-                state is SessionsLoadingMore) {
-              final sessions = state is SessionsLoaded
+                state is SessionsLoadingMore ||
+                state is SessionsCountLoaded) {
+              final sessions = (state is SessionsLoaded)
                   ? state.sessions
-                  : (state as SessionsLoadingMore).sessions;
+                  : (state is SessionsLoadingMore)
+                  ? state.sessions
+                  : <SessionModel>[];
 
-              if (sessions.isEmpty) {
-                return Center(
-                  child: Text('noSessionsMatch'.tr()),
-                );
-              }
-
-              // Group sessions by creation date
               final groupedSessions = <String, List<SessionModel>>{};
               for (var session in sessions) {
-                final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(session.startDateTime.toDate());
+                final creationDate = session.startDateTime
+                    .toDate()
+                    .toIso8601String()
+                    .split('T')[0];
                 groupedSessions
                     .putIfAbsent(creationDate, () => [])
                     .add(session);
@@ -275,7 +277,9 @@ class _SessionsPageState extends State<SessionsPage> {
                   // Add a label to show the total number of sessions (like patients_page)
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -283,11 +287,11 @@ class _SessionsPageState extends State<SessionsPage> {
                         const SizedBox(width: 4),
                         Text(
                           '${sessions.length} ',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
                         ),
                         Text(
                           'loaded'.tr(),
@@ -299,9 +303,7 @@ class _SessionsPageState extends State<SessionsPage> {
                           const SizedBox(width: 2),
                           Text(
                             '$_firestoreSessionsCount',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.deepPurple,
@@ -311,7 +313,7 @@ class _SessionsPageState extends State<SessionsPage> {
                             ' ${'stored'.tr()} ',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                        ]
+                        ],
                       ],
                     ),
                   ),
@@ -329,11 +331,14 @@ class _SessionsPageState extends State<SessionsPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
+                                vertical: 8.0,
+                                horizontal: 16.0,
+                              ),
                               child: Text(
                                 _getDateLabel(dateKey),
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
                               ),
                             ),
                             ...sessionsForDate.map((session) {
@@ -354,8 +359,9 @@ class _SessionsPageState extends State<SessionsPage> {
                   if (state is SessionsLoaded && state.isLoadingMore ||
                       state is SessionsLoadingMore)
                     Shimmer.fromColors(
-                      baseColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      baseColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       highlightColor: Theme.of(context).colorScheme.surface,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -376,7 +382,14 @@ class _SessionsPageState extends State<SessionsPage> {
 
               return Center(child: Text('Error: ${state.message}'));
             }
-            return Center(child: Text('noSessionsFound'.tr()));
+            return EmptyStateWidget(
+              message: 'noSessionsFound'.tr(),
+              title: 'noSessions'.tr(),
+              actionLabel: 'addSession'.tr(),
+              onActionPressed: () {
+                context.push('/sessions/new');
+              },
+            );
           },
         ),
       ),
@@ -427,7 +440,9 @@ class _SessionsPageState extends State<SessionsPage> {
         return 'yesterday'.tr();
       }
     }
-    return DateFormat('EEEE, MMMM dd, yyyy', context.locale.toString())
-        .format(parsedDate ?? DateTime.now());
+    return DateFormat(
+      'EEEE, MMMM dd, yyyy',
+      context.locale.toString(),
+    ).format(parsedDate ?? DateTime.now());
   }
 }

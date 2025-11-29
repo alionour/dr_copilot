@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../notifiers/theme_notifier.dart';
 import '../notifiers/locale_notifier.dart';
 import '../notifiers/owner_notifier.dart';
+import '../../services/connectivity_service.dart';
 
 /// A list of global providers used throughout the application.
 ///
@@ -36,5 +37,10 @@ final appProviders = [
   /// This allows descendant widgets to access the global ownerId for Firestore queries.
   ChangeNotifierProvider(create: (context) => OwnerNotifier()),
 
-  ...appBlocProviders
+  /// Provides an instance of [ConnectivityService] to the widget tree using [ChangeNotifierProvider].
+  ///
+  /// This allows descendant widgets to listen for connectivity changes.
+  ChangeNotifierProvider(create: (context) => ConnectivityService()),
+
+  ...appBlocProviders,
 ];

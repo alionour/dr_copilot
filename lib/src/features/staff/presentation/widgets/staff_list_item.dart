@@ -28,11 +28,9 @@ class _StaffListItemState extends State<StaffListItem> {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       elevation: 2,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       child: Column(
         children: [
           InkWell(
@@ -141,7 +139,11 @@ class _StaffListItemState extends State<StaffListItem> {
   }
 
   Widget _buildDetailRow(
-      BuildContext context, IconData icon, String label, String? value) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? value,
+  ) {
     final displayValue = value ?? 'N/A';
     final theme = Theme.of(context);
     return Padding(

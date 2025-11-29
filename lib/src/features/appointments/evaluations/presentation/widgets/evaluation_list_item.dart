@@ -32,11 +32,9 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       elevation: 2,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       child: Column(
         children: [
           InkWell(
@@ -111,14 +109,16 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                     context,
                     Icons.timer_outlined,
                     'duration'.tr(),
-                    _calculateDuration(widget.evaluationModel.startDateTime,
-                        widget.evaluationModel.endDateTime),
+                    _calculateDuration(
+                      widget.evaluationModel.startDateTime,
+                      widget.evaluationModel.endDateTime,
+                    ),
                   ),
                   _buildDetailRow(
                     context,
                     Icons.attach_money_outlined,
                     'price'.tr(),
-                    '${widget.evaluationModel.price.toStringAsFixed(2)}',
+                    widget.evaluationModel.price.toStringAsFixed(2),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -159,7 +159,11 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
   }
 
   Widget _buildDetailRow(
-      BuildContext context, IconData icon, String label, String value) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -230,8 +234,9 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                         deleteInvoiceAndTransaction = val ?? true;
                       });
                     },
-                    title:
-                        Text('deleteCorrespondingInvoiceAndTransaction'.tr()),
+                    title: Text(
+                      'deleteCorrespondingInvoiceAndTransaction'.tr(),
+                    ),
                   ),
                 ],
               ),
@@ -242,10 +247,12 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop(_DeleteEvaluationDialogResult(
-                      deleteEvaluationAndTransaction:
-                          deleteInvoiceAndTransaction,
-                    ));
+                    Navigator.of(context).pop(
+                      _DeleteEvaluationDialogResult(
+                        deleteEvaluationAndTransaction:
+                            deleteInvoiceAndTransaction,
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.error,
@@ -262,9 +269,9 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
 
     if (result != null && context.mounted) {
       // Assuming the bloc event only takes ID for now based on previous file content
-      context.read<EvaluationsBloc>().add(DeleteEvaluation(
-            widget.evaluationModel.id,
-          ));
+      context.read<EvaluationsBloc>().add(
+        DeleteEvaluation(widget.evaluationModel.id),
+      );
     }
   }
 }

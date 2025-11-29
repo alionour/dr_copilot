@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
@@ -56,10 +57,12 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
       if (state is EvaluationsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
           _canLoadMore = false;
-          context.read<EvaluationsBloc>().add(LoadMoreEvaluations(
-                lastDocumentId: state.evaluations.last.id,
-                limit: 20,
-              ));
+          context.read<EvaluationsBloc>().add(
+            LoadMoreEvaluations(
+              lastDocumentId: state.evaluations.last.id,
+              limit: 20,
+            ),
+          );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -83,25 +86,29 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'searchEvaluations'.tr(),
-                      prefixIcon: Icon(Icons.search,
-                          color: Theme.of(context).colorScheme.onSurface),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 0.3),
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 0.3,
+                        ),
                       ),
                       hintStyle: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     onChanged: (newQuery) {
                       setState(() {
                         query = newQuery;
                         _selectedIndex = 0; // Reset selection on new query
                       });
-                      context.read<EvaluationsBloc>().add(SearchEvaluations(
-                          name: query)); // Trigger search event
+                      context.read<EvaluationsBloc>().add(
+                        SearchEvaluations(name: query),
+                      ); // Trigger search event
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -134,17 +141,18 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 borderRadius: BorderRadius.circular(12.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withValues(alpha: 0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
@@ -184,9 +192,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           });
                           if (!context.mounted) return;
 
-                          context
-                              .read<EvaluationsBloc>()
-                              .add(GetEvaluationsByDate(date: selectedDate));
+                          context.read<EvaluationsBloc>().add(
+                            GetEvaluationsByDate(date: selectedDate),
+                          );
                         }
                       },
                     ),
@@ -210,8 +218,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
           builder: (context, state) {
             if (state is EvaluationsLoading) {
               return Shimmer.fromColors(
-                baseColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                baseColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 highlightColor: Theme.of(context).colorScheme.surface,
                 child: ListView.builder(
                   itemCount: 10,
@@ -230,35 +239,31 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               final evaluations = (state is EvaluationsLoaded)
                   ? state.evaluations
                   : (state is EvaluationsLoadingMore)
-                      ? state.evaluations
-                      : (state as EvaluationsCountLoaded).evaluations;
+                  ? state.evaluations
+                  : <EvaluationModel>[];
 
-              if (evaluations.isEmpty) {
-                return Center(
-                  child: Text('noEvaluationsMatch'.tr()),
-                );
-              }
-
-              // Group evaluations by creation date
               final groupedEvaluations = <String, List<EvaluationModel>>{};
               for (var evaluation in evaluations) {
-                final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(evaluation.startDateTime.toDate());
+                final creationDate = evaluation.startDateTime
+                    .toDate()
+                    .toIso8601String()
+                    .split('T')[0];
                 groupedEvaluations
                     .putIfAbsent(creationDate, () => [])
                     .add(evaluation);
               }
 
-              // Sort grouped evaluations by date in descending order
-              final sortedGroupedEvaluations = groupedEvaluations.entries
-                  .toList()
-                ..sort((a, b) => b.key.compareTo(a.key));
+              final sortedGroupedEvaluations =
+                  groupedEvaluations.entries.toList()
+                    ..sort((a, b) => b.key.compareTo(a.key));
 
               return Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -266,11 +271,11 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                         const SizedBox(width: 4),
                         Text(
                           '${evaluations.length} ',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
                         ),
                         Text(
                           'loaded'.tr(),
@@ -280,14 +285,15 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           Row(
                             children: [
                               const SizedBox(width: 16),
-                              Icon(Icons.cloud,
-                                  size: 18, color: Colors.deepPurple),
+                              Icon(
+                                Icons.cloud,
+                                size: 18,
+                                color: Colors.deepPurple,
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 '$_firestoreEvaluationsCount',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.deepPurple,
@@ -316,11 +322,14 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
+                                vertical: 8.0,
+                                horizontal: 16.0,
+                              ),
                               child: Text(
                                 _getDateLabel(dateKey),
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
                               ),
                             ),
                             ...evaluationsForDate.map((evaluation) {
@@ -328,8 +337,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                 evaluationModel: evaluation,
                                 onTap: () {
                                   setState(() {
-                                    _selectedIndex =
-                                        evaluations.indexOf(evaluation);
+                                    _selectedIndex = evaluations.indexOf(
+                                      evaluation,
+                                    );
                                   });
                                 },
                               );
@@ -342,8 +352,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                   if (state is EvaluationsLoaded && state.isLoadingMore ||
                       state is EvaluationsLoadingMore)
                     Shimmer.fromColors(
-                      baseColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      baseColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       highlightColor: Theme.of(context).colorScheme.surface,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -363,7 +374,14 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               debugPrint('Error: ${state.message}');
               return Center(child: Text('Error: ${state.message}'));
             }
-            return Center(child: Text('noEvaluations'.tr()));
+            return EmptyStateWidget(
+              message: 'noEvaluations'.tr(),
+              title: 'noEvaluationsFound'.tr(),
+              actionLabel: 'addEvaluation'.tr(),
+              onActionPressed: () {
+                context.push('/evaluations/new');
+              },
+            );
           },
         ),
       ),
@@ -411,8 +429,10 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
         parsedDate.day == today.day - 1) {
       return 'yesterday'.tr();
     } else {
-      return DateFormat('EEEE, MMMM dd, yyyy', context.locale.toString())
-          .format(parsedDate);
+      return DateFormat(
+        'EEEE, MMMM dd, yyyy',
+        context.locale.toString(),
+      ).format(parsedDate);
     }
   }
 }

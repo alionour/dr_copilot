@@ -21,7 +21,7 @@ final scopes = [
   CalendarApi.calendarReadonlyScope,
   CalendarApi.calendarEventsReadonlyScope,
   CalendarApi.calendarSettingsReadonlyScope,
-  drive.DriveApi.driveScope
+  drive.DriveApi.driveScope,
 ];
 
 /// Custom AuthClient for using a saved access token with Google APIs
@@ -77,7 +77,8 @@ class AuthClient extends BaseClient {
       return cloned;
     } else {
       throw UnsupportedError(
-          'Request type not supported for retry: \\${request.runtimeType}');
+        'Request type not supported for retry: \\${request.runtimeType}',
+      );
     }
   }
 }
@@ -102,10 +103,7 @@ class GoogleSignInHelper {
 
   /// Getter for the standard Google Sign-In instance.
   GoogleSignIn get _googleSignIn {
-    return GoogleSignIn(
-      clientId: kIsWeb ? _webClientId : null,
-      scopes: scopes,
-    );
+    return GoogleSignIn(clientId: kIsWeb ? _webClientId : null, scopes: scopes);
   }
 
   Client? _client;
@@ -117,7 +115,8 @@ class GoogleSignInHelper {
         // Try to sign in silently first
         GoogleSignInAccount? currentUser = await _googleSignIn.signInSilently();
         debugPrint(
-            'Called signInSilently for GoogleSignIn. Current user: $currentUser');
+          'Called signInSilently for GoogleSignIn. Current user: $currentUser',
+        );
 
         if (currentUser != null) {
           _client = await _googleSignIn.authenticatedClient();
@@ -130,12 +129,14 @@ class GoogleSignInHelper {
           // For other platforms (Android, iOS, Web)
           currentUser = await _googleSignIn.signIn();
           debugPrint(
-              'Called interactive signIn for GoogleSignIn. Current user: $currentUser');
+            'Called interactive signIn for GoogleSignIn. Current user: $currentUser',
+          );
 
           if (currentUser != null) {
             _client = await _googleSignIn.authenticatedClient();
             debugPrint(
-                'Initialized _client from interactive sign-in: $_client');
+              'Initialized _client from interactive sign-in: $_client',
+            );
           }
         }
       }
@@ -193,7 +194,8 @@ class GoogleSignInHelper {
 
       if (clientId == null || clientSecret == null || redirectPortStr == null) {
         debugPrint(
-            'Error: WEB_CLIENT_ID, WEB_CLIENT_SECRET, or WEB_REDIRECT_PORT not found in environment.');
+          'Error: WEB_CLIENT_ID, WEB_CLIENT_SECRET, or WEB_REDIRECT_PORT not found in environment.',
+        );
         return null;
       }
 
@@ -201,7 +203,9 @@ class GoogleSignInHelper {
 
       // 1. Create a local server
       final server = await io.HttpServer.bind(
-          io.InternetAddress.loopbackIPv4, redirectPort);
+        io.InternetAddress.loopbackIPv4,
+        redirectPort,
+      );
       final redirectUri = 'http://localhost:${server.port}';
       debugPrint('Listening on $redirectUri');
 
@@ -232,8 +236,9 @@ class GoogleSignInHelper {
 
           // 5. Serve the custom success page
           try {
-            final htmlContent =
-                await rootBundle.loadString('assets/html/success_login.html');
+            final htmlContent = await rootBundle.loadString(
+              'assets/html/success_login.html',
+            );
             request.response
               ..statusCode = io.HttpStatus.ok
               ..headers.contentType = io.ContentType.html
@@ -244,7 +249,8 @@ class GoogleSignInHelper {
               ..statusCode = io.HttpStatus.ok
               ..headers.contentType = io.ContentType.html
               ..write(
-                  '<html><body><h1>Login Successful</h1><p>You can close this window.</p></body></html>');
+                '<html><body><h1>Login Successful</h1><p>You can close this window.</p></body></html>',
+              );
           }
 
           await request.response.close();
@@ -279,23 +285,29 @@ class GoogleSignInHelper {
         final refreshToken = tokenData['refresh_token'];
 
         // Store tokens securely
-        if (accessToken != null)
+        if (accessToken != null) {
           await secureStorage.write(
-              key: 'desktop_auth_access_token', value: accessToken);
-        if (refreshToken != null)
+            key: 'desktop_auth_access_token',
+            value: accessToken,
+          );
+        }
+        if (refreshToken != null) {
           await secureStorage.write(
-              key: 'desktop_auth_refresh_token', value: refreshToken);
+            key: 'desktop_auth_refresh_token',
+            value: refreshToken,
+          );
+        }
 
         // Create a client
-        _client = AuthClient(accessToken, refreshTokenCallback: () async {
-          // Implement refresh logic here if needed using the stored refresh token
-          return null;
-        });
-
-        return DesktopAuthResult(
-          accessToken: accessToken,
-          idToken: idToken,
+        _client = AuthClient(
+          accessToken,
+          refreshTokenCallback: () async {
+            // Implement refresh logic here if needed using the stored refresh token
+            return null;
+          },
         );
+
+        return DesktopAuthResult(accessToken: accessToken, idToken: idToken);
       } else {
         debugPrint('Failed to exchange token: ${tokenResponse.body}');
         return null;
@@ -344,11 +356,13 @@ class GoogleSignInHelper {
       GoogleSignInAccount? account = _googleSignIn.currentUser;
       if (account == null) {
         debugPrint(
-            'refreshAccessToken: No user is currently signed in. Attempting silent sign-in.');
+          'refreshAccessToken: No user is currently signed in. Attempting silent sign-in.',
+        );
         account = await _googleSignIn.signInSilently();
         if (account == null) {
           debugPrint(
-              'refreshAccessToken: Silent sign-in failed. Cannot refresh token.');
+            'refreshAccessToken: Silent sign-in failed. Cannot refresh token.',
+          );
           return null;
         }
       }

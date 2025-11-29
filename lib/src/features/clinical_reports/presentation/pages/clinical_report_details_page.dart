@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/clinical_report_details_bloc.dart';
@@ -22,16 +20,6 @@ class ClinicalReportDetailsPage extends StatefulWidget {
 }
 
 class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
-  final TextEditingController _searchController = TextEditingController();
-  quill.QuillController? _quillController;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _quillController?.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -114,24 +102,6 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
                 final patient = state.patient;
 
                 // Initialize or update QuillController
-                if (state.contentJson != null &&
-                    state.contentJson!.isNotEmpty) {
-                  try {
-                    final json = jsonDecode(state.contentJson!);
-                    final doc = quill.Document.fromJson(json);
-                    if (_quillController == null) {
-                      _quillController = quill.QuillController(
-                        document: doc,
-                        selection: const TextSelection.collapsed(offset: 0),
-                        readOnly: true,
-                      );
-                    } else {
-                      _quillController!.document = doc;
-                    }
-                  } catch (e) {
-                    debugPrint('Error parsing report content: $e');
-                  }
-                }
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
@@ -166,7 +136,8 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
                                 subtitle: Text('clinicalReportDate'.tr()),
                               ),
                               const SizedBox(height: 8),
-                              if (_quillController != null)
+                              if (state.contentJson != null &&
+                                  state.contentJson!.isNotEmpty)
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border.all(
@@ -175,9 +146,11 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   padding: const EdgeInsets.all(8),
-                                  child: quill.QuillEditor.basic(
-                                    controller: _quillController!,
-                                    // Removed configurations to avoid API mismatch
+                                  child: HtmlWidget(
+                                    state.contentJson!,
+                                    textStyle: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
                                   ),
                                 )
                               else

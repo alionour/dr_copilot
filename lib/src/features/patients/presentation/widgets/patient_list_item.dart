@@ -30,11 +30,9 @@ class _PatientListItemState extends State<PatientListItem> {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       elevation: 2,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       child: Column(
         children: [
           InkWell(
@@ -105,22 +103,36 @@ class _PatientListItemState extends State<PatientListItem> {
               child: Column(
                 children: [
                   const Divider(),
-                  _buildDetailRow(context, Icons.location_on_outlined,
-                      'address'.tr(), widget.patientModel.address),
-                  _buildDetailRow(context, Icons.phone_outlined,
-                      'phoneNumber'.tr(), widget.patientModel.phoneNumber),
                   _buildDetailRow(
-                      context,
-                      Icons.phone_iphone_outlined,
-                      'alternativePhoneNumber'.tr(),
-                      widget.patientModel.alternativePhoneNumber),
+                    context,
+                    Icons.location_on_outlined,
+                    'address'.tr(),
+                    widget.patientModel.address,
+                  ),
                   _buildDetailRow(
-                      context,
-                      Icons.medical_services_outlined,
-                      'treatingDoctor'.tr(),
-                      widget.patientModel.treatingDoctor),
-                  _buildDetailRow(context, Icons.work_outline,
-                      'occupation'.tr(), widget.patientModel.occupation),
+                    context,
+                    Icons.phone_outlined,
+                    'phoneNumber'.tr(),
+                    widget.patientModel.phoneNumber,
+                  ),
+                  _buildDetailRow(
+                    context,
+                    Icons.phone_iphone_outlined,
+                    'alternativePhoneNumber'.tr(),
+                    widget.patientModel.alternativePhoneNumber,
+                  ),
+                  _buildDetailRow(
+                    context,
+                    Icons.medical_services_outlined,
+                    'treatingDoctor'.tr(),
+                    widget.patientModel.treatingDoctor,
+                  ),
+                  _buildDetailRow(
+                    context,
+                    Icons.work_outline,
+                    'occupation'.tr(),
+                    widget.patientModel.occupation,
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -142,9 +154,9 @@ class _PatientListItemState extends State<PatientListItem> {
                       const SizedBox(width: 12),
                       OutlinedButton.icon(
                         onPressed: () {
-                          context
-                              .read<PatientsBloc>()
-                              .add(DeletePatient(widget.patientModel.id));
+                          context.read<PatientsBloc>().add(
+                            DeletePatient(widget.patientModel.id),
+                          );
                         },
                         icon: const Icon(Icons.delete_outline, size: 18),
                         label: Text('delete'.tr()),
@@ -164,7 +176,11 @@ class _PatientListItemState extends State<PatientListItem> {
   }
 
   Widget _buildDetailRow(
-      BuildContext context, IconData icon, String label, String? value) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? value,
+  ) {
     final displayValue = value ?? 'N/A';
     final theme = Theme.of(context);
 

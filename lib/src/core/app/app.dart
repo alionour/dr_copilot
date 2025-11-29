@@ -3,7 +3,7 @@ import 'package:dr_copilot/src/core/app/providers/providers.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/src/l10n/generated/quill_localizations.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -11,6 +11,7 @@ import '../router/routing_config.dart';
 import 'notifiers/locale_notifier.dart';
 import 'notifiers/theme_notifier.dart';
 import 'providers/bloc_providers.dart';
+import '../widgets/no_internet_banner.dart';
 
 /// The [App] widget is the root of the application, responsible for setting up
 /// global providers and configuring the main [MaterialApp.router].
@@ -122,17 +123,14 @@ class App extends StatelessWidget {
                       supportedLocales: context.supportedLocales,
                       localizationsDelegates: [
                         ...context.localizationDelegates,
-                        FlutterQuillLocalizations.delegate,
                       ],
-
-                      /// A builder function that takes the current [BuildContext] and an optional [child] widget,
-                      /// and returns a widget to be rendered. This is typically used to rebuild parts of the widget
-                      /// tree in response to changes in the application state or inherited widgets.
                       builder: (context, child) {
                         debugPrint(
-                          '2 Current Locale: \\${Localizations.localeOf(context).languageCode}',
+                          '2 Current Locale: ${Localizations.localeOf(context).languageCode}',
                         );
-                        return Stack(children: [child!]);
+                        return NoInternetBanner(
+                          child: Stack(children: [child!]),
+                        );
                       },
                     ),
                   );

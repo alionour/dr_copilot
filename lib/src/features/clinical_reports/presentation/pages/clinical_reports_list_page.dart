@@ -11,6 +11,7 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/googl
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/google_drive_state.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 final getIt = GetIt.instance;
 
@@ -116,19 +117,13 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
               }
               if (state is ClinicalReportsListLoaded) {
                 if (state.reports.isEmpty && !state.isFromDrive) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.assignment_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text('noClinicalReportsFound'.tr()),
-                      ],
-                    ),
+                  return EmptyStateWidget(
+                    message: 'noClinicalReportsFound'.tr(),
+                    title: 'noReports'.tr(),
+                    actionLabel: 'createReport'.tr(),
+                    onActionPressed: () {
+                      context.go('/clinical_reports/create');
+                    },
                   );
                 }
 

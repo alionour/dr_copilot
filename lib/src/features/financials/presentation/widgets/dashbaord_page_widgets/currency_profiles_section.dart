@@ -30,7 +30,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
     'TRY',
     'CNY',
     'JPY',
-    'INR'
+    'INR',
   ];
 
   @override
@@ -44,8 +44,9 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
       (c) => !_profiles.any((p) => p.currency == c),
       orElse: () => _currencies[0],
     );
-    final nameController =
-        TextEditingController(text: _getSuggestedName(selectedCurrency));
+    final nameController = TextEditingController(
+      text: _getSuggestedName(selectedCurrency),
+    );
     String description = '';
     final formKey = GlobalKey<FormState>();
     showModalBottomSheet(
@@ -70,9 +71,13 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('addCurrencyProfile'.tr(),
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      'addCurrencyProfile'.tr(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 18),
                     DropdownButtonFormField<String>(
                       value: selectedCurrency,
@@ -81,20 +86,25 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                         border: OutlineInputBorder(),
                       ),
                       items: _currencies
-                          .where((c) =>
-                              !_profiles.any((p) => p.currency == c) ||
-                              c == selectedCurrency)
-                          .map((currency) => DropdownMenuItem(
-                                value: currency,
-                                child: Text(currency),
-                              ))
+                          .where(
+                            (c) =>
+                                !_profiles.any((p) => p.currency == c) ||
+                                c == selectedCurrency,
+                          )
+                          .map(
+                            (currency) => DropdownMenuItem(
+                              value: currency,
+                              child: Text(currency),
+                            ),
+                          )
                           .toList(),
                       onChanged: (value) {
                         if (value != null) {
                           setModalState(() {
                             selectedCurrency = value;
-                            nameController.text =
-                                _getSuggestedName(selectedCurrency);
+                            nameController.text = _getSuggestedName(
+                              selectedCurrency,
+                            );
                           });
                         }
                       },
@@ -111,11 +121,10 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                       enabled: true,
                       readOnly: true,
                       style: TextStyle(
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.color
-                              ?.withValues(alpha: (0.7 * 255).toDouble())),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -135,9 +144,9 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(state.message)),
                           );
-                          context
-                              .read<FinancialsBloc>()
-                              .add(FetchCurrencyProfiles());
+                          context.read<FinancialsBloc>().add(
+                            FetchCurrencyProfiles(),
+                          );
                         } else if (state is FinancialsError) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(state.message)),
@@ -148,27 +157,32 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                         return ElevatedButton(
                           onPressed: () {
                             if (formKey.currentState!.validate()) {
-                              if (_profiles
-                                  .any((p) => p.currency == selectedCurrency)) {
+                              if (_profiles.any(
+                                (p) => p.currency == selectedCurrency,
+                              )) {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                      content: Text(
-                                          'Profile for $selectedCurrency already exists!')),
+                                    content: Text(
+                                      'Profile for $selectedCurrency already exists!',
+                                    ),
+                                  ),
                                 );
                                 return;
                               }
                               final profile = CurrencyProfileModel(
-                                  id: Uuid().v4(), // Firestore will generate
-                                  currency: selectedCurrency,
-                                  name: nameController.text,
-                                  description: description,
-                                  createdAt: Timestamp.fromDate(
-                                      DateTime.now().toUtc()),
-                                  createdBy: '');
-                              context
-                                  .read<FinancialsBloc>()
-                                  .add(AddCurrencyProfile(profile));
+                                id: Uuid().v4(), // Firestore will generate
+                                currency: selectedCurrency,
+                                name: nameController.text,
+                                description: description,
+                                createdAt: Timestamp.fromDate(
+                                  DateTime.now().toUtc(),
+                                ),
+                                createdBy: '',
+                              );
+                              context.read<FinancialsBloc>().add(
+                                AddCurrencyProfile(profile),
+                              );
                             }
                           },
                           child: Text('addCurrencyProfile'.tr()),
@@ -244,8 +258,10 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                   children: [
                     Text(
                       'currencyProfiles'.tr(),
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     ElevatedButton.icon(
                       onPressed: _profiles.length >= _currencies.length
@@ -267,7 +283,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _profiles.length,
-                    separatorBuilder: (_, __) => const Divider(),
+                    separatorBuilder: (context, index) => const Divider(),
                     itemBuilder: (context, i) {
                       final profile = _profiles[i];
                       return ListTile(
@@ -276,25 +292,31 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                           child: Text(
                             profile.currency[0],
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.blueGrey),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.blueGrey,
+                            ),
                           ),
                         ),
-                        title: Text(profile.name,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text(profile.currency,
-                            style: const TextStyle(color: Colors.blueGrey)),
+                        title: Text(
+                          profile.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          profile.currency,
+                          style: const TextStyle(color: Colors.blueGrey),
+                        ),
                         onTap: () {
                           showDialog(
                             context: context,
                             builder: (context) => Dialog(
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                               child: ConstrainedBox(
-                                constraints:
-                                    const BoxConstraints(maxWidth: 350),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 350,
+                                ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(24.0),
                                   child: Column(
@@ -311,9 +333,10 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                             child: Text(
                                               profile.currency[0],
                                               style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 28,
-                                                  color: Colors.blueGrey),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 28,
+                                                color: Colors.blueGrey,
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(width: 16),
@@ -322,20 +345,24 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Text(profile.name,
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 22)),
+                                                Text(
+                                                  profile.name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 22,
+                                                  ),
+                                                ),
                                                 const SizedBox(height: 4),
                                                 Row(
                                                   children: [
-                                                    Text(profile.currency,
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            color:
-                                                                Colors.green)),
+                                                    Text(
+                                                      profile.currency,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Colors.green,
+                                                      ),
+                                                    ),
                                                   ],
                                                 ),
                                               ],
@@ -350,8 +377,9 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
                                             color: Colors.blueGrey.shade50,
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                           child: Row(
                                             crossAxisAlignment:
@@ -362,9 +390,9 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                                 child: Text(
                                                   profile.description!,
                                                   style: const TextStyle(
-                                                      fontStyle:
-                                                          FontStyle.italic,
-                                                      color: Colors.blueGrey),
+                                                    fontStyle: FontStyle.italic,
+                                                    color: Colors.blueGrey,
+                                                  ),
                                                   maxLines: 3,
                                                   overflow:
                                                       TextOverflow.ellipsis,
@@ -381,12 +409,14 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                           const SizedBox(width: 8),
                                           Text(
                                             DateFormat.yMMMMd().add_jm().format(
-                                                profile.createdAt
-                                                    .toDate()
-                                                    .toLocal()),
+                                              profile.createdAt
+                                                  .toDate()
+                                                  .toLocal(),
+                                            ),
                                             style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.orange),
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.orange,
+                                            ),
                                           ),
                                         ],
                                       ),
