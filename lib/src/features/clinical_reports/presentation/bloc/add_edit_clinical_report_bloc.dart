@@ -63,6 +63,7 @@ class AddEditClinicalReportBloc
       } else {
         emit(AddEditClinicalReportLoaded(patients: patients!));
       }
+      add(LoadSavedInstructions());
     });
 
     on<SaveClinicalReport>((event, emit) async {
@@ -116,6 +117,7 @@ class AddEditClinicalReportBloc
           final newContent = await _aiService.editReport(
             event.currentContent,
             event.instruction,
+            clinicalData: event.clinicalData,
           );
           emit(
             currentState.copyWith(
@@ -169,6 +171,7 @@ class AddEditClinicalReportBloc
           final newText = await _aiService.editSelection(
             event.selection,
             event.instruction,
+            clinicalData: event.clinicalData,
           );
 
           emit(
@@ -204,20 +207,22 @@ class AddEditClinicalReportBloc
       }
     });
 
-    on<AIInsertRequested>((event, emit) async {
+    on<AIGenerateContentRequested>((event, emit) async {
       if (state is AddEditClinicalReportLoaded) {
         final currentState = state as AddEditClinicalReportLoaded;
         emit(currentState.copyWith(isAILoading: true));
 
         try {
-          // Re-use chat or create a new method for generation?
-          // "Generate text based on instruction" is similar to chat but we want just the content.
-          // Let's use chat for now, or editReport with empty content?
-          // Chat is better for "Generate a paragraph about X".
-          final newText = await _aiService.chat(event.instruction);
+          final newText = await _aiService.chat(
+            event.instruction,
+            clinicalData: event.clinicalData,
+          );
 
           emit(
-            currentState.copyWith(isAILoading: false, pendingAIInsert: newText),
+            currentState.copyWith(
+              isAILoading: false,
+              generatedContent: newText,
+            ),
           );
         } catch (e) {
           emit(AddEditClinicalReportError(e.toString()));
@@ -226,44 +231,109 @@ class AddEditClinicalReportBloc
       }
     });
 
-    on<AIInsertConsumed>((event, emit) {
+    on<AIClearGeneratedContent>((event, emit) {
       if (state is AddEditClinicalReportLoaded) {
         final currentState = state as AddEditClinicalReportLoaded;
-        emit(currentState.copyWith(pendingAIInsert: null));
+        emit(currentState.copyWith(generatedContent: null));
       }
     });
 
-    on<LoadInstructions>((event, emit) async {
+    on<AIRefineInstructionRequested>((event, emit) async {
       if (state is AddEditClinicalReportLoaded) {
         final currentState = state as AddEditClinicalReportLoaded;
-        final result = await _clinicalReportService.getInstructions(
-          event.userId,
-        );
-        result.fold(
-          (f) => null, // Handle error silently or show snackbar
-          (instructions) =>
-              emit(currentState.copyWith(instructions: instructions)),
+        emit(currentState.copyWith(isAILoading: true));
+
+        try {
+          final refined = await _aiService.refineText(
+            event.text,
+            'instruction',
+          );
+          emit(
+            currentState.copyWith(
+              isAILoading: false,
+              refinedInstruction: refined,
+            ),
+          );
+        } catch (e) {
+          emit(AddEditClinicalReportError(e.toString()));
+          emit(currentState.copyWith(isAILoading: false));
+        }
+      }
+    });
+
+    on<AIRefineClinicalDataRequested>((event, emit) async {
+      if (state is AddEditClinicalReportLoaded) {
+        final currentState = state as AddEditClinicalReportLoaded;
+        emit(currentState.copyWith(isAILoading: true));
+
+        try {
+          final refined = await _aiService.refineText(
+            event.text,
+            'clinical data',
+          );
+          emit(
+            currentState.copyWith(
+              isAILoading: false,
+              refinedClinicalData: refined,
+            ),
+          );
+        } catch (e) {
+          emit(AddEditClinicalReportError(e.toString()));
+          emit(currentState.copyWith(isAILoading: false));
+        }
+      }
+    });
+
+    on<AIRefineConsumed>((event, emit) {
+      if (state is AddEditClinicalReportLoaded) {
+        final currentState = state as AddEditClinicalReportLoaded;
+        emit(
+          currentState.copyWith(
+            refinedInstruction: null,
+            refinedClinicalData: null,
+          ),
         );
       }
     });
 
-    on<AddInstruction>((event, emit) async {
-      if (state is AddEditClinicalReportLoaded) {
-        await _clinicalReportService.addInstruction(event.instruction);
-        // Reload
-        add(LoadInstructions(event.instruction.userId));
-      }
+    on<LoadSavedInstructions>((event, emit) async {
+      final result = await _clinicalReportService.getInstructions();
+      result.fold(
+        (failure) => null, // Ignore failure for now
+        (instructions) {
+          if (state is AddEditClinicalReportLoaded) {
+            emit(
+              (state as AddEditClinicalReportLoaded).copyWith(
+                instructions: instructions,
+              ),
+            );
+          }
+        },
+      );
+    });
+
+    on<SaveInstruction>((event, emit) async {
+      final result = await _clinicalReportService.saveInstruction(
+        event.instruction,
+      );
+      result.fold(
+        (failure) => emit(AddEditClinicalReportError(failure.message)),
+        (id) {
+          add(LoadSavedInstructions());
+        },
+      );
     });
 
     on<DeleteInstruction>((event, emit) async {
-      if (state is AddEditClinicalReportLoaded) {
-        await _clinicalReportService.deleteInstruction(
-          event.userId,
-          event.instructionId,
-        );
-        // Reload
-        add(LoadInstructions(event.userId));
-      }
+      final result = await _clinicalReportService.deleteInstruction(
+        event.instructionId,
+      );
+      result.fold(
+        (failure) => emit(AddEditClinicalReportError(failure.message)),
+        (_) {
+          add(LoadSavedInstructions());
+        },
+      );
     });
 
     on<LoadChatHistory>((event, emit) async {

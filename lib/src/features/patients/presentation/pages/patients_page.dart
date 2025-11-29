@@ -13,6 +13,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -813,8 +814,9 @@ class _PatientsPageState extends State<PatientsPage> {
                             : (state as PatientsCountLoaded).patients;
 
                         if (patients.isEmpty) {
-                          return Center(
-                            child: Text('noPatientsMatchsMatch'.tr()),
+                          return EmptyStateWidget(
+                            message: 'noPatientsMatchsMatch'.tr(),
+                            title: 'noResultsFound'.tr(),
                           );
                         }
 
@@ -964,7 +966,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       } else if (state is PatientsError) {
                         return Center(child: Text('Error: ${state.message}'));
                       }
-                      return Center(child: Text('noPatients'.tr()));
+                      return EmptyStateWidget(
+                        message: 'noPatients'.tr(),
+                        title: 'noPatientsFound'.tr(),
+                        actionLabel: 'addPatient'.tr(),
+                        onActionPressed: () {
+                          context.push('/patients/new');
+                        },
+                      );
                     },
                   ),
                 );

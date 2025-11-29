@@ -3,14 +3,11 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({
-    super.key,
-  });
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -29,9 +26,9 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Text(
         titleKey.tr(),
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -75,9 +72,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 value: context.locale.languageCode,
                 onChanged: (String? newLocale) {
                   if (newLocale != null) {
-                    context
-                        .read<SettingsBloc>()
-                        .add(ChangeLocaleEvent(newLocale));
+                    context.read<SettingsBloc>().add(
+                      ChangeLocaleEvent(newLocale),
+                    );
                     context.setLocale(Locale(newLocale));
                   }
                 },
@@ -105,8 +102,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
                 dropdownColor: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                icon: Icon(Icons.arrow_drop_down,
-                    color: Theme.of(context).iconTheme.color),
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: Theme.of(context).iconTheme.color,
+                ),
               ),
             ),
           ),

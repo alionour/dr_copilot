@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 class DoctorsPage extends StatefulWidget {
   const DoctorsPage({super.key});
@@ -39,21 +40,13 @@ class _DoctorsPageState extends State<DoctorsPage> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is DoctorsLoaded) {
             if (state.doctors.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('noDoctorsFound'.tr()),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        context.go('/doctors/new');
-                      },
-                      icon: const Icon(Icons.add),
-                      label: Text('addDoctor'.tr()),
-                    ),
-                  ],
-                ),
+              return EmptyStateWidget(
+                message: 'noDoctorsFound'.tr(),
+                title: 'noDoctors'.tr(),
+                actionLabel: 'addDoctor'.tr(),
+                onActionPressed: () {
+                  context.go('/doctors/new');
+                },
               );
             }
             return ListView.builder(
@@ -70,9 +63,13 @@ class _DoctorsPageState extends State<DoctorsPage> {
             );
           } else if (state is DoctorsError) {
             return Center(
-                child: Text(state.message ?? 'An error occurred'.tr()));
+              child: Text(state.message ?? 'An error occurred'.tr()),
+            );
           }
-          return Center(child: Text('noDoctorsFound'.tr()));
+          return EmptyStateWidget(
+            message: 'noDoctorsFound'.tr(),
+            title: 'noDoctors'.tr(),
+          );
         },
       ),
     );

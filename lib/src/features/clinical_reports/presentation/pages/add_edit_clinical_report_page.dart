@@ -1,12 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:html_editor_enhanced/html_editor.dart';
+// ... imports
+
+// ... inside build method
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,6 +22,7 @@ import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dar
 import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_report_instruction.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/ai_chat_panel.dart';
+
 import '../widgets/selection_menu.dart';
 
 final getIt = GetIt.instance;
@@ -57,35 +61,32 @@ class AddEditClinicalReportView extends StatefulWidget {
 class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
-  late QuillController _quillController;
+  late HtmlEditorController _htmlController;
   late FocusNode _focusNode;
   late DateTime _selectedDate;
   PatientModel? _selectedPatient;
   bool _isLoaded = false;
+  bool _isEditorLoaded = false;
 
   bool _isAIChatOpen = false;
-  bool _hasSelection = false;
+
   Timer? _autoSaveTimer;
   OverlayEntry? _overlayEntry;
-  final GlobalKey _editorKey = GlobalKey();
   Offset? _lastTapDownPosition;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
-    _quillController = QuillController.basic();
+    _htmlController = HtmlEditorController();
     _focusNode = FocusNode();
     _selectedDate = DateTime.now();
-
-    _quillController.addListener(_onEditorChange);
   }
 
   @override
   void dispose() {
-    _quillController.removeListener(_onEditorChange);
     _titleController.dispose();
-    _quillController.dispose();
+    // _htmlController.dispose(); // HtmlEditorController doesn't have dispose method in some versions, check if needed
     _focusNode.dispose();
     _autoSaveTimer?.cancel();
     _removeOverlay();
@@ -101,34 +102,23 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     if (_overlayEntry != null) return;
 
     final OverlayState overlayState = Overlay.of(context);
-    final RenderBox? renderBox =
-        _editorKey.currentContext?.findRenderObject() as RenderBox?;
 
-    if (renderBox == null) return;
-
-    // Use last tap position if available, otherwise fallback to top right
-    double top;
-    double left;
+    // Default position if tap position is missing
+    double top = 100;
+    double left = 100;
 
     if (_lastTapDownPosition != null) {
-      // Adjust for overlay coordinates if needed, but usually global position is fine
-      // We want it slightly below the cursor
-      top = _lastTapDownPosition!.dy + 20;
+      top = _lastTapDownPosition!.dy - 60; // Show slightly above
       left = _lastTapDownPosition!.dx;
 
-      // Ensure it doesn't go off screen
+      // Boundary checks
       final screenSize = MediaQuery.of(context).size;
       if (left + 200 > screenSize.width) {
         left = screenSize.width - 210;
       }
-      if (top + 250 > screenSize.height) {
-        top = _lastTapDownPosition!.dy - 260; // Show above if too low
+      if (top < 80) {
+        top = _lastTapDownPosition!.dy + 20; // Show below if too high
       }
-    } else {
-      final size = renderBox.size;
-      final offset = renderBox.localToGlobal(Offset.zero);
-      top = offset.dy - 50;
-      left = offset.dx + size.width - 220;
     }
 
     _overlayEntry = OverlayEntry(
@@ -138,18 +128,17 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         child: SelectionMenu(
           onClose: () {
             _removeOverlay();
-            // Deselect? Maybe not.
+            _htmlController.clearFocus();
           },
-          onApply: (instruction) {
-            if (_hasSelection) {
-              final selection = _quillController.document.getPlainText(
-                _quillController.selection.baseOffset,
-                _quillController.selection.extentOffset -
-                    _quillController.selection.baseOffset,
-              );
-              context.read<AddEditClinicalReportBloc>().add(
-                AISelectionEditRequested(selection, instruction),
-              );
+          onApply: (instruction) async {
+            final selection = await _htmlController.editorController!
+                .evaluateJavascript(source: "window.getSelection().toString()");
+            if (selection != null && selection.toString().isNotEmpty) {
+              if (mounted) {
+                context.read<AddEditClinicalReportBloc>().add(
+                  AISelectionEditRequested(selection.toString(), instruction),
+                );
+              }
               _removeOverlay();
             }
           },
@@ -160,25 +149,21 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     overlayState.insert(_overlayEntry!);
   }
 
-  void _onEditorChange() {
-    final hasSelection = !_quillController.selection.isCollapsed;
-    if (hasSelection != _hasSelection) {
-      setState(() {
-        _hasSelection = hasSelection;
-      });
-    }
-    _triggerAutoSave();
+  Future<void> _checkSelection() async {
+    final selection = await _htmlController.editorController!
+        .evaluateJavascript(source: "window.getSelection().toString()");
 
-    if (hasSelection) {
-      // Debounce or just show?
-      // We might want to wait a bit or check if selection is stable.
-      // For now, show immediately if not shown.
-      if (_overlayEntry == null) {
+    if (selection != null && selection.toString().trim().isNotEmpty) {
+      if (_overlayEntry == null && mounted) {
         _showOverlay(context);
       }
     } else {
       _removeOverlay();
     }
+  }
+
+  void _onEditorChange(String? content) {
+    _triggerAutoSave();
   }
 
   void _triggerAutoSave() {
@@ -193,20 +178,19 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
   Future<void> _autoSaveClinicalReport() async {
     if (_selectedPatient == null) return;
 
-    // Convert Delta to JSON
-    final deltaJson = jsonEncode(_quillController.document.toDelta().toJson());
+    final html = await _htmlController.getText();
 
     // Create temp file
     final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/report_content_autosave.json');
-    await tempFile.writeAsString(deltaJson);
+    final tempFile = File('${tempDir.path}/report_content_autosave.html');
+    await tempFile.writeAsString(html);
 
     final report = ClinicalReport(
       id: widget.reportId!,
       patientId: _selectedPatient!.id,
       title: _titleController.text,
-      description: _quillController.document
-          .toPlainText()
+      description: html
+          .replaceAll(RegExp(r'<[^>]*>'), '') // Strip HTML tags for description
           .replaceAll('\n', ' ')
           .trim(),
       date: _selectedDate,
@@ -229,22 +213,19 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         return;
       }
 
-      // Convert Delta to JSON
-      final deltaJson = jsonEncode(
-        _quillController.document.toDelta().toJson(),
-      );
+      final html = await _htmlController.getText();
 
       // Create temp file
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/report_content.json');
-      await tempFile.writeAsString(deltaJson);
+      final tempFile = File('${tempDir.path}/report_content.html');
+      await tempFile.writeAsString(html);
 
       final newReport = ClinicalReport(
         id: widget.reportId ?? 'new_report_id',
         patientId: _selectedPatient!.id,
         title: _titleController.text,
-        description: _quillController.document
-            .toPlainText()
+        description: html
+            .replaceAll(RegExp(r'<[^>]*>'), '') // Strip HTML tags
             .replaceAll('\n', ' ')
             .trim(), // Plain text summary
         date: _selectedDate,
@@ -312,13 +293,8 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         },
         (url) {
           // Insert image URL into editor
-          final index = _quillController.selection.baseOffset;
-          final length = _quillController.selection.extentOffset - index;
-          _quillController.replaceText(
-            index,
-            length,
-            BlockEmbed.image(url),
-            null,
+          _htmlController.insertHtml(
+            '<img src="$url" style="max-width: 100%;" />',
           );
         },
       );
@@ -349,72 +325,22 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         if (state is AddEditClinicalReportLoaded) {
           if (state.pendingAISelectionEdit != null) {
             // Apply selection edit
-            final index = _quillController.selection.baseOffset;
-            final length = _quillController.selection.extentOffset - index;
-            _quillController.replaceText(
-              index,
-              length,
-              state.pendingAISelectionEdit!,
-              null,
-            );
+            _htmlController.insertHtml(state.pendingAISelectionEdit!);
 
-            // Clear the pending edit in Bloc (we need an event for this or just ignore subsequent same values?)
-            // To be safe, we should probably have an event to clear it,
-            // OR we just check if it's different? But it could be the same text.
-            // Let's add an event `AISelectionEditConsumed`.
             context.read<AddEditClinicalReportBloc>().add(
               AISelectionEditConsumed(),
             );
           }
 
-          if (state.pendingAIInsert != null) {
-            // Insert text at cursor or append
-            final index = _quillController.selection.baseOffset;
-            final length = _quillController.selection.extentOffset - index;
-
-            // If selection is collapsed (cursor), insert. If range, replace (but we use AISelectionEdit for that).
-            // AIInsertRequested is usually for "Generate" which implies insertion.
-            // If the user didn't select anything, baseOffset might be -1 if lost focus,
-            // but we try to keep focus.
-
-            int insertIndex = index;
-            if (insertIndex < 0) {
-              insertIndex =
-                  _quillController.document.length - 1; // Append to end
-            }
-
-            _quillController.replaceText(
-              insertIndex,
-              length > 0
-                  ? length
-                  : 0, // If there was a selection, replace it? Or just insert?
-              // Plan said: "If no selection... insert".
-              // If there IS selection, we used AISelectionEditRequested.
-              // So here we assume insertion.
-              state.pendingAIInsert!,
-              null,
-            );
-
-            context.read<AddEditClinicalReportBloc>().add(AIInsertConsumed());
-          }
-
           if (state.isReviewingAIChanges) {
-            try {
-              final json = jsonDecode(state.contentJson!);
-              _quillController.document = Document.fromJson(json);
-            } catch (e) {
-              debugPrint('Error parsing AI content: $e');
-            }
+            _htmlController.setText(state.contentJson ?? '');
           } else if (state.contentJson != null &&
               state.originalContent == null &&
               !state.isAILoading) {
             if (_isLoaded && state.contentJson != null) {
-              try {
-                final json = jsonDecode(state.contentJson!);
-                _quillController.document = Document.fromJson(json);
-              } catch (e) {
-                debugPrint('Error parsing content: $e');
-              }
+              // Only update if explicitly needed, usually initial load handles it
+              // But if we re-loaded, we might want to update.
+              // _htmlController.setText(state.contentJson!);
             }
           }
         }
@@ -451,222 +377,230 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
             ),
           ],
         ),
-        body:
-            BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
-              builder: (context, state) {
-                if (state is AddEditClinicalReportLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        body: BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
+          builder: (context, state) {
+            if (state is AddEditClinicalReportLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                if (state is AddEditClinicalReportLoaded) {
-                  if (!_isLoaded) {
-                    if (state.report != null) {
-                      _titleController.text = state.report!.title;
-                      _selectedDate = state.report!.date;
-                      _selectedPatient = state.patients.firstWhere(
-                        (p) => p.id == state.report!.patientId,
-                        orElse: () => state.patients.first,
-                      );
+            if (state is AddEditClinicalReportLoaded) {
+              if (!_isLoaded) {
+                if (state.report != null) {
+                  _titleController.text = state.report!.title;
+                  _selectedDate = state.report!.date;
+                  _selectedPatient = state.patients.firstWhere(
+                    (p) => p.id == state.report!.patientId,
+                    orElse: () => state.patients.first,
+                  );
 
-                      if (state.contentJson != null &&
-                          state.contentJson!.isNotEmpty) {
-                        try {
-                          final json = jsonDecode(state.contentJson!);
-                          _quillController.document = Document.fromJson(json);
-                        } catch (e) {
-                          debugPrint('Error parsing report content: $e');
-                        }
-                      }
-                    } else if (widget.patientId != null &&
-                        _selectedPatient == null) {
-                      _selectedPatient = state.patients.firstWhere(
-                        (p) => p.id == widget.patientId,
-                        orElse: () => state.patients.first,
-                      );
-                    }
-                    _isLoaded = true;
+                  if (state.contentJson != null &&
+                      state.contentJson!.isNotEmpty) {
+                    // _htmlController.setText(state.contentJson!); // Handled by initialText
                   }
+                } else if (widget.patientId != null &&
+                    _selectedPatient == null) {
+                  _selectedPatient = state.patients.firstWhere(
+                    (p) => p.id == widget.patientId,
+                    orElse: () => state.patients.first,
+                  );
+                }
+                _isLoaded = true;
+              }
 
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  controller: _titleController,
-                                  decoration: InputDecoration(
-                                    labelText: 'clinicalReportTitle'.tr(),
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'clinicalReportTitleRequired'.tr();
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                const SizedBox(height: 16),
-                                QuillSimpleToolbar(
-                                  controller: _quillController,
-                                  config: QuillSimpleToolbarConfig(
-                                    showClipboardPaste: true,
-                                    showFontFamily: true,
-                                    showFontSize: true,
-                                    showBoldButton: true,
-                                    showItalicButton: true,
-                                    showUnderLineButton: true,
-                                    showStrikeThrough: true,
-                                    showInlineCode: true,
-                                    showColorButton: true,
-                                    showBackgroundColorButton: true,
-                                    showClearFormat: true,
-                                    showAlignmentButtons: true,
-                                    showLeftAlignment: true,
-                                    showCenterAlignment: true,
-                                    showRightAlignment: true,
-                                    showJustifyAlignment: true,
-                                    showHeaderStyle: true,
-                                    showListNumbers: true,
-                                    showListBullets: true,
-                                    showListCheck: true,
-                                    showCodeBlock: true,
-                                    showQuote: true,
-                                    showIndent: true,
-                                    showLink: true,
-                                    showUndo: true,
-                                    showRedo: true,
-                                    showDirection: true,
-                                    showSearchButton: true,
-                                    showSubscript: true,
-                                    showSuperscript: true,
-                                    customButtons: [
-                                      QuillToolbarCustomButtonOptions(
-                                        icon: Icon(
-                                          Icons.auto_awesome,
-                                          color: _isAIChatOpen
-                                              ? Colors.blue
-                                              : null,
-                                        ),
-                                        tooltip: 'AI Chat',
-                                        onPressed: () {
-                                          setState(() {
-                                            _isAIChatOpen = !_isAIChatOpen;
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      if (!_focusNode.hasFocus) {
-                                        _focusNode.requestFocus();
-                                      }
+              return Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _titleController,
+                              decoration: InputDecoration(
+                                labelText: 'clinicalReportTitle'.tr(),
+                                border: const OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'clinicalReportTitleRequired'.tr();
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  Listener(
+                                    onPointerDown: (event) {
+                                      _lastTapDownPosition = event.position;
                                     },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey),
+                                    child: HtmlEditor(
+                                      controller: _htmlController,
+                                      htmlEditorOptions: HtmlEditorOptions(
+                                        hint: 'startTyping'.tr(),
+                                        shouldEnsureVisible: true,
+                                        initialText: state.contentJson,
                                       ),
-                                      child: Stack(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(16.0),
-                                            child: Listener(
-                                              onPointerDown: (event) {
-                                                _lastTapDownPosition =
-                                                    event.position;
-                                              },
-                                              child: QuillEditor.basic(
-                                                key: _editorKey,
-                                                controller: _quillController,
-                                                focusNode: _focusNode,
-                                              ),
+                                      htmlToolbarOptions: HtmlToolbarOptions(
+                                        toolbarPosition:
+                                            ToolbarPosition.aboveEditor,
+                                        toolbarType:
+                                            ToolbarType.nativeScrollable,
+                                        customToolbarButtons: [
+                                          InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                _isAIChatOpen = !_isAIChatOpen;
+                                              });
+                                            },
+                                            child: Icon(
+                                              Icons.auto_awesome,
+                                              color: _isAIChatOpen
+                                                  ? Colors.blue
+                                                  : null,
                                             ),
                                           ),
-                                          if (state.isAILoading)
-                                            Container(
-                                              color: Colors.white.withOpacity(
-                                                0.7,
-                                              ),
-                                              child: const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ),
-                                            ),
                                         ],
+                                      ),
+                                      otherOptions: const OtherOptions(
+                                        height: 500,
+                                      ),
+                                      callbacks: Callbacks(
+                                        onInit: () {
+                                          setState(() {
+                                            _isEditorLoaded = true;
+                                          });
+                                          // Inject Google Fonts CSS
+                                          _htmlController.editorController!
+                                              .evaluateJavascript(
+                                                source: """
+                                            var link = document.createElement('link');
+                                            link.href = 'https://fonts.googleapis.com/css?family=Roboto|Lato|Open+Sans|Montserrat|Raleway|Merriweather|Playfair+Display|Courier+Prime';
+                                            link.rel = 'stylesheet';
+                                            document.head.appendChild(link);
+                                          """,
+                                              );
+                                        },
+                                        onChangeContent: (String? changed) {
+                                          _onEditorChange(changed);
+                                        },
+                                        onMouseUp: () {
+                                          _checkSelection();
+                                        },
+                                        onKeyUp: (code) {
+                                          _checkSelection();
+                                        },
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  if (!_isEditorLoaded)
+                                    Container(
+                                      color: Colors.white.withOpacity(0.8),
+                                      child: const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      if (_isAIChatOpen)
-                        AIChatPanel(
-                          onClose: () {
-                            setState(() {
-                              _isAIChatOpen = false;
-                            });
-                          },
-                          hasSelection: _hasSelection,
-                          onSaveInstruction: (label, instruction) {
-                            final userId =
-                                FirebaseAuth.instance.currentUser?.uid;
-                            if (userId != null) {
-                              final newInstruction = ClinicalReportInstruction(
-                                id: DateTime.now().millisecondsSinceEpoch
-                                    .toString(),
-                                userId: userId,
-                                label: label,
-                                instruction: instruction,
-                              );
-                              context.read<AddEditClinicalReportBloc>().add(
-                                AddInstruction(newInstruction),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('User not logged in'),
-                                ),
-                              );
-                            }
-                          },
-                          onApply: (instruction) {
-                            if (_hasSelection) {
-                              final selection = _quillController.document
-                                  .getPlainText(
-                                    _quillController.selection.baseOffset,
-                                    _quillController.selection.extentOffset -
-                                        _quillController.selection.baseOffset,
-                                  );
-                              context.read<AddEditClinicalReportBloc>().add(
-                                AISelectionEditRequested(
-                                  selection,
-                                  instruction,
-                                ),
-                              );
-                            } else {
-                              context.read<AddEditClinicalReportBloc>().add(
-                                AIInsertRequested(instruction),
-                              );
-                            }
-                          },
-                        ),
-                    ],
-                  );
-                }
+                    ),
+                  ),
+                  if (_isAIChatOpen)
+                    AIChatPanel(
+                      onClose: () {
+                        setState(() {
+                          _isAIChatOpen = false;
+                        });
+                      },
+                      // hasSelection: _hasSelection, // Removed selection check for now
+                      hasSelection:
+                          true, // Always allow asking about selection if user wants, or check via JS
+                      onSaveInstruction: (label, instruction) {
+                        final userId = FirebaseAuth.instance.currentUser?.uid;
+                        if (userId != null) {
+                          final newInstruction = ClinicalReportInstruction(
+                            id: '', // Let API generate ID
+                            userId: userId,
+                            label: label,
+                            instruction: instruction,
+                          );
+                          context.read<AddEditClinicalReportBloc>().add(
+                            SaveInstruction(newInstruction),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User not logged in')),
+                          );
+                        }
+                      },
+                      onDeleteInstruction: (instructionId) {
+                        context.read<AddEditClinicalReportBloc>().add(
+                          DeleteInstruction(instructionId),
+                        );
+                      },
+                      onRefineInstruction: (text) {
+                        context.read<AddEditClinicalReportBloc>().add(
+                          AIRefineInstructionRequested(text),
+                        );
+                      },
+                      onRefineClinicalData: (text) {
+                        context.read<AddEditClinicalReportBloc>().add(
+                          AIRefineClinicalDataRequested(text),
+                        );
+                      },
+                      onGenerate: (instruction, clinicalData) async {
+                        final selection =
+                            (await _htmlController.editorController
+                                    ?.evaluateJavascript(
+                                      source:
+                                          "window.getSelection().toString()",
+                                    ))
+                                ?.toString() ??
+                            '';
+                        if (!mounted) return;
+                        if (selection.isNotEmpty) {
+                          this.context.read<AddEditClinicalReportBloc>().add(
+                            AISelectionEditRequested(
+                              selection,
+                              instruction,
+                              clinicalData: clinicalData,
+                            ),
+                          );
+                        } else {
+                          this.context.read<AddEditClinicalReportBloc>().add(
+                            AIGenerateContentRequested(
+                              instruction,
+                              clinicalData: clinicalData,
+                            ),
+                          );
+                        }
+                      },
+                      onInsert: (content) {
+                        _htmlController.insertHtml(content);
+                        context.read<AddEditClinicalReportBloc>().add(
+                          AIClearGeneratedContent(),
+                        );
+                      },
+                      onDiscard: () {
+                        context.read<AddEditClinicalReportBloc>().add(
+                          AIClearGeneratedContent(),
+                        );
+                      },
+                    ),
+                ],
+              );
+            }
 
-                return const Center(child: Text('Something went wrong.'));
-              },
-            ),
+            return const Center(child: Text('Something went wrong.'));
+          },
+        ),
       ),
     );
   }

@@ -32,11 +32,9 @@ class _SessionListItemState extends State<SessionListItem> {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       elevation: 2,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       child: Column(
         children: [
           InkWell(
@@ -117,14 +115,16 @@ class _SessionListItemState extends State<SessionListItem> {
                     context,
                     Icons.timer_outlined,
                     'duration'.tr(),
-                    _calculateDuration(widget.sessionModel.startDateTime,
-                        widget.sessionModel.endDateTime),
+                    _calculateDuration(
+                      widget.sessionModel.startDateTime,
+                      widget.sessionModel.endDateTime,
+                    ),
                   ),
                   _buildDetailRow(
                     context,
                     Icons.attach_money_outlined,
                     'price'.tr(),
-                    '${widget.sessionModel.price.toStringAsFixed(2)}',
+                    widget.sessionModel.price.toStringAsFixed(2),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -165,7 +165,11 @@ class _SessionListItemState extends State<SessionListItem> {
   }
 
   Widget _buildDetailRow(
-      BuildContext context, IconData icon, String label, String value) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -236,8 +240,9 @@ class _SessionListItemState extends State<SessionListItem> {
                         deleteInvoiceAndTransaction = val ?? true;
                       });
                     },
-                    title:
-                        Text('deleteCorrespondingInvoiceAndTransaction'.tr()),
+                    title: Text(
+                      'deleteCorrespondingInvoiceAndTransaction'.tr(),
+                    ),
                   ),
                 ],
               ),
@@ -248,9 +253,12 @@ class _SessionListItemState extends State<SessionListItem> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop(_DeleteSessionDialogResult(
-                      deleteInvoiceAndTransaction: deleteInvoiceAndTransaction,
-                    ));
+                    Navigator.of(context).pop(
+                      _DeleteSessionDialogResult(
+                        deleteInvoiceAndTransaction:
+                            deleteInvoiceAndTransaction,
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.error,
@@ -266,10 +274,12 @@ class _SessionListItemState extends State<SessionListItem> {
     );
 
     if (result != null && context.mounted) {
-      context.read<SessionsBloc>().add(DeleteSession(
-            widget.sessionModel.id,
-            deleteInvoiceAndTransaction: result.deleteInvoiceAndTransaction,
-          ));
+      context.read<SessionsBloc>().add(
+        DeleteSession(
+          widget.sessionModel.id,
+          deleteInvoiceAndTransaction: result.deleteInvoiceAndTransaction,
+        ),
+      );
     }
   }
 }

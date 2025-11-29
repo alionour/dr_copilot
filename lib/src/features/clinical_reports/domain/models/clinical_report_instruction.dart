@@ -13,16 +13,33 @@ class ClinicalReportInstruction extends Equatable {
     required this.instruction,
   });
 
-  factory ClinicalReportInstruction.fromJson(Map<String, dynamic> json) {
+  ClinicalReportInstruction copyWith({
+    String? id,
+    String? userId,
+    String? label,
+    String? instruction,
+  }) {
     return ClinicalReportInstruction(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
-      label: json['label'] as String,
-      instruction: json['instruction'] as String,
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      label: label ?? this.label,
+      instruction: instruction ?? this.instruction,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  factory ClinicalReportInstruction.fromMap(Map<String, dynamic> map) {
+    return ClinicalReportInstruction(
+      id: map['id'] as String,
+      userId: map['userId'] as String,
+      label: map['label'] as String,
+      instruction: map['instruction'] as String,
+    );
+  }
+
+  factory ClinicalReportInstruction.fromJson(Map<String, dynamic> json) =>
+      ClinicalReportInstruction.fromMap(json);
+
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
       'userId': userId,
@@ -30,6 +47,8 @@ class ClinicalReportInstruction extends Equatable {
       'instruction': instruction,
     };
   }
+
+  Map<String, dynamic> toJson() => toMap();
 
   @override
   List<Object?> get props => [id, userId, label, instruction];

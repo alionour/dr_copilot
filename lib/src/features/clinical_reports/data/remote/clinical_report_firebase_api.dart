@@ -69,6 +69,16 @@ class ClinicalReportFirebaseApi {
     }
   }
 
+  Future<String> uploadReportContent(String reportId, String content) async {
+    final ref = _storage.ref().child('reports/$reportId/content.html');
+    await ref.putString(
+      content,
+      format: PutStringFormat.raw,
+      metadata: SettableMetadata(contentType: 'text/html'),
+    );
+    return await ref.getDownloadURL();
+  }
+
   Future<Either<Failure, List<ClinicalReport>>> getReportsForPatient(
     String patientId,
   ) async {
@@ -180,13 +190,17 @@ class ClinicalReportFirebaseApi {
   }
 
   // Instructions
-  Future<Either<Failure, List<ClinicalReportInstruction>>> getInstructions(
-    String userId,
-  ) async {
+  Future<Either<Failure, List<ClinicalReportInstruction>>>
+  getInstructions() async {
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(userId)
+          .doc(user.uid)
           .collection('clinical_report_instructions')
           .get();
 
@@ -195,39 +209,6 @@ class ClinicalReportFirebaseApi {
       }).toList();
 
       return Right(instructions);
-    } catch (e) {
-      return Left(ServerFailure(e.toString(), 500));
-    }
-  }
-
-  Future<Either<Failure, void>> addInstruction(
-    ClinicalReportInstruction instruction,
-  ) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(instruction.userId)
-          .collection('clinical_report_instructions')
-          .doc(instruction.id)
-          .set(instruction.toJson());
-      return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(e.toString(), 500));
-    }
-  }
-
-  Future<Either<Failure, void>> deleteInstruction(
-    String userId,
-    String instructionId,
-  ) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('clinical_report_instructions')
-          .doc(instructionId)
-          .delete();
-      return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));
     }
@@ -264,6 +245,53 @@ class ClinicalReportFirebaseApi {
           .collection('chat')
           .doc(message.id)
           .set(message.toJson());
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  Future<Either<Failure, String>> saveInstruction(
+    ClinicalReportInstruction instruction,
+  ) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      final docRef = _reportsCollection
+          .doc('settings')
+          .collection('users')
+          .doc(user.uid)
+          .collection('instructions')
+          .doc(instruction.id.isEmpty ? null : instruction.id);
+
+      final instructionToSave = instruction.copyWith(id: docRef.id);
+
+      await docRef.set(instructionToSave.toMap());
+
+      return Right(docRef.id);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  Future<Either<Failure, void>> deleteInstruction(String instructionId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      await _reportsCollection
+          .doc('settings')
+          .collection('users')
+          .doc(user.uid)
+          .collection('instructions')
+          .doc(instructionId)
+          .delete();
+
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));

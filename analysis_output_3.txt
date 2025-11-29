@@ -1,0 +1,23 @@
+Analyzing dr_copilot...                                         
+
+   info - Import of a library in the 'lib/src' directory of another package - lib\src\core\app\app.dart:6:8 - implementation_imports
+   info - Statements in an if should be enclosed in a block - lib\src\core\helper\google_signin_helper.dart:283:11 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\core\helper\google_signin_helper.dart:286:11 - curly_braces_in_flow_control_structures
+   info - The private field _estimatedPrice could be 'final' - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:48:10 - prefer_final_fields
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\appointments\evaluations\presentation\widgets\evaluation_list_item.dart:39:39 - deprecated_member_use
+   info - Unnecessary use of string interpolation - lib\src\features\appointments\evaluations\presentation\widgets\evaluation_list_item.dart:121:21 - unnecessary_string_interpolations
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\appointments\sessions\presentation\widgets\session_list_item.dart:39:39 - deprecated_member_use
+   info - Unnecessary use of string interpolation - lib\src\features\appointments\sessions\presentation\widgets\session_list_item.dart:127:21 - unnecessary_string_interpolations
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\pages\add_edit_clinical_report_page.dart:563:67 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\ai_chat_panel.dart:56:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\ai_chat_panel.dart:79:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\ai_chat_panel.dart:531:53 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:852:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:892:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:949:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:962:9 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\doctors\presentation\widgets\doctor_list_item.dart:35:39 - deprecated_member_use
+   info - Unnecessary use of multiple underscores - lib\src\features\financials\presentation\widgets\dashbaord_page_widgets\currency_profiles_section.dart:270:43 - unnecessary_underscores
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\patients\presentation\widgets\patient_list_item.dart:37:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\staff\presentation\widgets\staff_list_item.dart:35:39 - deprecated_member_use
+

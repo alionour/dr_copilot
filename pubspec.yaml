@@ -107,8 +107,9 @@ dependencies:
       url: https://github.com/saif-ellafi/flutter_tts.git
       ref: fix-windows-build
 
-  flutter_quill: ^11.5.0
-  vsc_quill_delta_to_html: ^1.0.3
+  connectivity_plus: ^6.0.0
+  html_editor_enhanced: ^2.6.0
+  flutter_widget_from_html: ^0.15.3
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6
@@ -149,6 +150,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/svg/icons8-google-ios-17-filled/
+    - assets/svg/
     - assets/svg/drcopilot_logo.svg
     - assets/translations/
     - assets/html/

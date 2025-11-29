@@ -11,6 +11,29 @@ abstract class AddEditClinicalReportEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class LoadSavedInstructions extends AddEditClinicalReportEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+class SaveInstruction extends AddEditClinicalReportEvent {
+  final ClinicalReportInstruction instruction;
+
+  const SaveInstruction(this.instruction);
+
+  @override
+  List<Object?> get props => [instruction];
+}
+
+class DeleteInstruction extends AddEditClinicalReportEvent {
+  final String instructionId;
+
+  const DeleteInstruction(this.instructionId);
+
+  @override
+  List<Object?> get props => [instructionId];
+}
+
 class LoadAddEditClinicalReport extends AddEditClinicalReportEvent {
   final String? reportId;
 
@@ -61,11 +84,16 @@ class SaveClinicalReport extends AddEditClinicalReportEvent {
 class AIEditRequested extends AddEditClinicalReportEvent {
   final String instruction;
   final String currentContent;
+  final String? clinicalData;
 
-  const AIEditRequested(this.instruction, this.currentContent);
+  const AIEditRequested(
+    this.instruction,
+    this.currentContent, {
+    this.clinicalData,
+  });
 
   @override
-  List<Object> get props => [instruction, currentContent];
+  List<Object?> get props => [instruction, currentContent, clinicalData];
 }
 
 class AIEditAccepted extends AddEditClinicalReportEvent {}
@@ -75,39 +103,16 @@ class AIEditRejected extends AddEditClinicalReportEvent {}
 class AISelectionEditRequested extends AddEditClinicalReportEvent {
   final String selection;
   final String instruction;
+  final String? clinicalData;
 
-  const AISelectionEditRequested(this.selection, this.instruction);
-
-  @override
-  List<Object> get props => [selection, instruction];
-}
-
-class LoadInstructions extends AddEditClinicalReportEvent {
-  final String userId;
-
-  const LoadInstructions(this.userId);
+  const AISelectionEditRequested(
+    this.selection,
+    this.instruction, {
+    this.clinicalData,
+  });
 
   @override
-  List<Object> get props => [userId];
-}
-
-class AddInstruction extends AddEditClinicalReportEvent {
-  final ClinicalReportInstruction instruction;
-
-  const AddInstruction(this.instruction);
-
-  @override
-  List<Object> get props => [instruction];
-}
-
-class DeleteInstruction extends AddEditClinicalReportEvent {
-  final String userId;
-  final String instructionId;
-
-  const DeleteInstruction(this.userId, this.instructionId);
-
-  @override
-  List<Object> get props => [userId, instructionId];
+  List<Object?> get props => [selection, instruction, clinicalData];
 }
 
 class LoadChatHistory extends AddEditClinicalReportEvent {
@@ -131,13 +136,34 @@ class SendChatMessage extends AddEditClinicalReportEvent {
 
 class AISelectionEditConsumed extends AddEditClinicalReportEvent {}
 
-class AIInsertRequested extends AddEditClinicalReportEvent {
+class AIGenerateContentRequested extends AddEditClinicalReportEvent {
   final String instruction;
+  final String? clinicalData;
 
-  const AIInsertRequested(this.instruction);
+  const AIGenerateContentRequested(this.instruction, {this.clinicalData});
 
   @override
-  List<Object> get props => [instruction];
+  List<Object?> get props => [instruction, clinicalData];
 }
 
-class AIInsertConsumed extends AddEditClinicalReportEvent {}
+class AIClearGeneratedContent extends AddEditClinicalReportEvent {}
+
+class AIRefineInstructionRequested extends AddEditClinicalReportEvent {
+  final String text;
+
+  const AIRefineInstructionRequested(this.text);
+
+  @override
+  List<Object?> get props => [text];
+}
+
+class AIRefineClinicalDataRequested extends AddEditClinicalReportEvent {
+  final String text;
+
+  const AIRefineClinicalDataRequested(this.text);
+
+  @override
+  List<Object?> get props => [text];
+}
+
+class AIRefineConsumed extends AddEditClinicalReportEvent {}

@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/clinical_reports/data/remote/clinical_report_firebase_api.dart';
-import 'dart:convert';
+
 import 'package:intl/intl.dart';
-import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
+
 import 'package:dr_copilot/src/core/services/google_drive_service.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/entities/clinical_report.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_report_chat_message.dart';
@@ -79,13 +79,8 @@ class ClinicalReportService {
     try {
       final googleDriveService = GoogleDriveService();
 
-      // Convert Delta JSON to HTML
-      final List<dynamic> delta = jsonDecode(contentJson);
-      final converter = QuillDeltaToHtmlConverter(
-        List<Map<String, dynamic>>.from(delta),
-        ConverterOptions.forEmail(),
-      );
-      final html = converter.convert();
+      // Content is already HTML
+      final html = contentJson;
 
       // Create file in Google Drive
       final file = await googleDriveService.createFile(
@@ -107,26 +102,22 @@ class ClinicalReportService {
     }
   }
 
-  Future<Either<Failure, List<ClinicalReportInstruction>>> getInstructions(
-    String userId,
-  ) async {
-    debugPrint('Getting instructions for user: $userId');
-    return _api.getInstructions(userId);
+  Future<Either<Failure, List<ClinicalReportInstruction>>>
+  getInstructions() async {
+    debugPrint('Getting instructions');
+    return _api.getInstructions();
   }
 
-  Future<Either<Failure, void>> addInstruction(
+  Future<Either<Failure, String>> saveInstruction(
     ClinicalReportInstruction instruction,
   ) async {
-    debugPrint('Adding instruction: ${instruction.label}');
-    return _api.addInstruction(instruction);
+    debugPrint('Saving instruction: ${instruction.label}');
+    return _api.saveInstruction(instruction);
   }
 
-  Future<Either<Failure, void>> deleteInstruction(
-    String userId,
-    String instructionId,
-  ) async {
+  Future<Either<Failure, void>> deleteInstruction(String instructionId) async {
     debugPrint('Deleting instruction: $instructionId');
-    return _api.deleteInstruction(userId, instructionId);
+    return _api.deleteInstruction(instructionId);
   }
 
   Future<Either<Failure, List<ClinicalReportChatMessage>>> getChatHistory(
@@ -142,5 +133,10 @@ class ClinicalReportService {
   ) async {
     debugPrint('Saving chat message: ${message.id}');
     return _api.saveChatMessage(reportId, message);
+  }
+
+  // Migration logic removed as Quill is no longer used
+  Future<void> migrateAllReportsToHtml() async {
+    debugPrint('Migration to HTML is complete or disabled.');
   }
 }

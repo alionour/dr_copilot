@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/core/code_pusher/shorebird_updater.dart';
+import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
 import 'package:dr_copilot/src/core/localization/app_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
@@ -24,9 +25,7 @@ void main() async {
   /// Initializes Firebase with platform-specific options, sets up dependency injections,
   /// retrieves shared preferences, and determines if dark mode is enabled by reading
   /// the 'isDarkMode' flag from persistent storage. If the flag is not set, defaults to false.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Set background message handler for FCM
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -42,6 +41,15 @@ void main() async {
   // Shorebird: Automatically check for and apply updates on startup
   await ShorebirdCodePushHandler.checkAndApplyUpdate();
 
+  // MIGRATION: Convert Quill Delta to HTML
+  try {
+    debugPrint('Running migration...');
+    await ClinicalReportService().migrateAllReportsToHtml();
+    debugPrint('Migration finished.');
+  } catch (e) {
+    debugPrint('Migration error: $e');
+  }
+
   /// Initializes the EasyLocalization package to support multiple locales in the app.
   ///
   /// - Ensures EasyLocalization is initialized before running the app.
@@ -56,8 +64,6 @@ void main() async {
   runApp(
     /// A widget that provides localization support for the application,
     /// enabling translation and locale management throughout the widget tree.
-    AppLocalization(
-      child: App(isDarkMode: isDarkMode),
-    ),
+    AppLocalization(child: App(isDarkMode: isDarkMode)),
   );
 }
