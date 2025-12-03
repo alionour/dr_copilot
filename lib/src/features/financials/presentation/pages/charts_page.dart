@@ -32,8 +32,9 @@ class _ChartsPageState extends State<ChartsPage> {
         final years = allKeys.map((k) => k.split('-')[0]).toSet().toList()
           ..sort();
         if (!years.contains(selectedYear)) {
-          selectedYear =
-              years.isNotEmpty ? years.last : DateTime.now().year.toString();
+          selectedYear = years.isNotEmpty
+              ? years.last
+              : DateTime.now().year.toString();
         }
 
         // Prepare chart data for each month in the selected year
@@ -47,25 +48,37 @@ class _ChartsPageState extends State<ChartsPage> {
               0.0; // Note: Sessions revenue integration pending
           final totalRevenue = revenue + sessionsRevenue;
           return ChartData(
-              key, revenue, expenses, sessionsRevenue, totalRevenue);
+            key,
+            revenue,
+            expenses,
+            sessionsRevenue,
+            totalRevenue,
+          );
         });
 
         // Calculate total revenue and expenses for the pie chart
-        final totalRevenue =
-            chartData.fold<double>(0.0, (sum, d) => sum + d.revenue);
-        final totalExpenses =
-            chartData.fold<double>(0.0, (sum, d) => sum + d.expenses);
+        final totalRevenue = chartData.fold<double>(
+          0.0,
+          (sum, d) => sum + d.revenue,
+        );
+        final totalExpenses = chartData.fold<double>(
+          0.0,
+          (sum, d) => sum + d.expenses,
+        );
 
         return Scaffold(
           appBar: AppBar(
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('financial_reports_for_year'.tr(),
-                    style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal)),
+                Text(
+                  'financial_reports_for_year'.tr(),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Container(
                   decoration: BoxDecoration(
@@ -80,17 +93,23 @@ class _ChartsPageState extends State<ChartsPage> {
                     ],
                     border: Border.all(color: Colors.teal.shade100, width: 1.2),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: selectedYear,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                          color: Colors.teal, size: 28),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colors.teal,
+                        size: 28,
+                      ),
                       style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                      ),
                       dropdownColor: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       items: years.map((year) {
@@ -98,12 +117,18 @@ class _ChartsPageState extends State<ChartsPage> {
                           value: year,
                           child: Row(
                             children: [
-                              Icon(Icons.calendar_month,
-                                  color: Colors.teal.shade300, size: 22),
+                              Icon(
+                                Icons.calendar_month,
+                                color: Colors.teal.shade300,
+                                size: 22,
+                              ),
                               const SizedBox(width: 8),
-                              Text(year,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                year,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         );
@@ -140,10 +165,11 @@ class _BarLineChartSwitcher extends StatefulWidget {
   final List<ChartData> chartData;
   final double totalRevenue;
   final double totalExpenses;
-  const _BarLineChartSwitcher(
-      {required this.chartData,
-      required this.totalRevenue,
-      required this.totalExpenses});
+  const _BarLineChartSwitcher({
+    required this.chartData,
+    required this.totalRevenue,
+    required this.totalExpenses,
+  });
 
   @override
   State<_BarLineChartSwitcher> createState() => _BarLineChartSwitcherState();
@@ -172,7 +198,9 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                 children: [
                   SfCartesianChart(
                     legend: Legend(
-                        isVisible: true, position: LegendPosition.bottom),
+                      isVisible: true,
+                      position: LegendPosition.bottom,
+                    ),
                     primaryXAxis: CategoryAxis(),
                     primaryYAxis: NumericAxis(),
                     tooltipBehavior: TooltipBehavior(enable: true),
@@ -184,8 +212,9 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                               xValueMapper: (d, _) => d.month,
                               yValueMapper: (d, _) => d.revenue,
                               color: Colors.green,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(6)),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(6),
+                              ),
                             ),
                             ColumnSeries<ChartData, String>(
                               name: 'expenses'.tr(),
@@ -193,8 +222,9 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                               xValueMapper: (d, _) => d.month,
                               yValueMapper: (d, _) => d.expenses,
                               color: Colors.redAccent,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(6)),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(6),
+                              ),
                             ),
                           ]
                         : <CartesianSeries<ChartData, String>>[
@@ -204,8 +234,9 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                               xValueMapper: (d, _) => d.month,
                               yValueMapper: (d, _) => d.revenue,
                               color: Colors.green,
-                              markerSettings:
-                                  const MarkerSettings(isVisible: true),
+                              markerSettings: const MarkerSettings(
+                                isVisible: true,
+                              ),
                             ),
                             LineSeries<ChartData, String>(
                               name: 'expenses'.tr(),
@@ -213,8 +244,9 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                               xValueMapper: (d, _) => d.month,
                               yValueMapper: (d, _) => d.expenses,
                               color: Colors.redAccent,
-                              markerSettings:
-                                  const MarkerSettings(isVisible: true),
+                              markerSettings: const MarkerSettings(
+                                isVisible: true,
+                              ),
                             ),
                           ],
                   ),
@@ -224,7 +256,9 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                     child: Material(
                       color: Colors.transparent,
                       child: Tooltip(
-                        message: showBar ? 'Show Line Chart' : 'Show Bar Chart',
+                        message: showBar
+                            ? 'showLineChart'.tr()
+                            : 'showBarChart'.tr(),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(24),
                           onTap: () {
@@ -299,19 +333,28 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                 child: Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: SfCircularChart(
                       legend: Legend(
-                          isVisible: true, position: LegendPosition.bottom),
+                        isVisible: true,
+                        position: LegendPosition.bottom,
+                      ),
                       series: <CircularSeries<PieData, String>>[
                         PieSeries<PieData, String>(
                           dataSource: [
-                            PieData('revenue'.tr(), widget.totalRevenue,
-                                Colors.green),
-                            PieData('expenses'.tr(), widget.totalExpenses,
-                                Colors.redAccent),
+                            PieData(
+                              'revenue'.tr(),
+                              widget.totalRevenue,
+                              Colors.green,
+                            ),
+                            PieData(
+                              'expenses'.tr(),
+                              widget.totalExpenses,
+                              Colors.redAccent,
+                            ),
                           ],
                           xValueMapper: (PieData data, _) => data.label,
                           yValueMapper: (PieData data, _) => data.value,
@@ -320,11 +363,14 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                             isVisible: true,
                             labelPosition: ChartDataLabelPosition.outside,
                             textStyle: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 13),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 13,
+                            ),
                             connectorLineSettings: ConnectorLineSettings(
-                                type: ConnectorType.curve, length: '15%'),
+                              type: ConnectorType.curve,
+                              length: '15%',
+                            ),
                           ),
                           radius: '75%',
                           explode: true,
@@ -349,8 +395,13 @@ class ChartData {
   final double expenses;
   final double sessionsRevenue;
   final double totalRevenue;
-  ChartData(this.month, this.revenue, this.expenses, this.sessionsRevenue,
-      this.totalRevenue);
+  ChartData(
+    this.month,
+    this.revenue,
+    this.expenses,
+    this.sessionsRevenue,
+    this.totalRevenue,
+  );
 }
 
 class PieData {
@@ -370,7 +421,10 @@ class SectionTitle extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -387,10 +441,7 @@ class ChartCard extends StatelessWidget {
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: child,
-        ),
+        child: Padding(padding: const EdgeInsets.all(16.0), child: child),
       ),
     );
   }
@@ -457,7 +508,7 @@ class _ToggleableBarLineChartState extends State<_ToggleableBarLineChart> {
           child: Material(
             color: Colors.transparent,
             child: Tooltip(
-              message: showBar ? 'Show Line Chart' : 'Show Bar Chart',
+              message: showBar ? 'showLineChart'.tr() : 'showBarChart'.tr(),
               child: InkWell(
                 borderRadius: BorderRadius.circular(24),
                 onTap: () {

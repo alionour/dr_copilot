@@ -57,8 +57,9 @@ class DashboardPage extends StatelessWidget {
           // 1. Greeting and user info
           Builder(
             builder: (context) {
-              final user =
-                  context.select((NavigationBloc bloc) => bloc.state.user);
+              final user = context.select(
+                (NavigationBloc bloc) => bloc.state.user,
+              );
               if (user == null) return const SizedBox.shrink();
               return Row(
                 children: [
@@ -73,15 +74,22 @@ class DashboardPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'dashboardGreeting'
-                            .tr(args: [user.displayName ?? user.email ?? '']),
+                        'dashboardGreeting'.tr(
+                          args: [user.displayName ?? user.email ?? ''],
+                        ),
                         style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       if (user.email != null)
-                        Text(user.email!,
-                            style: const TextStyle(
-                                fontSize: 14, color: Colors.grey)),
+                        Text(
+                          user.email!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
                     ],
                   ),
                 ],
@@ -101,88 +109,90 @@ class DashboardPage extends StatelessWidget {
                   thumbVisibility: true,
                   trackVisibility: true,
                   child: BlocBuilder<FinancialsBloc, FinancialsState>(
-                      builder: (context, state) {
-                    return SingleChildScrollView(
-                      controller: scrollController,
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 10,
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: _SummaryCard(
-                              color: Colors.teal,
-                              title: 'totalRevenue'.tr(),
-                              value: state.revenuePerMonth[monthKey]
-                                      ?.toStringAsFixed(2) ??
-                                  '...',
-                              icon: Icons.trending_up,
+                    builder: (context, state) {
+                      return SingleChildScrollView(
+                        controller: scrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 10),
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.teal,
+                                title: 'totalRevenue'.tr(),
+                                value:
+                                    state.revenuePerMonth[monthKey]
+                                        ?.toStringAsFixed(2) ??
+                                    '...',
+                                icon: Icons.trending_up,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          SizedBox(
-                            width: 200,
-                            child: _SummaryCard(
-                              color: Colors.redAccent,
-                              title: 'totalExpenses'.tr(),
-                              value: state.expensesPerMonth[monthKey]
-                                      ?.toStringAsFixed(2) ??
-                                  '...',
-                              icon: Icons.trending_down,
+                            const SizedBox(width: 12),
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.redAccent,
+                                title: 'totalExpenses'.tr(),
+                                value:
+                                    state.expensesPerMonth[monthKey]
+                                        ?.toStringAsFixed(2) ??
+                                    '...',
+                                icon: Icons.trending_down,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Sessions Year
-                          SizedBox(
-                            width: 200,
-                            child: _SummaryCard(
-                              color: Colors.blue,
-                              title: '${'sessionsCount'.tr()} (${now.year})',
-                              value: sessionsYear.toString(),
-                              icon: Icons.event,
+                            const SizedBox(width: 12),
+                            // Sessions Year
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.blue,
+                                title: '${'sessionsCount'.tr()} (${now.year})',
+                                value: sessionsYear.toString(),
+                                icon: Icons.event,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Sessions Month
-                          SizedBox(
-                            width: 200,
-                            child: _SummaryCard(
-                              color: Colors.blue.shade700,
-                              title:
-                                  '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
-                              value: sessionsMonth.toString(),
-                              icon: Icons.event_available,
+                            const SizedBox(width: 12),
+                            // Sessions Month
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.blue.shade700,
+                                title:
+                                    '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                                value: sessionsMonth.toString(),
+                                icon: Icons.event_available,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Evaluations Year
-                          SizedBox(
-                            width: 200,
-                            child: _SummaryCard(
-                              color: Colors.purple,
-                              title: '${'evaluationsCount'.tr()} (${now.year})',
-                              value: evalsYear.toString(),
-                              icon: Icons.assignment,
+                            const SizedBox(width: 12),
+                            // Evaluations Year
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.purple,
+                                title:
+                                    '${'evaluationsCount'.tr()} (${now.year})',
+                                value: evalsYear.toString(),
+                                icon: Icons.assignment,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Evaluations Month
-                          SizedBox(
-                            width: 200,
-                            child: _SummaryCard(
-                              color: Colors.purple.shade700,
-                              title:
-                                  '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
-                              value: evalsMonth.toString(),
-                              icon: Icons.assignment_turned_in,
+                            const SizedBox(width: 12),
+                            // Evaluations Month
+                            SizedBox(
+                              width: 200,
+                              child: _SummaryCard(
+                                color: Colors.purple.shade700,
+                                title:
+                                    '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                                value: evalsMonth.toString(),
+                                icon: Icons.assignment_turned_in,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               );
             },
@@ -195,9 +205,10 @@ class DashboardPage extends StatelessWidget {
           CurrencyProfilesSection(),
           const SizedBox(height: 24),
           // 4. Transactions Activity (real implementation)
-          Text('transactionsActivity'.tr(),
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            'transactionsActivity'.tr(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           BlocBuilder<TransactionsBloc, dynamic>(
             builder: (context, state) {
@@ -215,9 +226,13 @@ class DashboardPage extends StatelessWidget {
                       children: [
                         Icon(Icons.inbox, size: 48, color: Colors.grey[400]),
                         const SizedBox(height: 12),
-                        Text('noTransactions'.tr(),
-                            style: const TextStyle(
-                                fontSize: 18, color: Colors.grey)),
+                        Text(
+                          'noTransactions'.tr(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -230,14 +245,13 @@ class DashboardPage extends StatelessWidget {
                   itemCount: latestTransactions.length,
                   itemBuilder: (context, index) {
                     final tx = latestTransactions[index];
-                    return TransactionListItem(
-                      transaction: tx,
-                      onTap: () {},
-                    );
+                    return TransactionListItem(transaction: tx, onTap: () {});
                   },
                 );
               } else if (state is TransactionsError) {
-                return Center(child: Text('Error: ${state.message}'));
+                return Center(
+                  child: Text('errorMessage'.tr(args: [state.message])),
+                );
               }
               return const SizedBox.shrink();
             },
@@ -301,14 +315,19 @@ class _SummaryCardState extends State<_SummaryCard> {
               children: [
                 Icon(widget.icon, color: Colors.white, size: 32),
                 const SizedBox(height: 8),
-                Text(widget.title,
-                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                Text(
+                  widget.title,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
                 const SizedBox(height: 4),
-                Text(widget.value,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  widget.value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),

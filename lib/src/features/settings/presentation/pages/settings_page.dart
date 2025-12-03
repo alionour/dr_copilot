@@ -78,14 +78,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     context.setLocale(Locale(newLocale));
                   }
                 },
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'en',
                     child: Row(
                       children: [
                         Icon(Icons.language, color: Colors.blue),
                         SizedBox(width: 8),
-                        Text('English'),
+                        Text('language_en'.tr()),
                       ],
                     ),
                   ),
@@ -95,7 +95,37 @@ class _SettingsPageState extends State<SettingsPage> {
                       children: [
                         Icon(Icons.language, color: Colors.green),
                         SizedBox(width: 8),
-                        Text('Arabic'),
+                        Text('language_ar'.tr()),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'es',
+                    child: Row(
+                      children: [
+                        Icon(Icons.language, color: Colors.orange),
+                        SizedBox(width: 8),
+                        Text('language_es'.tr()),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'fr',
+                    child: Row(
+                      children: [
+                        Icon(Icons.language, color: Colors.purple),
+                        SizedBox(width: 8),
+                        Text('language_fr'.tr()),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'de',
+                    child: Row(
+                      children: [
+                        Icon(Icons.language, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('language_de'.tr()),
                       ],
                     ),
                   ),
