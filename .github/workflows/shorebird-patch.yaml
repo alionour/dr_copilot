@@ -1,0 +1,55 @@
+name: Shorebird Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Release channel (production/staging)'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  create-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
+      - name: Install dependencies
+        run: doppler run -- flutter pub get
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+
+      - name: Install Shorebird CLI
+        run: |
+          curl --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh -sSf | bash
+          echo "$HOME/.shorebird/bin" >> $GITHUB_PATH
+
+      - name: Authenticate Shorebird
+        run: |
+          SHOREBIRD_TOKEN=$(doppler secrets get SHOREBIRD_TOKEN --plain)
+          shorebird login --ci-token "$SHOREBIRD_TOKEN"
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+
+      - name: Create Android Patch
+        run: |
+          shorebird patch android --release-version=$(cat pubspec.yaml | grep 'version:' | awk '{print $2}' | cut -d'+' -f1)
+
+      - name: Notify completion
+        run: |
+          echo "Shorebird patch created successfully for channel: ${{ github.event.inputs.channel }}"

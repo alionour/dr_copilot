@@ -41,3 +41,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android Signing
+*.jks
+keystore_base64.txt
+release-keystore.jks
