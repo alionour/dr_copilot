@@ -1,0 +1,4 @@
+# /doppler.yaml
+setup: drcopilot
+project: drcopilot
+config: prd
