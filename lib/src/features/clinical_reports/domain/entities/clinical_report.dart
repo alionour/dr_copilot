@@ -7,7 +7,8 @@ class ClinicalReport extends Equatable {
   final String description;
   final DateTime date;
   final List<String> documentUrls;
-  final String? contentUrl;
+  final String? contentUrl; // Reserved for future Storage migration
+  final String? content; // HTML content stored in Firestore
 
   const ClinicalReport({
     required this.id,
@@ -17,6 +18,7 @@ class ClinicalReport extends Equatable {
     required this.date,
     this.documentUrls = const [],
     this.contentUrl,
+    this.content,
   });
 
   ClinicalReport copyWith({
@@ -27,6 +29,7 @@ class ClinicalReport extends Equatable {
     DateTime? date,
     List<String>? documentUrls,
     String? contentUrl,
+    String? content,
   }) {
     return ClinicalReport(
       id: id ?? this.id,
@@ -36,17 +39,19 @@ class ClinicalReport extends Equatable {
       date: date ?? this.date,
       documentUrls: documentUrls ?? this.documentUrls,
       contentUrl: contentUrl ?? this.contentUrl,
+      content: content ?? this.content,
     );
   }
 
   @override
   List<Object?> get props => [
-        id,
-        patientId,
-        title,
-        description,
-        date,
-        documentUrls,
-        contentUrl,
-      ];
+    id,
+    patientId,
+    title,
+    description,
+    date,
+    documentUrls,
+    contentUrl,
+    content,
+  ];
 }

@@ -18,9 +18,7 @@ class PatientDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('patientDetails'.tr()),
-      ),
+      appBar: AppBar(title: Text('patientDetails'.tr())),
       body: FutureBuilder<Either<Failure, PatientModel>>(
         future: getIt<PatientService>().getPatient(patientId),
         builder: (context, snapshot) {
@@ -33,7 +31,7 @@ class PatientDetailsPage extends StatelessWidget {
 
           final result = snapshot.data;
           if (result == null) {
-            return const Center(child: Text('Something went wrong'));
+            return Center(child: Text('somethingWentWrong'.tr()));
           }
 
           return result.fold(
@@ -109,8 +107,10 @@ class PatientDetailsPage extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: () {
-                            context.go('/clinical_reports/new',
-                                extra: patient.id); // Pass patientId as extra
+                            context.go(
+                              '/clinical_reports/new',
+                              extra: patient.id,
+                            ); // Pass patientId as extra
                           },
                         ),
                       ],
@@ -123,17 +123,18 @@ class PatientDetailsPage extends StatelessWidget {
                         if (reportSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
-                              child: CircularProgressIndicator());
+                            child: CircularProgressIndicator(),
+                          );
                         }
                         if (reportSnapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${reportSnapshot.error}'));
+                            child: Text('Error: ${reportSnapshot.error}'),
+                          );
                         }
 
                         final reportResult = reportSnapshot.data;
                         if (reportResult == null) {
-                          return const Center(
-                              child: Text('Something went wrong'));
+                          return Center(child: Text('somethingWentWrong'.tr()));
                         }
 
                         return reportResult.fold(
@@ -142,8 +143,10 @@ class PatientDetailsPage extends StatelessWidget {
                           (reports) {
                             if (reports.isEmpty) {
                               return Center(
-                                  child: Text(
-                                      'noClinicalReportsFoundForPatient'.tr()));
+                                child: Text(
+                                  'noClinicalReportsFoundForPatient'.tr(),
+                                ),
+                              );
                             }
 
                             return ListView.builder(
@@ -153,19 +156,24 @@ class PatientDetailsPage extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 final reportItem = reports[index];
                                 return Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 4.0,
+                                  ),
                                   child: ListTile(
                                     title: Text(reportItem.title),
-                                    subtitle: Text(reportItem.date
-                                        .toLocal()
-                                        .toString()
-                                        .split(' ')[0]),
-                                    trailing:
-                                        const Icon(Icons.arrow_forward_ios),
+                                    subtitle: Text(
+                                      reportItem.date
+                                          .toLocal()
+                                          .toString()
+                                          .split(' ')[0],
+                                    ),
+                                    trailing: const Icon(
+                                      Icons.arrow_forward_ios,
+                                    ),
                                     onTap: () {
                                       context.go(
-                                          '/clinical_report_details/${reportItem.id}');
+                                        '/clinical_report_details/${reportItem.id}',
+                                      );
                                     },
                                   ),
                                 );
