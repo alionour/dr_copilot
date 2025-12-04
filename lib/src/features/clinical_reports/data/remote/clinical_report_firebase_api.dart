@@ -10,6 +10,7 @@ import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 class ClinicalReportFirebaseApi {
@@ -24,27 +25,46 @@ class ClinicalReportFirebaseApi {
     File? jsonFile,
   }) async {
     try {
+      debugPrint(
+        '[saveReport] Starting. Report ID: ${report.id}, jsonFile: ${jsonFile != null ? "PROVIDED" : "NULL"}',
+      );
+
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
+        debugPrint('[saveReport] User not authenticated');
         return Left(ServerFailure('User not authenticated', 401));
       }
 
-      String? contentUrl = report.contentUrl;
+      var reportToSave = report;
 
-      // Upload JSON content if provided
-      if (jsonFile != null) {
-        final ref = _storage.ref().child('reports/${report.id}/content.json');
-        await ref.putFile(jsonFile);
-        contentUrl = await ref.getDownloadURL();
-      }
-
-      var reportToSave = report.copyWith(contentUrl: contentUrl);
-
+      // Generate new ID if needed BEFORE uploading content
       if (reportToSave.id == 'new_report_id') {
         final newId = _reportsCollection.doc().id;
+        debugPrint('[saveReport] Generated new ID: $newId');
         reportToSave = reportToSave.copyWith(id: newId);
       }
 
+      String? htmlContent;
+
+      // Read content from file if provided
+      if (jsonFile != null) {
+        final exists = await jsonFile.exists();
+        debugPrint(
+          '[saveReport] jsonFile exists: $exists, path: ${jsonFile.path}',
+        );
+
+        if (!exists) {
+          debugPrint('[saveReport] ERROR: jsonFile does not exist');
+        } else {
+          htmlContent = await jsonFile.readAsString();
+          debugPrint('[saveReport] Read ${htmlContent.length} chars from file');
+          reportToSave = reportToSave.copyWith(content: htmlContent);
+        }
+      }
+
+      debugPrint(
+        '[saveReport] Saving to Firestore with content: ${htmlContent != null}',
+      );
       final data = {
         'id': reportToSave.id,
         'patientId': reportToSave.patientId,
@@ -52,7 +72,8 @@ class ClinicalReportFirebaseApi {
         'description': reportToSave.description,
         'date': Timestamp.fromDate(reportToSave.date),
         'documentUrls': reportToSave.documentUrls,
-        'contentUrl': reportToSave.contentUrl,
+        'content': reportToSave.content, // Save HTML directly in Firestore
+        'contentUrl': null, // Reserved for future Storage migration
         'clinicId': clinicId,
         'createdBy': user.uid,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -62,9 +83,10 @@ class ClinicalReportFirebaseApi {
           .doc(reportToSave.id)
           .set(data, SetOptions(merge: true));
 
+      debugPrint('[saveReport] Successfully saved to Firestore');
       return Right(reportToSave);
     } catch (e) {
-      debugPrint('Error saving clinical report: $e');
+      debugPrint('[saveReport] EXCEPTION: $e');
       return Left(ServerFailure(e.toString(), 500));
     }
   }
@@ -132,12 +154,19 @@ class ClinicalReportFirebaseApi {
 
   Future<Either<Failure, String>> getReportContent(String url) async {
     try {
-      final ref = _storage.refFromURL(url);
-      final data = await ref.getData();
-      if (data == null) {
-        return Left(ServerFailure('No content found', 404));
+      // Use http.get instead of Firebase Storage plugin to avoid Windows issues
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        return Right(response.body);
+      } else {
+        return Left(
+          ServerFailure(
+            'Failed to load content: ${response.statusCode}',
+            response.statusCode,
+          ),
+        );
       }
-      return Right(String.fromCharCodes(data));
     } catch (e) {
       debugPrint('Error fetching report content: $e');
       return Left(ServerFailure(e.toString(), 500));
@@ -147,8 +176,6 @@ class ClinicalReportFirebaseApi {
   Future<Either<Failure, String>> uploadImage(File imageFile) async {
     try {
       final String fileName = '${const Uuid().v4()}.jpg';
-      // We don't have report ID here easily, so we can use a general 'temp' or 'uploads' folder
-      // Or we can ask for report ID. For now, let's store in 'clinical_report_images'
       final ref = _storage.ref().child('clinical_report_images/$fileName');
       await ref.putFile(imageFile);
       return Right(await ref.getDownloadURL());
@@ -160,13 +187,10 @@ class ClinicalReportFirebaseApi {
 
   Future<Either<Failure, void>> deleteReport(String reportId) async {
     try {
-      // Delete Firestore doc
       await _reportsCollection.doc(reportId).delete();
 
-      // Try to delete storage content (optional, but good for cleanup)
-      // We'd need to list files in reports/{id}/ or just delete the known content.json
       try {
-        await _storage.ref().child('reports/$reportId/content.json').delete();
+        await _storage.ref().child('reports/$reportId/content.html').delete();
       } catch (e) {
         // Ignore if not found
       }
@@ -186,10 +210,10 @@ class ClinicalReportFirebaseApi {
       date: (data['date'] as Timestamp).toDate(),
       documentUrls: List<String>.from(data['documentUrls'] ?? []),
       contentUrl: data['contentUrl'] as String?,
+      content: data['content'] as String?,
     );
   }
 
-  // Instructions
   Future<Either<Failure, List<ClinicalReportInstruction>>>
   getInstructions() async {
     try {
@@ -214,7 +238,6 @@ class ClinicalReportFirebaseApi {
     }
   }
 
-  // Chat History
   Future<Either<Failure, List<ClinicalReportChatMessage>>> getChatHistory(
     String reportId,
   ) async {

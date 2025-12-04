@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/core/services/backend_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // Added import for GoRouter
 import 'dart:developer';
@@ -60,7 +61,9 @@ class _SignupPageState extends State<SignupPage> {
       // --- 1. Sign up user with Firebase (example, actual implementation might vary) ---
       // This part would typically interact with your Auth UseCase/Bloc
       // For demonstration, we'll simulate a signup here or directly use the AuthBloc if available
-      log('Attempting signup for email: $email, name: $name, password: $password');
+      log(
+        'Attempting signup for email: $email, name: $name, password: $password',
+      );
       try {
         // Assume AuthBloc has a SignUp event
         // context.read<AuthBloc>().add(SignUpWithEmailAndPassword(email: email, password: password, name: name));
@@ -71,7 +74,9 @@ class _SignupPageState extends State<SignupPage> {
 
         // --- 2. Accept Invitation via Backend ---
         if (widget.invitationToken != null && widget.clinicId != null) {
-          log('Processing invitation acceptance with token: ${widget.invitationToken}');
+          log(
+            'Processing invitation acceptance with token: ${widget.invitationToken}',
+          );
           // Temporarily get current user ID. In a real app, this would come from AuthBloc/Firebase Auth after signup.
           // For now, we'll use a placeholder.
           // You need to get the actual Firebase User ID of the newly registered user.
@@ -92,34 +97,46 @@ class _SignupPageState extends State<SignupPage> {
           if (!mounted) return; // Fix for use_build_context_synchronously
 
           if (acceptResult['success'] == true) {
-            log('Invitation accepted successfully for user $signedInUserId. Redirecting to home.');
+            log(
+              'Invitation accepted successfully for user $signedInUserId. Redirecting to home.',
+            );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Invitation accepted! Welcome to ${widget.clinicName ?? 'your clinic'}')),
+              SnackBar(
+                content: Text(
+                  'invitationAccepted'.tr(
+                    args: [widget.clinicName ?? 'your clinic'],
+                  ),
+                ),
+              ),
             );
             // Optionally redirect to home or dashboard after successful signup and acceptance
             context.go('/home'); // Using context.go from GoRouter
           } else {
-            log('Failed to accept invitation: ${acceptResult['error']}. Displaying error message.');
+            log(
+              'Failed to accept invitation: ${acceptResult['error']}. Displaying error message.',
+            );
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content: Text(
-                      'Failed to accept invitation: ${acceptResult['error']}')),
+                content: Text(
+                  'invitationAcceptanceFailed'.tr(
+                    args: [acceptResult['error']],
+                  ),
+                ),
+              ),
             );
           }
         } else {
           // Regular signup flow if no invitation token
           log('Performing regular signup for $email.');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Regular signup successful!')),
+            SnackBar(content: Text('regularSignupSuccessful'.tr())),
           );
           context.go('/home'); // Using context.go from GoRouter
         }
       } catch (e) {
         log('Error during signup/invitation acceptance for $email: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text('Signup or invitation acceptance failed: ${e.toString()}')),
+          SnackBar(content: Text('signupFailed'.tr(args: [e.toString()]))),
         );
       }
     }
@@ -128,10 +145,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign Up'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('signUp'.tr()), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
@@ -147,14 +161,18 @@ class _SignupPageState extends State<SignupPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Welcome to ${widget.clinicName ?? 'Dr. Copilot'}!',
+                        'welcomeTo'.tr(
+                          args: [widget.clinicName ?? 'Dr. Copilot'],
+                        ),
                         style: Theme.of(context).textTheme.headlineSmall,
                         textAlign: TextAlign.center,
                       ),
                       if (widget.invitationToken != null) ...[
                         const SizedBox(height: 16),
                         Text(
-                          'You\'ve been invited to join as a ${widget.role ?? 'member'}. Please create your account to accept.',
+                          'invitationMessage'.tr(
+                            args: [widget.role ?? 'member'],
+                          ),
                           style: Theme.of(context).textTheme.bodyLarge,
                           textAlign: TextAlign.center,
                         ),
@@ -163,7 +181,7 @@ class _SignupPageState extends State<SignupPage> {
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
-                          labelText: 'Name',
+                          labelText: 'name'.tr(),
                           prefixIcon: const Icon(Icons.person_outline),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -171,7 +189,7 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your name.';
+                            return 'enterName'.tr();
                           }
                           return null;
                         },
@@ -181,20 +199,25 @@ class _SignupPageState extends State<SignupPage> {
                         controller: _emailController,
                         readOnly: widget.email != null,
                         decoration: InputDecoration(
-                          labelText: 'Email',
+                          labelText: 'email'.tr(),
                           prefixIcon: const Icon(Icons.email_outlined),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           filled: widget.email != null,
                           fillColor: widget.email != null
-                              ? Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha((255 * 0.5).round())
+                              ? Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withAlpha((255 * 0.5).round())
                               : null,
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty || !value.contains('@')) {
-                            return 'Please enter a valid email address.';
+                          if (value == null ||
+                              value.isEmpty ||
+                              !value.contains('@')) {
+                            return 'enterValidEmail'.tr();
                           }
                           return null;
                         },
@@ -204,13 +227,17 @@ class _SignupPageState extends State<SignupPage> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: 'password'.tr(),
                           prefixIcon: const Icon(Icons.lock_outline),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
                             onPressed: () {
                               setState(() {
                                 _obscurePassword = !_obscurePassword;
@@ -220,10 +247,10 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a password.';
+                            return 'enterPassword'.tr();
                           }
                           if (value.length < 6) {
-                            return 'Password must be at least 6 characters long.';
+                            return 'passwordLengthError'.tr();
                           }
                           return null;
                         },
@@ -233,26 +260,31 @@ class _SignupPageState extends State<SignupPage> {
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
                         decoration: InputDecoration(
-                          labelText: 'Confirm Password',
+                          labelText: 'confirmPassword'.tr(),
                           prefixIcon: const Icon(Icons.lock_reset_outlined),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
                             onPressed: () {
                               setState(() {
-                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
                               });
                             },
                           ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please confirm your password.';
+                            return 'confirmPasswordError'.tr();
                           }
                           if (value != _passwordController.text) {
-                            return 'Passwords do not match.';
+                            return 'passwordsDoNotMatch'.tr();
                           }
                           return null;
                         },
@@ -267,16 +299,23 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         ),
                         child: Text(
-                          widget.invitationToken != null ? 'Accept Invitation & Create Account' : 'Create Account',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          widget.invitationToken != null
+                              ? 'acceptInvitationAndCreateAccount'.tr()
+                              : 'createAccount'.tr(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
                       TextButton(
                         onPressed: () => context.go('/'),
                         child: Text(
-                          'Already have an account? Sign In',
-                          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                          'alreadyHaveAccount'.tr(),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
                     ],

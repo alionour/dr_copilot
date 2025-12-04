@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -7,9 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
-// ... imports
-
-// ... inside build method
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
@@ -67,6 +63,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
   PatientModel? _selectedPatient;
   bool _isLoaded = false;
   bool _isEditorLoaded = false;
+  bool _initialContentLoaded = false;
 
   bool _isAIChatOpen = false;
 
@@ -86,7 +83,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
   @override
   void dispose() {
     _titleController.dispose();
-    // _htmlController.dispose(); // HtmlEditorController doesn't have dispose method in some versions, check if needed
+    // _htmlController.dispose(); // HtmlEditorController doesn't have dispose method in some versions
     _focusNode.dispose();
     _autoSaveTimer?.cancel();
     _removeOverlay();
@@ -163,30 +160,25 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
   }
 
   void _onEditorChange(String? content) {
-    _triggerAutoSave();
+    // Note: HtmlEditor onChangeContent doesn't fire reliably on Windows
+    // So we rely on save-on-exit via PopScope instead
   }
 
-  void _triggerAutoSave() {
-    if (_autoSaveTimer?.isActive ?? false) _autoSaveTimer!.cancel();
-    _autoSaveTimer = Timer(const Duration(seconds: 2), () {
-      if (mounted && widget.reportId != null) {
-        _autoSaveClinicalReport();
-      }
-    });
-  }
-
-  Future<void> _autoSaveClinicalReport() async {
+  Future<void> _saveReportOnExit() async {
     if (_selectedPatient == null) return;
 
+    debugPrint('[_saveReportOnExit] Starting save on navigation away');
     final html = await _htmlController.getText();
 
     // Create temp file
     final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/report_content_autosave.html');
+    final tempFile = File('${tempDir.path}/report_content.html');
     await tempFile.writeAsString(html);
 
+    final currentReportId = widget.reportId ?? 'new_report_id';
+
     final report = ClinicalReport(
-      id: widget.reportId!,
+      id: currentReportId,
       patientId: _selectedPatient!.id,
       title: _titleController.text,
       description: html
@@ -197,46 +189,13 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
       documentUrls: [],
     );
 
+    debugPrint('[_saveReportOnExit] Saving report: ${report.id}');
     if (mounted) {
       context.read<AddEditClinicalReportBloc>().add(
-        AutoSaveClinicalReport(report, jsonFile: tempFile),
+        SaveClinicalReport(report, jsonFile: tempFile),
       );
-    }
-  }
-
-  Future<void> _saveClinicalReport() async {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedPatient == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('selectPatientError'.tr())));
-        return;
-      }
-
-      final html = await _htmlController.getText();
-
-      // Create temp file
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/report_content.html');
-      await tempFile.writeAsString(html);
-
-      final newReport = ClinicalReport(
-        id: widget.reportId ?? 'new_report_id',
-        patientId: _selectedPatient!.id,
-        title: _titleController.text,
-        description: html
-            .replaceAll(RegExp(r'<[^>]*>'), '') // Strip HTML tags
-            .replaceAll('\n', ' ')
-            .trim(), // Plain text summary
-        date: _selectedDate,
-        documentUrls: [], // Handled inside content now
-      );
-
-      if (mounted) {
-        context.read<AddEditClinicalReportBloc>().add(
-          SaveClinicalReport(newReport, jsonFile: tempFile),
-        );
-      }
+      // Wait a bit for the save to process
+      await Future.delayed(const Duration(milliseconds: 500));
     }
   }
 
@@ -244,12 +203,8 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'deleteReport'.tr(),
-        ), // Ensure this key exists or use 'Delete Report'
-        content: Text(
-          'deleteReportConfirmation'.tr(),
-        ), // Ensure this key exists
+        title: Text('deleteReport'.tr()),
+        content: Text('deleteReportConfirmation'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -337,269 +292,319 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
           } else if (state.contentJson != null &&
               state.originalContent == null &&
               !state.isAILoading) {
-            if (_isLoaded && state.contentJson != null) {
-              // Only update if explicitly needed, usually initial load handles it
-              // But if we re-loaded, we might want to update.
-              // _htmlController.setText(state.contentJson!);
+            // Load content if editor is ready and we haven't loaded it yet
+            if (_isEditorLoaded && !_initialContentLoaded) {
+              _htmlController.setText(state.contentJson!);
+              _initialContentLoaded = true;
             }
           }
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _selectedPatient?.name ?? 'loading'.tr(),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (_selectedPatient != null)
+      child: PopScope(
+        canPop: true,
+        onPopInvoked: (didPop) {
+          if (didPop) {
+            _saveReportOnExit();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  DateFormat.yMMMd().format(_selectedDate),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),
+                  _selectedPatient?.name ?? 'loading'.tr(),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                if (_selectedPatient != null)
+                  Text(
+                    DateFormat.yMMMd().format(_selectedDate),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: widget.reportId != null
+                    ? _deleteClinicalReport
+                    : null,
+              ),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: widget.reportId != null ? _deleteClinicalReport : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveClinicalReport,
-            ),
-          ],
-        ),
-        body: BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
-          builder: (context, state) {
-            if (state is AddEditClinicalReportLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state is AddEditClinicalReportLoaded) {
-              if (!_isLoaded) {
-                if (state.report != null) {
-                  _titleController.text = state.report!.title;
-                  _selectedDate = state.report!.date;
-                  _selectedPatient = state.patients.firstWhere(
-                    (p) => p.id == state.report!.patientId,
-                    orElse: () => state.patients.first,
-                  );
-
-                  if (state.contentJson != null &&
-                      state.contentJson!.isNotEmpty) {
-                    // _htmlController.setText(state.contentJson!); // Handled by initialText
-                  }
-                } else if (widget.patientId != null &&
-                    _selectedPatient == null) {
-                  _selectedPatient = state.patients.firstWhere(
-                    (p) => p.id == widget.patientId,
-                    orElse: () => state.patients.first,
-                  );
-                }
-                _isLoaded = true;
+          body: BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
+            builder: (context, state) {
+              if (state is AddEditClinicalReportLoading) {
+                return const Center(child: CircularProgressIndicator());
               }
 
-              return Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _titleController,
-                              decoration: InputDecoration(
-                                labelText: 'clinicalReportTitle'.tr(),
-                                border: const OutlineInputBorder(),
+              if (state is AddEditClinicalReportLoaded) {
+                if (!_isLoaded) {
+                  if (state.report != null) {
+                    _titleController.text = state.report!.title;
+                    _selectedDate = state.report!.date;
+                    _selectedPatient = state.patients.firstWhere(
+                      (p) => p.id == state.report!.patientId,
+                      orElse: () => state.patients.first,
+                    );
+                  } else if (widget.patientId != null &&
+                      _selectedPatient == null) {
+                    _selectedPatient = state.patients.firstWhere(
+                      (p) => p.id == widget.patientId,
+                      orElse: () => state.patients.first,
+                    );
+                  }
+                  _isLoaded = true;
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _titleController,
+                                decoration: InputDecoration(
+                                  labelText: 'clinicalReportTitle'.tr(),
+                                  border: const OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'clinicalReportTitleRequired'.tr();
+                                  }
+                                  return null;
+                                },
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'clinicalReportTitleRequired'.tr();
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  Listener(
-                                    onPointerDown: (event) {
-                                      _lastTapDownPosition = event.position;
-                                    },
-                                    child: HtmlEditor(
-                                      controller: _htmlController,
-                                      htmlEditorOptions: HtmlEditorOptions(
-                                        hint: 'startTyping'.tr(),
-                                        shouldEnsureVisible: true,
-                                        initialText: state.contentJson,
-                                      ),
-                                      htmlToolbarOptions: HtmlToolbarOptions(
-                                        toolbarPosition:
-                                            ToolbarPosition.aboveEditor,
-                                        toolbarType:
-                                            ToolbarType.nativeScrollable,
-                                        customToolbarButtons: [
-                                          InkWell(
-                                            onTap: () {
-                                              setState(() {
-                                                _isAIChatOpen = !_isAIChatOpen;
-                                              });
-                                            },
-                                            child: Icon(
-                                              Icons.auto_awesome,
-                                              color: _isAIChatOpen
-                                                  ? Colors.blue
-                                                  : null,
+                              const SizedBox(height: 16),
+                              const SizedBox(height: 16),
+                              Expanded(
+                                child: Stack(
+                                  children: [
+                                    Listener(
+                                      onPointerDown: (event) {
+                                        _lastTapDownPosition = event.position;
+                                      },
+                                      child: HtmlEditor(
+                                        controller: _htmlController,
+                                        htmlEditorOptions: HtmlEditorOptions(
+                                          hint: 'startTyping'.tr(),
+                                          shouldEnsureVisible: true,
+                                          initialText: state.contentJson,
+                                        ),
+                                        htmlToolbarOptions: HtmlToolbarOptions(
+                                          toolbarPosition:
+                                              ToolbarPosition.aboveEditor,
+                                          toolbarType:
+                                              ToolbarType.nativeScrollable,
+                                          customToolbarButtons: [
+                                            InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _isAIChatOpen =
+                                                      !_isAIChatOpen;
+                                                });
+                                              },
+                                              child: Icon(
+                                                Icons.auto_awesome,
+                                                color: _isAIChatOpen
+                                                    ? Colors.blue
+                                                    : null,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      otherOptions: const OtherOptions(
-                                        height: 500,
-                                      ),
-                                      callbacks: Callbacks(
-                                        onInit: () {
-                                          setState(() {
-                                            _isEditorLoaded = true;
-                                          });
-                                          // Inject Google Fonts CSS
-                                          _htmlController.editorController!
-                                              .evaluateJavascript(
-                                                source: """
-                                            var link = document.createElement('link');
-                                            link.href = 'https://fonts.googleapis.com/css?family=Roboto|Lato|Open+Sans|Montserrat|Raleway|Merriweather|Playfair+Display|Courier+Prime';
-                                            link.rel = 'stylesheet';
-                                            document.head.appendChild(link);
-                                          """,
+                                          ],
+                                        ),
+                                        otherOptions: const OtherOptions(
+                                          height: 500,
+                                        ),
+                                        callbacks: Callbacks(
+                                          onInit: () async {
+                                            debugPrint(
+                                              '[HtmlEditor] onInit called',
+                                            );
+                                            setState(() {
+                                              _isEditorLoaded = true;
+                                            });
+
+                                            // Inject Google Fonts CSS
+                                            try {
+                                              _htmlController.editorController!
+                                                  .evaluateJavascript(
+                                                    source: """
+                                                var link = document.createElement('link');
+                                                link.href = 'https://fonts.googleapis.com/css?family=Roboto|Lato|Open+Sans|Montserrat|Raleway|Merriweather|Playfair+Display|Courier+Prime';
+                                                link.rel = 'stylesheet';
+                                                document.head.appendChild(link);
+                                              """,
+                                                  );
+                                            } catch (e) {
+                                              debugPrint(
+                                                '[HtmlEditor] Error injecting fonts: $e',
                                               );
-                                        },
-                                        onChangeContent: (String? changed) {
-                                          _onEditorChange(changed);
-                                        },
-                                        onMouseUp: () {
-                                          _checkSelection();
-                                        },
-                                        onKeyUp: (code) {
-                                          _checkSelection();
-                                        },
+                                            }
+
+                                            // Wait a bit for the editor to be fully ready
+                                            await Future.delayed(
+                                              const Duration(milliseconds: 500),
+                                            );
+
+                                            // Try to load content if available in state
+                                            if (!mounted) return;
+                                            final state = context
+                                                .read<
+                                                  AddEditClinicalReportBloc
+                                                >()
+                                                .state;
+                                            debugPrint(
+                                              '[HtmlEditor] Checking state for content. Loaded: $_initialContentLoaded, Content len: ${state is AddEditClinicalReportLoaded ? state.contentJson?.length : "N/A"}',
+                                            );
+
+                                            if (state
+                                                    is AddEditClinicalReportLoaded &&
+                                                state.contentJson != null &&
+                                                !_initialContentLoaded) {
+                                              debugPrint(
+                                                '[HtmlEditor] Setting initial content...',
+                                              );
+                                              try {
+                                                _htmlController.setText(
+                                                  state.contentJson!,
+                                                );
+                                                _initialContentLoaded = true;
+                                                debugPrint(
+                                                  '[HtmlEditor] Content set successfully',
+                                                );
+                                              } catch (e) {
+                                                debugPrint(
+                                                  '[HtmlEditor] Error setting content: $e',
+                                                );
+                                              }
+                                            }
+                                          },
+                                          onChangeContent: (String? changed) {
+                                            _onEditorChange(changed);
+                                          },
+                                          onMouseUp: () {
+                                            _checkSelection();
+                                          },
+                                          onKeyUp: (code) {
+                                            _checkSelection();
+                                          },
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  if (!_isEditorLoaded)
-                                    Container(
-                                      color: Colors.white.withOpacity(0.8),
-                                      child: const Center(
-                                        child: CircularProgressIndicator(),
+                                    if (!_isEditorLoaded)
+                                      Container(
+                                        color: Colors.white.withOpacity(0.8),
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
                                       ),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  if (_isAIChatOpen)
-                    AIChatPanel(
-                      onClose: () {
-                        setState(() {
-                          _isAIChatOpen = false;
-                        });
-                      },
-                      // hasSelection: _hasSelection, // Removed selection check for now
-                      hasSelection:
-                          true, // Always allow asking about selection if user wants, or check via JS
-                      onSaveInstruction: (label, instruction) {
-                        final userId = FirebaseAuth.instance.currentUser?.uid;
-                        if (userId != null) {
-                          final newInstruction = ClinicalReportInstruction(
-                            id: '', // Let API generate ID
-                            userId: userId,
-                            label: label,
-                            instruction: instruction,
-                          );
+                    if (_isAIChatOpen)
+                      AIChatPanel(
+                        onClose: () {
+                          setState(() {
+                            _isAIChatOpen = false;
+                          });
+                        },
+                        hasSelection: true,
+                        onSaveInstruction: (label, instruction) {
+                          final userId = FirebaseAuth.instance.currentUser?.uid;
+                          if (userId != null) {
+                            final newInstruction = ClinicalReportInstruction(
+                              id: '',
+                              userId: userId,
+                              label: label,
+                              instruction: instruction,
+                            );
+                            context.read<AddEditClinicalReportBloc>().add(
+                              SaveInstruction(newInstruction),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('User not logged in'),
+                              ),
+                            );
+                          }
+                        },
+                        onDeleteInstruction: (instructionId) {
                           context.read<AddEditClinicalReportBloc>().add(
-                            SaveInstruction(newInstruction),
+                            DeleteInstruction(instructionId),
                           );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('User not logged in')),
+                        },
+                        onRefineInstruction: (text) {
+                          context.read<AddEditClinicalReportBloc>().add(
+                            AIRefineInstructionRequested(text),
                           );
-                        }
-                      },
-                      onDeleteInstruction: (instructionId) {
-                        context.read<AddEditClinicalReportBloc>().add(
-                          DeleteInstruction(instructionId),
-                        );
-                      },
-                      onRefineInstruction: (text) {
-                        context.read<AddEditClinicalReportBloc>().add(
-                          AIRefineInstructionRequested(text),
-                        );
-                      },
-                      onRefineClinicalData: (text) {
-                        context.read<AddEditClinicalReportBloc>().add(
-                          AIRefineClinicalDataRequested(text),
-                        );
-                      },
-                      onGenerate: (instruction, clinicalData) async {
-                        final selection =
-                            (await _htmlController.editorController
-                                    ?.evaluateJavascript(
-                                      source:
-                                          "window.getSelection().toString()",
-                                    ))
-                                ?.toString() ??
-                            '';
-                        if (!mounted) return;
-                        if (selection.isNotEmpty) {
-                          this.context.read<AddEditClinicalReportBloc>().add(
-                            AISelectionEditRequested(
-                              selection,
-                              instruction,
-                              clinicalData: clinicalData,
-                            ),
+                        },
+                        onRefineClinicalData: (text) {
+                          context.read<AddEditClinicalReportBloc>().add(
+                            AIRefineClinicalDataRequested(text),
                           );
-                        } else {
-                          this.context.read<AddEditClinicalReportBloc>().add(
-                            AIGenerateContentRequested(
-                              instruction,
-                              clinicalData: clinicalData,
-                            ),
+                        },
+                        onGenerate: (instruction, clinicalData) async {
+                          final selection =
+                              (await _htmlController.editorController
+                                      ?.evaluateJavascript(
+                                        source:
+                                            "window.getSelection().toString()",
+                                      ))
+                                  ?.toString() ??
+                              '';
+                          if (!mounted) return;
+                          if (selection.isNotEmpty) {
+                            this.context.read<AddEditClinicalReportBloc>().add(
+                              AISelectionEditRequested(
+                                selection,
+                                instruction,
+                                clinicalData: clinicalData,
+                              ),
+                            );
+                          } else {
+                            this.context.read<AddEditClinicalReportBloc>().add(
+                              AIGenerateContentRequested(
+                                instruction,
+                                clinicalData: clinicalData,
+                              ),
+                            );
+                          }
+                        },
+                        onInsert: (content) {
+                          _htmlController.insertHtml(content);
+                          context.read<AddEditClinicalReportBloc>().add(
+                            AIClearGeneratedContent(),
                           );
-                        }
-                      },
-                      onInsert: (content) {
-                        _htmlController.insertHtml(content);
-                        context.read<AddEditClinicalReportBloc>().add(
-                          AIClearGeneratedContent(),
-                        );
-                      },
-                      onDiscard: () {
-                        context.read<AddEditClinicalReportBloc>().add(
-                          AIClearGeneratedContent(),
-                        );
-                      },
-                    ),
-                ],
-              );
-            }
+                        },
+                        onDiscard: () {
+                          context.read<AddEditClinicalReportBloc>().add(
+                            AIClearGeneratedContent(),
+                          );
+                        },
+                      ),
+                  ],
+                );
+              }
 
-            return const Center(child: Text('Something went wrong.'));
-          },
+              return const Center(child: Text('Something went wrong.'));
+            },
+          ),
         ),
       ),
     );

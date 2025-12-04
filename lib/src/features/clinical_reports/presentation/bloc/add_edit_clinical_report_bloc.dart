@@ -42,20 +42,12 @@ class AddEditClinicalReportBloc
         await reportResult.fold(
           (f) async => emit(AddEditClinicalReportError(f.message)),
           (report) async {
-            String? contentJson;
-            if (report.contentUrl != null) {
-              final contentResult = await _clinicalReportService
-                  .getReportContent(report.contentUrl!);
-              contentResult.fold(
-                (f) => null, // Ignore content fetch error, load empty
-                (c) => contentJson = c,
-              );
-            }
+            // Content is now stored directly in Firestore
             emit(
               AddEditClinicalReportLoaded(
                 report: report,
                 patients: patients!,
-                contentJson: contentJson,
+                contentJson: report.content, // Load from entity directly
               ),
             );
           },

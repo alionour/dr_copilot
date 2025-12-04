@@ -62,7 +62,9 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
       }
 
       final title = _titleController.text.trim().isEmpty
-          ? 'Clinical Report - ${DateFormat.yMMMd().format(_selectedDate)}'
+          ? 'clinicalReportDefaultTitle'.tr(
+              args: [DateFormat.yMMMd().format(_selectedDate)],
+            )
           : _titleController.text;
 
       final newReport = ClinicalReport(
@@ -175,7 +177,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
             context.go('/clinical_reports/${state.reportId}/edit');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Report created but ID missing')),
+              SnackBar(content: Text('reportCreatedIdMissing'.tr())),
             );
             context.pop();
           }
@@ -324,7 +326,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
                   );
                 }
 
-                return const Center(child: Text('Something went wrong.'));
+                return Center(child: Text('somethingWentWrong'.tr()));
               },
             ),
       ),
