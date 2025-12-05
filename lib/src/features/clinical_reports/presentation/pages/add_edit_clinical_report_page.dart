@@ -429,8 +429,10 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                                           transparentBackground: false,
                                           safeBrowsingEnabled: true,
                                           isInspectable: kDebugMode,
-                                          incognito: true,
-                                          cacheEnabled: false,
+                                          incognito:
+                                              false, // Allow cookie/session sharing
+                                          cacheEnabled:
+                                              true, // Enable session caching
                                           javaScriptCanOpenWindowsAutomatically:
                                               true,
                                           domStorageEnabled: true,
