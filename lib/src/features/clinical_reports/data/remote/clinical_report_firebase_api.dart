@@ -74,6 +74,12 @@ class ClinicalReportFirebaseApi {
         'documentUrls': reportToSave.documentUrls,
         'content': reportToSave.content, // Save HTML directly in Firestore
         'contentUrl': null, // Reserved for future Storage migration
+        'googleDocId': reportToSave.googleDocId,
+        'isFinalized': reportToSave.isFinalized,
+        'finalizedAt': reportToSave.finalizedAt != null
+            ? Timestamp.fromDate(reportToSave.finalizedAt!)
+            : null,
+        'finalizedBy': reportToSave.finalizedBy,
         'clinicId': clinicId,
         'createdBy': user.uid,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -201,6 +207,79 @@ class ClinicalReportFirebaseApi {
     }
   }
 
+  Future<Either<Failure, ClinicalReport>> saveReportWithGoogleDoc({
+    required ClinicalReport report,
+    required String googleDocId,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      // Generate new ID if needed
+      var reportId = report.id;
+      if (reportId == 'new_report_id') {
+        reportId = _reportsCollection.doc().id;
+      }
+
+      final data = {
+        'id': reportId,
+        'title': report.title,
+        'patientId': report.patientId,
+        'description': report.description,
+        'date': Timestamp.fromDate(report.date),
+        'googleDocId': googleDocId,
+        'isFinalized': false,
+        'clinicId': clinicId,
+        'createdBy': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await _reportsCollection.doc(reportId).set(data, SetOptions(merge: true));
+
+      return Right(report.copyWith(id: reportId, googleDocId: googleDocId));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
+  Future<Either<Failure, ClinicalReport>> finalizeReport({
+    required String reportId,
+    required String htmlContent,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      final data = {
+        'content': htmlContent,
+        'isFinalized': true,
+        'finalizedAt': FieldValue.serverTimestamp(),
+        'finalizedBy': user.uid,
+        'googleDocId': null, // Clear Google Doc link
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await _reportsCollection.doc(reportId).update(data);
+
+      // Create audit trail entry
+      await _reportsCollection.doc(reportId).collection('changes').add({
+        'action': 'finalized',
+        'userId': user.uid,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      final doc = await _reportsCollection.doc(reportId).get();
+      return Right(_fromFirestore(doc.data() as Map<String, dynamic>));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
   ClinicalReport _fromFirestore(Map<String, dynamic> data) {
     return ClinicalReport(
       id: data['id'] as String,
@@ -211,6 +290,12 @@ class ClinicalReportFirebaseApi {
       documentUrls: List<String>.from(data['documentUrls'] ?? []),
       contentUrl: data['contentUrl'] as String?,
       content: data['content'] as String?,
+      googleDocId: data['googleDocId'] as String?,
+      isFinalized: data['isFinalized'] as bool? ?? false,
+      finalizedAt: data['finalizedAt'] != null
+          ? (data['finalizedAt'] as Timestamp).toDate()
+          : null,
+      finalizedBy: data['finalizedBy'] as String?,
     );
   }
 

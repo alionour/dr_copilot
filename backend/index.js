@@ -43,6 +43,11 @@ app.get('/accept-invitation', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'accept-invitation.html'));
 });
 
+// Serve admin notifications dashboard
+app.get('/admin/notifications', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-notifications.html'));
+});
+
 // API routes
 const invitationRouter = require('./routes/invitations');
 const notificationRouter = require('./routes/notifications');

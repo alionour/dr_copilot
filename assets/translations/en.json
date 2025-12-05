@@ -619,5 +619,8 @@
   "somethingWentWrong": "Something went wrong",
   "reportCreatedIdMissing": "Report created but ID missing",
   "clinicalReportDefaultTitle": "Clinical Report - {}",
-  "patients": "Patients"
+  "patients": "Patients",
+  "openInBrowser": "Open in Browser",
+  "webviewLimitationsWarning": "Note: Some formatting features (fonts, headings) may not work in embedded view due to Google's security restrictions.",
+  "editingInBrowser": "For full functionality, use 'Open in Browser'."
 }

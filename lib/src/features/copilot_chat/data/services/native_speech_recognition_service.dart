@@ -7,14 +7,15 @@ import 'package:flutter/foundation.dart';
 
 /// Native speech recognition service using device's built-in speech recognition
 /// Supports 100+ languages including Arabic
-class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService {
+class NativeSpeechRecognitionService
+    implements AbstractSpeechRecognitionService {
   final stt.SpeechToText _speech = stt.SpeechToText();
-  
+
   bool _isInitialized = false;
   bool _isListening = false;
   String _lastTranscript = '';
   String _currentLanguage = 'en_US';
-  
+
   StreamController<String>? _recognitionController;
   Completer<String>? _finalTranscriptCompleter;
 
@@ -27,7 +28,7 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
 
     try {
       debugPrint('[NativeSpeech] Initializing native speech recognition...');
-      
+
       _isInitialized = await _speech.initialize(
         onStatus: (status) {
           debugPrint('[NativeSpeech] Status: $status');
@@ -44,23 +45,44 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
         // Log available locales
         final locales = await _speech.locales();
         debugPrint('[NativeSpeech] Available locales: ${locales.length}');
-        debugPrint('[NativeSpeech] All locales: ${locales.map((l) => l.localeId).join(", ")}');
-        final arabicLocales = locales.where((l) => l.localeId.startsWith('ar')).toList();
-        debugPrint('[NativeSpeech] Arabic locales found: ${arabicLocales.length}');
+        debugPrint(
+          '[NativeSpeech] All locales: ${locales.map((l) => l.localeId).join(", ")}',
+        );
+        final arabicLocales = locales
+            .where((l) => l.localeId.startsWith('ar'))
+            .toList();
+        debugPrint(
+          '[NativeSpeech] Arabic locales found: ${arabicLocales.length}',
+        );
         if (arabicLocales.isNotEmpty) {
-          debugPrint('[NativeSpeech] Arabic locales: ${arabicLocales.map((l) => l.localeId).join(", ")}');
+          debugPrint(
+            '[NativeSpeech] Arabic locales: ${arabicLocales.map((l) => l.localeId).join(", ")}',
+          );
         } else {
-          debugPrint('[NativeSpeech] WARNING: No Arabic locales found! Arabic speech recognition may not work.');
-          debugPrint('[NativeSpeech] To fix: Add Arabic language in device Settings → Languages');
+          debugPrint(
+            '[NativeSpeech] WARNING: No Arabic locales found! Arabic speech recognition may not work.',
+          );
+          debugPrint(
+            '[NativeSpeech] To fix: Add Arabic language in device Settings → Languages',
+          );
         }
         return const Right(true);
       } else {
-        debugPrint('[NativeSpeech] ERROR: Speech recognition initialization failed!');
-        return Left(ServerFailure('Speech recognition not available on this device', 500));
+        debugPrint(
+          '[NativeSpeech] ERROR: Speech recognition initialization failed!',
+        );
+        return Left(
+          ServerFailure('Speech recognition not available on this device', 500),
+        );
       }
     } catch (e) {
       debugPrint('[NativeSpeech] Initialization failed: $e');
-      return Left(ServerFailure('Failed to initialize native speech recognition: ${e.toString()}', 500));
+      return Left(
+        ServerFailure(
+          'Failed to initialize native speech recognition: ${e.toString()}',
+          500,
+        ),
+      );
     }
   }
 
@@ -85,14 +107,23 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
 
       // Verify the locale is available on the device
       final locales = await _speech.locales();
-      
+
       if (locales.isEmpty) {
-        debugPrint('[NativeSpeech] ERROR: No locales available on this device!');
-        return Left(ServerFailure('No speech recognition locales available on this device', 500));
+        debugPrint(
+          '[NativeSpeech] ERROR: No locales available on this device!',
+        );
+        return Left(
+          ServerFailure(
+            'No speech recognition locales available on this device',
+            500,
+          ),
+        );
       }
-      
-      debugPrint('[NativeSpeech] Available locales for selection: ${locales.map((l) => l.localeId).take(5).join(", ")}...');
-      
+
+      debugPrint(
+        '[NativeSpeech] Available locales for selection: ${locales.map((l) => l.localeId).take(5).join(", ")}...',
+      );
+
       final requestedLocale = locales.firstWhere(
         (l) => l.localeId == _currentLanguage,
         orElse: () {
@@ -101,26 +132,35 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
           final matchingLocale = locales.firstWhere(
             (l) => l.localeId.startsWith(languageCode),
             orElse: () {
-              debugPrint('[NativeSpeech] WARNING: No locale found for $languageCode, using first available: ${locales.first.localeId}');
+              debugPrint(
+                '[NativeSpeech] WARNING: No locale found for $languageCode, using first available: ${locales.first.localeId}',
+              );
               return locales.first;
             },
           );
-          debugPrint('[NativeSpeech] Requested locale $_currentLanguage not found, using ${matchingLocale.localeId}');
+          debugPrint(
+            '[NativeSpeech] Requested locale $_currentLanguage not found, using ${matchingLocale.localeId}',
+          );
           return matchingLocale;
         },
       );
-      
+
       final actualLocaleId = requestedLocale.localeId;
-      debugPrint('[NativeSpeech] Starting to listen with language: $actualLocaleId (requested: $_currentLanguage)');
-      
+      debugPrint(
+        '[NativeSpeech] Starting to listen with language: $actualLocaleId (requested: $_currentLanguage)',
+      );
+
       await _speech.listen(
         onResult: (result) {
-          debugPrint('[NativeSpeech] Result: "${result.recognizedWords}" (final: ${result.finalResult})');
+          debugPrint(
+            '[NativeSpeech] Result: "${result.recognizedWords}" (final: ${result.finalResult})',
+          );
           _lastTranscript = result.recognizedWords;
           _recognitionController?.add(result.recognizedWords);
-          
+
           if (result.finalResult) {
-            if (_finalTranscriptCompleter != null && !_finalTranscriptCompleter!.isCompleted) {
+            if (_finalTranscriptCompleter != null &&
+                !_finalTranscriptCompleter!.isCompleted) {
               _finalTranscriptCompleter!.complete(result.recognizedWords);
             }
           }
@@ -131,7 +171,8 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
         listenOptions: stt.SpeechListenOptions(
           partialResults: true,
           cancelOnError: false,
-          onDevice: false, // Use cloud-based recognition for better Arabic support
+          onDevice:
+              false, // Use cloud-based recognition for better Arabic support
         ),
       );
 
@@ -140,7 +181,9 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
       return const Right(true);
     } catch (e) {
       debugPrint('[NativeSpeech] Failed to start listening: $e');
-      return Left(ServerFailure('Failed to start listening: ${e.toString()}', 500));
+      return Left(
+        ServerFailure('Failed to start listening: ${e.toString()}', 500),
+      );
     }
   }
 
@@ -148,9 +191,11 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
   Future<Either<Failure, String>> stopListening() async {
     try {
       debugPrint('[NativeSpeech] Stopping listening...');
-      
+
       if (!_isListening) {
-        debugPrint('[NativeSpeech] Not listening, returning current transcript: "$_lastTranscript"');
+        debugPrint(
+          '[NativeSpeech] Not listening, returning current transcript: "$_lastTranscript"',
+        );
         return Right(_lastTranscript);
       }
 
@@ -164,12 +209,16 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
         finalTranscript = await _finalTranscriptCompleter!.future.timeout(
           const Duration(milliseconds: 1000),
           onTimeout: () {
-            debugPrint('[NativeSpeech] Timeout waiting for final result, using _lastTranscript');
+            debugPrint(
+              '[NativeSpeech] Timeout waiting for final result, using _lastTranscript',
+            );
             return _lastTranscript;
           },
         );
       } catch (e) {
-        debugPrint('[NativeSpeech] Error waiting for final result: $e, using _lastTranscript');
+        debugPrint(
+          '[NativeSpeech] Error waiting for final result: $e, using _lastTranscript',
+        );
         finalTranscript = _lastTranscript;
       }
 
@@ -178,21 +227,27 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
       _recognitionController = null;
       _finalTranscriptCompleter = null;
 
-      debugPrint('[NativeSpeech] Stopped listening, final transcript: "$finalTranscript" (length: ${finalTranscript.length})');
-      
+      debugPrint(
+        '[NativeSpeech] Stopped listening, final transcript: "$finalTranscript" (length: ${finalTranscript.length})',
+      );
+
       // Reset for next session
       final result = finalTranscript;
       _lastTranscript = '';
-      
+
       if (result.isEmpty) {
-        debugPrint('[NativeSpeech] WARNING: No speech was recognized. Check if microphone permissions are granted and device supports the selected language.');
+        debugPrint(
+          '[NativeSpeech] WARNING: No speech was recognized. Check if microphone permissions are granted and device supports the selected language.',
+        );
       }
-      
+
       return Right(result);
     } catch (e) {
       debugPrint('[NativeSpeech] Error stopping listening: $e');
       _isListening = false;
-      return Left(ServerFailure('Failed to stop listening: ${e.toString()}', 500));
+      return Left(
+        ServerFailure('Failed to stop listening: ${e.toString()}', 500),
+      );
     }
   }
 
@@ -207,7 +262,9 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
       _lastTranscript = '';
       return const Right(true);
     } catch (e) {
-      return Left(ServerFailure('Failed to cancel listening: ${e.toString()}', 500));
+      return Left(
+        ServerFailure('Failed to cancel listening: ${e.toString()}', 500),
+      );
     }
   }
 
@@ -237,7 +294,9 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
       }
       return Right(_isInitialized);
     } catch (e) {
-      return Left(ServerFailure('Failed to check availability: ${e.toString()}', 500));
+      return Left(
+        ServerFailure('Failed to check availability: ${e.toString()}', 500),
+      );
     }
   }
 
@@ -247,12 +306,17 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
       if (!_isInitialized) {
         await initialize();
       }
-      
+
       final locales = await _speech.locales();
       final languageCodes = locales.map((locale) => locale.localeId).toList();
       return Right(languageCodes);
     } catch (e) {
-      return Left(ServerFailure('Failed to get available languages: ${e.toString()}', 500));
+      return Left(
+        ServerFailure(
+          'Failed to get available languages: ${e.toString()}',
+          500,
+        ),
+      );
     }
   }
 
@@ -270,14 +334,21 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
   @override
   Stream<Either<Failure, String>> getRealtimeRecognitionStream() {
     if (_recognitionController == null) {
-      return Stream.value(Left(ServerFailure('Recognition stream not available.', 500)));
+      return Stream.value(
+        Left(ServerFailure('Recognition stream not available.', 500)),
+      );
     }
-    
+
     return _recognitionController!.stream
         .map<Either<Failure, String>>((text) => Right(text))
         .handleError((error) {
-      return Left(ServerFailure('Realtime recognition stream error: ${error.toString()}', 500));
-    });
+          return Left(
+            ServerFailure(
+              'Realtime recognition stream error: ${error.toString()}',
+              500,
+            ),
+          );
+        });
   }
 
   /// Set the language for speech recognition
@@ -305,7 +376,9 @@ class NativeSpeechRecognitionService implements AbstractSpeechRecognitionService
       default:
         _currentLanguage = 'en_US';
     }
-    
-    debugPrint('[NativeSpeech] Language preference set to: $_currentLanguage (from code: $languageCode)');
+
+    debugPrint(
+      '[NativeSpeech] Language preference set to: $_currentLanguage (from code: $languageCode)',
+    );
   }
 }

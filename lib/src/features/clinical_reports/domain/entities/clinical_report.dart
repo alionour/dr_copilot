@@ -9,6 +9,10 @@ class ClinicalReport extends Equatable {
   final List<String> documentUrls;
   final String? contentUrl; // Reserved for future Storage migration
   final String? content; // HTML content stored in Firestore
+  final String? googleDocId; // Link to Google Doc (null when finalized)
+  final bool isFinalized; // True when exported and locked
+  final DateTime? finalizedAt; // When report was finalized
+  final String? finalizedBy; // User ID who finalized
 
   const ClinicalReport({
     required this.id,
@@ -19,6 +23,10 @@ class ClinicalReport extends Equatable {
     this.documentUrls = const [],
     this.contentUrl,
     this.content,
+    this.googleDocId,
+    this.isFinalized = false,
+    this.finalizedAt,
+    this.finalizedBy,
   });
 
   ClinicalReport copyWith({
@@ -30,6 +38,10 @@ class ClinicalReport extends Equatable {
     List<String>? documentUrls,
     String? contentUrl,
     String? content,
+    String? googleDocId,
+    bool? isFinalized,
+    DateTime? finalizedAt,
+    String? finalizedBy,
   }) {
     return ClinicalReport(
       id: id ?? this.id,
@@ -40,6 +52,10 @@ class ClinicalReport extends Equatable {
       documentUrls: documentUrls ?? this.documentUrls,
       contentUrl: contentUrl ?? this.contentUrl,
       content: content ?? this.content,
+      googleDocId: googleDocId ?? this.googleDocId,
+      isFinalized: isFinalized ?? this.isFinalized,
+      finalizedAt: finalizedAt ?? this.finalizedAt,
+      finalizedBy: finalizedBy ?? this.finalizedBy,
     );
   }
 
@@ -53,5 +69,9 @@ class ClinicalReport extends Equatable {
     documentUrls,
     contentUrl,
     content,
+    googleDocId,
+    isFinalized,
+    finalizedAt,
+    finalizedBy,
   ];
 }
