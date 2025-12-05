@@ -32,6 +32,25 @@ class ClinicalReportService {
     return _api.saveReport(report: updatedReport, jsonFile: jsonFile);
   }
 
+  Future<Either<Failure, ClinicalReport>> saveReportWithGoogleDoc({
+    required ClinicalReport report,
+    required String googleDocId,
+  }) async {
+    debugPrint('Saving report with Google Doc ID: $googleDocId');
+    return _api.saveReportWithGoogleDoc(
+      report: report,
+      googleDocId: googleDocId,
+    );
+  }
+
+  Future<Either<Failure, ClinicalReport>> finalizeReport({
+    required String reportId,
+    required String htmlContent,
+  }) async {
+    debugPrint('Finalizing report: $reportId');
+    return _api.finalizeReport(reportId: reportId, htmlContent: htmlContent);
+  }
+
   Future<Either<Failure, List<ClinicalReport>>> getClinicalReportsForPatient(
     String patientId,
   ) async {

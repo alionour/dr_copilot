@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+
 import 'package:dr_copilot/src/core/code_pusher/shorebird_updater.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
 import 'package:dr_copilot/src/core/localization/app_localization.dart';
@@ -22,9 +25,6 @@ void main() async {
   // before the app starts running.
   WidgetsFlutterBinding.ensureInitialized();
 
-  /// Initializes Firebase with platform-specific options, sets up dependency injections,
-  /// retrieves shared preferences, and determines if dark mode is enabled by reading
-  /// the 'isDarkMode' flag from persistent storage. If the flag is not set, defaults to false.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Set background message handler for FCM

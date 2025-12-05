@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_ai_service.dart';
 import 'package:dr_copilot/src/features/patients/domain/services/patient_service.dart';
+import 'package:dr_copilot/src/features/clinical_reports/domain/services/google_docs_service.dart';
 import 'add_edit_clinical_report_event.dart';
 import 'add_edit_clinical_report_state.dart';
 
@@ -14,11 +16,13 @@ class AddEditClinicalReportBloc
   final ClinicalReportService _clinicalReportService;
   final PatientService _patientService;
   final ClinicalReportAIService _aiService;
+  final GoogleDocsService _googleDocsService;
 
   AddEditClinicalReportBloc(
     this._clinicalReportService,
     this._patientService,
     this._aiService,
+    this._googleDocsService,
   ) : super(AddEditClinicalReportInitial()) {
     on<LoadAddEditClinicalReport>((event, emit) async {
       emit(AddEditClinicalReportLoading());
@@ -53,26 +57,72 @@ class AddEditClinicalReportBloc
           },
         );
       } else {
-        emit(AddEditClinicalReportLoaded(patients: patients!));
+        // NEW REPORT: Don't create Google Doc yet, just load patients
+        // The user needs to select a patient and enter basic info first
+        // The Google Doc will be created when they save the report
+        emit(
+          AddEditClinicalReportLoaded(
+            patients: patients!,
+            report: null, // No report yet, user is filling out the form
+            contentJson: null,
+          ),
+        );
       }
       add(LoadSavedInstructions());
     });
 
     on<SaveClinicalReport>((event, emit) async {
-      final result = event.report.id == 'new_report_id'
-          ? await _clinicalReportService.createClinicalReport(
-              event.report,
-              jsonFile: event.jsonFile,
-            )
-          : await _clinicalReportService.updateClinicalReport(
-              event.report,
-              jsonFile: event.jsonFile,
-            );
+      emit(AddEditClinicalReportLoading());
 
-      result.fold(
-        (failure) => emit(AddEditClinicalReportError(failure.message)),
-        (report) => emit(AddEditClinicalReportSuccess(reportId: report.id)),
-      );
+      try {
+        // Check if this is a new report without a Google Doc
+        if (event.report.googleDocId == null) {
+          debugPrint(
+            '[AddEditClinicalReportBloc] Creating Google Doc for new report...',
+          );
+          // Create the Google Doc now
+          final docId = await _googleDocsService.createDocument(
+            event.report.title.isEmpty
+                ? 'Clinical Report - ${event.report.date}'
+                : event.report.title,
+          );
+          debugPrint('[AddEditClinicalReportBloc] Google Doc created: $docId');
+
+          // Update the report with the docId
+          final reportWithDocId = event.report.copyWith(googleDocId: docId);
+
+          // Save using the Google Doc service method
+          final result = await _clinicalReportService.saveReportWithGoogleDoc(
+            report: reportWithDocId,
+            googleDocId: docId,
+          );
+
+          result.fold(
+            (failure) => emit(AddEditClinicalReportError(failure.message)),
+            (report) {
+              emit(AddEditClinicalReportSuccess(reportId: report.id));
+              // Reload to show the editor
+              add(LoadAddEditClinicalReport(report.id));
+            },
+          );
+        } else {
+          // Report already has a Google Doc, just update metadata
+          final result = await _clinicalReportService.updateClinicalReport(
+            event.report,
+            jsonFile: event.jsonFile,
+          );
+
+          result.fold(
+            (failure) => emit(AddEditClinicalReportError(failure.message)),
+            (report) => emit(AddEditClinicalReportSuccess(reportId: report.id)),
+          );
+        }
+      } catch (e) {
+        debugPrint(
+          '[AddEditClinicalReportBloc] ERROR in SaveClinicalReport: $e',
+        );
+        emit(AddEditClinicalReportError('Failed to save report: $e'));
+      }
     });
 
     on<AutoSaveClinicalReport>((event, emit) async {
@@ -387,12 +437,45 @@ class AddEditClinicalReportBloc
               isAILoading: false,
             ),
           );
-          await _clinicalReportService.saveChatMessage(event.reportId, aiMsg);
         } catch (e) {
           emit(AddEditClinicalReportError(e.toString()));
           emit(currentState.copyWith(isAILoading: false));
         }
       }
+    });
+
+    on<SaveClinicalReportWithGoogleDoc>((event, emit) async {
+      emit(AddEditClinicalReportLoading());
+
+      final result = await _clinicalReportService.saveReportWithGoogleDoc(
+        report: event.report,
+        googleDocId: event.googleDocId,
+      );
+
+      result.fold(
+        (failure) => emit(AddEditClinicalReportError(failure.message)),
+        (report) {
+          emit(AddEditClinicalReportSuccess(reportId: report.id));
+          // Reload to show editor
+          add(LoadAddEditClinicalReport(report.id));
+        },
+      );
+    });
+
+    on<FinalizeClinicalReport>((event, emit) async {
+      emit(AddEditClinicalReportLoading());
+      final result = await _clinicalReportService.finalizeReport(
+        reportId: event.reportId,
+        htmlContent: event.htmlContent,
+      );
+
+      result.fold(
+        (failure) => emit(AddEditClinicalReportError(failure.message)),
+        (report) {
+          emit(AddEditClinicalReportSuccess(reportId: report.id));
+          add(LoadAddEditClinicalReport(report.id));
+        },
+      );
     });
   }
 }

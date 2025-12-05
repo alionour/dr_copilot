@@ -167,3 +167,23 @@ class AIRefineClinicalDataRequested extends AddEditClinicalReportEvent {
 }
 
 class AIRefineConsumed extends AddEditClinicalReportEvent {}
+
+class SaveClinicalReportWithGoogleDoc extends AddEditClinicalReportEvent {
+  final ClinicalReport report;
+  final String googleDocId;
+
+  const SaveClinicalReportWithGoogleDoc(this.report, this.googleDocId);
+
+  @override
+  List<Object> get props => [report, googleDocId];
+}
+
+class FinalizeClinicalReport extends AddEditClinicalReportEvent {
+  final String reportId;
+  final String htmlContent;
+
+  const FinalizeClinicalReport(this.reportId, this.htmlContent);
+
+  @override
+  List<Object> get props => [reportId, htmlContent];
+}
