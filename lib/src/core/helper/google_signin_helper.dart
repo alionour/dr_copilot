@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
+import 'package:googleapis/docs/v1.dart' as docs;
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -11,7 +12,7 @@ import 'package:universal_io/io.dart' as io;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
+/// A list of OAuth 2.0 scopes required for Google Sign-In, Calendar, Drive, and Docs API access.
 final scopes = [
   'profile',
   'email',
@@ -22,6 +23,7 @@ final scopes = [
   CalendarApi.calendarEventsReadonlyScope,
   CalendarApi.calendarSettingsReadonlyScope,
   drive.DriveApi.driveScope,
+  docs.DocsApi.documentsScope,
 ];
 
 /// Custom AuthClient for using a saved access token with Google APIs
@@ -291,6 +293,12 @@ class GoogleSignInHelper {
             value: accessToken,
           );
         }
+        if (idToken != null) {
+          await secureStorage.write(
+            key: 'desktop_auth_id_token',
+            value: idToken,
+          );
+        }
         if (refreshToken != null) {
           await secureStorage.write(
             key: 'desktop_auth_refresh_token',
@@ -302,8 +310,14 @@ class GoogleSignInHelper {
         _client = AuthClient(
           accessToken,
           refreshTokenCallback: () async {
-            // Implement refresh logic here if needed using the stored refresh token
-            return null;
+            debugPrint('[Desktop] Token expired, refreshing...');
+            final newToken = await refreshAccessToken();
+            if (newToken != null) {
+              debugPrint('[Desktop] Token refreshed successfully');
+            } else {
+              debugPrint('[Desktop] Token refresh failed');
+            }
+            return newToken;
           },
         );
 
@@ -320,9 +334,7 @@ class GoogleSignInHelper {
 
   Future<String?> get idToken async {
     if (io.Platform.isWindows || io.Platform.isLinux) {
-      // For desktop, we might not have easy access to ID token after initial login
-      // unless we stored it. For now returning null or implementing storage if needed.
-      return null;
+      return await secureStorage.read(key: 'desktop_auth_id_token');
     }
     final account = _googleSignIn.currentUser;
     if (account == null) {
@@ -345,12 +357,84 @@ class GoogleSignInHelper {
   }
 
   Future<String?> refreshAccessToken() async {
-    // ... (existing implementation for mobile/web) ...
-    // For desktop, we would use the refresh token stored in secureStorage
     if (io.Platform.isWindows || io.Platform.isLinux) {
-      // Implement desktop refresh logic
-      return null;
+      try {
+        debugPrint('[Desktop] Attempting to refresh access token...');
+
+        final refreshToken = await secureStorage.read(
+          key: 'desktop_auth_refresh_token',
+        );
+        if (refreshToken == null) {
+          debugPrint(
+            '[Desktop] No refresh token found. User needs to sign in again.',
+          );
+          return null;
+        }
+
+        final clientId = io.Platform.environment['WEB_CLIENT_ID'];
+        final clientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
+
+        if (clientId == null || clientSecret == null) {
+          debugPrint('[Desktop] OAuth credentials not found in environment.');
+          return null;
+        }
+
+        final response = await http.post(
+          Uri.https('oauth2.googleapis.com', '/token'),
+          body: {
+            'client_id': clientId,
+            'client_secret': clientSecret,
+            'refresh_token': refreshToken,
+            'grant_type': 'refresh_token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final tokenData = jsonDecode(response.body);
+          final newAccessToken = tokenData['access_token'];
+
+          if (newAccessToken != null) {
+            // Store the new access token
+            await secureStorage.write(
+              key: 'desktop_auth_access_token',
+              value: newAccessToken,
+            );
+
+            // Update the client with the new token
+            _client = AuthClient(
+              newAccessToken,
+              refreshTokenCallback: () async {
+                debugPrint('[Desktop] Token expired, refreshing...');
+                final token = await refreshAccessToken();
+                if (token != null) {
+                  debugPrint('[Desktop] Token refreshed successfully');
+                } else {
+                  debugPrint('[Desktop] Token refresh failed');
+                }
+                return token;
+              },
+            );
+
+            debugPrint('[Desktop] Access token refreshed successfully');
+            return newAccessToken;
+          }
+        } else {
+          debugPrint(
+            '[Desktop] Token refresh failed: ${response.statusCode} ${response.body}',
+          );
+          // If refresh token is invalid/expired, clear stored tokens
+          await secureStorage.delete(key: 'desktop_auth_access_token');
+          await secureStorage.delete(key: 'desktop_auth_refresh_token');
+          await secureStorage.delete(key: 'desktop_auth_id_token');
+        }
+        return null;
+      } catch (error) {
+        debugPrint('[Desktop] Error refreshing access token: $error');
+        return null;
+      }
     }
+
+    // Mobile/Web platforms
     try {
       debugPrint('refreshAccessToken: Attempting to refresh token.');
       GoogleSignInAccount? account = _googleSignIn.currentUser;
