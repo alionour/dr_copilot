@@ -1,9 +1,16 @@
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon.png"
+    background_color: "#0072FF"
+    theme_color: "#0072FF"
   windows:
     generate: true
-  image_path: "assets/png/app_logo/drcopilot_logo_no_text.png"
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/png/app_logo/drcopilot_logo_no_text.png"
+    icon_size: 48
+  image_path: "assets/icon.png"
+  # Using PNG for better compatibility
+  adaptive_icon_background: "#0072FF" 
+  adaptive_icon_foreground: "assets/icon.png"
