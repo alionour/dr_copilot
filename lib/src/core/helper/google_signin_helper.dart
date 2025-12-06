@@ -218,6 +218,8 @@ class GoogleSignInHelper {
         'response_type': 'code',
         'scope': scopes.join(' '),
         'access_type': 'offline', // Important for refresh token
+        'prompt':
+            'consent', // Forces refresh_token to be returned even on re-auth
       });
 
       // 3. Launch the URL
