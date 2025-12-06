@@ -11,10 +11,11 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
   static const String _usersCollectionName = 'users';
 
   NotificationFirebaseApi({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference get _collection => _firestore.collection(_collectionName);
-  CollectionReference get _usersCollection => _firestore.collection(_usersCollectionName);
+  CollectionReference get _usersCollection =>
+      _firestore.collection(_usersCollectionName);
 
   @override
   Future<List<NotificationModel>> getNotifications(String userId) async {
@@ -22,13 +23,16 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
       final querySnapshot = await _collection
           .where('userId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
+          .limit(20) // Limit to last 20 notifications
           .get();
 
       return querySnapshot.docs
-          .map((doc) => NotificationModel.fromJson({
-                ...doc.data() as Map<String, dynamic>,
-                'id': doc.id,
-              }))
+          .map(
+            (doc) => NotificationModel.fromJson({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch notifications: $e');
@@ -103,7 +107,9 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
   }
 
   @override
-  Future<NotificationModel> createNotification(NotificationModel notification) async {
+  Future<NotificationModel> createNotification(
+    NotificationModel notification,
+  ) async {
     try {
       final docRef = await _collection.add(notification.toJson());
       final doc = await docRef.get();
@@ -121,14 +127,17 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
     return _collection
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
+        .limit(20) // Limit to last 20 notifications
         .snapshots()
         .asyncMap((snapshot) async {
           try {
             return snapshot.docs
-                .map((doc) => NotificationModel.fromJson({
-                      ...doc.data() as Map<String, dynamic>,
-                      'id': doc.id,
-                    }))
+                .map(
+                  (doc) => NotificationModel.fromJson({
+                    ...doc.data() as Map<String, dynamic>,
+                    'id': doc.id,
+                  }),
+                )
                 .toList();
           } catch (e) {
             // Log error but don't crash
@@ -155,7 +164,7 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
   Future<int> sendBulkNotification(NotificationTemplate template) async {
     try {
       final targetUserIds = await getTargetUserIds(template.target);
-      
+
       if (targetUserIds.isEmpty) {
         return 0;
       }
@@ -202,24 +211,41 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
       Query<Object?> query = _usersCollection;
 
       switch (target.type) {
+        case NotificationTargetType.allUsers:
+          // No filtering - returns all users
+          break;
+
         case NotificationTargetType.allClinicOwners:
-          query = query.where('roles', arrayContains: AppRole.admin.roleToString(AppRole.admin));
+          query = query.where(
+            'roles',
+            arrayContains: AppRole.admin.roleToString(AppRole.admin),
+          );
           break;
 
         case NotificationTargetType.allDoctors:
-          query = query.where('roles', arrayContains: AppRole.doctor.roleToString(AppRole.doctor));
+          query = query.where(
+            'roles',
+            arrayContains: AppRole.doctor.roleToString(AppRole.doctor),
+          );
           break;
 
         case NotificationTargetType.allStaff:
-          query = query.where('roles', arrayContains: AppRole.staff.roleToString(AppRole.staff));
+          query = query.where(
+            'roles',
+            arrayContains: AppRole.staff.roleToString(AppRole.staff),
+          );
           break;
 
         case NotificationTargetType.specificRoles:
           if (target.targetRoles == null || target.targetRoles!.isEmpty) {
             return [];
           }
-          query = query.where('roles', arrayContainsAny: 
-            target.targetRoles!.map((role) => AppRole.admin.roleToString(role)).toList());
+          query = query.where(
+            'roles',
+            arrayContainsAny: target.targetRoles!
+                .map((role) => AppRole.admin.roleToString(role))
+                .toList(),
+          );
           break;
 
         case NotificationTargetType.ownerClinics:
