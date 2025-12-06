@@ -32,6 +32,7 @@ import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecas
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
 
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:go_router/go_router.dart';
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -256,11 +257,7 @@ class _CopilotPageState extends State<CopilotPage> {
 
       if (!mounted) return;
       context.read<CopilotBloc>().add(
-        UploadImageEvent(
-          selectedModel: _selectedModel,
-          imageBytes: _pickedImage!,
-          text: _controller.text,
-        ),
+        UploadImageEvent(imageBytes: _pickedImage!, text: _controller.text),
       );
       setState(() {
         _pickedImage = null;
@@ -300,7 +297,7 @@ class _CopilotPageState extends State<CopilotPage> {
       context.read<CopilotBloc>().add(
         GenerateResponseEvent(
           query: _controller.text,
-          selectedModel: _selectedModel,
+
           messageHistory: recentMessages,
         ),
       );
@@ -357,16 +354,23 @@ class _CopilotPageState extends State<CopilotPage> {
                           } else if (state is CopilotFunctionCall) {
                             _handleFunctionCall(state.functionCall);
                           } else if (state is CopilotError) {
-                            setState(() {
-                              _messages.add({
-                                "isUser": false,
-                                "message": 'Error: ${state.error}',
-                              });
-                            });
-                            _scrollToBottom();
-                            context.read<CopilotBloc>().add(
-                              CacheMessagesEvent(_messages),
-                            );
+                            // Show error in SnackBar with Change Model button
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('AI Error: ${state.error}'),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 10),
+                                  action: SnackBarAction(
+                                    label: 'Change Model',
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      context.push('/settings/model_selection');
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
                           } else if (state is CachedMessagesLoaded) {
                             setState(() {
                               _messages.addAll(state.messages);

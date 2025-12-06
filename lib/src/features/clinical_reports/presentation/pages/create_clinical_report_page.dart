@@ -237,7 +237,9 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
                                         fontSize: 16,
                                         color: _selectedPatient == null
                                             ? Colors.grey.shade600
-                                            : Colors.black87,
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
                                       ),
                                     ),
                                   ),

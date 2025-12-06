@@ -14,6 +14,7 @@ class InvitationFirebaseApi {
           .doc(invitation.id)
           .set(invitation.toJson());
     } catch (e) {
+      log('Error creating invitation: $e');
       throw ServerException(e.toString(), 500);
     }
   }
@@ -29,12 +30,18 @@ class InvitationFirebaseApi {
           .map((doc) => InvitationModel.fromDocument(doc))
           .toList();
     } catch (e) {
+      // Log the full error to get the index creation link
+      log('========================================');
+      log('FIRESTORE INDEX ERROR:');
+      log(e.toString());
+      log('========================================');
       throw ServerException(e.toString(), 500);
     }
   }
 
   Future<List<InvitationModel>> getPendingInvitationsByClinic(
-      String clinicId) async {
+    String clinicId,
+  ) async {
     try {
       final snapshot = await _firestore
           .collection('user_invitations')
@@ -62,6 +69,7 @@ class InvitationFirebaseApi {
           .doc(invitationId)
           .delete();
     } catch (e) {
+      log('Error deleting invitation: $e');
       throw ServerException(e.toString(), 500);
     }
   }
@@ -72,6 +80,7 @@ class InvitationFirebaseApi {
         'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
       });
     } catch (e) {
+      log('Error resending invitation: $e');
       throw ServerException(e.toString(), 500);
     }
   }

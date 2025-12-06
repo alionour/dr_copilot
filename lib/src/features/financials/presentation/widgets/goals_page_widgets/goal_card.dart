@@ -21,16 +21,20 @@ class GoalCard extends StatelessWidget {
           children: [
             Text(
               goal.title,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             if (goal.description?.isNotEmpty == true)
               Text(
                 goal.description!,
-                style: const TextStyle(fontSize: 15, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             const SizedBox(height: 18),
             Builder(
@@ -43,21 +47,25 @@ class GoalCard extends StatelessWidget {
                     LinearProgressIndicator(
                       value: progress,
                       minHeight: 10,
-                      backgroundColor: Color(goal.color)
-                          .withValues(alpha: (0.15 * 255).toDouble()),
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(Color(goal.color)),
+                      backgroundColor: Color(
+                        goal.color,
+                      ).withValues(alpha: (0.15 * 255).toDouble()),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(goal.color),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'progressLabelWithPercent'
-                            .tr(args: [(progress * 100).toStringAsFixed(0)]),
+                        'progressLabelWithPercent'.tr(
+                          args: [(progress * 100).toStringAsFixed(0)],
+                        ),
                         style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(goal.color),
-                            fontSize: 14),
+                          fontWeight: FontWeight.bold,
+                          color: Color(goal.color),
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],

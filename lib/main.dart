@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import 'package:dr_copilot/src/core/code_pusher/shorebird_updater.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
 import 'package:dr_copilot/src/core/localization/app_localization.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
@@ -38,6 +38,23 @@ void main() async {
   final isDarkModeStr = await secureStorage.read(key: 'isDarkMode');
   final isDarkMode = isDarkModeStr == null ? false : isDarkModeStr == 'true';
 
+  // Load saved color scheme
+  final schemeStr = await secureStorage.read(key: 'themeScheme');
+  FlexScheme initialScheme = FlexScheme.tealM3; // Default
+  if (schemeStr != null) {
+    try {
+      initialScheme = FlexScheme.values.firstWhere(
+        (e) => e.name == schemeStr,
+        orElse: () => FlexScheme.tealM3,
+      );
+    } catch (e) {
+      debugPrint('Error parsing theme scheme: $e');
+    }
+  }
+
+  // Load saved font size
+  final fontSize = await secureStorage.read(key: 'fontSize') ?? 'medium';
+
   // Shorebird: Automatically check for and apply updates on startup
   await ShorebirdCodePushHandler.checkAndApplyUpdate();
 
@@ -57,13 +74,19 @@ void main() async {
   /// - Specifies the list of supported locales via [supportedLocales].
   /// - Sets the path to the translation files with [path].
   /// - Defines a fallback locale and a starting locale, both set to English.
-  /// - Passes [isDarkMode] to the [App] widget to configure the theme.
+  /// - Passes [isDarkMode] and [initialScheme] to the [App] widget to configure the theme.
   // Initialize EasyLocalization with supported locales
   await localization.EasyLocalization.ensureInitialized();
 
   runApp(
     /// A widget that provides localization support for the application,
     /// enabling translation and locale management throughout the widget tree.
-    AppLocalization(child: App(isDarkMode: isDarkMode)),
+    AppLocalization(
+      child: App(
+        isDarkMode: isDarkMode,
+        initialScheme: initialScheme,
+        initialFontSize: fontSize,
+      ),
+    ),
   );
 }

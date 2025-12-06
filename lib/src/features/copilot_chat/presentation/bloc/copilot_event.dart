@@ -9,31 +9,25 @@ abstract class CopilotEvent extends Equatable {
 
 class GenerateResponseEvent extends CopilotEvent {
   final String query;
-  final String selectedModel;
   final List<Map<String, dynamic>> messageHistory;
 
   const GenerateResponseEvent({
     required this.query,
-    required this.selectedModel,
     this.messageHistory = const [],
   });
 
   @override
-  List<Object> get props => [query, selectedModel, messageHistory];
+  List<Object> get props => [query, messageHistory];
 }
 
 class UploadImageEvent extends CopilotEvent {
-  final String selectedModel;
   final Uint8List imageBytes;
   final String text;
 
-  const UploadImageEvent(
-      {required this.selectedModel,
-      required this.imageBytes,
-      required this.text});
+  const UploadImageEvent({required this.imageBytes, required this.text});
 
   @override
-  List<Object> get props => [selectedModel, imageBytes, text];
+  List<Object> get props => [imageBytes, text];
 }
 
 class CacheMessagesEvent extends CopilotEvent {

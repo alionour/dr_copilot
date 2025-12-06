@@ -1,25 +1,124 @@
+import 'dart:convert';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http;
 
 class ClinicalReportAIService {
   final FlutterSecureStorage _secureStorage;
 
   ClinicalReportAIService(this._secureStorage);
 
-  Future<GenerativeModel> _getModel() async {
-    String? apiKey = await _secureStorage.read(key: 'geminiApiKey');
+  Future<String> _getApiKey(String model) async {
+    String? apiKey = await _secureStorage.read(key: '${model}_api_key');
+
+    // Fallback for Gemini and OpenAI if not found in secure storage (legacy support)
     if (apiKey == null || apiKey.isEmpty) {
-      apiKey = ApiKeyHelper.geminiKey;
+      if (model == 'gemini') {
+        // Try legacy key
+        apiKey = await _secureStorage.read(key: 'geminiApiKey');
+        if (apiKey == null || apiKey.isEmpty) {
+          apiKey = ApiKeyHelper.geminiKey;
+        }
+      } else if (model == 'openai') {
+        // Try legacy key
+        apiKey = await _secureStorage.read(key: 'chatGptApiKey');
+        if (apiKey == null || apiKey.isEmpty) {
+          apiKey = ApiKeyHelper.gptKey;
+        }
+      } else if (model == 'claude') {
+        apiKey = ApiKeyHelper.claudeKey;
+      }
     }
 
-    if (apiKey.isEmpty) {
+    if (apiKey == null || apiKey.isEmpty) {
       throw Exception(
-        'Gemini API Key not found. Please configure it in settings.',
+        'API Key for $model not found. Please configure it in settings.',
       );
     }
+    return apiKey;
+  }
 
-    return GenerativeModel(model: 'gemini-2.5-flash-lite', apiKey: apiKey);
+  Future<String> _generateContent(String prompt) async {
+    final selectedModel =
+        await _secureStorage.read(key: 'selected_ai_model') ?? 'gemini';
+
+    if (selectedModel == 'openai') {
+      return _generateOpenAIContent(prompt);
+    } else if (selectedModel == 'claude') {
+      return _generateClaudeContent(prompt);
+    } else {
+      return _generateGeminiContent(prompt);
+    }
+  }
+
+  Future<String> _generateGeminiContent(String prompt) async {
+    final apiKey = await _getApiKey('gemini');
+    final model = GenerativeModel(
+      model: 'gemini-2.5-flash-lite',
+      apiKey: apiKey,
+    );
+    final content = [Content.text(prompt)];
+    final response = await model.generateContent(content);
+
+    if (response.text == null) {
+      throw Exception('Empty response from Gemini');
+    }
+    return response.text!;
+  }
+
+  Future<String> _generateOpenAIContent(String prompt) async {
+    final apiKey = await _getApiKey('openai');
+    final url = Uri.parse('https://api.openai.com/v1/chat/completions');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      body: jsonEncode({
+        'model': 'gpt-4o',
+        'messages': [
+          {'role': 'user', 'content': prompt},
+        ],
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['choices'][0]['message']['content'];
+    } else {
+      throw Exception('OpenAI Error: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  Future<String> _generateClaudeContent(String prompt) async {
+    final apiKey = await _getApiKey('claude');
+    final url = Uri.parse('https://api.anthropic.com/v1/messages');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'model': 'claude-3-5-sonnet-20240620',
+        'max_tokens': 1024,
+        'messages': [
+          {'role': 'user', 'content': prompt},
+        ],
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['content'][0]['text'];
+    } else {
+      throw Exception('Claude Error: ${response.statusCode} ${response.body}');
+    }
   }
 
   Future<String> editReport(
@@ -28,7 +127,6 @@ class ClinicalReportAIService {
     String? clinicalData,
   }) async {
     try {
-      final model = await _getModel();
       final prompt =
           '''
 You are a medical assistant helping a doctor write a clinical report.
@@ -47,15 +145,10 @@ If the instruction implies a minor change, preserve the rest of the document str
 If the instruction is to "fix grammar" or "refine", apply it to the text within the HTML structure.
 ''';
 
-      final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
-
-      if (response.text == null) {
-        throw Exception('Empty response from AI');
-      }
+      final responseText = await _generateContent(prompt);
 
       // Clean up potential markdown code blocks
-      String result = response.text!.trim();
+      String result = responseText.trim();
       if (result.startsWith('```html')) {
         result = result.substring(7);
       } else if (result.startsWith('```')) {
@@ -77,7 +170,6 @@ If the instruction is to "fix grammar" or "refine", apply it to the text within 
     String? clinicalData,
   }) async {
     try {
-      final model = await _getModel();
       final prompt =
           '''
 You are a medical assistant helping a doctor write a clinical report.
@@ -94,14 +186,8 @@ Return ONLY the rewritten text.
 Do not include any markdown formatting or explanations.
 ''';
 
-      final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
-
-      if (response.text == null) {
-        throw Exception('Empty response from AI');
-      }
-
-      return response.text!.trim();
+      final responseText = await _generateContent(prompt);
+      return responseText.trim();
     } catch (e) {
       throw Exception('Failed to edit selection: $e');
     }
@@ -109,7 +195,6 @@ Do not include any markdown formatting or explanations.
 
   Future<String> chat(String message, {String? clinicalData}) async {
     try {
-      final model = await _getModel();
       final prompt =
           '''
 You are a helpful medical assistant.
@@ -121,14 +206,8 @@ Task:
 Respond to the user's message in a helpful and professional manner, incorporating the clinical data if relevant.
 ''';
 
-      final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
-
-      if (response.text == null) {
-        throw Exception('Empty response from AI');
-      }
-
-      return response.text!.trim();
+      final responseText = await _generateContent(prompt);
+      return responseText.trim();
     } catch (e) {
       throw Exception('Failed to chat: $e');
     }
@@ -136,7 +215,6 @@ Respond to the user's message in a helpful and professional manner, incorporatin
 
   Future<String> refineText(String text, String type) async {
     try {
-      final model = await _getModel();
       final prompt =
           '''
 You are a helpful medical assistant.
@@ -151,14 +229,8 @@ Return ONLY the refined text.
 Do not include any explanations or markdown formatting.
 ''';
 
-      final content = [Content.text(prompt)];
-      final response = await model.generateContent(content);
-
-      if (response.text == null) {
-        throw Exception('Empty response from AI');
-      }
-
-      return response.text!.trim();
+      final responseText = await _generateContent(prompt);
+      return responseText.trim();
     } catch (e) {
       throw Exception('Failed to refine text: $e');
     }

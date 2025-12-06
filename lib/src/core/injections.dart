@@ -25,6 +25,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/native_speech_recognition_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
 
+import 'package:dr_copilot/src/core/services/biometric_auth_service.dart';
+
 // Import other feature injection files as needed
 /// Initializes dependency injection for the application using GetIt.
 ///
@@ -45,6 +47,7 @@ Future<void> initInjections() async {
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => BiometricAuthService());
   initServicesInjections();
 
   // Features (order matters due to dependencies)
@@ -108,12 +111,12 @@ Future<void> initInjections() async {
   sl.registerLazySingleton<NativeSpeechRecognitionService>(
     () => NativeSpeechRecognitionService(),
   );
-  
+
   // Deepgram service for English (high quality)
   sl.registerLazySingleton<SpeechRecognitionService>(
     () => SpeechRecognitionService(deepgramApiKey: ApiKeyHelper.deepgramKey),
   );
-  
+
   // Hybrid service that routes based on language
   sl.registerLazySingleton<AbstractSpeechRecognitionService>(
     () => HybridSpeechRecognitionService(
@@ -121,8 +124,6 @@ Future<void> initInjections() async {
       deepgramService: sl<SpeechRecognitionService>(),
     ),
   );
-
-
 
   /// Initializes the dependency injections required for the settings feature.
   ///

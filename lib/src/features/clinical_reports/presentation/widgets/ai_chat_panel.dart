@@ -49,11 +49,11 @@ class _AIChatPanelState extends State<AIChatPanel> {
     return Container(
       width: 350,
       decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: Colors.grey.shade200)),
-        color: Colors.white,
+        border: Border(left: BorderSide(color: Theme.of(context).dividerColor)),
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(-2, 0),
           ),
@@ -65,8 +65,10 @@ class _AIChatPanelState extends State<AIChatPanel> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -263,7 +265,7 @@ class _AIChatPanelState extends State<AIChatPanel> {
                   widget.onDeleteInstruction(instruction.id);
                 },
                 avatar: const Icon(Icons.description, size: 16),
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(color: Colors.grey.shade300),
@@ -539,7 +541,9 @@ class _AIChatPanelState extends State<AIChatPanel> {
                         child: Text(
                           message.text,
                           style: TextStyle(
-                            color: isUser ? Colors.white : Colors.black87,
+                            color: isUser
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.onSurface,
                             height: 1.4,
                           ),
                         ),
@@ -551,8 +555,10 @@ class _AIChatPanelState extends State<AIChatPanel> {
         Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Colors.grey.shade200)),
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              top: BorderSide(color: Theme.of(context).dividerColor),
+            ),
           ),
           child: Row(
             children: [
