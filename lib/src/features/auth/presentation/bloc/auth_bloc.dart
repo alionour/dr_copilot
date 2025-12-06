@@ -14,9 +14,7 @@ part 'auth_state.dart';
 /// Bloc for handling authentication events and states.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// Constructor for AuthBloc, initializing with the initial state.
-  AuthBloc(
-    this.authUseCase,
-  ) : super(AuthInitial()) {
+  AuthBloc(this.authUseCase) : super(AuthInitial()) {
     on<SignInWithGoogle>(_signInWithGoogle);
     on<SignInWithEmailAndPassword>(_signInWithEmailAndPassword);
     on<SignOutEvent>(_onSignOut);
@@ -30,7 +28,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// @param event The event to sign in with Google.
   /// @param emit The function to emit states.
   void _signInWithGoogle(
-      SignInWithGoogle event, Emitter<AuthState> emit) async {
+    SignInWithGoogle event,
+    Emitter<AuthState> emit,
+  ) async {
     try {
       emit(const AuthLoading());
       debugPrint('SignInWithGoogle event triggered');
@@ -40,8 +40,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await _initializeFCM(user.uid);
 
         // Optionally store user data if needed
-        emit(AuthSignedIn(
-            message: 'User signed in successfully', user: user));
+        emit(AuthSignedIn(message: 'User signed in successfully', user: user));
       } else {
         emit(const AuthError(message: 'Google sign-in aborted'));
       }
@@ -56,18 +55,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// @param event The event to sign in with email and password.
   /// @param emit The function to emit states.
   void _signInWithEmailAndPassword(
-      SignInWithEmailAndPassword event, Emitter<AuthState> emit) async {
+    SignInWithEmailAndPassword event,
+    Emitter<AuthState> emit,
+  ) async {
     try {
       emit(const AuthLoading());
       debugPrint('SignInWithEmailAndPassword event triggered');
       final user = await authUseCase.signInWithEmailAndPassword(
-          event.email, event.password);
+        event.email,
+        event.password,
+      );
       if (user != null) {
         // Initialize FCM for the user
         await _initializeFCM(user.uid);
 
-        emit(AuthSignedIn(
-            message: 'User signed in successfully', user: user));
+        emit(AuthSignedIn(message: 'User signed in successfully', user: user));
       } else {
         emit(const AuthError(message: 'Sign-in failed'));
       }
@@ -99,6 +101,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null && user.photoURL != null) {
         await CachedNetworkImage.evictFromCache(user.photoURL!);
       }
+
+      // Clean up FCM (delete token and stop listeners)
+      try {
+        final fcmService = GetIt.instance<FCMService>();
+        await fcmService.deleteToken();
+        debugPrint('[AuthBloc] FCM cleaned up');
+      } catch (e) {
+        debugPrint('[AuthBloc] Error cleaning up FCM: $e');
+      }
+
       await authUseCase.signOut();
       debugPrint('Sign-out successful');
       RoutingConfig.router.go('/');
