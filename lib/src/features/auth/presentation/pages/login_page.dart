@@ -45,9 +45,7 @@ class _LoginPageState extends State<LoginPage> {
       builder: (context, state) {
         if (state is AuthLoading) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -59,10 +57,9 @@ class _LoginPageState extends State<LoginPage> {
                 end: Alignment.bottomRight,
                 colors: [
                   Theme.of(context).colorScheme.primaryContainer.withAlpha(76),
-                  Theme.of(context)
-                      .colorScheme
-                      .secondaryContainer
-                      .withAlpha(76),
+                  Theme.of(
+                    context,
+                  ).colorScheme.secondaryContainer.withAlpha(76),
                 ],
               ),
             ),
@@ -70,8 +67,9 @@ class _LoginPageState extends State<LoginPage> {
               child: SingleChildScrollView(
                 child: Card(
                   elevation: 12.0,
-                  shadowColor:
-                      Theme.of(context).colorScheme.shadow.withAlpha(76),
+                  shadowColor: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withAlpha(76),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24.0),
                   ),
@@ -88,15 +86,14 @@ class _LoginPageState extends State<LoginPage> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer
-                                  .withAlpha(76),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer.withAlpha(76),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(60),
                               child: SvgPicture.asset(
-                                'assets/svg/drcopilot_logo.svg',
+                                'assets/icon.svg',
                                 semanticsLabel: 'App Logo',
                                 width: 120,
                                 height: 120,
@@ -112,9 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 32),
                         Text(
                           'welcomeBack'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
@@ -124,12 +119,12 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 8),
                         Text(
                           'signInToContinue'.tr(),
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 48),
@@ -191,16 +186,14 @@ class _LoginPageState extends State<LoginPage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withAlpha(76),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest.withAlpha(76),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outline
-                                  .withAlpha(51),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withAlpha(51),
                             ),
                           ),
                           child: Column(
@@ -213,24 +206,18 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(height: 8),
                               Text(
                                 'secureAuthentication'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'googleAuthDescription'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                                 textAlign: TextAlign.center,
                               ),
