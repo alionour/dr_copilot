@@ -180,10 +180,9 @@ class SaveClinicalReportWithGoogleDoc extends AddEditClinicalReportEvent {
 
 class FinalizeClinicalReport extends AddEditClinicalReportEvent {
   final String reportId;
-  final String htmlContent;
 
-  const FinalizeClinicalReport(this.reportId, this.htmlContent);
+  const FinalizeClinicalReport(this.reportId);
 
   @override
-  List<Object> get props => [reportId, htmlContent];
+  List<Object> get props => [reportId];
 }
