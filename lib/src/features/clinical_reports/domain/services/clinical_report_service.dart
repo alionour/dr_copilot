@@ -45,10 +45,9 @@ class ClinicalReportService {
 
   Future<Either<Failure, ClinicalReport>> finalizeReport({
     required String reportId,
-    required String htmlContent,
   }) async {
     debugPrint('Finalizing report: $reportId');
-    return _api.finalizeReport(reportId: reportId, htmlContent: htmlContent);
+    return _api.finalizeReport(reportId: reportId);
   }
 
   Future<Either<Failure, List<ClinicalReport>>> getClinicalReportsForPatient(

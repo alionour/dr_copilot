@@ -247,7 +247,6 @@ class ClinicalReportFirebaseApi {
 
   Future<Either<Failure, ClinicalReport>> finalizeReport({
     required String reportId,
-    required String htmlContent,
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -256,11 +255,9 @@ class ClinicalReportFirebaseApi {
       }
 
       final data = {
-        'content': htmlContent,
         'isFinalized': true,
         'finalizedAt': FieldValue.serverTimestamp(),
         'finalizedBy': user.uid,
-        'googleDocId': null, // Clear Google Doc link
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
