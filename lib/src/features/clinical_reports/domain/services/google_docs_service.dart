@@ -99,6 +99,15 @@ class GoogleDocsService {
     return url;
   }
 
+  /// Get the URL for previewing the document (read-only)
+  String getPreviewUrl(String docId, {String? languageCode}) {
+    var url = 'https://docs.google.com/document/d/$docId/preview';
+    if (languageCode != null) {
+      url += '?hl=$languageCode';
+    }
+    return url;
+  }
+
   /// Export the document as HTML string
   Future<String> exportAsHtml(String docId) async {
     try {

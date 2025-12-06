@@ -12,7 +12,7 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_e
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_event.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_state.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
 // WebView imports
@@ -78,7 +78,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
       builder: (context) => AlertDialog(
         title: const Text('Finalize Report'),
         content: const Text(
-          'Are you sure you want to finalize this report? This action is irreversible. The report will be saved as read-only and the Google Doc will be deleted.',
+          'Are you sure you want to finalize this report? This action is irreversible. The report will be saved as read-only and you will not be able to edit it again.',
         ),
         actions: [
           TextButton(
@@ -94,52 +94,8 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     );
 
     if (confirm == true && mounted) {
-      try {
-        final state = context.read<AddEditClinicalReportBloc>().state;
-        if (state is AddEditClinicalReportLoaded &&
-            state.report?.googleDocId != null) {
-          final service = getIt<GoogleDocsService>();
-          final html = await service.exportAsHtml(state.report!.googleDocId!);
-
-          if (mounted) {
-            context.read<AddEditClinicalReportBloc>().add(
-              FinalizeClinicalReport(reportId, html),
-            );
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to export report: $e')),
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _deleteClinicalReport() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('deleteReport'.tr()),
-        content: Text('deleteReportConfirmation'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('delete'.tr()),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && mounted && widget.reportId != null) {
       context.read<AddEditClinicalReportBloc>().add(
-        DeleteClinicalReport(widget.reportId!),
+        FinalizeClinicalReport(reportId),
       );
     }
   }
@@ -180,6 +136,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                     // Edit Mode: Show Editable Title in AppBar
                     return TextField(
                       controller: _titleController,
+                      enabled: !state.report!.isFinalized,
                       style: const TextStyle(
                         color: Colors.black, // Adjust based on theme if needed
                         fontSize: 20,
@@ -216,10 +173,6 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                 },
               ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: widget.reportId != null ? _deleteClinicalReport : null,
-            ),
             BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
               builder: (context, state) {
                 if (state is AddEditClinicalReportLoaded &&
@@ -315,66 +268,141 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                         Expanded(
                           child: Stack(
                             children: [
-                              if (state.report?.isFinalized == true)
-                                // Show read-only HTML content
-                                SingleChildScrollView(
-                                  padding: const EdgeInsets.all(16),
-                                  child: HtmlWidget(
-                                    state.report!.content ?? '',
-                                    textStyle: const TextStyle(fontSize: 16),
-                                  ),
-                                )
-                              else if (state.report?.googleDocId != null)
-                                // Show WebView with warning and browser option
+                              if (state.report?.googleDocId != null)
+                                // Show WebView
                                 Column(
                                   children: [
-                                    // Warning Banner
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
-                                      ),
-                                      color: Colors.orange.shade100,
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: Colors.orange.shade900,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'webviewLimitationsWarning'
-                                                      .tr(),
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color:
-                                                        Colors.orange.shade900,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'editingInBrowser'.tr(),
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        Colors.orange.shade900,
-                                                  ),
-                                                ),
-                                              ],
+                                    if (state.report?.isFinalized == true)
+                                      // Read-only info banner
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        color: Colors.blue.shade100,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.info_outline,
+                                              color: Colors.blue.shade900,
+                                              size: 20,
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          ElevatedButton.icon(
-                                            onPressed: () async {
-                                              final url =
-                                                  getIt<GoogleDocsService>()
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'This report is read-only.',
+                                                style: TextStyle(
+                                                  color: Colors.blue.shade900,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if (state.report?.isFinalized == false)
+                                      // Warning Banner for editing
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        color: Colors.orange.shade100,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_rounded,
+                                              color: Colors.orange.shade900,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'webviewLimitationsWarning'
+                                                        .tr(),
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors
+                                                          .orange
+                                                          .shade900,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    'editingInBrowser'.tr(),
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors
+                                                          .orange
+                                                          .shade900,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            ElevatedButton.icon(
+                                              onPressed: () async {
+                                                final url =
+                                                    getIt<GoogleDocsService>()
+                                                        .getEditorUrl(
+                                                          state
+                                                              .report!
+                                                              .googleDocId!,
+                                                          languageCode: context
+                                                              .locale
+                                                              .languageCode,
+                                                        );
+                                                final uri = Uri.parse(url);
+                                                if (await canLaunchUrl(uri)) {
+                                                  await launchUrl(
+                                                    uri,
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  );
+                                                }
+                                              },
+                                              icon: const Icon(
+                                                Icons.open_in_new,
+                                                size: 16,
+                                              ),
+                                              label: Text('openInBrowser'.tr()),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.orange.shade700,
+                                                foregroundColor: Colors.white,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 8,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    // WebView
+                                    Expanded(
+                                      child: InAppWebView(
+                                        initialUrlRequest: URLRequest(
+                                          url: WebUri(
+                                            state.report!.isFinalized
+                                                ? getIt<GoogleDocsService>()
+                                                      .getPreviewUrl(
+                                                        state
+                                                            .report!
+                                                            .googleDocId!,
+                                                        languageCode: context
+                                                            .locale
+                                                            .languageCode,
+                                                      )
+                                                : getIt<GoogleDocsService>()
                                                       .getEditorUrl(
                                                         state
                                                             .report!
@@ -382,57 +410,15 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                                                         languageCode: context
                                                             .locale
                                                             .languageCode,
-                                                      );
-                                              final uri = Uri.parse(url);
-                                              if (await canLaunchUrl(uri)) {
-                                                await launchUrl(
-                                                  uri,
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              }
-                                            },
-                                            icon: const Icon(
-                                              Icons.open_in_new,
-                                              size: 16,
-                                            ),
-                                            label: Text('openInBrowser'.tr()),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.orange.shade700,
-                                              foregroundColor: Colors.white,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 8,
-                                                  ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // WebView
-                                    Expanded(
-                                      child: InAppWebView(
-                                        initialUrlRequest: URLRequest(
-                                          url: WebUri(
-                                            getIt<GoogleDocsService>()
-                                                .getEditorUrl(
-                                                  state.report!.googleDocId!,
-                                                  languageCode: context
-                                                      .locale
-                                                      .languageCode,
-                                                ),
+                                                      ),
                                           ),
                                         ),
                                         initialSettings: InAppWebViewSettings(
                                           transparentBackground: false,
                                           safeBrowsingEnabled: true,
                                           isInspectable: kDebugMode,
-                                          incognito:
-                                              false, // Allow cookie/session sharing
-                                          cacheEnabled:
-                                              true, // Enable session caching
+                                          incognito: false,
+                                          cacheEnabled: true,
                                           javaScriptCanOpenWindowsAutomatically:
                                               true,
                                           domStorageEnabled: true,
