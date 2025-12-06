@@ -71,8 +71,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             ? _selectedClinicIds
             : null,
       ),
-      actionUrl:
-          _actionUrlController.text.isEmpty ? null : _actionUrlController.text,
+      actionUrl: _actionUrlController.text.isEmpty
+          ? null
+          : _actionUrlController.text,
     );
 
     context.read<NotificationsBloc>().add(SendBulkNotificationEvent(template));
@@ -282,12 +283,14 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   ),
                   child: _isLoading
                       ? CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimary)
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        )
                       : Text(
                           'Send Notification',
                           style: TextStyle(
-                              fontSize: 16,
-                              color: Theme.of(context).colorScheme.onPrimary),
+                            fontSize: 16,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                         ),
                 ),
               ],
@@ -332,6 +335,8 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
 
   String _getTargetTypeName(NotificationTargetType type) {
     switch (type) {
+      case NotificationTargetType.allUsers:
+        return 'All Users';
       case NotificationTargetType.allClinicOwners:
         return 'All Clinic Owners';
       case NotificationTargetType.allDoctors:
