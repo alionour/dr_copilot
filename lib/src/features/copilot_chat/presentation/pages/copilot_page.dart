@@ -77,7 +77,6 @@ class _CopilotPageState extends State<CopilotPage> {
       _focusNode.requestFocus();
     });
     _initializeAvailableModels();
-    _loadCachedMessages();
     _requestPermissions();
   }
 
@@ -310,10 +309,6 @@ class _CopilotPageState extends State<CopilotPage> {
     _scrollToBottom();
     if (!mounted) return;
     context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
-  }
-
-  void _loadCachedMessages() {
-    context.read<CopilotBloc>().add(LoadCachedMessagesEvent());
   }
 
   @override
