@@ -300,7 +300,9 @@ class _SummaryCardState extends State<_SummaryCard> {
             boxShadow: _isHovered
                 ? [
                     BoxShadow(
-                      color: Colors.black26,
+                      color: Theme.of(
+                        context,
+                      ).shadowColor.withValues(alpha: 0.26),
                       blurRadius: 10,
                       offset: Offset(0, 4),
                     ),

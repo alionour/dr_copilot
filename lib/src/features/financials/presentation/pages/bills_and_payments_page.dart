@@ -22,13 +22,13 @@ class BillsAndPaymentsPage extends StatelessWidget {
     return BlocConsumer<FinancialsBloc, FinancialsState>(
       listener: (context, state) {
         if (state is FinancialsSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         } else if (state is FinancialsError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       builder: (context, state) {
@@ -61,19 +61,22 @@ class BillsAndPaymentsPage extends StatelessWidget {
                   Text(
                     'billsAndPayments'.tr(),
                     style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
                   if (state.bills.isEmpty)
                     Center(child: Text('noBills'.tr()))
                   else ...[
-                    ...state.bills.map((b) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _BillCard(bill: b),
-                        )),
+                    ...state.bills.map(
+                      (b) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _BillCard(bill: b),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -112,12 +115,17 @@ class _BillCard extends StatelessWidget {
                   Text(
                     bill.title,
                     style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.bold),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${'dueDate'.tr()}: ${bill.dueDate.toDate().toString().split(' ')[0]}',
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -131,8 +139,10 @@ class _BillCard extends StatelessWidget {
             Column(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isPaid ? Colors.green[100] : Colors.red[100],
                     borderRadius: BorderRadius.circular(8),
@@ -156,7 +166,8 @@ class _BillCard extends StatelessWidget {
                         builder: (context) => AlertDialog(
                           title: Text('confirm'.tr()),
                           content: Text(
-                              '${'doYouWantPayThisBill'.tr()}: ${bill.title}؟'),
+                            '${'doYouWantPayThisBill'.tr()}: ${bill.title}؟',
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
@@ -165,9 +176,9 @@ class _BillCard extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                context
-                                    .read<FinancialsBloc>()
-                                    .add(PayBill(bill));
+                                context.read<FinancialsBloc>().add(
+                                  PayBill(bill),
+                                );
                               },
                               child: Text('pay'.tr()),
                             ),
@@ -181,10 +192,13 @@ class _BillCard extends StatelessWidget {
                       backgroundColor: Colors.teal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       minimumSize: const Size(80, 36),
                     ),
                   ),
@@ -205,8 +219,9 @@ class _ScheduleBillSection extends StatelessWidget {
       builder: (context, state) {
         return Card(
           elevation: 3,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           margin: const EdgeInsets.only(bottom: 20),
           child: Padding(
             padding: const EdgeInsets.all(18.0),
@@ -218,26 +233,28 @@ class _ScheduleBillSection extends StatelessWidget {
                   child: Text(
                     'addNewBill'.tr(),
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
                   ),
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
                     if (state.currencyProfiles.isEmpty) {
                       // Always try to fetch profiles if not loaded
-                      context
-                          .read<FinancialsBloc>()
-                          .add(FetchCurrencyProfiles());
+                      context.read<FinancialsBloc>().add(
+                        FetchCurrencyProfiles(),
+                      );
                       return;
                     }
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(18)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(18),
+                        ),
                       ),
                       builder: (context) {
                         final formKey = GlobalKey<FormState>();
@@ -246,8 +263,8 @@ class _ScheduleBillSection extends StatelessWidget {
                         final dateController = TextEditingController();
                         String selectedProfileId =
                             state.currencyProfiles.isNotEmpty
-                                ? state.currencyProfiles[0].id
-                                : '';
+                            ? state.currencyProfiles[0].id
+                            : '';
                         double? amount;
                         ScheduledBillType type = ScheduledBillType.expense;
                         ScheduledBillRecurrence recurrence =
@@ -256,8 +273,9 @@ class _ScheduleBillSection extends StatelessWidget {
                           builder: (context, setState) {
                             return Padding(
                               padding: EdgeInsets.only(
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom,
+                                bottom: MediaQuery.of(
+                                  context,
+                                ).viewInsets.bottom,
                                 left: 24,
                                 right: 24,
                                 top: 24,
@@ -269,16 +287,20 @@ class _ScheduleBillSection extends StatelessWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    Text('addNewBill'.tr(),
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.teal)),
+                                    Text(
+                                      'addNewBill'.tr(),
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.teal,
+                                      ),
+                                    ),
                                     const SizedBox(height: 18),
                                     TextFormField(
                                       decoration: InputDecoration(
-                                          labelText: 'title'.tr(),
-                                          border: OutlineInputBorder()),
+                                        labelText: 'title'.tr(),
+                                        border: OutlineInputBorder(),
+                                      ),
                                       validator: (v) => v == null || v.isEmpty
                                           ? 'required'.tr()
                                           : null,
@@ -287,8 +309,9 @@ class _ScheduleBillSection extends StatelessWidget {
                                     const SizedBox(height: 12),
                                     TextFormField(
                                       decoration: InputDecoration(
-                                          labelText: 'description'.tr(),
-                                          border: OutlineInputBorder()),
+                                        labelText: 'description'.tr(),
+                                        border: OutlineInputBorder(),
+                                      ),
                                       onSaved: (v) => description = v ?? '',
                                     ),
                                     const SizedBox(height: 12),
@@ -296,9 +319,10 @@ class _ScheduleBillSection extends StatelessWidget {
                                       controller: dateController,
                                       readOnly: true,
                                       decoration: InputDecoration(
-                                          labelText:
-                                              '${'dueDate'.tr()} (YYYY-MM-DD)',
-                                          border: OutlineInputBorder()),
+                                        labelText:
+                                            '${'dueDate'.tr()} (YYYY-MM-DD)',
+                                        border: OutlineInputBorder(),
+                                      ),
                                       validator: (v) => v == null || v.isEmpty
                                           ? 'required'.tr()
                                           : null,
@@ -318,7 +342,8 @@ class _ScheduleBillSection extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 12),
                                     DropdownButtonFormField<
-                                        CurrencyProfileModel>(
+                                      CurrencyProfileModel
+                                    >(
                                       value: state.currencyProfiles.isNotEmpty
                                           ? state.currencyProfiles.firstWhere(
                                               (profile) =>
@@ -329,39 +354,49 @@ class _ScheduleBillSection extends StatelessWidget {
                                             )
                                           : null,
                                       decoration: InputDecoration(
-                                          labelText: 'currencyProfile'.tr(),
-                                          border: OutlineInputBorder()),
+                                        labelText: 'currencyProfile'.tr(),
+                                        border: OutlineInputBorder(),
+                                      ),
                                       items: state.currencyProfiles
-                                          .map((profile) => DropdownMenuItem<
-                                                  CurrencyProfileModel>(
-                                                value: profile,
-                                                child: Text(
+                                          .map(
+                                            (profile) =>
+                                                DropdownMenuItem<
+                                                  CurrencyProfileModel
+                                                >(
+                                                  value: profile,
+                                                  child: Text(
                                                     profile.name.isNotEmpty
                                                         ? profile.name
-                                                        : profile.currency),
-                                              ))
+                                                        : profile.currency,
+                                                  ),
+                                                ),
+                                          )
                                           .toList(),
-                                      onChanged: (profile) => setState(() =>
-                                          selectedProfileId =
-                                              profile?.id ?? ''),
+                                      onChanged: (profile) => setState(
+                                        () => selectedProfileId =
+                                            profile?.id ?? '',
+                                      ),
                                     ),
                                     const SizedBox(height: 12),
                                     TextFormField(
                                       decoration: InputDecoration(
-                                          labelText: 'price'.tr(),
-                                          border: OutlineInputBorder()),
+                                        labelText: 'price'.tr(),
+                                        border: OutlineInputBorder(),
+                                      ),
                                       keyboardType:
                                           const TextInputType.numberWithOptions(
-                                              decimal: true),
+                                            decimal: true,
+                                          ),
                                       inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
+                                        FilteringTextInputFormatter.digitsOnly,
                                       ],
                                       validator: (v) {
                                         if (v == null || v.isEmpty) {
                                           return 'required'.tr();
                                         }
                                         final value = double.tryParse(
-                                            v.replaceAll(',', '.'));
+                                          v.replaceAll(',', '.'),
+                                        );
                                         if (value == null) {
                                           return 'enterValidNumber'.tr();
                                         }
@@ -375,7 +410,8 @@ class _ScheduleBillSection extends StatelessWidget {
                                       },
                                       onSaved: (v) {
                                         final value = double.tryParse(
-                                            v!.replaceAll(',', '.'));
+                                          v!.replaceAll(',', '.'),
+                                        );
                                         if (value != null) amount = value;
                                       },
                                     ),
@@ -383,58 +419,67 @@ class _ScheduleBillSection extends StatelessWidget {
                                     DropdownButtonFormField<ScheduledBillType>(
                                       value: type,
                                       decoration: InputDecoration(
-                                          labelText: 'type'.tr(),
-                                          border: OutlineInputBorder()),
+                                        labelText: 'type'.tr(),
+                                        border: OutlineInputBorder(),
+                                      ),
                                       items: ScheduledBillType.values
-                                          .map((t) => DropdownMenuItem(
-                                                value: t,
-                                                child: Text(t ==
-                                                            ScheduledBillType
-                                                                .expense
-                                                        ? 'expenses'
-                                                        : 'income')
-                                                    .tr(),
-                                              ))
+                                          .map(
+                                            (t) => DropdownMenuItem(
+                                              value: t,
+                                              child: Text(
+                                                t == ScheduledBillType.expense
+                                                    ? 'expenses'
+                                                    : 'income',
+                                              ).tr(),
+                                            ),
+                                          )
                                           .toList(),
-                                      onChanged: (v) => setState(() => type =
-                                          v ?? ScheduledBillType.expense),
+                                      onChanged: (v) => setState(
+                                        () => type =
+                                            v ?? ScheduledBillType.expense,
+                                      ),
                                     ),
                                     const SizedBox(height: 12),
                                     DropdownButtonFormField<
-                                        ScheduledBillRecurrence>(
+                                      ScheduledBillRecurrence
+                                    >(
                                       value: recurrence,
                                       decoration: InputDecoration(
-                                          labelText: 'recurrence'.tr(),
-                                          border: OutlineInputBorder()),
+                                        labelText: 'recurrence'.tr(),
+                                        border: OutlineInputBorder(),
+                                      ),
                                       items: ScheduledBillRecurrence.values
-                                          .map((r) => DropdownMenuItem(
-                                                value: r,
-                                                child: Text(
-                                                  r ==
+                                          .map(
+                                            (r) => DropdownMenuItem(
+                                              value: r,
+                                              child: Text(
+                                                r ==
+                                                        ScheduledBillRecurrence
+                                                            .none
+                                                    ? 'recurrence_none'.tr()
+                                                    : r ==
                                                           ScheduledBillRecurrence
-                                                              .none
-                                                      ? 'recurrence_none'.tr()
-                                                      : r ==
-                                                              ScheduledBillRecurrence
-                                                                  .weekly
-                                                          ? 'recurrence_weekly'
-                                                              .tr()
-                                                              .tr()
-                                                          : r ==
-                                                                  ScheduledBillRecurrence
-                                                                      .monthly
-                                                              ? 'recurrence_monthly'
-                                                                  .tr()
-                                                                  .tr()
-                                                              : 'recurrence_yearly'
-                                                                  .tr()
-                                                                  .tr(),
-                                                ),
-                                              ))
+                                                              .weekly
+                                                    ? 'recurrence_weekly'
+                                                          .tr()
+                                                          .tr()
+                                                    : r ==
+                                                          ScheduledBillRecurrence
+                                                              .monthly
+                                                    ? 'recurrence_monthly'
+                                                          .tr()
+                                                          .tr()
+                                                    : 'recurrence_yearly'
+                                                          .tr()
+                                                          .tr(),
+                                              ),
+                                            ),
+                                          )
                                           .toList(),
-                                      onChanged: (v) => setState(() =>
-                                          recurrence = v ??
-                                              ScheduledBillRecurrence.none),
+                                      onChanged: (v) => setState(
+                                        () => recurrence =
+                                            v ?? ScheduledBillRecurrence.none,
+                                      ),
                                     ),
                                     const SizedBox(height: 20),
                                     ElevatedButton(
@@ -442,27 +487,31 @@ class _ScheduleBillSection extends StatelessWidget {
                                         if (formKey.currentState!.validate()) {
                                           formKey.currentState!.save();
                                           final scheduledBill = ScheduledBillModel(
-                                              id: Uuid().v4(),
-                                              title: title,
-                                              description: description,
-                                              amount: amount ?? 0,
-                                              currencyProfileId:
-                                                  selectedProfileId,
-                                              type: type,
-                                              scheduledAt: dateController
-                                                      .text.isNotEmpty
-                                                  ? Timestamp.fromDate(
-                                                      DateTime.parse(
-                                                          dateController.text))
-                                                  : Timestamp.now(),
-                                              recurrence: recurrence,
-                                              createdAt: Timestamp.fromDate(
-                                                  DateTime.now()),
-                                              createdBy:
-                                                  '' // willbe added at repository layer
-                                              );
+                                            id: Uuid().v4(),
+                                            title: title,
+                                            description: description,
+                                            amount: amount ?? 0,
+                                            currencyProfileId:
+                                                selectedProfileId,
+                                            type: type,
+                                            scheduledAt:
+                                                dateController.text.isNotEmpty
+                                                ? Timestamp.fromDate(
+                                                    DateTime.parse(
+                                                      dateController.text,
+                                                    ),
+                                                  )
+                                                : Timestamp.now(),
+                                            recurrence: recurrence,
+                                            createdAt: Timestamp.fromDate(
+                                              DateTime.now(),
+                                            ),
+                                            createdBy:
+                                                '', // willbe added at repository layer
+                                          );
                                           context.read<FinancialsBloc>().add(
-                                              AddScheduledBill(scheduledBill));
+                                            AddScheduledBill(scheduledBill),
+                                          );
                                           Navigator.pop(context);
                                         }
                                       },
@@ -470,12 +519,16 @@ class _ScheduleBillSection extends StatelessWidget {
                                         backgroundColor: Colors.teal,
                                         foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 14),
+                                          vertical: 14,
+                                        ),
                                         textStyle: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8)),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
                                       ),
                                       child: Text('schedule'.tr()),
                                     ),
@@ -495,10 +548,13 @@ class _ScheduleBillSection extends StatelessWidget {
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ],
@@ -525,7 +581,10 @@ class _ScheduledBillsSection extends StatelessWidget {
         Text(
           'scheduledBills'.tr(),
           style: TextStyle(
-              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
@@ -559,12 +618,17 @@ class _ScheduledBillCard extends StatelessWidget {
                   Text(
                     bill.title,
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${'dueDate'.tr()}: ${bill.scheduledAt.toDate().toString().split(' ')[0]}',
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -584,9 +648,10 @@ class _ScheduledBillCard extends StatelessWidget {
               child: Text(
                 'scheduled'.tr(),
                 style: TextStyle(
-                    color: Colors.teal,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13),
+                  color: Colors.teal,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],

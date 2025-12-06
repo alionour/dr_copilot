@@ -1,6 +1,7 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/app/providers/providers.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,6 +13,7 @@ import 'notifiers/locale_notifier.dart';
 import 'notifiers/theme_notifier.dart';
 import 'providers/bloc_providers.dart';
 import '../widgets/no_internet_banner.dart';
+import 'package:dr_copilot/src/core/widgets/biometric_guard.dart';
 
 /// The [App] widget is the root of the application, responsible for setting up
 /// global providers and configuring the main [MaterialApp.router].
@@ -35,15 +37,28 @@ class App extends StatelessWidget {
   /// If `true`, the app will use a dark color scheme; otherwise, it will use a light color scheme.
   final bool isDarkMode;
 
+  /// The initial color scheme for the application.
+  final FlexScheme initialScheme;
+
+  /// The initial font size for the application.
+  final String initialFontSize;
+
   /// Creates an instance of the [App] widget.
   ///
   /// The [isDarkMode] parameter is required to determine the initial theme mode.
+  /// The [initialScheme] parameter determines the initial color scheme.
+  /// The [initialFontSize] parameter determines the initial font size.
   ///
   /// Example:
   /// ```dart
-  /// const App(isDarkMode: true);
+  /// const App(isDarkMode: true, initialScheme: FlexScheme.blue, initialFontSize: 'medium');
   /// ```
-  const App({super.key, required this.isDarkMode});
+  const App({
+    super.key,
+    required this.isDarkMode,
+    this.initialScheme = FlexScheme.tealM3,
+    this.initialFontSize = 'medium',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +78,16 @@ class App extends StatelessWidget {
     /// );
     /// ```
     return MultiProvider(
-      providers: appProviders,
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => ThemeNotifier(
+            isDarkMode: isDarkMode,
+            initialScheme: initialScheme,
+            initialFontSize: initialFontSize,
+          ),
+        ),
+        ...appProviders.skip(1), // Skip the first provider (ThemeNotifier)
+      ],
 
       /// Wraps the widget tree with a [Consumer] that listens to changes in [ThemeNotifier].
       /// This allows the UI to reactively update when the app's theme changes.
@@ -128,8 +152,18 @@ class App extends StatelessWidget {
                         debugPrint(
                           '2 Current Locale: ${Localizations.localeOf(context).languageCode}',
                         );
-                        return NoInternetBanner(
-                          child: Stack(children: [child!]),
+
+                        return MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                            textScaler: TextScaler.linear(
+                              themeNotifier.textScaleFactor,
+                            ),
+                          ),
+                          child: BiometricGuard(
+                            child: NoInternetBanner(
+                              child: Stack(children: [child!]),
+                            ),
+                          ),
                         );
                       },
                     ),

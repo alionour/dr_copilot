@@ -24,7 +24,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   final DeepSeekService deepSeekService;
   final QwenService qwenService;
   final ClaudeService claudeService;
-  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+  final FlutterSecureStorage secureStorage;
 
   CopilotBloc({
     required this.vertexAIService,
@@ -33,6 +33,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     required this.deepSeekService,
     required this.qwenService,
     required this.claudeService,
+    required this.secureStorage,
   }) : super(CopilotInitial()) {
     on<GenerateResponseEvent>(_onGenerateResponse);
     on<UploadImageEvent>(_onUploadImage);
@@ -42,28 +43,44 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   }
 
   AIService _getService(String modelName) {
-    switch (modelName) {
-      case 'MedPaLM':
-        return vertexAIService;
-      case 'GPT':
+    // Map internal storage keys to service names
+    switch (modelName.toLowerCase()) {
+      case 'openai':
         return gptService;
-      case 'DeepSeek':
-        return deepSeekService;
-      case 'Qwen':
-        return qwenService;
-      case 'Claude':
+      case 'claude':
         return claudeService;
-      case 'Gemini':
+      case 'gemini':
       default:
         return geminiService;
     }
   }
 
+  Future<T> _retryStorage<T>(Future<T> Function() operation) async {
+    int retries = 0;
+    while (true) {
+      try {
+        return await operation();
+      } catch (e) {
+        if (retries >= 3) rethrow;
+        retries++;
+        await Future.delayed(Duration(milliseconds: 200 * retries));
+      }
+    }
+  }
+
   Future<void> _onGenerateResponse(
-      GenerateResponseEvent event, Emitter<CopilotState> emit) async {
+    GenerateResponseEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
     emit(CopilotLoading());
     try {
-      final service = _getService(event.selectedModel);
+      // Read selected model from secure storage with retry
+      final selectedModel =
+          await _retryStorage(
+            () => secureStorage.read(key: 'selected_ai_model'),
+          ) ??
+          'gemini';
+      final service = _getService(selectedModel);
 
       // Special handling for Gemini to support function calling which returns a different type
       if (service is GeminiService) {
@@ -94,10 +111,18 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   }
 
   Future<void> _onUploadImage(
-      UploadImageEvent event, Emitter<CopilotState> emit) async {
+    UploadImageEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
     emit(CopilotLoading());
     try {
-      final service = _getService(event.selectedModel);
+      // Read selected model from secure storage with retry
+      final selectedModel =
+          await _retryStorage(
+            () => secureStorage.read(key: 'selected_ai_model'),
+          ) ??
+          'gemini';
+      final service = _getService(selectedModel);
       final response = await service.generateResponseWithImage(
         event.text,
         event.imageBytes,
@@ -113,15 +138,22 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   }
 
   Future<void> _onCacheMessages(
-      CacheMessagesEvent event, Emitter<CopilotState> emit) async {
+    CacheMessagesEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
     final messagesJson = jsonEncode(event.messages);
-    await secureStorage.write(key: 'cachedMessages', value: messagesJson);
+    await _retryStorage(
+      () => secureStorage.write(key: 'cachedMessages', value: messagesJson),
+    );
   }
 
   Future<void> _onLoadCachedMessages(
-      LoadCachedMessagesEvent event, Emitter<CopilotState> emit) async {
+    LoadCachedMessagesEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
     final messagesJson =
-        await secureStorage.read(key: 'cachedMessages') ?? '[]';
+        await _retryStorage(() => secureStorage.read(key: 'cachedMessages')) ??
+        '[]';
     final List<dynamic> decodedMessages = jsonDecode(messagesJson);
     final messages = decodedMessages
         .map((message) => Map<String, dynamic>.from(message))
@@ -130,8 +162,10 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   }
 
   Future<void> _onStartNewChat(
-      StartNewChatEvent event, Emitter<CopilotState> emit) async {
-    await secureStorage.delete(key: 'cachedMessages');
+    StartNewChatEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
+    await _retryStorage(() => secureStorage.delete(key: 'cachedMessages'));
     emit(NewChatStarted());
   }
 

@@ -19,13 +19,13 @@ class InvitationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          sl<InvitationBloc>()..add(LoadPendingInvitations(clinicId)),
+      create: (context) => sl<InvitationBloc>()..add(LoadInvitations(clinicId)),
       child: FutureBuilder<({UserModel? user, bool isAdmin})>(
         future: () async {
           final user = await sl<AuthUseCase>().getCurrentUser();
-          final isAdmin =
-              user != null ? await user.isAdminInClinic(clinicId) : false;
+          final isAdmin = user != null
+              ? await user.isAdminInClinic(clinicId)
+              : false;
 
           // Debug logging
           if (user != null) {
@@ -67,12 +67,10 @@ class InvitationsPage extends StatelessWidget {
             body: BlocConsumer<InvitationBloc, InvitationState>(
               listener: (context, state) {
                 if (state is InvitationOperationSuccess) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message)),
-                  );
-                  context
-                      .read<InvitationBloc>()
-                      .add(LoadPendingInvitations(clinicId));
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(state.message)));
+                  context.read<InvitationBloc>().add(LoadInvitations(clinicId));
                 } else if (state is InvitationError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -87,15 +85,13 @@ class InvitationsPage extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is InvitationLoaded) {
                   if (state.invitations.isEmpty) {
-                    return const Center(
-                      child: Text('No pending invitations'),
-                    );
+                    return const Center(child: Text('No invitations found'));
                   }
                   return RefreshIndicator(
                     onRefresh: () async {
-                      context
-                          .read<InvitationBloc>()
-                          .add(LoadPendingInvitations(clinicId));
+                      context.read<InvitationBloc>().add(
+                        LoadInvitations(clinicId),
+                      );
                     },
                     child: ListView.builder(
                       itemCount: state.invitations.length,
@@ -106,28 +102,32 @@ class InvitationsPage extends StatelessWidget {
                           onDelete: () {
                             // Only admins can delete
                             if (isAdmin) {
-                              context
-                                  .read<InvitationBloc>()
-                                  .add(DeleteInvitation(invitation.id));
+                              context.read<InvitationBloc>().add(
+                                DeleteInvitation(invitation.id),
+                              );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text(
-                                        'Only admins can delete invitations')),
+                                  content: Text(
+                                    'Only admins can delete invitations',
+                                  ),
+                                ),
                               );
                             }
                           },
                           onResend: () {
                             // Only admins can resend
                             if (isAdmin) {
-                              context
-                                  .read<InvitationBloc>()
-                                  .add(ResendInvitation(invitation.id));
+                              context.read<InvitationBloc>().add(
+                                ResendInvitation(invitation.id),
+                              );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text(
-                                        'Only admins can resend invitations')),
+                                  content: Text(
+                                    'Only admins can resend invitations',
+                                  ),
+                                ),
                               );
                             }
                           },

@@ -8,9 +8,7 @@ import 'package:googleapis/calendar/v3.dart' as google_calendar;
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({
-    super.key,
-  });
+  const CalendarPage({super.key});
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -30,8 +28,9 @@ class _CalendarPageState extends State<CalendarPage> {
     if (_visibleDates.isNotEmpty) {
       final startDate = _visibleDates.first;
       final endDate = _visibleDates.last;
-      BlocProvider.of<CalendarBloc>(context)
-          .add(GetCalendarEventsForRange(startDate, endDate));
+      BlocProvider.of<CalendarBloc>(
+        context,
+      ).add(GetCalendarEventsForRange(startDate, endDate));
     }
   }
 
@@ -42,8 +41,9 @@ class _CalendarPageState extends State<CalendarPage> {
       final newEvent = result['event'] as google_calendar.Event;
       final calendarId = result['calendar'] as String;
       if (!context.mounted) return;
-      BlocProvider.of<CalendarBloc>(context)
-          .add(AddCalendarEvent(newEvent, calendarId));
+      BlocProvider.of<CalendarBloc>(
+        context,
+      ).add(AddCalendarEvent(newEvent, calendarId));
     }
   }
 
@@ -62,8 +62,10 @@ class _CalendarPageState extends State<CalendarPage> {
               children: [
                 Text('calendarTitle'.tr()),
                 const SizedBox(width: 4),
-                Icon(Icons.arrow_drop_down,
-                    color: Theme.of(context).colorScheme.onPrimary),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               ],
             ),
           ),
@@ -85,9 +87,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            context
-                                .read<CalendarBloc>()
-                                .add(AuthenticateCalendar());
+                            context.read<CalendarBloc>().add(
+                              AuthenticateCalendar(),
+                            );
                           },
                           child: Text('connectGoogleCalendar'.tr()),
                         ),
@@ -101,33 +103,44 @@ class _CalendarPageState extends State<CalendarPage> {
                 }
                 return RefreshIndicator(
                   onRefresh: () => _refreshCalendarEvents(context),
-                  child: SfCalendar(
-                    key:
-                        ValueKey(_calendarView), // Force rebuild on view change
-                    view: _calendarView, // Ensure this is bound to the state
-                    dataSource:
-                        GoogleCalendarDataSource(events, calendarColors),
-                    onTap: (calendarTapDetails) {
-                      if (calendarTapDetails.targetElement ==
-                          CalendarElement.header) {
-                        // show modal bottom sheet
-                        _showCalendarViewSelection(context);
-                      }
-                    },
-                    allowAppointmentResize: true,
-                    allowDragAndDrop: true,
-                    onViewChanged: (ViewChangedDetails details) {
-                      _visibleDates = details.visibleDates;
-                      final startDate = details.visibleDates.first;
-                      final endDate = details.visibleDates.last;
-                      debugPrint(
-                          'View changed: StartDate=$startDate, EndDate=$endDate'); // Debugging
-                      BlocProvider.of<CalendarBloc>(context)
-                          .add(GetCalendarEventsForRange(startDate, endDate));
-                    },
-                    monthViewSettings: const MonthViewSettings(
+                  child: DefaultTextStyle(
+                    style:
+                        Theme.of(context).textTheme.bodyMedium ??
+                        const TextStyle(),
+                    child: SfCalendar(
+                      key: ValueKey(
+                        _calendarView,
+                      ), // Force rebuild on view change
+                      view: _calendarView, // Ensure this is bound to the state
+                      dataSource: GoogleCalendarDataSource(
+                        events,
+                        calendarColors,
+                      ),
+                      onTap: (calendarTapDetails) {
+                        if (calendarTapDetails.targetElement ==
+                            CalendarElement.header) {
+                          // show modal bottom sheet
+                          _showCalendarViewSelection(context);
+                        }
+                      },
+                      allowAppointmentResize: true,
+                      allowDragAndDrop: true,
+                      onViewChanged: (ViewChangedDetails details) {
+                        _visibleDates = details.visibleDates;
+                        final startDate = details.visibleDates.first;
+                        final endDate = details.visibleDates.last;
+                        debugPrint(
+                          'View changed: StartDate=$startDate, EndDate=$endDate',
+                        ); // Debugging
+                        BlocProvider.of<CalendarBloc>(
+                          context,
+                        ).add(GetCalendarEventsForRange(startDate, endDate));
+                      },
+                      monthViewSettings: const MonthViewSettings(
                         appointmentDisplayMode:
-                            MonthAppointmentDisplayMode.appointment),
+                            MonthAppointmentDisplayMode.appointment,
+                      ),
+                    ),
                   ),
                 );
               },
@@ -150,9 +163,7 @@ class _CalendarPageState extends State<CalendarPage> {
         final maxHeight = MediaQuery.of(context).size.height * 0.6;
         return SafeArea(
           child: Container(
-            constraints: BoxConstraints(
-              maxHeight: maxHeight,
-            ),
+            constraints: BoxConstraints(maxHeight: maxHeight),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -173,26 +184,29 @@ class _CalendarPageState extends State<CalendarPage> {
                     CalendarView.timelineWeek,
                     CalendarView.timelineWorkWeek,
                     CalendarView.timelineMonth,
-                  ].map((view) => ListTile(
-                        leading: Icon(Icons.calendar_month_outlined,
-                            color: Theme.of(context).colorScheme.primary),
-                        title: Text(
-                          'calendarView.${view.toString().split('.').last}'
-                              .tr(),
-                          style: TextStyle(
-                            fontWeight: _calendarView == view
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: _calendarView == view
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                          ),
+                  ].map(
+                    (view) => ListTile(
+                      leading: Icon(
+                        Icons.calendar_month_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(
+                        'calendarView.${view.toString().split('.').last}'.tr(),
+                        style: TextStyle(
+                          fontWeight: _calendarView == view
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _calendarView == view
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
                         ),
-                        selected: _calendarView == view,
-                        onTap: () {
-                          Navigator.of(context).pop(view);
-                        },
-                      )),
+                      ),
+                      selected: _calendarView == view,
+                      onTap: () {
+                        Navigator.of(context).pop(view);
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -213,7 +227,9 @@ class GoogleCalendarDataSource extends CalendarDataSource {
   final Map<String, Color> calendarColors;
 
   GoogleCalendarDataSource(
-      List<google_calendar.Event> source, this.calendarColors) {
+    List<google_calendar.Event> source,
+    this.calendarColors,
+  ) {
     appointments = source;
   }
 
