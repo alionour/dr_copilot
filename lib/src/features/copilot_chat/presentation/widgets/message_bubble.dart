@@ -56,7 +56,9 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Align(
         alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isUser
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             if (imageData != null)
               Padding(
@@ -67,7 +69,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                   child: Image.memory(base64Decode(imageData)),
                 ),
               ),
-            if (messageType == 'audio' && audioUrl != null && audioDuration != null)
+            if (messageType == 'audio' &&
+                audioUrl != null &&
+                audioDuration != null)
               AudioPlayerWidget(
                 audioUrl: audioUrl,
                 durationInSeconds: audioDuration,
@@ -84,7 +88,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildUserMessage(BuildContext context, String messageText) {
     final isHovering = ValueNotifier<bool>(false);
-    
+
     if (_isEditing) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -170,13 +174,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                 fontWeight: FontWeight.bold,
                 foreground: Paint()
                   ..shader = const LinearGradient(
-                    colors: <Color>[
-                      Color(0xFF6A11CB),
-                      Color(0xFF2575FC),
-                    ],
-                  ).createShader(
-                    const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                  ),
+                    colors: <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
+                  ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
               ),
             ),
           ),
@@ -185,12 +184,16 @@ class _MessageBubbleState extends State<MessageBubble> {
             padding: const EdgeInsets.only(right: 8.0),
             child: CircleAvatar(
               backgroundColor: Colors.blue,
-              backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
+              backgroundImage:
+                  FirebaseAuth.instance.currentUser?.photoURL != null
                   ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
                   : null,
               child: FirebaseAuth.instance.currentUser?.photoURL == null
                   ? Text(
-                      FirebaseAuth.instance.currentUser?.displayName?.substring(0, 1).toUpperCase() ?? 'U',
+                      FirebaseAuth.instance.currentUser?.displayName
+                              ?.substring(0, 1)
+                              .toUpperCase() ??
+                          'U',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -206,7 +209,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildBotMessage(BuildContext context, String messageText) {
     final isHovering = ValueNotifier<bool>(false);
-    
+
     return MouseRegion(
       onEnter: (_) => isHovering.value = true,
       onExit: (_) => isHovering.value = false,
@@ -240,26 +243,26 @@ class _MessageBubbleState extends State<MessageBubble> {
                 styleSheet: MarkdownStyleSheet(
                   p: GoogleFonts.roboto(
                     fontSize: 15,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     height: 1.6,
                   ),
                   pPadding: const EdgeInsets.only(bottom: 12),
                   h1: GoogleFonts.roboto(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     height: 1.3,
                   ),
                   h2: GoogleFonts.roboto(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     height: 1.3,
                   ),
                   h3: GoogleFonts.roboto(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     height: 1.3,
                   ),
                   h1Padding: const EdgeInsets.only(top: 24, bottom: 10),
@@ -267,13 +270,17 @@ class _MessageBubbleState extends State<MessageBubble> {
                   h3Padding: const EdgeInsets.only(top: 16, bottom: 6),
                   listBullet: GoogleFonts.roboto(
                     fontSize: 18,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     height: 1.4,
                   ),
                   listIndent: 20,
                   blockSpacing: 16,
-                  blockquotePadding: const EdgeInsets.only(left: 16, top: 12, bottom: 12),
+                  blockquotePadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 12,
+                    bottom: 12,
+                  ),
                   blockquoteDecoration: BoxDecoration(
                     border: Border(
                       left: BorderSide(color: Colors.grey.shade400, width: 3),
@@ -289,12 +296,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                     color: const Color(0xFF1E1E1E),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  strong: GoogleFonts.roboto(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  em: GoogleFonts.roboto(
-                    fontStyle: FontStyle.italic,
-                  ),
+                  strong: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+                  em: GoogleFonts.roboto(fontStyle: FontStyle.italic),
                 ),
               ),
             ),

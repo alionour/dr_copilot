@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Service for handling Firebase Cloud Messaging (FCM) push notifications
 class FCMService {
@@ -11,6 +12,7 @@ class FCMService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   String? _fcmToken;
   StreamSubscription<String>? _tokenSubscription;
@@ -80,8 +82,9 @@ class FCMService {
 
   /// Initialize local notifications for foreground messages
   Future<void> _initializeLocalNotifications() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -110,7 +113,8 @@ class FCMService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
   }
 
@@ -153,6 +157,18 @@ class FCMService {
 
   /// Show local notification
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    // Check if push notifications are enabled in settings
+    final pushEnabledStr = await _secureStorage.read(key: 'pushNotifications');
+    // Default to true if not set
+    final pushEnabled = pushEnabledStr == null
+        ? true
+        : pushEnabledStr == 'true';
+
+    if (!pushEnabled) {
+      debugPrint('[FCM] Push notifications disabled in settings. Suppressing.');
+      return;
+    }
+
     final notification = message.notification;
     final android = message.notification?.android;
 
@@ -219,10 +235,9 @@ class FCMService {
   /// Mark notification as read in Firestore
   Future<void> _markNotificationAsRead(String notificationId) async {
     try {
-      await _firestore
-          .collection('notifications')
-          .doc(notificationId)
-          .update({'isRead': true});
+      await _firestore.collection('notifications').doc(notificationId).update({
+        'isRead': true,
+      });
       debugPrint('[FCM] Notification marked as read: $notificationId');
     } catch (e) {
       debugPrint('[FCM] Error marking notification as read: $e');

@@ -19,15 +19,15 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   ///
   /// This collection is used to store and retrieve user-related data
   /// from the Firebase Firestore database.
-  final CollectionReference _usersCollection =
-      FirebaseFirestore.instance.collection('users');
+  final CollectionReference _usersCollection = FirebaseFirestore.instance
+      .collection('users');
 
   /// A reference to the 'user_invitations' collection in Firestore.
   ///
   /// This collection is used to store and retrieve user invitation-related data
   /// from the Firebase Firestore database.
-  final CollectionReference _userInvitations =
-      FirebaseFirestore.instance.collection('user_invitations');
+  final CollectionReference _userInvitations = FirebaseFirestore.instance
+      .collection('user_invitations');
 
   /// Creates an instance of [GoogleSignInHelper] to handle Google sign-in functionality.
   ///
@@ -98,13 +98,12 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Throws an exception if authentication fails.
   @override
   Future<UserModel?> signInWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
-      final UserCredential userCredential =
-          await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithEmailAndPassword(email: email, password: password);
       final User? user = userCredential.user;
       if (user == null) return null;
       final idToken = await user.getIdToken();
@@ -124,13 +123,12 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Throws an exception if an error occurs during the sign-up process.
   @override
   Future<UserModel?> signUpWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
-      final UserCredential userCredential =
-          await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final UserCredential userCredential = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
       final User? user = userCredential.user;
       if (user == null) return null;
       final idToken = await user.getIdToken();
@@ -182,8 +180,8 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       /// and returns a [UserCredential] object containing information about the signed-in user.
       ///
       /// Throws a [FirebaseAuthException] if the sign-in process fails.
-      final UserCredential userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
 
       /// The [user] property retrieves the authenticated [User] object from the [userCredential].
       /// Returns `null` if the authentication was unsuccessful or no user is associated with the credential.
@@ -253,7 +251,9 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Saves authentication tokens after successful Google sign-in.
   Future<void> _saveGoogleTokens(
-      User user, CustomGoogleAuthentication? googleAuth) async {
+    User user,
+    CustomGoogleAuthentication? googleAuth,
+  ) async {
     final idToken = await user.getIdToken();
     final accessToken = googleAuth?.accessToken;
     await saveAuthentication(accessToken: accessToken, idToken: idToken);
@@ -289,15 +289,18 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       final data = userDoc.data() as Map<String, dynamic>?;
 
       // Process rich clinics with timestamp conversion
-      richClinics = (data?['clinics'] as List<dynamic>?)
+      richClinics =
+          (data?['clinics'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .map((clinic) {
-            if (clinic['joinedAt'] is Timestamp) {
-              clinic['joinedAt'] =
-                  (clinic['joinedAt'] as Timestamp).toDate().toIso8601String();
-            }
-            return clinic;
-          }).toList() ??
+                if (clinic['joinedAt'] is Timestamp) {
+                  clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
+                      .toDate()
+                      .toIso8601String();
+                }
+                return clinic;
+              })
+              .toList() ??
           [];
 
       // Extract IDs from rich clinics
@@ -368,7 +371,10 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Accepts all invitations for the user, aggregates clinicIds, and creates the user doc.
   Future<void> _acceptAllInvitationsAndCreateUser(
-      User user, QuerySnapshot invitations, DocumentReference docRef) async {
+    User user,
+    QuerySnapshot invitations,
+    DocumentReference docRef,
+  ) async {
     Set<String> allClinicIds = {};
     String? firstClinicId;
 
@@ -382,7 +388,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
       await invite.reference.update({
         'status': 'accepted',
-        'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc())
+        'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc()),
       });
     }
 
@@ -402,7 +408,9 @@ class AuthFirebaseApi extends AbstractAuthRepository {
 
   /// Creates a new owner/admin user and a new clinic, returns all relevant onboarding info.
   Future<Map<String, dynamic>> _createOwnerAndClinic(
-      User user, DocumentReference docRef) async {
+    User user,
+    DocumentReference docRef,
+  ) async {
     final clinicsCollection = FirebaseFirestore.instance.collection('clinics');
     final newClinicRef = clinicsCollection.doc();
 
@@ -431,19 +439,18 @@ class AuthFirebaseApi extends AbstractAuthRepository {
           'clinicName': user.displayName ?? user.email ?? 'Clinic',
           'role': 'Admin',
           'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
-        }
+        },
       ],
     });
 
-    return {
-      'clinicIds': clinicIds,
-      'primaryClinicId': primaryClinicId,
-    };
+    return {'clinicIds': clinicIds, 'primaryClinicId': primaryClinicId};
   }
 
   /// Saves authentication tokens (accessToken, idToken) to local storage.
-  Future<void> saveAuthentication(
-      {String? accessToken, String? idToken}) async {
+  Future<void> saveAuthentication({
+    String? accessToken,
+    String? idToken,
+  }) async {
     final secureStorage = const FlutterSecureStorage();
     if (accessToken != null) {
       await secureStorage.write(key: 'auth_access_token', value: accessToken);
@@ -462,6 +469,25 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   @override
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+
+    // Only clear keys in release mode to avoid friction during development/testing
+    if (kReleaseMode) {
+      const secureStorage = FlutterSecureStorage();
+
+      // Clear Auth Tokens
+      await secureStorage.delete(key: 'auth_access_token');
+      await secureStorage.delete(key: 'auth_id_token');
+
+      // Clear AI Model Keys
+      await secureStorage.delete(key: 'selected_ai_model');
+      await secureStorage.delete(key: 'gemini_api_key');
+      await secureStorage.delete(key: 'openai_api_key');
+      await secureStorage.delete(key: 'claude_api_key');
+
+      // Clear Legacy Keys
+      await secureStorage.delete(key: 'geminiApiKey');
+      await secureStorage.delete(key: 'chatGptApiKey');
+    }
   }
 
   /// Deletes the currently authenticated user.
@@ -487,17 +513,19 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       if (userDoc.exists) {
         final data = userDoc.data() as Map<String, dynamic>?;
 
-        final richClinics = (data?['clinics'] as List<dynamic>?)
+        final richClinics =
+            (data?['clinics'] as List<dynamic>?)
                 ?.map((e) => Map<String, dynamic>.from(e as Map))
                 .map((clinic) {
-              // Convert Timestamp to ISO String for safe serialization
-              if (clinic['joinedAt'] is Timestamp) {
-                clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
-                    .toDate()
-                    .toIso8601String();
-              }
-              return clinic;
-            }).toList() ??
+                  // Convert Timestamp to ISO String for safe serialization
+                  if (clinic['joinedAt'] is Timestamp) {
+                    clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
+                        .toDate()
+                        .toIso8601String();
+                  }
+                  return clinic;
+                })
+                .toList() ??
             [];
 
         // Merge IDs
@@ -587,17 +615,19 @@ class AuthFirebaseApi extends AbstractAuthRepository {
         if (userDoc.exists) {
           final data = userDoc.data() as Map<String, dynamic>?;
 
-          final richClinics = (data?['clinics'] as List<dynamic>?)
+          final richClinics =
+              (data?['clinics'] as List<dynamic>?)
                   ?.map((e) => Map<String, dynamic>.from(e as Map))
                   .map((clinic) {
-                // Convert Timestamp to ISO String for safe serialization
-                if (clinic['joinedAt'] is Timestamp) {
-                  clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
-                      .toDate()
-                      .toIso8601String();
-                }
-                return clinic;
-              }).toList() ??
+                    // Convert Timestamp to ISO String for safe serialization
+                    if (clinic['joinedAt'] is Timestamp) {
+                      clinic['joinedAt'] = (clinic['joinedAt'] as Timestamp)
+                          .toDate()
+                          .toIso8601String();
+                    }
+                    return clinic;
+                  })
+                  .toList() ??
               [];
 
           // Merge IDs
@@ -630,7 +660,8 @@ class AuthFirebaseApi extends AbstractAuthRepository {
         }
       } catch (e) {
         debugPrint(
-            'Error fetching user data from Firestore in authStateChanges: $e');
+          'Error fetching user data from Firestore in authStateChanges: $e',
+        );
       }
       // Fallback to basic user model if Firestore fetch fails
       return UserModel.fromFirebaseUser(user);
@@ -645,7 +676,7 @@ class CustomGoogleSignInAccount {
   final String? id;
   final String? photoUrl;
   final dynamic
-      originalAccount; // Holds the original GoogleSignInAccount or null
+  originalAccount; // Holds the original GoogleSignInAccount or null
 
   CustomGoogleSignInAccount({
     this.displayName,
@@ -661,7 +692,7 @@ class CustomGoogleAuthentication {
   final String? accessToken;
   final String? idToken;
   final dynamic
-      originalAuthentication; // Holds the original authentication object
+  originalAuthentication; // Holds the original authentication object
 
   CustomGoogleAuthentication({
     this.accessToken,

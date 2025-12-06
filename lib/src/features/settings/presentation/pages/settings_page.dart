@@ -1,4 +1,3 @@
-import 'package:dr_copilot/src/core/app/notifiers/theme_notifier.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -48,22 +47,6 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         children: <Widget>[
           _buildSectionHeader('general'),
-          BlocBuilder<SettingsBloc, SettingsState>(
-            builder: (context, state) {
-              return ListTile(
-                leading: const Icon(Icons.color_lens),
-                title: Text(
-                  state is SettingsDarkMode
-                      ? 'lightMode'.tr()
-                      : 'darkMode'.tr(),
-                ),
-                onTap: () {
-                  context.read<SettingsBloc>().add(ToggleThemeEvent());
-                  context.read<ThemeNotifier>().toggleTheme();
-                },
-              );
-            },
-          ),
           ListTile(
             leading: const Icon(Icons.language),
             title: Text('language'.tr()),
@@ -162,9 +145,9 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () => context.push('/settings/security'),
           ),
           ListTile(
-            leading: const Icon(Icons.vpn_key),
-            title: Text('openAIApiKey'.tr()),
-            onTap: () => context.push('/settings/api_key?from=settings'),
+            leading: const Icon(Icons.model_training),
+            title: Text('aiModel'.tr()),
+            onTap: () => context.push('/settings/model_selection'),
           ),
           ListTile(
             leading: const Icon(Icons.lock),
