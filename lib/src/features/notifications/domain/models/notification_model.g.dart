@@ -92,6 +92,7 @@ Map<String, dynamic> _$NotificationTargetToJson(NotificationTarget instance) =>
     };
 
 const _$NotificationTargetTypeEnumMap = {
+  NotificationTargetType.allUsers: 'all_users',
   NotificationTargetType.allClinicOwners: 'all_clinic_owners',
   NotificationTargetType.allDoctors: 'all_doctors',
   NotificationTargetType.allStaff: 'all_staff',

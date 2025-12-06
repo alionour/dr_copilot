@@ -5,7 +5,7 @@ import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifica
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_state.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/pages/admin_send_notification_page.dart';
-import 'package:dr_copilot/src/features/notifications/presentation/pages/debug_notification_sender_page.dart';
+
 import 'package:dr_copilot/src/features/notifications/presentation/widgets/notification_list_item.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/send_notification/send_notification_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/notifications_injections.dart'
@@ -34,9 +34,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser != null) {
         _userId = firebaseUser.uid;
-        context
-            .read<NotificationsBloc>()
-            .add(WatchNotificationsEvent(_userId!));
+        context.read<NotificationsBloc>().add(
+          WatchNotificationsEvent(_userId!),
+        );
         _checkIfAdmin();
       }
     }
@@ -52,8 +52,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
             .get();
 
         if (userDoc.exists && mounted) {
-          final user =
-              UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
+          final user = UserModel.fromJson({
+            ...userDoc.data()!,
+            'uid': userDoc.id,
+          });
           // Check if user is admin in their primary clinic
           if (user.primaryClinicId != null) {
             final isAdmin = await user.isAdminInClinic(user.primaryClinicId!);
@@ -76,76 +78,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       appBar: AppBar(
         title: Text('notifications'.tr()),
         leading: const Icon(Icons.notifications_outlined),
-        actions: [
-          BlocBuilder<NotificationsBloc, NotificationsState>(
-            builder: (context, state) {
-              if (state is NotificationsLoaded && state.unreadCount > 0) {
-                return IconButton(
-                  icon: const Icon(Icons.done_all),
-                  tooltip: 'markAllAsRead'.tr(),
-                  onPressed: () {
-                    if (_userId != null) {
-                      context
-                          .read<NotificationsBloc>()
-                          .add(MarkAllAsReadEvent(_userId!));
-                    }
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          if (kDebugMode)
-            IconButton(
-              icon: const Icon(Icons.bug_report_outlined),
-              tooltip: 'Create Test Notification',
-              onPressed: _createTestNotification,
-            ),
-          if (kDebugMode)
-            IconButton(
-              icon: const Icon(Icons.send_outlined),
-              tooltip: 'Debug Notification Sender',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DebugNotificationSenderPage(),
-                  ),
-                );
-              },
-            ),
-          BlocBuilder<NotificationsBloc, NotificationsState>(
-            builder: (context, state) {
-              if (state is NotificationsLoaded &&
-                  state.notifications.isNotEmpty) {
-                return PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'deleteAll' && _userId != null) {
-                      _showDeleteAllDialog();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'deleteAll',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.delete_sweep,
-                              color: Colors.red, size: 20),
-                          const SizedBox(width: 8),
-                          Text('deleteAll'.tr(),
-                              style: const TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          if (navMenuButton != null) navMenuButton,
-        ],
+        actions: [if (navMenuButton != null) navMenuButton],
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0.5,
       ),
@@ -177,9 +110,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ElevatedButton.icon(
                     onPressed: () {
                       if (_userId != null) {
-                        context
-                            .read<NotificationsBloc>()
-                            .add(RefreshNotificationsEvent(_userId!));
+                        context.read<NotificationsBloc>().add(
+                          RefreshNotificationsEvent(_userId!),
+                        );
                       }
                     },
                     icon: const Icon(Icons.refresh),
@@ -204,16 +137,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     const SizedBox(height: 16),
                     Text(
                       'noNotifications'.tr(),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'noNotificationsDescription'.tr(),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[500],
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -224,9 +157,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
             return RefreshIndicator(
               onRefresh: () async {
                 if (_userId != null) {
-                  context
-                      .read<NotificationsBloc>()
-                      .add(RefreshNotificationsEvent(_userId!));
+                  context.read<NotificationsBloc>().add(
+                    RefreshNotificationsEvent(_userId!),
+                  );
                 }
               },
               child: Column(
@@ -234,10 +167,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   if (state.unreadCount > 0)
                     Container(
                       padding: const EdgeInsets.all(8),
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primaryContainer
-                          .withValues(alpha: 0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withOpacity(0.3),
                       child: Row(
                         children: [
                           const SizedBox(width: 8),
@@ -266,11 +198,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           notification: notification,
                           onMarkAsRead: () {
                             context.read<NotificationsBloc>().add(
-                                  MarkNotificationAsReadEvent(notification.id),
-                                );
-                          },
-                          onDelete: () {
-                            _showDeleteDialog(notification.id);
+                              MarkNotificationAsReadEvent(notification.id),
+                            );
                           },
                         );
                       },
@@ -291,9 +220,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   const SizedBox(height: 16),
                   Text(
                     'pleaseSignIn'.tr(),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -321,112 +250,5 @@ class _NotificationsPageState extends State<NotificationsPage> {
             )
           : null,
     );
-  }
-
-  void _showDeleteDialog(String notificationId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('deleteNotification'.tr()),
-        content: Text('deleteNotificationConfirm'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () {
-              context
-                  .read<NotificationsBloc>()
-                  .add(DeleteNotificationEvent(notificationId));
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('delete'.tr()),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteAllDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('deleteAllNotifications'.tr()),
-        content: Text('deleteAllNotificationsConfirm'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_userId != null) {
-                context
-                    .read<NotificationsBloc>()
-                    .add(DeleteAllNotificationsEvent(_userId!));
-              }
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('delete'.tr()),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _createTestNotification() async {
-    if (_userId == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('pleaseSignIn'.tr()),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    try {
-      final now = DateTime.now();
-      final formatter = DateFormat('HH:mm:ss');
-
-      await FirebaseFirestore.instance.collection('notifications').add({
-        'userId': _userId,
-        'title': '🧪 ${'testNotification'.tr()}',
-        'message': '${'createdAt'.tr()} ${formatter.format(now)}',
-        'type': 'system',
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'sender': {
-          'type': 'programmer',
-          'senderId': 'debug',
-          'senderName': 'Debug Mode',
-        },
-        'target': {
-          'type': 'all_clinic_owners',
-        },
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ ${'notificationCreated'.tr()}'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Error: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
   }
 }

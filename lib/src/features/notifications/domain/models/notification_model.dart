@@ -16,7 +16,7 @@ class NotificationModel {
   final DateTime createdAt;
   final String? actionUrl;
   final Map<String, dynamic>? metadata;
-  
+
   final NotificationSender sender;
   final NotificationTarget target;
 
@@ -115,11 +115,7 @@ class NotificationSender {
   final String? senderId;
   final String? senderName;
 
-  NotificationSender({
-    required this.type,
-    this.senderId,
-    this.senderName,
-  });
+  NotificationSender({required this.type, this.senderId, this.senderName});
 
   factory NotificationSender.fromJson(Map<String, dynamic> json) =>
       _$NotificationSenderFromJson(json);
@@ -128,6 +124,8 @@ class NotificationSender {
 }
 
 enum NotificationTargetType {
+  @JsonValue('all_users')
+  allUsers,
   @JsonValue('all_clinic_owners')
   allClinicOwners,
   @JsonValue('all_doctors')
@@ -145,12 +143,12 @@ enum NotificationTargetType {
 @JsonSerializable()
 class NotificationTarget {
   final NotificationTargetType type;
-  
+
   @RoleListJsonConverter()
   final List<AppRole>? targetRoles;
-  
+
   final String? ownerId;
-  
+
   final List<String>? clinicIds;
 
   NotificationTarget({
