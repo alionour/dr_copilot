@@ -152,7 +152,9 @@ flutter:
   assets:
     - assets/svg/icons8-google-ios-17-filled/
     - assets/svg/
-    - assets/svg/drcopilot_logo.svg
+    - assets/svg/drcopilot_logo_deprecated.svg
+    - assets/icon.svg
+    - assets/icon.png
     - assets/translations/
     - assets/html/
     - assets/google_credentials.json
