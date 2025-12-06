@@ -359,12 +359,12 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
                           xValueMapper: (PieData data, _) => data.label,
                           yValueMapper: (PieData data, _) => data.value,
                           pointColorMapper: (PieData data, _) => data.color,
-                          dataLabelSettings: const DataLabelSettings(
+                          dataLabelSettings: DataLabelSettings(
                             isVisible: true,
                             labelPosition: ChartDataLabelPosition.outside,
                             textStyle: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 13,
                             ),
                             connectorLineSettings: ConnectorLineSettings(

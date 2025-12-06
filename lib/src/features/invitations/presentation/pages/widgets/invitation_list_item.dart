@@ -19,16 +19,46 @@ class InvitationListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          child: Text(invitation.email[0].toUpperCase()),
-        ),
+        leading: CircleAvatar(child: Text(invitation.email[0].toUpperCase())),
         title: Text(invitation.email),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Roles: ${invitation.roles.join(', ')}'),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(invitation.status).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _getStatusColor(invitation.status),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    invitation.status.toUpperCase(),
+                    style: TextStyle(
+                      color: _getStatusColor(invitation.status),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Sent: ${DateFormat('MMM dd, yyyy').format(invitation.createdAt)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
             Text(
-              'Sent: ${DateFormat('MMM dd, yyyy').format(invitation.createdAt)}',
+              'Roles: ${invitation.roles.join(', ')}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -42,25 +72,29 @@ class InvitationListItem extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'resend',
-              child: Row(
-                children: [
-                  Icon(Icons.refresh),
-                  SizedBox(width: 8),
-                  Text('Resend'),
-                ],
+            if (invitation.status != 'accepted')
+              const PopupMenuItem(
+                value: 'resend',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: 8),
+                    Text('Resend'),
+                  ],
+                ),
               ),
-            ),
             PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 8),
-                  Text('Delete',
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.error)),
+                  Text(
+                    'Delete',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -76,7 +110,8 @@ class InvitationListItem extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text('Delete Invitation'),
         content: Text(
-            'Are you sure you want to delete the invitation for ${invitation.email}?'),
+          'Are you sure you want to delete the invitation for ${invitation.email}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -93,5 +128,18 @@ class InvitationListItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'expired':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }

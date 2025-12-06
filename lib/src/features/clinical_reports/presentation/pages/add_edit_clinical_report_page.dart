@@ -137,8 +137,8 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                     return TextField(
                       controller: _titleController,
                       enabled: !state.report!.isFinalized,
-                      style: const TextStyle(
-                        color: Colors.black, // Adjust based on theme if needed
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -470,7 +470,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Fill in the details above and click \"Create Report\" to start editing',
+                                  'Fill in the details above and click "Create Report" to start editing',
                                   style: Theme.of(context).textTheme.bodyLarge
                                       ?.copyWith(color: Colors.grey),
                                   textAlign: TextAlign.center,

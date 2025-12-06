@@ -29,8 +29,10 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/notification
 import 'package:dr_copilot/src/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/data_storage_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/appearance_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/export_data_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/model_selection_page.dart';
 
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
@@ -59,7 +61,7 @@ class RoutingConfig {
       ),
       ShellRoute(
         builder: (context, state, child) {
-          return NavigationSide(child: child);
+          return SelectionArea(child: NavigationSide(child: child));
         },
         routes: [
           GoRoute(
@@ -225,6 +227,16 @@ class RoutingConfig {
               final from = state.uri.queryParameters['from'];
               return ApiKeySettingsPage(from: from);
             },
+          ),
+          GoRoute(
+            path: '/settings/model_selection',
+            name: 'model_selection',
+            builder: (context, state) => const ModelSelectionPage(),
+          ),
+          GoRoute(
+            path: '/settings/export_data',
+            name: 'export_data',
+            builder: (context, state) => const ExportDataPage(),
           ),
           GoRoute(
             path: '/doctors',
