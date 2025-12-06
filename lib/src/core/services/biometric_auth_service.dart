@@ -44,6 +44,22 @@ class BiometricAuthService {
     }
   }
 
+  /// Returns a diagnostic string explaining why biometrics might be unavailable.
+  Future<String> getAvailabilityReason() async {
+    try {
+      final bool canCheck = await _auth.canCheckBiometrics;
+      final bool isSupported = await _auth.isDeviceSupported();
+      final List<BiometricType> availableBiometrics = await _auth
+          .getAvailableBiometrics();
+
+      return 'canCheckBiometrics: $canCheck\n'
+          'isDeviceSupported: $isSupported\n'
+          'availableBiometrics: $availableBiometrics';
+    } on PlatformException catch (e) {
+      return 'Error: ${e.message} (Code: ${e.code})';
+    }
+  }
+
   /// Cancels any active authentication.
   Future<void> cancelAuthentication() async {
     await _auth.stopAuthentication();

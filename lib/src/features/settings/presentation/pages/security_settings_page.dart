@@ -73,16 +73,38 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                SwitchListTile(
-                  title: const Text('biometricAuthentication').tr(),
-                  subtitle: !_isBiometricsAvailable
-                      ? const Text('Biometrics not available on this device')
-                      : null,
-                  secondary: const Icon(Icons.fingerprint),
-                  value: _biometricAuthentication,
-                  onChanged: _isBiometricsAvailable
-                      ? (value) => _toggleBiometrics(value)
-                      : null,
+                Stack(
+                  children: [
+                    SwitchListTile(
+                      title: const Text('biometricAuthentication').tr(),
+                      subtitle: _isBiometricsAvailable
+                          ? null
+                          : Text('biometricAuthNotAvailable'.tr()),
+                      secondary: const Icon(Icons.fingerprint),
+                      value: _biometricAuthentication,
+                      onChanged: _isBiometricsAvailable
+                          ? (value) => _toggleBiometrics(value)
+                          : null,
+                    ),
+                    if (!_isBiometricsAvailable)
+                      Positioned.fill(
+                        child: InkWell(
+                          onTap: () async {
+                            final reason = await _biometricService
+                                .getAvailabilityReason();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(reason),
+                                  duration: const Duration(seconds: 5),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(color: Colors.transparent),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),

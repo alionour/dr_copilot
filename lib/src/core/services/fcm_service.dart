@@ -14,23 +14,26 @@ class FCMService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-  String? _fcmToken;
-  StreamSubscription<String>? _tokenSubscription;
-
-  /// Get the current FCM token
-  String? get fcmToken => _fcmToken;
+  StreamSubscription<QuerySnapshot>? _firestoreNotificationSubscription;
 
   /// Initialize FCM service
   Future<void> initialize(String userId) async {
+    debugPrint('[FCM] Initializing FCM Service for user: $userId');
+
+    // Initialize local notifications first (needed for both FCM and Firestore listeners)
+    await _initializeLocalNotifications();
+
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isFuchsia)) {
-      debugPrint('[FCM] Skipping initialization on unsupported platform');
+      debugPrint(
+        '[FCM] Running on Desktop: Using Firestore Listener for Notifications',
+      );
+      // On Desktop, we rely on Firestore listeners since FCM is not natively supported
+      _monitorFirestoreNotifications(userId);
       return;
     }
 
     try {
-      debugPrint('[FCM] Initializing FCM Service for user: $userId');
-
       // Request notification permissions
       final settings = await _messaging.requestPermission(
         alert: true,
@@ -45,9 +48,6 @@ class FCMService {
       debugPrint('[FCM] Permission status: ${settings.authorizationStatus}');
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        // Initialize local notifications
-        await _initializeLocalNotifications();
-
         // Get and save FCM token
         await _getFCMToken(userId);
 
@@ -80,6 +80,38 @@ class FCMService {
     }
   }
 
+  /// Monitor Firestore notifications for Desktop platforms (or fallback)
+  void _monitorFirestoreNotifications(String userId) {
+    _firestoreNotificationSubscription?.cancel();
+
+    // Listen for new notifications created after now
+    // Note: This requires the 'createdAt' field to be a Timestamp
+    final now = Timestamp.now();
+
+    _firestoreNotificationSubscription = _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('createdAt', isGreaterThan: now)
+        .snapshots()
+        .listen(
+          (snapshot) {
+            for (var change in snapshot.docChanges) {
+              if (change.type == DocumentChangeType.added) {
+                final data = change.doc.data() as Map<String, dynamic>;
+                _showLocalNotificationFromFirestore(data, change.doc.id);
+              }
+            }
+          },
+          onError: (error) {
+            debugPrint('[FCM] Firestore notification listener error: $error');
+          },
+        );
+
+    debugPrint(
+      '[FCM] Firestore notification listener started for user: $userId',
+    );
+  }
+
   /// Initialize local notifications for foreground messages
   Future<void> _initializeLocalNotifications() async {
     const androidSettings = AndroidInitializationSettings(
@@ -90,6 +122,8 @@ class FCMService {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
+    // Linux/Windows settings if needed explicitly, but usually default is fine or handled via specific plugins if additional packages are used.
+    // basic flutter_local_notifications setup works for basic usage.
 
     const initSettings = InitializationSettings(
       android: androidSettings,
@@ -153,6 +187,53 @@ class FCMService {
 
     // Show local notification when app is in foreground
     await _showLocalNotification(message);
+  }
+
+  /// Show local notification from Firestore data
+  Future<void> _showLocalNotificationFromFirestore(
+    Map<String, dynamic> data,
+    String id,
+  ) async {
+    // Check if push notifications are enabled in settings
+    final pushEnabledStr = await _secureStorage.read(key: 'pushNotifications');
+    final pushEnabled = pushEnabledStr == null
+        ? true
+        : pushEnabledStr == 'true';
+
+    if (!pushEnabled) {
+      return;
+    }
+
+    final title = data['title'] as String? ?? 'New Notification';
+    final body = data['message'] as String? ?? data['body'] as String? ?? '';
+
+    // Use hashcode of ID for unique notification ID, ensuring it fits int range
+    final notificationId = id.hashCode;
+
+    await _localNotifications.show(
+      notificationId,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          channelDescription:
+              'This channel is used for important notifications.',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          playSound: true,
+          enableVibration: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: data['actionUrl'] ?? data['id'],
+    );
   }
 
   /// Show local notification
@@ -246,6 +327,10 @@ class FCMService {
 
   /// Subscribe to a topic
   Future<void> subscribeToTopic(String topic) async {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isFuchsia)) {
+      return; // Not supported on desktop via FCM
+    }
     try {
       await _messaging.subscribeToTopic(topic);
       debugPrint('[FCM] Subscribed to topic: $topic');
@@ -256,6 +341,10 @@ class FCMService {
 
   /// Unsubscribe from a topic
   Future<void> unsubscribeFromTopic(String topic) async {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isFuchsia)) {
+      return; // Not supported on desktop via FCM
+    }
     try {
       await _messaging.unsubscribeFromTopic(topic);
       debugPrint('[FCM] Unsubscribed from topic: $topic');
@@ -266,6 +355,13 @@ class FCMService {
 
   /// Delete FCM token
   Future<void> deleteToken() async {
+    _firestoreNotificationSubscription?.cancel();
+    _tokenSubscription?.cancel();
+
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isFuchsia)) {
+      return; // FCM deleteToken not supported/needed on desktop
+    }
     try {
       await _messaging.deleteToken();
       _fcmToken = null;
@@ -278,6 +374,7 @@ class FCMService {
   /// Dispose resources
   void dispose() {
     _tokenSubscription?.cancel();
+    _firestoreNotificationSubscription?.cancel();
   }
 }
 
