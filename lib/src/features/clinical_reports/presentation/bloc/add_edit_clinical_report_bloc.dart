@@ -466,7 +466,6 @@ class AddEditClinicalReportBloc
       emit(AddEditClinicalReportLoading());
       final result = await _clinicalReportService.finalizeReport(
         reportId: event.reportId,
-        htmlContent: event.htmlContent,
       );
 
       result.fold(
