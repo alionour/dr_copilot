@@ -15,6 +15,8 @@ class FCMService {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   StreamSubscription<QuerySnapshot>? _firestoreNotificationSubscription;
+  String? _fcmToken;
+  StreamSubscription<String>? _tokenSubscription;
 
   /// Initialize FCM service
   Future<void> initialize(String userId) async {
