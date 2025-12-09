@@ -8,15 +8,17 @@ class DebugNotificationSenderPage extends StatefulWidget {
   const DebugNotificationSenderPage({super.key});
 
   @override
-  State<DebugNotificationSenderPage> createState() => _DebugNotificationSenderPageState();
+  State<DebugNotificationSenderPage> createState() =>
+      _DebugNotificationSenderPageState();
 }
 
-class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPage> {
+class _DebugNotificationSenderPageState
+    extends State<DebugNotificationSenderPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
   final _userIdController = TextEditingController();
-  
+
   NotificationType _selectedType = NotificationType.system;
   bool _isLoading = false;
   List<String> _recentUserIds = [];
@@ -99,7 +101,7 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
             backgroundColor: Colors.green,
           ),
         );
-        
+
         _titleController.clear();
         _bodyController.clear();
       }
@@ -107,15 +109,17 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${'error'.tr()}: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -174,7 +178,9 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
           ),
         );
 
-        final docRef = FirebaseFirestore.instance.collection('notifications').doc();
+        final docRef = FirebaseFirestore.instance
+            .collection('notifications')
+            .doc();
         batch.set(docRef, notification.toJson());
       }
 
@@ -183,7 +189,9 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('sentToUsers'.tr(args: [usersSnapshot.docs.length.toString()])),
+            content: Text(
+              'sentToUsers'.tr(args: [usersSnapshot.docs.length.toString()]),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -195,15 +203,17 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${'error'.tr()}: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -211,7 +221,7 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🐛 Debug Notification Sender'),
+        title: Text('debugNotificationSender'.tr()),
         backgroundColor: Colors.orange,
       ),
       body: _isLoading
@@ -233,7 +243,7 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Debug Mode Only - This page is only accessible in debug mode',
+                                'debugModeWarning'.tr(),
                                 style: TextStyle(
                                   color: Colors.orange[900],
                                   fontWeight: FontWeight.bold,
@@ -245,13 +255,13 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // User ID
                     TextFormField(
                       controller: _userIdController,
                       decoration: InputDecoration(
-                        labelText: 'User ID',
-                        hintText: 'Enter user ID',
+                        labelText: 'userIdLabel'.tr(),
+                        hintText: 'userIdHint'.tr(),
                         border: const OutlineInputBorder(),
                         suffixIcon: _recentUserIds.isNotEmpty
                             ? PopupMenuButton<String>(
@@ -260,10 +270,12 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                                   _userIdController.text = value;
                                 },
                                 itemBuilder: (context) => _recentUserIds
-                                    .map((id) => PopupMenuItem(
-                                          value: id,
-                                          child: Text(id),
-                                        ))
+                                    .map(
+                                      (id) => PopupMenuItem(
+                                        value: id,
+                                        child: Text(id),
+                                      ),
+                                    )
                                     .toList(),
                               )
                             : null,
@@ -276,13 +288,13 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Notification Type
                     DropdownButtonFormField<NotificationType>(
                       value: _selectedType,
-                      decoration: const InputDecoration(
-                        labelText: 'Notification Type',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'notificationTypeLabel'.tr(),
+                        border: const OutlineInputBorder(),
                       ),
                       items: NotificationType.values.map((type) {
                         IconData icon;
@@ -317,13 +329,16 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                             color = Colors.red;
                             break;
                         }
+                        // Use translation for enum if possible, or just capitalize
                         return DropdownMenuItem(
                           value: type,
                           child: Row(
                             children: [
                               Icon(icon, color: color, size: 20),
                               const SizedBox(width: 8),
-                              Text(type.toString().split('.').last),
+                              Text(
+                                type.toString().split('.').last.toUpperCase(),
+                              ),
                             ],
                           ),
                         );
@@ -337,14 +352,14 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Title
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Title',
-                        hintText: 'Enter notification title',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'titleLabel'.tr(),
+                        hintText: 'titleHint'.tr(),
+                        border: const OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -354,66 +369,83 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Body
                     TextFormField(
                       controller: _bodyController,
-                      decoration: const InputDecoration(
-                        labelText: 'Body',
-                        hintText: 'Enter notification body',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'bodyLabel'.tr(),
+                        hintText: 'bodyHint'.tr(),
+                        border: const OutlineInputBorder(),
                       ),
                       maxLines: 4,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'pleaseEnterBody'.tr();
+                          return 'pleaseEnterBody'
+                              .tr(); // I might need to add this key or reuse message_required? message_required exists.
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Quick Templates
                     ExpansionTile(
-                      title: const Text('Quick Templates'),
+                      title: Text('quickTemplates'.tr()),
                       leading: const Icon(Icons.auto_awesome),
                       children: [
                         ListTile(
-                          leading: const Icon(Icons.calendar_today, color: Colors.purple),
-                          title: const Text('Appointment Reminder'),
+                          leading: const Icon(
+                            Icons.calendar_today,
+                            color: Colors.purple,
+                          ),
+                          title: Text('appointmentReminder'.tr()),
                           onTap: () {
                             _titleController.text = 'Upcoming Appointment';
-                            _bodyController.text = 'You have an appointment with Dr. Smith tomorrow at 10:00 AM';
+                            _bodyController.text =
+                                'You have an appointment with Dr. Smith tomorrow at 10:00 AM';
                             _selectedType = NotificationType.appointment;
                             setState(() {});
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.medication, color: Colors.red),
-                          title: const Text('Medication Reminder'),
+                          leading: const Icon(
+                            Icons.medication,
+                            color: Colors.red,
+                          ),
+                          title: Text('medicationReminder'.tr()),
                           onTap: () {
                             _titleController.text = 'Time to Take Medicine';
-                            _bodyController.text = 'Don\'t forget to take your prescribed medication';
+                            _bodyController.text =
+                                'Don\'t forget to take your prescribed medication';
                             _selectedType = NotificationType.reminder;
                             setState(() {});
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.assessment, color: Colors.orange),
-                          title: const Text('Test Results Ready'),
+                          leading: const Icon(
+                            Icons.assessment,
+                            color: Colors.orange,
+                          ),
+                          title: Text('testResultsReady'.tr()),
                           onTap: () {
                             _titleController.text = 'Test Results Available';
-                            _bodyController.text = 'Your recent test results are now ready to view';
+                            _bodyController.text =
+                                'Your recent test results are now ready to view';
                             _selectedType = NotificationType.report;
                             setState(() {});
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.message, color: Colors.indigo),
-                          title: const Text('New Message'),
+                          leading: const Icon(
+                            Icons.message,
+                            color: Colors.indigo,
+                          ),
+                          title: Text('newMessage'.tr()),
                           onTap: () {
                             _titleController.text = 'New Message from Doctor';
-                            _bodyController.text = 'Dr. Smith has sent you a message';
+                            _bodyController.text =
+                                'Dr. Smith has sent you a message';
                             _selectedType = NotificationType.message;
                             setState(() {});
                           },
@@ -421,7 +453,7 @@ class _DebugNotificationSenderPageState extends State<DebugNotificationSenderPag
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Send Buttons
                     ElevatedButton.icon(
                       onPressed: _sendNotification,

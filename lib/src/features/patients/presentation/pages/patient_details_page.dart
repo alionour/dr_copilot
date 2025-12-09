@@ -26,7 +26,9 @@ class PatientDetailsPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Text('errorMessage'.tr(args: [snapshot.error.toString()])),
+            );
           }
 
           final result = snapshot.data;
@@ -35,7 +37,8 @@ class PatientDetailsPage extends StatelessWidget {
           }
 
           return result.fold(
-            (failure) => Center(child: Text('Error: ${failure.message}')),
+            (failure) =>
+                Center(child: Text('errorMessage'.tr(args: [failure.message]))),
             (patient) {
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -128,7 +131,11 @@ class PatientDetailsPage extends StatelessWidget {
                         }
                         if (reportSnapshot.hasError) {
                           return Center(
-                            child: Text('Error: ${reportSnapshot.error}'),
+                            child: Text(
+                              'errorMessage'.tr(
+                                args: [reportSnapshot.error.toString()],
+                              ),
+                            ),
                           );
                         }
 
@@ -138,8 +145,11 @@ class PatientDetailsPage extends StatelessWidget {
                         }
 
                         return reportResult.fold(
-                          (failure) =>
-                              Center(child: Text('Error: ${failure.message}')),
+                          (failure) => Center(
+                            child: Text(
+                              'errorMessage'.tr(args: [failure.message]),
+                            ),
+                          ),
                           (reports) {
                             if (reports.isEmpty) {
                               return Center(
