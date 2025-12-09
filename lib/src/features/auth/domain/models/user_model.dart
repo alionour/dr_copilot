@@ -156,7 +156,8 @@ class UserModel {
       if (memberDoc.exists) {
         final role = memberDoc.data()?['role'] as String?;
         debugPrint(
-            '[UserModel] Fetched role from Firestore for clinic $clinicId: $role');
+          '[UserModel] Fetched role from Firestore for clinic $clinicId: $role',
+        );
         return role;
       }
     } catch (e) {

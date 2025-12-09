@@ -20,12 +20,17 @@ try {
 
 // --- Express App Setup ---
 const app = express();
-app.use(express.json());
+// Capture raw body for webhook signature verification
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 // --- CORS Middleware ---
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Paddle-Signature');
     res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE, PUT');
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
@@ -51,13 +56,21 @@ app.get('/admin/notifications', (req, res) => {
 // API routes
 const invitationRouter = require('./routes/invitations');
 const notificationRouter = require('./routes/notifications');
+const paymentRouter = require('./routes/payment');
+const webhookRouter = require('./routes/webhook');
 
 app.use('/invitations', invitationRouter);
 app.use('/notifications', notificationRouter);
+app.use('/payment', paymentRouter);
+app.use('/webhook', webhookRouter);
 
 
-// --- Root Route for Health Check ---
+// --- Root Route for Landing Page ---
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pricing.html'));
+});
+
+app.get('/health', (req, res) => {
     res.status(200).json({
         message: 'Dr. Copilot Backend is running!',
         timestamp: new Date().toISOString(),

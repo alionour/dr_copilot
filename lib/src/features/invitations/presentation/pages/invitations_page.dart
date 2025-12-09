@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
@@ -52,7 +53,7 @@ class InvitationsPage extends StatelessWidget {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Invitations'),
+              title: Text('invitations'.tr()),
               actions: [
                 if (isAdmin)
                   IconButton(
@@ -85,7 +86,7 @@ class InvitationsPage extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is InvitationLoaded) {
                   if (state.invitations.isEmpty) {
-                    return const Center(child: Text('No invitations found'));
+                    return Center(child: Text('noInvitationsFound'.tr()));
                   }
                   return RefreshIndicator(
                     onRefresh: () async {
@@ -107,10 +108,8 @@ class InvitationsPage extends StatelessWidget {
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Only admins can delete invitations',
-                                  ),
+                                SnackBar(
+                                  content: Text('onlyAdminsCanDelete'.tr()),
                                 ),
                               );
                             }
@@ -123,10 +122,8 @@ class InvitationsPage extends StatelessWidget {
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Only admins can resend invitations',
-                                  ),
+                                SnackBar(
+                                  content: Text('onlyAdminsCanResend'.tr()),
                                 ),
                               );
                             }

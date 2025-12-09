@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
 
 class InvitationListItem extends StatelessWidget {
@@ -33,7 +34,9 @@ class InvitationListItem extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(invitation.status).withOpacity(0.1),
+                    color: _getStatusColor(
+                      invitation.status,
+                    ).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _getStatusColor(invitation.status),
@@ -73,13 +76,13 @@ class InvitationListItem extends StatelessWidget {
           },
           itemBuilder: (context) => [
             if (invitation.status != 'accepted')
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'resend',
                 child: Row(
                   children: [
                     Icon(Icons.refresh),
                     SizedBox(width: 8),
-                    Text('Resend'),
+                    Text('resend'.tr()),
                   ],
                 ),
               ),
@@ -90,7 +93,7 @@ class InvitationListItem extends StatelessWidget {
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 8),
                   Text(
-                    'Delete',
+                    'delete'.tr(),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -108,14 +111,14 @@ class InvitationListItem extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Invitation'),
+        title: Text('deleteInvitation'.tr()),
         content: Text(
           'Are you sure you want to delete the invitation for ${invitation.email}?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -123,7 +126,7 @@ class InvitationListItem extends StatelessWidget {
               onDelete();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text('delete'.tr()),
           ),
         ],
       ),

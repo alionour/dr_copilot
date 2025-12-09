@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/navigation_side/domain/entities/destination.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
@@ -88,15 +89,18 @@ class _NavigationSideState extends State<NavigationSide> {
     final navBloc = context.read<NavigationBloc>();
     final ownerNotifier = context.read<OwnerNotifier>();
     final destinations = await NavigationHelper.getAllowedDestinations(
-        navBloc.state.user, ownerNotifier.clinicId);
+      navBloc.state.user,
+      ownerNotifier.clinicId,
+    );
 
     if (!mounted) return;
     navBloc.add(DestinationsUpdated(destinations));
   }
 
   void _handleRouteChange() {
-    final currentRoute =
-        GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    final currentRoute = GoRouter.of(
+      context,
+    ).routerDelegate.currentConfiguration.uri.path;
     Destination? newDestination;
 
     for (var entry in destinationToRoute.entries) {
@@ -191,8 +195,11 @@ class _NavigationSideState extends State<NavigationSide> {
                         elevation: 16,
                         child: GestureDetector(
                           onTap: () {},
-                          child: _buildSideMenu(context, bloc,
-                              onItemTap: _closeMobileNav),
+                          child: _buildSideMenu(
+                            context,
+                            bloc,
+                            onItemTap: _closeMobileNav,
+                          ),
                         ),
                       ),
                     ),
@@ -230,8 +237,11 @@ class _NavigationSideState extends State<NavigationSide> {
     );
   }
 
-  Widget _buildSideMenu(BuildContext context, NavigationBloc bloc,
-      {VoidCallback? onItemTap}) {
+  Widget _buildSideMenu(
+    BuildContext context,
+    NavigationBloc bloc, {
+    VoidCallback? onItemTap,
+  }) {
     return BlocBuilder<NavigationBloc, NavigationState>(
       builder: (context, state) {
         return Focus(
@@ -285,9 +295,17 @@ class _NavigationSideState extends State<NavigationSide> {
                                         }
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0, vertical: 8.0),
+                                            horizontal: 16.0,
+                                            vertical: 8.0,
+                                          ),
                                           child: Row(
                                             children: [
+                                              SvgPicture.asset(
+                                                'assets/icon.svg',
+                                                width: 32,
+                                                height: 32,
+                                              ),
+                                              const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
                                                   'drCopilot'.tr(),
@@ -297,9 +315,9 @@ class _NavigationSideState extends State<NavigationSide> {
                                                       ?.copyWith(
                                                         fontWeight:
                                                             FontWeight.bold,
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .onSurface,
+                                                        color: Theme.of(
+                                                          context,
+                                                        ).colorScheme.onSurface,
                                                       ),
                                                 ),
                                               ),
@@ -325,27 +343,33 @@ class _NavigationSideState extends State<NavigationSide> {
                                         .titleMedium
                                         ?.copyWith(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.secondary,
                                         ),
                                     padding:
                                         const EdgeInsetsDirectional.symmetric(
-                                            horizontal: 16.0, vertical: 8.0),
+                                          horizontal: 16.0,
+                                          vertical: 8.0,
+                                        ),
                                   ),
-                                ...destinations.map((e) => SideMenuItemDataTile(
-                                      isSelected: state.destination == e,
-                                      onTap: () {
-                                        context.go(destinationToRoute[e]!);
-                                        if (onItemTap != null) onItemTap();
-                                      },
-                                      title: tr(e.model.title),
-                                      tooltip: e.message,
-                                      icon: Icon(e.model.icon,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                    )),
+                                ...destinations.map(
+                                  (e) => SideMenuItemDataTile(
+                                    isSelected: state.destination == e,
+                                    onTap: () {
+                                      context.go(destinationToRoute[e]!);
+                                      if (onItemTap != null) onItemTap();
+                                    },
+                                    title: tr(e.model.title),
+                                    tooltip: e.message,
+                                    icon: Icon(
+                                      e.model.icon,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
                               ];
                             })
                             .expand((element) => element)
@@ -360,13 +384,17 @@ class _NavigationSideState extends State<NavigationSide> {
 
                                       // Debug logging
                                       debugPrint(
-                                          '[NavigationSide] User in state: ${state.user?.uid}');
+                                        '[NavigationSide] User in state: ${state.user?.uid}',
+                                      );
                                       debugPrint(
-                                          '[NavigationSide] Display name: ${state.user?.displayName}');
+                                        '[NavigationSide] Display name: ${state.user?.displayName}',
+                                      );
                                       debugPrint(
-                                          '[NavigationSide] Photo URL: ${state.user?.photoURL}');
+                                        '[NavigationSide] Photo URL: ${state.user?.photoURL}',
+                                      );
                                       debugPrint(
-                                          '[NavigationSide] Email: ${state.user?.email}');
+                                        '[NavigationSide] Email: ${state.user?.email}',
+                                      );
 
                                       return LayoutBuilder(
                                         builder: (context, constraints) {
@@ -375,8 +403,9 @@ class _NavigationSideState extends State<NavigationSide> {
                                           }
                                           return Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 16.0,
-                                                vertical: 8.0),
+                                              horizontal: 16.0,
+                                              vertical: 8.0,
+                                            ),
                                             child: Row(
                                               children: [
                                                 if (profileImageUrl.isNotEmpty)
@@ -389,33 +418,43 @@ class _NavigationSideState extends State<NavigationSide> {
                                                       height: 40,
                                                       decoration:
                                                           const BoxDecoration(
-                                                              shape: BoxShape
-                                                                  .circle),
+                                                            shape:
+                                                                BoxShape.circle,
+                                                          ),
                                                       child: ClipOval(
-                                                        child:
-                                                            CachedNetworkImage(
+                                                        child: CachedNetworkImage(
                                                           imageUrl:
                                                               profileImageUrl,
                                                           cacheKey:
                                                               state.user?.uid,
-                                                          placeholder: (ctx,
-                                                                  url) =>
-                                                              const Icon(Icons
-                                                                  .person_pin),
-                                                          errorWidget: (context,
-                                                              url, error) {
-                                                            debugPrint(
-                                                                'Failed to load image: $error');
-                                                            return const SizedBox();
-                                                          },
+                                                          placeholder:
+                                                              (
+                                                                ctx,
+                                                                url,
+                                                              ) => const Icon(
+                                                                Icons
+                                                                    .person_pin,
+                                                              ),
+                                                          errorWidget:
+                                                              (
+                                                                context,
+                                                                url,
+                                                                error,
+                                                              ) {
+                                                                debugPrint(
+                                                                  'Failed to load image: $error',
+                                                                );
+                                                                return const SizedBox();
+                                                              },
                                                         ),
                                                       ),
                                                     ),
                                                   )
                                                 else
                                                   const Icon(
-                                                      Icons.person_3_outlined,
-                                                      size: 40),
+                                                    Icons.person_3_outlined,
+                                                    size: 40,
+                                                  ),
                                                 const SizedBox(width: 16),
                                                 Expanded(
                                                   child: Text(
