@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/domain/models/notification_model.dart';
@@ -87,7 +88,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Notification (Debug)'),
+        title: Text('createNotificationDebugTitle'.tr()),
         backgroundColor: Colors.orange,
       ),
       body: BlocListener<NotificationsBloc, NotificationsState>(
@@ -95,7 +96,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
           if (state is NotificationSentSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Notification sent to ${state.count} users'),
+                content: Text(
+                  'notificationSentToUsers'.tr(args: [state.count.toString()]),
+                ),
                 backgroundColor: Colors.green,
               ),
             );
@@ -123,13 +126,13 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
-                    children: const [
-                      Icon(Icons.warning, color: Colors.orange),
-                      SizedBox(width: 8),
+                    children: [
+                      const Icon(Icons.warning, color: Colors.orange),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Debug Mode: This page is only accessible in debug builds',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          'debugModeInfo'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -138,13 +141,13 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 const SizedBox(height: 24),
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'titleLabel'.tr(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a title';
+                      return 'pleaseEnterTitle'.tr();
                     }
                     return null;
                   },
@@ -152,14 +155,14 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _messageController,
-                  decoration: const InputDecoration(
-                    labelText: 'Message',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'messageLabel'.tr(),
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 4,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a message';
+                      return 'pleaseEnterMessage'.tr();
                     }
                     return null;
                   },
@@ -167,9 +170,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<NotificationType>(
                   value: _selectedType,
-                  decoration: const InputDecoration(
-                    labelText: 'Notification Type',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'notificationTypeLabel'.tr(),
+                    border: const OutlineInputBorder(),
                   ),
                   items: NotificationType.values.map((type) {
                     return DropdownMenuItem(
@@ -186,9 +189,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<NotificationSenderType>(
                   value: _selectedSenderType,
-                  decoration: const InputDecoration(
-                    labelText: 'Sender Type',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'senderTypeLabel'.tr(),
+                    border: const OutlineInputBorder(),
                   ),
                   items: NotificationSenderType.values.map((type) {
                     return DropdownMenuItem(
@@ -205,9 +208,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<NotificationTargetType>(
                   value: _selectedTargetType,
-                  decoration: const InputDecoration(
-                    labelText: 'Target Audience',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'targetAudienceLabel'.tr(),
+                    border: const OutlineInputBorder(),
                   ),
                   items: NotificationTargetType.values.map((type) {
                     return DropdownMenuItem(
@@ -229,16 +232,16 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   _buildRoleSelector(),
                 if (_selectedTargetType == NotificationTargetType.ownerClinics)
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Owner ID',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: 'ownerIdLabel'.tr(),
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       _ownerId = value;
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter owner ID';
+                        return 'pleaseEnterOwnerId'.tr();
                       }
                       return null;
                     },
@@ -246,9 +249,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 if (_selectedTargetType ==
                     NotificationTargetType.specificClinic)
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Clinic IDs (comma-separated)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: 'clinicIdsLabel'.tr(),
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       _selectedClinicIds.clear();
@@ -261,7 +264,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter clinic IDs';
+                        return 'pleaseEnterClinicIds'.tr();
                       }
                       return null;
                     },
@@ -269,9 +272,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _actionUrlController,
-                  decoration: const InputDecoration(
-                    labelText: 'Action URL (Optional)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'actionUrlLabel'.tr(),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -286,7 +289,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                           color: Theme.of(context).colorScheme.onPrimary,
                         )
                       : Text(
-                          'Send Notification',
+                          'sendNotificationButton'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             color: Theme.of(context).colorScheme.onPrimary,
@@ -305,9 +308,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Select Target Roles:',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        Text(
+          'selectTargetRoles'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -336,19 +339,19 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   String _getTargetTypeName(NotificationTargetType type) {
     switch (type) {
       case NotificationTargetType.allUsers:
-        return 'All Users';
+        return 'allUsers'.tr();
       case NotificationTargetType.allClinicOwners:
-        return 'All Clinic Owners';
+        return 'allClinicOwners'.tr();
       case NotificationTargetType.allDoctors:
-        return 'All Doctors';
+        return 'allDoctors'.tr();
       case NotificationTargetType.allStaff:
-        return 'All Staff';
+        return 'allStaff'.tr();
       case NotificationTargetType.specificRoles:
-        return 'Specific Roles';
+        return 'specificRoles'.tr();
       case NotificationTargetType.ownerClinics:
-        return 'Owner\'s Clinics';
+        return 'ownerClinics'.tr();
       case NotificationTargetType.specificClinic:
-        return 'Specific Clinic';
+        return 'specificClinic'.tr();
     }
   }
 }

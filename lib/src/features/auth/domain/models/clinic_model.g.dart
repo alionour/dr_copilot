@@ -13,6 +13,11 @@ ClinicModel _$ClinicModelFromJson(Map<String, dynamic> json) => ClinicModel(
   ownerId: json['ownerId'] as String,
   adminEmail: json['adminEmail'] as String,
   createdAt: const TimestampConverter().fromJson(json['createdAt']),
+  subscriptionTier: json['subscriptionTier'] as String?,
+  isSubscriptionActive: json['isSubscriptionActive'] as bool?,
+  subscriptionUpdatedAt: const TimestampConverter().fromJson(
+    json['subscriptionUpdatedAt'],
+  ),
 );
 
 Map<String, dynamic> _$ClinicModelToJson(ClinicModel instance) =>
@@ -24,6 +29,12 @@ Map<String, dynamic> _$ClinicModelToJson(ClinicModel instance) =>
       'adminEmail': instance.adminEmail,
       'createdAt': _$JsonConverterToJson<dynamic, Timestamp>(
         instance.createdAt,
+        const TimestampConverter().toJson,
+      ),
+      'subscriptionTier': instance.subscriptionTier,
+      'isSubscriptionActive': instance.isSubscriptionActive,
+      'subscriptionUpdatedAt': _$JsonConverterToJson<dynamic, Timestamp>(
+        instance.subscriptionUpdatedAt,
         const TimestampConverter().toJson,
       ),
     };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -60,10 +61,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   Future<void> _loadInitialData() async {
     // Fetch both staff/doctors and clinic name concurrently
-    await Future.wait([
-      _loadStaffAndDoctors(),
-      _fetchClinicName(),
-    ]);
+    await Future.wait([_loadStaffAndDoctors(), _fetchClinicName()]);
   }
 
   Future<void> _loadStaffAndDoctors() async {
@@ -71,34 +69,40 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
     final List<PersonOption> people = [];
 
-    final staffResult =
-        await sl<StaffUseCases>().getAllStaff(clinicId: widget.clinicId);
-    staffResult.fold(
-      (failure) => log('Error loading staff: $failure'),
-      (staffList) {
-        for (var staff in staffList) {
-          final staffEmail = staff.email;
-          if (staffEmail.isNotEmpty) {
-            people.add(PersonOption(
-                name: staff.name, email: staffEmail, role: staff.role));
-          }
-        }
-      },
+    final staffResult = await sl<StaffUseCases>().getAllStaff(
+      clinicId: widget.clinicId,
     );
+    staffResult.fold((failure) => log('Error loading staff: $failure'), (
+      staffList,
+    ) {
+      for (var staff in staffList) {
+        final staffEmail = staff.email;
+        if (staffEmail.isNotEmpty) {
+          people.add(
+            PersonOption(name: staff.name, email: staffEmail, role: staff.role),
+          );
+        }
+      }
+    });
 
-    final doctorsResult =
-        await sl<DoctorsUseCase>().getDoctors(clinicId: widget.clinicId);
-    doctorsResult.fold(
-      (failure) => log('Error loading doctors: $failure'),
-      (doctorList) {
-        for (var doctor in doctorList) {
-          if (doctor.email.isNotEmpty) {
-            people.add(PersonOption(
-                name: doctor.name, email: doctor.email, role: 'Doctor'));
-          }
-        }
-      },
+    final doctorsResult = await sl<DoctorsUseCase>().getDoctors(
+      clinicId: widget.clinicId,
     );
+    doctorsResult.fold((failure) => log('Error loading doctors: $failure'), (
+      doctorList,
+    ) {
+      for (var doctor in doctorList) {
+        if (doctor.email.isNotEmpty) {
+          people.add(
+            PersonOption(
+              name: doctor.name,
+              email: doctor.email,
+              role: 'Doctor',
+            ),
+          );
+        }
+      }
+    });
 
     setState(() {
       _availablePeople = people;
@@ -167,7 +171,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       if (result['success'] == true) {
         log('Backend confirmed email sent for $email.');
       } else {
-        log('Backend failed to send email for $email. Error: ${result['error']}');
+        log(
+          'Backend failed to send email for $email. Error: ${result['error']}',
+        );
       }
     });
 
@@ -178,9 +184,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create New Invitation'),
-      ),
+      appBar: AppBar(title: Text('createInvitation'.tr())),
       body: Form(
         key: _formKey,
         child: Stepper(
@@ -192,8 +196,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
             if (_formKey.currentState!.validate()) {
               if (_currentStep == 1 && _selectedRole == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Please select a role to proceed.')),
+                  SnackBar(content: Text('pleaseSelectRoleToProceed'.tr())),
                 );
                 return;
               }
@@ -219,14 +222,16 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: details.onStepCancel,
-                        child: const Text('Back'),
+                        child: Text('back'.tr()),
                       ),
                     ),
                   if (_currentStep != 0) const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
                       onPressed: details.onStepContinue,
-                      child: Text(isLastStep ? 'Send Invitation' : 'Next'),
+                      child: Text(
+                        isLastStep ? 'sendInvitation'.tr() : 'next'.tr(),
+                      ),
                     ),
                   ),
                 ],
@@ -239,24 +244,24 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   }
 
   List<Step> getSteps() => [
-        Step(
-          title: const Text('Recipient'),
-          content: _buildEmailSelectionSection(),
-          isActive: _currentStep >= 0,
-          state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-        ),
-        Step(
-          title: const Text('Assign Role'),
-          content: _buildRolesSection(),
-          isActive: _currentStep >= 1,
-          state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-        ),
-        Step(
-          title: const Text('Review'),
-          content: _buildReviewSection(),
-          isActive: _currentStep >= 2,
-        ),
-      ];
+    Step(
+      title: Text('recipient'.tr()),
+      content: _buildEmailSelectionSection(),
+      isActive: _currentStep >= 0,
+      state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+    ),
+    Step(
+      title: Text('assignRole'.tr()),
+      content: _buildRolesSection(),
+      isActive: _currentStep >= 1,
+      state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+    ),
+    Step(
+      title: Text('review'.tr()),
+      content: _buildReviewSection(),
+      isActive: _currentStep >= 2,
+    ),
+  ];
 
   Widget _buildReviewSection() {
     final String email = _useManualEntry
@@ -267,26 +272,26 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       children: [
         _buildReviewTile(
           icon: Icons.email_outlined,
-          title: 'Recipient Email',
+          title: 'recipientEmail'.tr(),
           subtitle: email,
         ),
         const Divider(height: 24),
         _buildReviewTile(
           icon: Icons.shield_outlined,
-          title: 'Assigned Role',
+          title: 'assignedRole'.tr(),
           subtitle: _selectedRole == null
-              ? 'No role selected'
+              ? 'noRoleSelected'.tr()
               : _getRoleDisplayName(_selectedRole!),
         ),
         const Divider(height: 24),
         _buildReviewTile(
           icon: Icons.vpn_key_outlined,
-          title: 'Granted Permissions',
+          title: 'grantedPermissions'.tr(),
           subtitle: '',
         ),
         const SizedBox(height: 16),
         if (_selectedPermissions.isEmpty)
-          const Text('No permissions granted for this role.')
+          Text('noPermissionsGranted'.tr())
         else
           Column(
             children: _selectedPermissions.map((permission) {
@@ -295,16 +300,20 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.check_circle_outline,
-                        size: 20.0, color: Colors.green),
+                    const Icon(
+                      Icons.check_circle_outline,
+                      size: 20.0,
+                      color: Colors.green,
+                    ),
                     const SizedBox(width: 12.0),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_getPermissionDisplayName(permission),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            _getPermissionDisplayName(permission),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 2.0),
                           Text(
                             _getPermissionDescription(permission),
@@ -322,10 +331,11 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     );
   }
 
-  Widget _buildReviewTile(
-      {required IconData icon,
-      required String title,
-      required String subtitle}) {
+  Widget _buildReviewTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -349,148 +359,183 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   Widget _buildEmailSelectionSection() {
     if (_isLoadingPeople) {
       return const Center(
-          child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 24.0),
-              child: CircularProgressIndicator()));
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 24.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
     if (_availablePeople.isEmpty && !_useManualEntry) {
       return Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .secondaryContainer
-              .withAlpha((255 * 0.3).round()),
+          color: Theme.of(
+            context,
+          ).colorScheme.secondaryContainer.withAlpha((255 * 0.3).round()),
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Icon(Icons.info_outline,
-                  color: Theme.of(context).colorScheme.onSecondaryContainer),
-              const SizedBox(width: 12),
-              const Expanded(
-                  child: Text('No staff or doctors found',
-                      style: TextStyle(fontWeight: FontWeight.bold))),
-            ]),
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'noStaffOrDoctors'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
-            const Text(
-                'Add staff members first to quickly invite them, or enter an email manually below.'),
+            Text('addStaffPrompt'.tr()),
             const SizedBox(height: 16),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              OutlinedButton(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
                   onPressed: () => context.push('/staff'),
-                  child: const Text('Manage Staff')),
-              const SizedBox(width: 12),
-              FilledButton(
+                  child: Text('manageStaff'.tr()),
+                ),
+                const SizedBox(width: 12),
+                FilledButton(
                   onPressed: () => setState(() => _useManualEntry = true),
-                  child: const Text('Enter Manually')),
-            ]),
+                  child: Text('enterManually'.tr()),
+                ),
+              ],
+            ),
           ],
         ),
       );
     }
 
     if (_useManualEntry) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text('Email Address', style: Theme.of(context).textTheme.titleMedium),
-          const Spacer(),
-          if (_availablePeople.isNotEmpty)
-            TextButton.icon(
-              onPressed: () => setState(() {
-                _useManualEntry = false;
-                _emailController.clear();
-              }),
-              icon: const Icon(Icons.arrow_back, size: 16),
-              label: const Text('Select from list'),
-            ),
-        ]),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: _emailController,
-          decoration: const InputDecoration(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'emailAddress'.tr(),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const Spacer(),
+              if (_availablePeople.isNotEmpty)
+                TextButton.icon(
+                  onPressed: () => setState(() {
+                    _useManualEntry = false;
+                    _emailController.clear();
+                  }),
+                  icon: const Icon(Icons.arrow_back, size: 16),
+                  label: Text('selectFromList'.tr()),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _emailController,
+            decoration: const InputDecoration(
               hintText: 'Enter email address',
               border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.email_outlined)),
-          keyboardType: TextInputType.emailAddress,
+              prefixIcon: Icon(Icons.email_outlined),
+            ),
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.isEmpty || !value.contains('@')) {
+                return 'Please enter a valid email address';
+              }
+              return null;
+            },
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'chooseStaffOrDoctor'.tr(),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => setState(() => _useManualEntry = true),
+              icon: const Icon(Icons.edit_outlined, size: 16),
+              label: Text('enterManually'.tr()),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<PersonOption>(
+          isExpanded: true,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            hintText: 'chooseFromStaffOrDoctors'.tr(),
+            prefixIcon: const Icon(Icons.person_outline),
+          ),
+          value: _selectedPerson,
+          selectedItemBuilder: (BuildContext context) {
+            return _availablePeople.map<Widget>((PersonOption person) {
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${person.name} (${person.email})',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }).toList();
+          },
+          items: _availablePeople.map((person) {
+            return DropdownMenuItem<PersonOption>(
+              value: person,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  person.name,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '${person.email} • ${person.role}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (PersonOption? value) {
+            setState(() => _selectedPerson = value);
+          },
           validator: (value) {
-            if (value == null || value.isEmpty || !value.contains('@')) {
-              return 'Please enter a valid email address';
+            if (!_useManualEntry && value == null) {
+              return 'Please select a person';
             }
             return null;
           },
         ),
-      ]);
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Text('Choose Staff or Doctor',
-            style: Theme.of(context).textTheme.titleMedium),
-        const Spacer(),
-        TextButton.icon(
-          onPressed: () => setState(() => _useManualEntry = true),
-          icon: const Icon(Icons.edit_outlined, size: 16),
-          label: const Text('Enter manually'),
-        ),
-      ]),
-      const SizedBox(height: 12),
-      DropdownButtonFormField<PersonOption>(
-        isExpanded: true,
-        decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Choose from staff or doctors',
-            prefixIcon: Icon(Icons.person_outline)),
-        value: _selectedPerson,
-        selectedItemBuilder: (BuildContext context) {
-          return _availablePeople.map<Widget>((PersonOption person) {
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${person.name} (${person.email})',
-                overflow: TextOverflow.ellipsis,
-              ),
-            );
-          }).toList();
-        },
-        items: _availablePeople.map((person) {
-          return DropdownMenuItem<PersonOption>(
-            value: person,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(person.name,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis),
-              subtitle: Text('${person.email} • ${person.role}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  overflow: TextOverflow.ellipsis),
-            ),
-          );
-        }).toList(),
-        onChanged: (PersonOption? value) {
-          setState(() => _selectedPerson = value);
-        },
-        validator: (value) {
-          if (!_useManualEntry && value == null) {
-            return 'Please select a person';
-          }
-          return null;
-        },
-      ),
-    ]);
+      ],
+    );
   }
 
   void _updatePermissionsBasedOnRoles() {
     _selectedPermissions.clear();
     if (_selectedRole != null) {
-      _selectedPermissions
-          .addAll(RoleDefaults.getPermissionsForRole(_selectedRole!));
+      _selectedPermissions.addAll(
+        RoleDefaults.getPermissionsForRole(_selectedRole!),
+      );
     }
   }
 
@@ -503,7 +548,8 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           return RadioListTile<AppRole>(
             title: Text(_getRoleDisplayName(role)),
             subtitle: Text(
-                'Assign the ${_getRoleDisplayName(role).toLowerCase()} role'),
+              'Assign the ${_getRoleDisplayName(role).toLowerCase()} role',
+            ),
             value: role,
             groupValue: _selectedRole,
             onChanged: (AppRole? value) {
@@ -518,23 +564,23 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'Please select a role to proceed.',
+              'pleaseSelectRoleToProceed'.tr(),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
         if (_selectedRole != null) ...[
           const Divider(height: 32),
           ExpansionTile(
-            title: const Text('Customize Permissions'),
-            subtitle:
-                const Text('Advanced: Manually grant or revoke permissions'),
+            title: Text('customizePermissions'.tr()),
+            subtitle: Text('advancedPermissions'.tr()),
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: AppPermission.values.map((permission) {
-                    final isSelected =
-                        _selectedPermissions.contains(permission);
+                    final isSelected = _selectedPermissions.contains(
+                      permission,
+                    );
                     return CheckboxListTile(
                       title: Text(_getPermissionDisplayName(permission)),
                       subtitle: Text(

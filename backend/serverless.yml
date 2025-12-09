@@ -24,6 +24,11 @@ provider:
     FIREBASE_SERVICE_ACCOUNT: ${env:FIREBASE_SERVICE_ACCOUNT}
     SES_FROM_EMAIL: ${env:SES_FROM_EMAIL}
     APP_URL: ${env:APP_URL}
+    PADDLE_API_KEY: ${env:PADDLE_API_KEY}
+    PADDLE_API_URL: ${env:PADDLE_API_URL}
+    PADDLE_PRICE_ID_PRO: ${env:PADDLE_PRICE_ID_PRO}
+    PADDLE_PRICE_ID_ELITE: ${env:PADDLE_PRICE_ID_ELITE}
+    # PADDLE_WEBHOOK_SECRET_KEY: ${env:PADDLE_WEBHOOK_SECRET_KEY} # Uncomment after adding to Doppler
 
   # IAM role for the Lambda function
   # This role grants permissions to send emails via SES and write logs to CloudWatch.
@@ -59,6 +64,7 @@ custom:
     minify: true
     external:
       - '@aws-sdk/*'
+      - 'stripe'
     packager: npm
     platform: node
     target: node18

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
@@ -41,11 +42,7 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
       'view_medical_records',
       'edit_medical_records',
     ],
-    'nurse': [
-      'view_patients',
-      'view_appointments',
-      'view_medical_records',
-    ],
+    'nurse': ['view_patients', 'view_appointments', 'view_medical_records'],
     'receptionist': [
       'view_patients',
       'edit_patients',
@@ -73,7 +70,7 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Send Invitation'),
+      title: Text('sendInvitation'.tr()),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -83,10 +80,10 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: 'email'.tr(),
                   hintText: 'Enter email address',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -100,9 +97,9 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Roles',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'role'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -149,12 +146,9 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text('cancel'.tr()),
         ),
-        ElevatedButton(
-          onPressed: _sendInvitation,
-          child: const Text('Send'),
-        ),
+        ElevatedButton(onPressed: _sendInvitation, child: Text('send'.tr())),
       ],
     );
   }
@@ -175,13 +169,16 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
     if (_formKey.currentState!.validate()) {
       if (_selectedRoles.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select at least one role')),
+          SnackBar(content: Text('select_at_least_one_role'.tr())),
         );
         return;
       }
 
       // Generate a new document ID
-      final newId = FirebaseFirestore.instance.collection('user_invitations').doc().id;
+      final newId = FirebaseFirestore.instance
+          .collection('user_invitations')
+          .doc()
+          .id;
 
       final invitation = InvitationModel(
         id: newId,

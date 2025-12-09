@@ -140,6 +140,11 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           _buildSectionHeader('accountAndSecurity'),
           ListTile(
+            leading: const Icon(Icons.card_membership),
+            title: Text('subscriptionAndBilling'.tr()),
+            onTap: () => context.push('/settings/subscription'),
+          ),
+          ListTile(
             leading: const Icon(Icons.security),
             title: Text('security'.tr()),
             onTap: () => context.push('/settings/security'),
