@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:dr_copilot/src/core/code_pusher/shorebird_updater.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
 import 'package:dr_copilot/src/core/localization/app_localization.dart';

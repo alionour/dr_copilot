@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
-import 'package:googleapis/docs/v1.dart' as docs;
+
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -22,8 +22,8 @@ final scopes = [
   CalendarApi.calendarReadonlyScope,
   CalendarApi.calendarEventsReadonlyScope,
   CalendarApi.calendarSettingsReadonlyScope,
-  drive.DriveApi.driveScope,
-  docs.DocsApi.documentsScope,
+  // Downgrade to drive.file to avoid CASA security assessment
+  drive.DriveApi.driveFileScope,
 ];
 
 /// Custom AuthClient for using a saved access token with Google APIs

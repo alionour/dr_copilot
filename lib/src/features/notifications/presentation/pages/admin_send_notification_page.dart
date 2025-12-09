@@ -59,8 +59,10 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
           .get();
 
       if (userDoc.exists) {
-        _currentUser =
-            UserModel.fromJson({...userDoc.data()!, 'uid': userDoc.id});
+        _currentUser = UserModel.fromJson({
+          ...userDoc.data()!,
+          'uid': userDoc.id,
+        });
 
         final clinicsSnapshot = await FirebaseFirestore.instance
             .collection('clinics')
@@ -80,7 +82,9 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading clinics: $e')),
+          SnackBar(
+            content: Text('errorLoadingClinics'.tr(args: [e.toString()])),
+          ),
         );
       }
     }
@@ -92,9 +96,9 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
 
     if (_selectedTarget == NotificationTargetType.specificRoles &&
         _selectedRoles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('select_at_least_one_role'.tr())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('select_at_least_one_role'.tr())));
       return;
     }
 
@@ -121,7 +125,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         targetRoles: _selectedTarget == NotificationTargetType.specificRoles
             ? _selectedRoles
             : null,
-        ownerId: _selectedTarget == NotificationTargetType.ownerClinics ||
+        ownerId:
+            _selectedTarget == NotificationTargetType.ownerClinics ||
                 _selectedTarget == NotificationTargetType.specificClinic
             ? _currentUser!.uid
             : null,
@@ -137,17 +142,18 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('send_notification'.tr()),
-      ),
+      appBar: AppBar(title: Text('send_notification'.tr())),
       body: BlocListener<SendNotificationBloc, SendNotificationState>(
         listener: (context, state) {
           if (state is SendNotificationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('notification_sent_to_users'
-                    .tr()
-                    .replaceAll('{count}', state.recipientCount.toString())),
+                content: Text(
+                  'notification_sent_to_users'.tr().replaceAll(
+                    '{count}',
+                    state.recipientCount.toString(),
+                  ),
+                ),
                 backgroundColor: Colors.green,
               ),
             );
@@ -226,7 +232,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
             Text(
               'notification_info_message'.tr(),
               style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -279,10 +286,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         prefixIcon: const Icon(Icons.category),
       ),
       items: NotificationType.values.map((type) {
-        return DropdownMenuItem(
-          value: type,
-          child: Text(_getTypeLabel(type)),
-        );
+        return DropdownMenuItem(value: type, child: Text(_getTypeLabel(type)));
       }).toList(),
       onChanged: (value) {
         if (value != null) {
@@ -300,16 +304,17 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.people),
       ),
-      items: [
-        NotificationTargetType.ownerClinics,
-        NotificationTargetType.specificClinic,
-        NotificationTargetType.specificRoles,
-      ].map((type) {
-        return DropdownMenuItem(
-          value: type,
-          child: Text(_getTargetLabel(type)),
-        );
-      }).toList(),
+      items:
+          [
+            NotificationTargetType.ownerClinics,
+            NotificationTargetType.specificClinic,
+            NotificationTargetType.specificRoles,
+          ].map((type) {
+            return DropdownMenuItem(
+              value: type,
+              child: Text(_getTargetLabel(type)),
+            );
+          }).toList(),
       onChanged: (value) {
         if (value != null) {
           setState(() {
@@ -379,8 +384,9 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
             ..._userClinics.map((clinic) {
               return CheckboxListTile(
                 title: Text(clinic.name),
-                subtitle:
-                    clinic.location != null ? Text(clinic.location!) : null,
+                subtitle: clinic.location != null
+                    ? Text(clinic.location!)
+                    : null,
                 value: _selectedClinicIds.contains(clinic.id),
                 onChanged: (bool? value) {
                   setState(() {
@@ -412,9 +418,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.send),
-          label: Text(
-            isLoading ? 'sending'.tr() : 'send_notification'.tr(),
-          ),
+          label: Text(isLoading ? 'sending'.tr() : 'send_notification'.tr()),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),

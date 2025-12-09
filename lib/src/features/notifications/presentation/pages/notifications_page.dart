@@ -168,7 +168,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       padding: const EdgeInsets.all(8),
                       color: Theme.of(
                         context,
-                      ).colorScheme.primaryContainer.withOpacity(0.3),
+                      ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                       child: Row(
                         children: [
                           const SizedBox(width: 8),

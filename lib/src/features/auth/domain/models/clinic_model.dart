@@ -14,6 +14,12 @@ class ClinicModel {
   @TimestampConverter()
   final Timestamp? createdAt;
 
+  // Subscription Fields
+  final String? subscriptionTier; // 'free', 'pro', 'elite'
+  final bool? isSubscriptionActive;
+  @TimestampConverter()
+  final Timestamp? subscriptionUpdatedAt;
+
   ClinicModel({
     required this.id,
     required this.name,
@@ -21,6 +27,9 @@ class ClinicModel {
     required this.ownerId,
     required this.adminEmail,
     required this.createdAt,
+    this.subscriptionTier,
+    this.isSubscriptionActive,
+    this.subscriptionUpdatedAt,
   });
 
   factory ClinicModel.fromJson(Map<String, dynamic> json) =>
@@ -34,6 +43,9 @@ class ClinicModel {
     String? ownerId,
     String? adminEmail,
     Timestamp? createdAt,
+    String? subscriptionTier,
+    bool? isSubscriptionActive,
+    Timestamp? subscriptionUpdatedAt,
   }) {
     return ClinicModel(
       id: id ?? this.id,
@@ -42,6 +54,10 @@ class ClinicModel {
       ownerId: ownerId ?? this.ownerId,
       adminEmail: adminEmail ?? this.adminEmail,
       createdAt: createdAt ?? this.createdAt,
+      subscriptionTier: subscriptionTier ?? this.subscriptionTier,
+      isSubscriptionActive: isSubscriptionActive ?? this.isSubscriptionActive,
+      subscriptionUpdatedAt:
+          subscriptionUpdatedAt ?? this.subscriptionUpdatedAt,
     );
   }
 }

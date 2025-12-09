@@ -29,11 +29,11 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/notification
 import 'package:dr_copilot/src/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/data_storage_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/appearance_settings_page.dart';
-import 'package:dr_copilot/src/features/settings/presentation/pages/export_data_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/model_selection_page.dart';
-
+import 'package:dr_copilot/src/features/subscription/presentation/pages/subscription_pricing_page.dart';
+import 'package:dr_copilot/src/features/subscription/presentation/pages/payment_result_page.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
@@ -60,9 +60,8 @@ class RoutingConfig {
         builder: (context, state) => const LoginPage(),
       ),
       ShellRoute(
-        builder: (context, state, child) {
-          return SelectionArea(child: NavigationSide(child: child));
-        },
+        builder: (context, state, child) =>
+            SelectionArea(child: NavigationSide(child: child)),
         routes: [
           GoRoute(
             path: '/home',
@@ -233,10 +232,20 @@ class RoutingConfig {
             name: 'model_selection',
             builder: (context, state) => const ModelSelectionPage(),
           ),
+          // Payment result route
           GoRoute(
-            path: '/settings/export_data',
-            name: 'export_data',
-            builder: (context, state) => const ExportDataPage(),
+            path: '/payment/result',
+            name: 'payment_result',
+            builder: (context, state) {
+              final status = state.uri.queryParameters['status'];
+              final plan = state.uri.queryParameters['plan'];
+              return PaymentResultPage(status: status, planId: plan);
+            },
+          ),
+          GoRoute(
+            path: '/settings/subscription',
+            name: 'subscription',
+            builder: (context, state) => const SubscriptionPricingPage(),
           ),
           GoRoute(
             path: '/doctors',
@@ -286,7 +295,6 @@ class RoutingConfig {
                   final extra = state.extra as Map<String, dynamic>;
                   final clinicId = extra['clinicId'] as String;
                   final currentUserId = extra['currentUserId'] as String;
-
                   return BlocProvider.value(
                     value: sl<InvitationBloc>(),
                     child: CreateInvitationPage(
@@ -325,9 +333,7 @@ class RoutingConfig {
         name: 'accept-invitation',
         builder: (context, state) {
           final token = state.uri.queryParameters['token'];
-          if (token == null || token.isEmpty) {
-            return const ErrorRoutePage();
-          }
+          if (token == null || token.isEmpty) return const ErrorRoutePage();
           return AcceptInvitationPage(token: token);
         },
       ),
@@ -352,9 +358,7 @@ class RoutingConfig {
         builder: (context, state) {
           final title = state.uri.queryParameters['title'] ?? 'Web View';
           final url = state.uri.queryParameters['url'];
-          if (url == null) {
-            return const ErrorRoutePage();
-          }
+          if (url == null) return const ErrorRoutePage();
           return WebViewScreen(title: title, url: url);
         },
       ),
@@ -372,9 +376,7 @@ class ErrorRoutePage extends StatelessWidget {
         title: Text('errorPageTitle'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Center(
@@ -392,9 +394,7 @@ class ErrorRoutePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () {
-                  context.go('/home');
-                },
+                onPressed: () => context.go('/home'),
                 child: Text('goToHome'.tr()),
               ),
             ],
