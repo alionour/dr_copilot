@@ -292,46 +292,72 @@ class _SummaryCardState extends State<_SummaryCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           transform: _isHovered
-              ? (Matrix4.identity()..scale(1.05))
+              ? (Matrix4.identity()..scale(1.02))
               : Matrix4.identity(),
           decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: Theme.of(
-                        context,
-                      ).shadowColor.withValues(alpha: 0.26),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(widget.icon, color: Colors.white, size: 32),
-                const SizedBox(height: 8),
-                Text(
-                  widget.title,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            gradient: LinearGradient(
+              colors: [widget.color, widget.color.withValues(alpha: 0.7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.3),
+                blurRadius: _isHovered ? 12 : 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Decorative background icon
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Icon(
+                  widget.icon,
+                  color: Colors.white.withValues(alpha: 0.1),
+                  size: 100,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(widget.icon, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.value,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

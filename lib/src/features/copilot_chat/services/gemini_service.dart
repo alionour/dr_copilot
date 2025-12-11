@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_tools.dart';
@@ -6,11 +7,21 @@ import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 
 class GeminiService implements AIService {
   final FlutterSecureStorage _secureStorage;
+  final QuotaService _quotaService;
+  final SubscriptionService _subscriptionService;
 
-  GeminiService(this._secureStorage);
+  GeminiService(
+    this._secureStorage, {
+    required QuotaService quotaService,
+    required SubscriptionService subscriptionService,
+  }) : _quotaService = quotaService,
+       _subscriptionService = subscriptionService;
 
   Future<String?> _safeRead(String key) async {
     int retries = 0;
@@ -84,16 +95,40 @@ class GeminiService implements AIService {
     return GenerativeModel(model: 'gemini-2.5-flash-lite', apiKey: apiKey);
   }
 
+  Future<void> _checkTokenLimit(String clinicId) async {
+    final tier = await _subscriptionService.getCurrentTier(clinicId);
+    final limit = tier.maxMonthlyTokens;
+    final usage = await _quotaService.getUsage(
+      clinicId,
+      null,
+      LimitType.aiTokens,
+    );
+
+    if (usage >= limit) {
+      throw Exception(
+        'Monthly AI token limit exceeded. Please upgrade your plan.',
+      );
+    }
+  }
+
   @override
   Future<String> generateResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
-    return (await getGeminiResponse(
-          query,
-          messageHistory: messageHistory,
-        )).text ??
-        '';
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+
+    final response = await getGeminiResponse(
+      query,
+      messageHistory: messageHistory,
+      clinicId: clinicId,
+      userId: userId,
+    );
+    return response.text ?? '';
   }
 
   @override
@@ -101,7 +136,13 @@ class GeminiService implements AIService {
     String query,
     Uint8List imageBytes, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+
     final keys = await _getApiKeys();
     if (keys.isEmpty) throw Exception('No Gemini API keys found.');
 
@@ -113,6 +154,20 @@ class GeminiService implements AIService {
       try {
         final model = _getVisionModel(keys[i]);
         final response = await model.generateContent(content);
+
+        // Track usage
+        if (clinicId != null) {
+          final totalTokens = response.usageMetadata?.totalTokenCount;
+          if (totalTokens != null) {
+            await _quotaService.incrementUsage(
+              clinicId,
+              userId,
+              LimitType.aiTokens,
+              amount: totalTokens,
+            );
+          }
+        }
+
         return response.text ?? '';
       } catch (e) {
         debugPrint('Gemini key $i failed (Vision): $e');
@@ -125,6 +180,8 @@ class GeminiService implements AIService {
   Future<GenerateContentResponse> getGeminiResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
     final keys = await _getApiKeys();
     if (keys.isEmpty) throw Exception('No Gemini API keys found.');
@@ -148,6 +205,20 @@ class GeminiService implements AIService {
       try {
         final model = _getModel(keys[i]);
         final response = await model.generateContent(contents);
+
+        // Track usage
+        if (clinicId != null) {
+          final totalTokens = response.usageMetadata?.totalTokenCount;
+          if (totalTokens != null) {
+            await _quotaService.incrementUsage(
+              clinicId,
+              userId,
+              LimitType.aiTokens,
+              amount: totalTokens,
+            );
+          }
+        }
+
         return response;
       } catch (e) {
         debugPrint('Gemini key $i failed: $e');

@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_event.dart';
@@ -52,11 +54,28 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   int _currentStep = 0;
   String? _clinicName;
+  bool _canInvite = true;
+  bool _checkingSubscription = true;
 
   @override
   void initState() {
     super.initState();
+    _checkSubscriptionStatus();
     _loadInitialData();
+  }
+
+  Future<void> _checkSubscriptionStatus() async {
+    final subscriptionService = sl<SubscriptionService>();
+    final canInvite = await subscriptionService.isFeatureAllowed(
+      widget.clinicId,
+      SubscriptionFeature.inviteMembers,
+    );
+    if (mounted) {
+      setState(() {
+        _canInvite = canInvite;
+        _checkingSubscription = false;
+      });
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -183,6 +202,56 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_checkingSubscription) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!_canInvite) {
+      return Scaffold(
+        appBar: AppBar(title: Text('createInvitation'.tr())),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.lock_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Premium Feature',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Team management is available on Professional and Elite plans.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: () => context.push('/subscription_pricing'),
+                  icon: const Icon(Icons.verified_outlined),
+                  label: Text('View Plans'),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => context.pop(),
+                  child: Text('cancel'.tr()),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text('createInvitation'.tr())),
       body: Form(
@@ -750,7 +819,21 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       case AppPermission.viewHelp:
         return 'Allows access to the help and documentation section.';
       case AppPermission.accessSupport:
-        return 'Allows the ability to contact customer support.';
+        return 'accessSupport'.tr();
+      case AppPermission.sendNotificationMessage:
+        return 'sendNotificationMessage'.tr();
+      case AppPermission.sendNotificationAppointment:
+        return 'sendNotificationAppointment'.tr();
+      case AppPermission.sendNotificationReminder:
+        return 'sendNotificationReminder'.tr();
+      case AppPermission.manageTeams:
+        return 'manageTeams'.tr();
+      case AppPermission.createTeam:
+        return 'Allows creating new teams for clinic collaboration.';
+      case AppPermission.archiveTeam:
+        return 'Allows archiving teams to remove them from active view.';
+      case AppPermission.unarchiveTeam:
+        return 'Allows restoring archived teams.';
     }
   }
 }

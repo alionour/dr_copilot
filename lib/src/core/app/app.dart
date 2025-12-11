@@ -118,6 +118,8 @@ class App extends StatelessWidget {
                     /// - Uses a custom `builder` to print the current locale for debugging and wraps the child widget in a `Stack`.
                     providers: appBlocProviders,
                     child: MaterialApp.router(
+                      scaffoldMessengerKey: RoutingConfig.scaffoldMessengerKey,
+
                       /// Sets the application's router configuration using the predefined
                       /// `router` from the `RoutingConfig` class. This determines how
                       /// navigation and route management are handled within the app.

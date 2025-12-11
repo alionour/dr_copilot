@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
+import 'package:dr_copilot/src/features/notifications/domain/models/notification_model.dart';
 
 /// Defines the default permissions for each role.
 /// This is used for:
@@ -10,7 +11,12 @@ class RoleDefaults {
     switch (role) {
       case AppRole.superAdmin:
       case AppRole.admin:
-        return AppPermission.values; // Admin gets everything
+        return [
+          ...AppPermission.values,
+          AppPermission.sendNotificationMessage,
+          AppPermission.sendNotificationAppointment,
+          AppPermission.sendNotificationReminder,
+        ];
 
       case AppRole.doctor:
         return [
@@ -29,6 +35,9 @@ class RoleDefaults {
           AppPermission.editCalendarEvent,
           AppPermission.useCopilot,
           AppPermission.viewNotifications,
+          AppPermission.sendNotificationMessage,
+          AppPermission.sendNotificationAppointment,
+          AppPermission.sendNotificationReminder,
         ];
 
       case AppRole.staff:
@@ -40,6 +49,8 @@ class RoleDefaults {
           AppPermission.viewCalendar,
           AppPermission.addCalendarEvent, // Staff often schedule
           AppPermission.viewNotifications,
+          AppPermission.sendNotificationAppointment,
+          AppPermission.sendNotificationReminder,
         ];
 
       case AppRole.financial:
@@ -58,5 +69,29 @@ class RoleDefaults {
           AppPermission.viewCalendar,
         ];
     }
+  }
+
+  static List<NotificationTargetType> getAllowedNotificationTargets(
+    AppRole role,
+  ) {
+    if (role == AppRole.superAdmin) {
+      return NotificationTargetType.values;
+    }
+
+    if (role == AppRole.admin) {
+      return [
+        NotificationTargetType.ownerClinics,
+        NotificationTargetType.specificClinic,
+        NotificationTargetType.specificRoles,
+        NotificationTargetType.customTeam,
+      ];
+    }
+
+    // For Doctor, Staff, Financial - they don't "own" clinics, so no ownerClinics
+    return [
+      NotificationTargetType.specificClinic,
+      NotificationTargetType.specificRoles,
+      NotificationTargetType.customTeam,
+    ];
   }
 }

@@ -138,6 +138,8 @@ enum NotificationTargetType {
   ownerClinics,
   @JsonValue('specific_clinic')
   specificClinic,
+  @JsonValue('custom_team')
+  customTeam,
 }
 
 @JsonSerializable()
@@ -151,11 +153,14 @@ class NotificationTarget {
 
   final List<String>? clinicIds;
 
+  final String? teamId;
+
   NotificationTarget({
     required this.type,
     this.targetRoles,
     this.ownerId,
     this.clinicIds,
+    this.teamId,
   });
 
   factory NotificationTarget.fromJson(Map<String, dynamic> json) =>

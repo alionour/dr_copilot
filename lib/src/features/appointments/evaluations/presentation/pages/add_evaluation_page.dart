@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
@@ -226,7 +229,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     }
   }
 
-  void _saveEvaluation() {
+  Future<void> _saveEvaluation() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedPatient == null) {
         // Try to find patient from list if name matches
@@ -262,6 +265,20 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           context,
         ).showSnackBar(SnackBar(content: Text('Please select a clinic.')));
         return;
+      }
+
+      // Subscription Check: Only when adding a new evaluation
+      if (widget.evaluation == null) {
+        final subscriptionService = sl<SubscriptionService>();
+        final canAdd = await subscriptionService.checkEntityLimit(
+          _selectedClinicId!,
+          LimitType.evaluations,
+        );
+
+        if (!canAdd && mounted) {
+          _showUpgradeDialog(context, 'evaluationLimitReached'.tr());
+          return;
+        }
       }
 
       if (_selectedInvoiceStatus == null && widget.evaluation == null) {
@@ -307,6 +324,29 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         );
       }
     }
+  }
+
+  void _showUpgradeDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('upgradeRequired'.tr()),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text('cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.pop();
+              context.push('/subscription_pricing');
+            },
+            child: Text('upgrade'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

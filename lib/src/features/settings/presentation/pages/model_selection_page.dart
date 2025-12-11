@@ -5,6 +5,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
+import 'package:provider/provider.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ModelSelectionPage extends StatefulWidget {
   const ModelSelectionPage({super.key});
@@ -33,6 +40,8 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
     'claude': 'Claude',
   };
 
+  SubscriptionTier _currentTier = SubscriptionTier.free;
+
   @override
   void initState() {
     super.initState();
@@ -42,9 +51,32 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
   Future<void> _loadSettings() async {
     setState(() => _isLoading = true);
 
+    // Load Subscription Tier
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+      // Ensure ownerNotifier is loaded - might need to wait or it might be ready.
+      // Assuming it's reasonably up to date or we fetch directly.
+      // Let's fetch directly for safety as this is a settings page.
+      String? clinicId = ownerNotifier.clinicId;
+      if (clinicId == null) {
+        // Fallback fetch
+        final userDoc = await GetIt.instance<FirebaseFirestore>()
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        clinicId = userDoc.data()?['primaryClinicId'];
+      }
+
+      if (clinicId != null) {
+        _currentTier = await sl<SubscriptionService>().getCurrentTier(clinicId);
+      }
+    }
+
     // Load active model preference
     _selectedActiveModel = await _secureStorage.read(key: 'selected_ai_model');
 
+    // ... (rest of the loading logic remains check below)
     // Load configured keys
     for (var model in _availableModels.keys) {
       List<String> keys = [];
@@ -88,18 +120,52 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
 
     // specific handling if no active model is selected but keys exist
     if (_selectedActiveModel == null && _configuredKeys.isNotEmpty) {
-      _selectedActiveModel = _configuredKeys.keys.first;
-      await _secureStorage.write(
-        key: 'selected_ai_model',
-        value: _selectedActiveModel,
-      );
+      // Prefer allowed models
+      final allowed = _configuredKeys.keys
+          .where((k) => _isModelAllowed(k))
+          .toList();
+      if (allowed.isNotEmpty) {
+        _selectedActiveModel = allowed.first;
+      } else if (_configuredKeys.isNotEmpty) {
+        _selectedActiveModel = _configuredKeys.keys.first;
+      }
+
+      if (_selectedActiveModel != null) {
+        await _secureStorage.write(
+          key: 'selected_ai_model',
+          value: _selectedActiveModel,
+        );
+      }
     }
 
     setState(() => _isLoading = false);
   }
 
+  bool _isModelAllowed(String modelKey) {
+    if (modelKey == 'openai') return _currentTier.canUseAdvancedModels;
+    if (modelKey == 'claude') return _currentTier.canUseEliteModels;
+    return true; // Gemini is allowed for all (Free uses Flash, others Pro)
+  }
+
   Future<void> _setActiveModel(String? model) async {
     if (model == null) return;
+
+    if (!_isModelAllowed(model)) {
+      String requiredPlan = model == 'claude' ? 'Elite' : 'Pro';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Upgrade to $requiredPlan to use ${_availableModels[model]}',
+          ),
+          action: SnackBarAction(
+            label: 'Upgrade',
+            onPressed: () => context.push('/subscription_pricing'),
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     await _secureStorage.write(key: 'selected_ai_model', value: model);
     setState(() {
@@ -312,12 +378,24 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
         children: _configuredKeys.entries.map((entry) {
           final modelKey = entry.key;
           final modelName = _availableModels[modelKey] ?? modelKey;
+          final isAllowed = _isModelAllowed(modelKey);
+
           return RadioListTile<String>(
             title: Text(
               modelName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isAllowed ? null : Colors.grey,
+              ),
             ),
-            subtitle: Text('${entry.value.length} keys configured'),
+            subtitle: Text(
+              isAllowed
+                  ? '${entry.value.length} keys configured'
+                  : 'Upgrade to ${modelKey == "claude" ? "Elite" : "Pro"} to use',
+              style: TextStyle(
+                color: isAllowed ? null : Theme.of(context).colorScheme.error,
+              ),
+            ),
             value: modelKey,
             groupValue: _selectedActiveModel,
             onChanged: _setActiveModel,
@@ -376,15 +454,18 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
                     child: DropdownButton<String>(
                       isExpanded: true,
                       value: _newModelSelection,
-                      items: _availableModels.entries.map((entry) {
-                        return DropdownMenuItem<String>(
-                          value: entry.key,
-                          child: Text(
-                            entry.value,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      }).toList(),
+                      items: _availableModels.entries
+                          .where((entry) => _isModelAllowed(entry.key))
+                          .map((entry) {
+                            return DropdownMenuItem<String>(
+                              value: entry.key,
+                              child: Text(
+                                entry.value,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          })
+                          .toList(),
                       onChanged: (val) {
                         if (val != null) {
                           setState(() => _newModelSelection = val);

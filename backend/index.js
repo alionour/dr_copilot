@@ -66,9 +66,21 @@ app.use('/webhook', webhookRouter);
 
 
 // --- Root Route for Landing Page ---
+// Force deploy: 2025-12-10 18:50
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pricing.html'));
 });
+
+// Explicit route for pricing (in case they look for /pricing)
+app.get('/pricing', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pricing.html'));
+});
+
+// Explicit route for terms (in case they look for /terms)
+app.get('/terms', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'terms_of_service.html'));
+});
+
 
 app.get('/health', (req, res) => {
     res.status(200).json({

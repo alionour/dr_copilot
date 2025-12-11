@@ -4,12 +4,11 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_state.dart';
-import 'package:dr_copilot/src/features/notifications/presentation/pages/admin_send_notification_page.dart';
+import 'package:dr_copilot/src/features/notifications/presentation/pages/create_notification_page.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_defaults.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 
 import 'package:dr_copilot/src/features/notifications/presentation/widgets/notification_list_item.dart';
-import 'package:dr_copilot/src/features/notifications/presentation/bloc/send_notification/send_notification_bloc.dart';
-import 'package:dr_copilot/src/features/notifications/notifications_injections.dart'
-    as notif_sl;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +23,7 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   String? _userId;
-  bool _isAdmin = false;
+  bool _canSendNotifications = false;
 
   @override
   void didChangeDependencies() {
@@ -36,12 +35,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
         context.read<NotificationsBloc>().add(
           WatchNotificationsEvent(_userId!),
         );
-        _checkIfAdmin();
+        _checkPermissions();
       }
     }
   }
 
-  void _checkIfAdmin() async {
+  void _checkPermissions() async {
     try {
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser != null) {
@@ -55,11 +54,29 @@ class _NotificationsPageState extends State<NotificationsPage> {
             ...userDoc.data()!,
             'uid': userDoc.id,
           });
-          // Check if user is admin in their primary clinic
+          // Check if user has any send notification permissions
+          bool canSend = false;
           if (user.primaryClinicId != null) {
-            final isAdmin = await user.isAdminInClinic(user.primaryClinicId!);
+            final roleString = await user.getRoleInClinic(
+              user.primaryClinicId!,
+            );
+            if (roleString != null) {
+              final role = AppRole.values.firstWhere(
+                (r) =>
+                    r.name == roleString || r.name == roleString.toLowerCase(),
+                orElse: () =>
+                    AppRole.values.firstWhere((r) => r.name == 'readonly'),
+              );
+              final permissions = RoleDefaults.getPermissionsForRole(role);
+              canSend = permissions.any((p) {
+                return p.name.startsWith('sendNotification');
+              });
+            }
+          }
+
+          if (mounted) {
             setState(() {
-              _isAdmin = isAdmin;
+              _canSendNotifications = canSend;
             });
           }
         }
@@ -228,19 +245,36 @@ class _NotificationsPageState extends State<NotificationsPage> {
             );
           }
 
+          // Handle NotificationSentSuccess - this happens after sending a notification
+          // We should just keep showing the current loaded state
+          if (state is NotificationSentSuccess) {
+            // This state is handled by the CreateNotificationPage listener
+            // But we need to handle it here too so we don't show loading
+            // Just refresh the notifications list
+            if (_userId != null) {
+              // Trigger a refresh to get the latest notifications
+              Future.microtask(() {
+                if (mounted) {
+                  context.read<NotificationsBloc>().add(
+                    RefreshNotificationsEvent(_userId!),
+                  );
+                }
+              });
+            }
+            // Show loading while we refresh
+            return const Center(child: CircularProgressIndicator());
+          }
+
           return const Center(child: CircularProgressIndicator());
         },
       ),
-      floatingActionButton: _isAdmin
+      floatingActionButton: _canSendNotifications
           ? FloatingActionButton.extended(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BlocProvider(
-                      create: (context) => notif_sl.sl<SendNotificationBloc>(),
-                      child: const AdminSendNotificationPage(),
-                    ),
+                    builder: (context) => const CreateNotificationPage(),
                   ),
                 );
               },
