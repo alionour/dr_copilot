@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class TransactionListItem extends StatelessWidget {
   final TransactionModel transaction;
@@ -17,27 +18,46 @@ class TransactionListItem extends StatelessWidget {
     final color = isIncome ? Colors.green : Colors.red;
     final icon = isIncome ? Icons.arrow_downward : Icons.arrow_upward;
     final currency = transaction.currencyProfileId ?? '';
-    final dateStr =
-        transaction.transactionDate.toDate().toLocal().toString().split(' ')[0];
+    final dateStr = transaction.transactionDate
+        .toDate()
+        .toLocal()
+        .toString()
+        .split(' ')[0];
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+        ),
       ),
-      elevation: 3,
       child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16.0),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: color.withAlpha((0.15 * 255).toInt()),
-                radius: 24,
+              // Icon Container
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 16),
+              // Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,66 +65,54 @@ class TransactionListItem extends StatelessWidget {
                     Text(
                       transaction.description,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Text(
-                          '${transaction.amount.toStringAsFixed(2)} $currency',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: color,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withValues(
-                                alpha: (0.08 * 255).toDouble()),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            isIncome ? 'دخل' : 'مصروف',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: color,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                          ),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 4),
                     Text(
-                      'تاريخ العملية: $dateStr',
+                      dateStr,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
               ),
-              // ElevatedButton(
-              //   onPressed: onTap,
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: Colors.red,
-              //     foregroundColor: Colors.white,
-              //     textStyle: const TextStyle(fontWeight: FontWeight.bold),
-              //     padding:
-              //         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(8),
-              //     ),
-              //   ),
-              //   child: Text('delete'.tr()),
-              // ),
+              // Amount
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)} $currency',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      isIncome ? 'income'.tr() : 'expense'.tr(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

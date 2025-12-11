@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dr_copilot/src/core/router/routing_config.dart';
 
 /// Service for handling Firebase Cloud Messaging (FCM) push notifications
 class FCMService {
@@ -212,30 +214,62 @@ class FCMService {
     // Use hashcode of ID for unique notification ID, ensuring it fits int range
     final notificationId = id.hashCode;
 
-    await _localNotifications.show(
-      notificationId,
-      title,
-      body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'high_importance_channel',
-          'High Importance Notifications',
-          channelDescription:
-              'This channel is used for important notifications.',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-          playSound: true,
-          enableVibration: true,
+    try {
+      await _localNotifications.show(
+        notificationId,
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel',
+            'High Importance Notifications',
+            channelDescription:
+                'This channel is used for important notifications.',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+            playSound: true,
+            enableVibration: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      payload: data['actionUrl'] ?? data['id'],
-    );
+        payload: data['actionUrl'] ?? data['id'],
+      );
+    } catch (e) {
+      debugPrint('[FCM] Error showing local notification: $e');
+      // Fallback: Show In-App Snackbar if native notification fails (e.g. Windows)
+      final scaffold = RoutingConfig.scaffoldMessengerKey.currentState;
+      if (scaffold != null) {
+        scaffold.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.notifications, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text('$title: $body')),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.teal,
+            action: (data['actionUrl'] != null)
+                ? SnackBarAction(
+                    label: 'OPEN',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      if (data['actionUrl'] != null) {
+                        RoutingConfig.router.push(data['actionUrl']);
+                      }
+                    },
+                  )
+                : null,
+          ),
+        );
+      }
+    }
   }
 
   /// Show local notification
@@ -256,30 +290,62 @@ class FCMService {
     final android = message.notification?.android;
 
     if (notification != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-            playSound: true,
-            enableVibration: true,
+      try {
+        await _localNotifications.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'high_importance_channel',
+              'High Importance Notifications',
+              channelDescription:
+                  'This channel is used for important notifications.',
+              importance: Importance.high,
+              priority: Priority.high,
+              icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+              playSound: true,
+              enableVibration: true,
+            ),
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
           ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        payload: message.data['notificationId'] ?? message.data['actionUrl'],
-      );
+          payload: message.data['notificationId'] ?? message.data['actionUrl'],
+        );
+      } catch (e) {
+        debugPrint('[FCM] Error showing local notification: $e');
+        // Fallback: Show In-App Snackbar if native notification fails
+        final scaffold = RoutingConfig.scaffoldMessengerKey.currentState;
+        if (scaffold != null) {
+          scaffold.showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.notifications, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('${notification.title}: ${notification.body}'),
+                  ),
+                ],
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.teal,
+              action: (message.data['actionUrl'] != null)
+                  ? SnackBarAction(
+                      label: 'OPEN',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        RoutingConfig.router.push(message.data['actionUrl']);
+                      },
+                    )
+                  : null,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -296,11 +362,14 @@ class FCMService {
       _markNotificationAsRead(notificationId);
     }
 
-    if (actionUrl != null) {
+    if (actionUrl != null && actionUrl.isNotEmpty) {
       // Navigate to the action URL
-      // This will be handled by the app's navigation system
-      debugPrint('[FCM] Should navigate to: $actionUrl');
-      // TODO: Implement navigation using GoRouter
+      debugPrint('[FCM] Navigating to: $actionUrl');
+      try {
+        RoutingConfig.router.push(actionUrl);
+      } catch (e) {
+        debugPrint('[FCM] Navigation error: $e');
+      }
     }
   }
 
@@ -309,9 +378,20 @@ class FCMService {
     debugPrint('[FCM] Local notification tapped');
     debugPrint('[FCM] Payload: ${response.payload}');
 
-    if (response.payload != null) {
-      // Handle navigation
-      // TODO: Implement navigation using GoRouter
+    if (response.payload != null && response.payload!.isNotEmpty) {
+      final actionUrl = response.payload!;
+      // Simple check to distinguish ID from URL (URLs here start with / usually or http)
+      // If payload is just an ID (hashCode), we might not want to navigate?
+      // But in _showLocalNotification, payload is set to: data['actionUrl'] ?? data['id']
+
+      // If it starts with /, assume it's a route
+      if (actionUrl.startsWith('/')) {
+        try {
+          RoutingConfig.router.push(actionUrl);
+        } catch (e) {
+          debugPrint('[FCM] Navigation error: $e');
+        }
+      }
     }
   }
 

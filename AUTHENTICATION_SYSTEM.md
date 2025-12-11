@@ -142,10 +142,6 @@ Email Link
   emailVerified: boolean;
   photoURL: string;               // Profile picture URL
   
-  // Role & Permission System
-  roles: AppRole[];               // [superAdmin, admin, doctor, staff, financial, readonly]
-  permissions: AppPermission[];   // Granular permissions
-  
   // Multi-Clinic Support
   clinicIds: string[];            // ["clinic_123", "clinic_456"]
   primaryClinicId: string;        // Default clinic
@@ -168,13 +164,14 @@ Email Link
   "email": "john.smith@example.com",
   "emailVerified": true,
   "photoURL": "https://lh3.googleusercontent.com/...",
-  "roles": ["doctor"],
-  "permissions": ["read", "write"],
   "clinicIds": ["clinic_456"],
   "primaryClinicId": "clinic_456",
   "ownerId": "",
   "phoneNumber": "+1234567890"
 }
+```
+
+**Note**: `roles` and `permissions` are NO LONGER stored here. They are strictly in `clinics/{id}/members/{uid}` (Single Source of Truth).
 ```
 
 **Created When**:

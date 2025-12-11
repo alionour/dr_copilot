@@ -29,10 +29,22 @@ void initCopilotInjections() {
   );
 
   // Services
-  sl.registerLazySingleton(() => VertexAIService(''));
-  sl.registerLazySingleton(() => GPTService(sl()));
-  sl.registerLazySingleton(() => GeminiService(sl()));
-  sl.registerLazySingleton(() => DeepSeekService(''));
-  sl.registerLazySingleton(() => QwenService(''));
-  sl.registerLazySingleton(() => ClaudeService(sl()));
+  sl.registerLazySingleton(
+    () => VertexAIService('', quotaService: sl(), subscriptionService: sl()),
+  );
+  sl.registerLazySingleton(
+    () => GPTService(sl(), quotaService: sl(), subscriptionService: sl()),
+  );
+  sl.registerLazySingleton(
+    () => GeminiService(sl(), quotaService: sl(), subscriptionService: sl()),
+  );
+  sl.registerLazySingleton(
+    () => DeepSeekService('', quotaService: sl(), subscriptionService: sl()),
+  );
+  sl.registerLazySingleton(
+    () => QwenService('', quotaService: sl(), subscriptionService: sl()),
+  );
+  sl.registerLazySingleton(
+    () => ClaudeService(sl(), quotaService: sl(), subscriptionService: sl()),
+  );
 }

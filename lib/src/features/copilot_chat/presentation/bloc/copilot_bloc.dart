@@ -87,6 +87,8 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
         final response = await service.getGeminiResponse(
           event.query,
           messageHistory: event.messageHistory,
+          clinicId: event.clinicId,
+          userId: event.userId,
         );
         final functionCalls = response.functionCalls;
         if (functionCalls.isNotEmpty) {
@@ -98,6 +100,8 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
         final response = await service.generateResponse(
           event.query,
           messageHistory: event.messageHistory,
+          clinicId: event.clinicId,
+          userId: event.userId,
         );
         emit(CopilotResponseGenerated(response));
       }
@@ -126,6 +130,8 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       final response = await service.generateResponseWithImage(
         event.text,
         event.imageBytes,
+        clinicId: event.clinicId,
+        userId: event.userId,
       );
       emit(CopilotResponseGenerated(response));
     } catch (e) {

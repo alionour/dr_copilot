@@ -187,7 +187,12 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
           target: template.target,
         );
 
-        batch.set(docRef, notification.toJson());
+        // Manually serialize nested objects to avoid 'Invalid argument' error
+        final json = notification.toJson();
+        json['sender'] = notification.sender.toJson();
+        json['target'] = notification.target.toJson();
+
+        batch.set(docRef, json);
         count++;
 
         if (count % 500 == 0) {
@@ -261,6 +266,27 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
           }
           query = query.where('clinicIds', arrayContainsAny: target.clinicIds);
           break;
+
+        case NotificationTargetType.customTeam:
+          // For custom team, fetch team members from the teams collection
+          if (target.teamId == null) {
+            return [];
+          }
+          try {
+            final teamDoc = await _firestore
+                .collection('custom_teams')
+                .doc(target.teamId)
+                .get();
+            if (!teamDoc.exists) {
+              return [];
+            }
+            final teamData = teamDoc.data();
+            final memberIds = List<String>.from(teamData?['memberIds'] ?? []);
+            return memberIds;
+          } catch (e) {
+            debugPrint('Error fetching custom team members: $e');
+            return [];
+          }
       }
 
       final snapshot = await query.get();

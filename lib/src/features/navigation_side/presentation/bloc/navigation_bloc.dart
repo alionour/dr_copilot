@@ -8,8 +8,14 @@ part 'navigation_state.dart';
 
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   NavigationBloc()
-      : super(const NavigationState(null, Destination.copilot, true,
-            allowedDestinations: {})) {
+    : super(
+        const NavigationState(
+          null,
+          Destination.copilot,
+          true,
+          allowedDestinations: {},
+        ),
+      ) {
     on<NavigateToEvent>(navigateTo);
     on<NavigateUpEvent>(navigateUp);
     on<NavigateDownEvent>(navigateDown);
@@ -19,7 +25,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   }
 
   void _onDestinationsUpdated(
-      DestinationsUpdated event, Emitter<NavigationState> emit) {
+    DestinationsUpdated event,
+    Emitter<NavigationState> emit,
+  ) {
     emit(state.copyWith(allowedDestinations: event.destinations));
   }
 
@@ -77,20 +85,35 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.chatGptProject:
         emit(state.copyWith(destination: Destination.chatGptProject));
         break;
+      case Destination.teamChat:
+        emit(state.copyWith(destination: Destination.teamChat));
+        break;
+      case Destination.teams:
+        emit(state.copyWith(destination: Destination.teams));
+        break;
     }
   }
 
   void navigateUp(NavigateUpEvent event, Emitter emit) {
-    final newIndex = (state.selectedIndex - 1 + Destination.values.length) %
+    final newIndex =
+        (state.selectedIndex - 1 + Destination.values.length) %
         Destination.values.length;
-    emit(state.copyWith(
-        selectedIndex: newIndex, destination: Destination.values[newIndex]));
+    emit(
+      state.copyWith(
+        selectedIndex: newIndex,
+        destination: Destination.values[newIndex],
+      ),
+    );
   }
 
   void navigateDown(NavigateDownEvent event, Emitter emit) {
     final newIndex = (state.selectedIndex + 1) % Destination.values.length;
-    emit(state.copyWith(
-        selectedIndex: newIndex, destination: Destination.values[newIndex]));
+    emit(
+      state.copyWith(
+        selectedIndex: newIndex,
+        destination: Destination.values[newIndex],
+      ),
+    );
   }
 
   void changeFocus(ChangeFocusEvent event, Emitter emit) {

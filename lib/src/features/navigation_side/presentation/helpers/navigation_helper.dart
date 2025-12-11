@@ -3,7 +3,9 @@ import 'package:dr_copilot/src/features/navigation_side/domain/entities/destinat
 
 class NavigationHelper {
   static Future<Map<String, List<Destination>>> getAllowedDestinations(
-      UserModel? user, String? clinicId) async {
+    UserModel? user,
+    String? clinicId,
+  ) async {
     if (user == null || clinicId == null) {
       return {};
     }
@@ -16,10 +18,7 @@ class NavigationHelper {
     final roleLower = role.toLowerCase();
 
     final allDestinations = {
-      'coreOperations': [
-        Destination.copilot,
-        Destination.calendar,
-      ],
+      'coreOperations': [Destination.copilot, Destination.calendar],
       'management': [
         Destination.patients,
         Destination.doctors,
@@ -27,16 +26,13 @@ class NavigationHelper {
         Destination.invitations,
         Destination.clinicalReports,
       ],
-      'appointments': [
-        Destination.sessions,
-        Destination.evaluations,
-      ],
-      'business': [
-        Destination.financials,
-      ],
+      'appointments': [Destination.sessions, Destination.evaluations],
+      'business': [Destination.financials],
       'utilities': [
         Destination.notifications,
         Destination.settings,
+        Destination.teamChat,
+        Destination.teams,
       ],
     };
 
@@ -82,6 +78,8 @@ class NavigationHelper {
           case Destination.calendar:
           case Destination.settings:
           case Destination.notifications:
+          case Destination.teamChat:
+          case Destination.teams:
             allowedInCategory.add(dest);
             break;
 

@@ -122,6 +122,8 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.settings: '/settings',
     Destination.notifications: '/notifications',
     Destination.chat: '/chat',
+    Destination.teamChat: '/team_chat',
+    Destination.teams: '/teams',
     Destination.liveAssistant: '/live_assistant',
     Destination.patients: '/patients',
     Destination.doctors: '/doctors',
