@@ -49,8 +49,18 @@ import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/user_selection_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/bloc/chat_room_bloc.dart';
+import 'package:dr_copilot/src/features/support_chat/presentation/pages/support_chat_page.dart';
+import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard_page.dart';
+import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
 
 class RoutingConfig {
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   static final GoRouter router = GoRouter(
     errorBuilder: (context, state) => const ErrorRoutePage(),
     routes: [
@@ -107,6 +117,38 @@ class RoutingConfig {
             path: '/chat',
             name: 'chat',
             builder: (context, state) => const CopilotPage(title: 'Chat'),
+          ),
+          GoRoute(
+            path: '/team_chat',
+            name: 'team_chat',
+            builder: (context, state) => const TeamChatListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'new_team_chat',
+                builder: (context, state) => const UserSelectionPage(),
+              ),
+              GoRoute(
+                path: ':conversationId',
+                name: 'team_chat_room',
+                builder: (context, state) {
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
+                  return BlocProvider(
+                    create: (context) => sl<ChatRoomBloc>(),
+                    child: TeamChatPage(conversationId: conversationId),
+                  );
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/teams',
+            name: 'teams',
+            builder: (context, state) => BlocProvider(
+              create: (context) => sl<TeamsBloc>(),
+              child: const TeamsDashboardPage(),
+            ),
           ),
           GoRoute(
             path: '/patients',
@@ -310,6 +352,11 @@ class RoutingConfig {
             path: '/help_support',
             name: 'help_support',
             builder: (context, state) => const HelpSupportPage(),
+          ),
+          GoRoute(
+            path: '/support_chat',
+            name: 'support_chat',
+            builder: (context, state) => const SupportChatPage(),
           ),
           GoRoute(
             path: '/about',

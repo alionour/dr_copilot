@@ -1,15 +1,26 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 
 class ClaudeService implements AIService {
   final FlutterSecureStorage _secureStorage;
+  final QuotaService _quotaService;
+  final SubscriptionService _subscriptionService;
 
-  ClaudeService(this._secureStorage);
+  ClaudeService(
+    this._secureStorage, {
+    required QuotaService quotaService,
+    required SubscriptionService subscriptionService,
+  }) : _quotaService = quotaService,
+       _subscriptionService = subscriptionService;
 
   Future<String?> _safeRead(String key) async {
     int retries = 0;
@@ -52,12 +63,38 @@ class ClaudeService implements AIService {
     return keys.where((k) => k.isNotEmpty).toSet().toList();
   }
 
+  Future<void> _checkTokenLimit(String clinicId) async {
+    final tier = await _subscriptionService.getCurrentTier(clinicId);
+    final limit = tier.maxMonthlyTokens;
+    final usage = await _quotaService.getUsage(
+      clinicId,
+      null,
+      LimitType.aiTokens,
+    );
+
+    if (usage >= limit) {
+      throw Exception(
+        'Monthly AI token limit exceeded. Please upgrade your plan.',
+      );
+    }
+  }
+
   @override
   Future<String> generateResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
-    return getClaudeResponse(query, messageHistory: messageHistory);
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+    return getClaudeResponse(
+      query,
+      messageHistory: messageHistory,
+      clinicId: clinicId,
+      userId: userId,
+    );
   }
 
   @override
@@ -65,7 +102,13 @@ class ClaudeService implements AIService {
     String query,
     Uint8List imageBytes, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+
     final keys = await _getApiKeys();
     if (keys.isEmpty) {
       throw Exception(
@@ -113,6 +156,26 @@ class ClaudeService implements AIService {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
+
+          // Track tokens
+          if (clinicId != null) {
+            final usage = data['usage'];
+            if (usage != null) {
+              final inputTokens = usage['input_tokens'] as int? ?? 0;
+              final outputTokens = usage['output_tokens'] as int? ?? 0;
+              final totalTokens = inputTokens + outputTokens;
+
+              if (totalTokens > 0) {
+                await _quotaService.incrementUsage(
+                  clinicId,
+                  userId,
+                  LimitType.aiTokens,
+                  amount: totalTokens,
+                );
+              }
+            }
+          }
+
           return data['content'][0]['text'];
         } else {
           throw Exception(
@@ -130,6 +193,8 @@ class ClaudeService implements AIService {
   Future<String> getClaudeResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
     final keys = await _getApiKeys();
     if (keys.isEmpty) {
@@ -178,6 +243,26 @@ class ClaudeService implements AIService {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
+
+          // Track tokens
+          if (clinicId != null) {
+            final usage = data['usage'];
+            if (usage != null) {
+              final inputTokens = usage['input_tokens'] as int? ?? 0;
+              final outputTokens = usage['output_tokens'] as int? ?? 0;
+              final totalTokens = inputTokens + outputTokens;
+
+              if (totalTokens > 0) {
+                await _quotaService.incrementUsage(
+                  clinicId,
+                  userId,
+                  LimitType.aiTokens,
+                  amount: totalTokens,
+                );
+              }
+            }
+          }
+
           return data['content'][0]['text'];
         } else {
           throw Exception(

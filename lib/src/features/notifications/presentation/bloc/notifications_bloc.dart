@@ -12,10 +12,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   StreamSubscription? _notificationsSubscription;
   StreamSubscription? _unreadCountSubscription;
 
-  NotificationsBloc({
-    required this.useCase,
-    this.sendBulkUseCase,
-  }) : super(NotificationsInitial()) {
+  NotificationsBloc({required this.useCase, this.sendBulkUseCase})
+    : super(NotificationsInitial()) {
     on<LoadNotificationsEvent>(_onLoadNotifications);
     on<WatchNotificationsEvent>(_onWatchNotifications);
     on<MarkNotificationAsReadEvent>(_onMarkAsRead);
@@ -40,10 +38,12 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       (notifications) {
         unreadCountResult.fold(
           (failure) => emit(NotificationsError(failure.message)),
-          (unreadCount) => emit(NotificationsLoaded(
-            notifications: notifications,
-            unreadCount: unreadCount,
-          )),
+          (unreadCount) => emit(
+            NotificationsLoaded(
+              notifications: notifications,
+              unreadCount: unreadCount,
+            ),
+          ),
         );
       },
     );
@@ -65,7 +65,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           (failure) => NotificationsError(failure.message),
           (notifications) {
             final unreadCount = notifications.where((n) => !n.isRead).length;
-            
+
             return NotificationsLoaded(
               notifications: notifications,
               unreadCount: unreadCount,
@@ -151,10 +151,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
     result.fold(
       (failure) => emit(NotificationsError(failure.message)),
-      (_) => emit(const NotificationsLoaded(
-        notifications: [],
-        unreadCount: 0,
-      )),
+      (_) => emit(const NotificationsLoaded(notifications: [], unreadCount: 0)),
     );
   }
 
@@ -174,7 +171,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       return;
     }
 
-    emit(NotificationsLoading());
+    // Don't emit NotificationsLoading here - it interferes with the main list's state
+    // The CreateNotificationPage manages its own loading state
 
     final result = await sendBulkUseCase!.call(event.template);
 

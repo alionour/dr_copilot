@@ -1,5 +1,8 @@
 // Import necessary packages
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -76,7 +79,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr()),
+          widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr(),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -101,9 +105,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
             context.pop();
           } else if (state is PatientsError) {
             debugPrint('SnackBar Error: ${state.message}');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: LayoutBuilder(
@@ -137,7 +141,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      value: _selectedClinicId ??
+                                      value:
+                                          _selectedClinicId ??
                                           ownerNotifier.clinicId,
                                       decoration: InputDecoration(
                                         labelText: 'clinic'.tr(),
@@ -180,8 +185,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 return null;
                               },
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_ageFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_ageFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -207,8 +213,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 return null;
                               },
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_addressFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_addressFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -226,8 +233,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 return null;
                               },
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_phoneNumberFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_phoneNumberFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -250,7 +258,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               },
                               onFieldSubmitted: (_) {
                                 FocusScope.of(context).requestFocus(
-                                    _alternativePhoneNumberFocusNode);
+                                  _alternativePhoneNumberFocusNode,
+                                );
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -266,8 +275,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_treatingDoctorFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_treatingDoctorFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -279,8 +289,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 border: const OutlineInputBorder(),
                               ),
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_occupationFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_occupationFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -311,12 +322,13 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               child: ToggleButtons(
                                 isSelected: [
                                   _selectedGender == 'Male',
-                                  _selectedGender == 'Female'
+                                  _selectedGender == 'Female',
                                 ],
                                 onPressed: (index) {
                                   setState(() {
-                                    _selectedGender =
-                                        index == 0 ? 'Male' : 'Female';
+                                    _selectedGender = index == 0
+                                        ? 'Male'
+                                        : 'Female';
                                   });
                                 },
                                 borderRadius: BorderRadius.circular(8.0),
@@ -325,27 +337,27 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8.0),
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         const Icon(Icons.male, size: 20),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'male'.tr(),
-                                        ),
+                                        Text('male'.tr()),
                                       ],
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8.0),
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         const Icon(Icons.female, size: 20),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'female'.tr(),
-                                        ),
+                                        Text('female'.tr()),
                                       ],
                                     ),
                                   ),
@@ -357,9 +369,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _submitForm,
-                                child: Text(widget.patient != null
-                                    ? 'saveChanges'.tr()
-                                    : 'addPatient'.tr()),
+                                child: Text(
+                                  widget.patient != null
+                                      ? 'saveChanges'.tr()
+                                      : 'addPatient'.tr(),
+                                ),
                               ),
                             ),
                           ],
@@ -377,15 +391,30 @@ class _AddPatientPageState extends State<AddPatientPage> {
   }
 
   // Method to submit the form
-  void _submitForm() {
+  Future<void> _submitForm() async {
     // Validate the form
     if (_formKey.currentState!.validate()) {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
       final ownerId = ownerNotifier.ownerId;
       final clinicId = _selectedClinicId ?? ownerNotifier.clinicId;
+
       // Check if the user is authenticated and clinic/owner are available
       if (userId != null && ownerId != null && clinicId != null) {
+        // Subscription Check: Only when adding a new patient
+        if (widget.patient == null) {
+          final subscriptionService = sl<SubscriptionService>();
+          final canAdd = await subscriptionService.checkEntityLimit(
+            clinicId,
+            LimitType.patients,
+          );
+
+          if (!canAdd && mounted) {
+            _showUpgradeDialog(context, 'patientLimitReached'.tr());
+            return;
+          }
+        }
+
         const uuid = Uuid();
         final patientModel = PatientModel(
           id: uuid.v4(), // Generate a unique ID
@@ -401,8 +430,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
               : null,
           alternativePhoneNumber:
               _alternativePhoneNumberController.text.isNotEmpty
-                  ? _alternativePhoneNumberController.text
-                  : null,
+              ? _alternativePhoneNumberController.text
+              : null,
           treatingDoctor: _treatingDoctorController.text.isNotEmpty
               ? _treatingDoctorController.text
               : null,
@@ -411,20 +440,46 @@ class _AddPatientPageState extends State<AddPatientPage> {
               : null,
         );
         if (widget.patient != null) {
-          BlocProvider.of<PatientsBloc>(context).add(UpdatePatient(
+          BlocProvider.of<PatientsBloc>(context).add(
+            UpdatePatient(
               widget.patient!.id,
-              patientModel.copyWith(id: widget.patient!.id)));
+              patientModel.copyWith(id: widget.patient!.id),
+            ),
+          );
         } else {
           BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
         }
       } else {
         final message = 'userIdCannotBeNull'.tr();
         debugPrint('SnackBar Error: $message');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     }
+  }
+
+  void _showUpgradeDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('upgradeRequired'.tr()),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text('cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.pop();
+              context.push('/subscription_pricing');
+            },
+            child: Text('upgrade'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   // Dispose method to release resources

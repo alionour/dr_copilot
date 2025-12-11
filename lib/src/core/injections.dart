@@ -1,5 +1,7 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/evaluations_injections.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/sessions_injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/features/auth/auth_injections.dart';
 import 'package:dr_copilot/src/core/services/services_injections.dart';
 import 'package:dr_copilot/src/features/calendar/calendar_injections.dart';
@@ -9,6 +11,9 @@ import 'package:dr_copilot/src/features/chatgpt_project/chatgpt_project_injectio
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
 import 'package:dr_copilot/src/features/notifications/notifications_injections.dart';
 import 'package:dr_copilot/src/features/invitations/invitations_injections.dart';
+import 'package:dr_copilot/src/features/team_chat/team_chat_injections.dart';
+import 'package:dr_copilot/src/features/support_chat/support_chat_injections.dart';
+import 'package:dr_copilot/src/features/teams/teams_injections.dart';
 
 import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
 import 'package:dr_copilot/src/features/settings/settings_injections.dart';
@@ -106,6 +111,10 @@ Future<void> initInjections() async {
   /// Call this during the application's initialization phase.
   initCopilotInjections();
 
+  // Subscription Services
+  sl.registerLazySingleton(() => QuotaService());
+  sl.registerLazySingleton(() => SubscriptionService(quotaService: sl()));
+
   // Register Speech Recognition Services
   // Native service for Arabic and multilingual support
   sl.registerLazySingleton<NativeSpeechRecognitionService>(
@@ -142,4 +151,7 @@ Future<void> initInjections() async {
   initChatGptProjectInjections();
   initNotificationsInjections();
   initInvitationsInjections();
+  initTeamChatInjections();
+  initSupportChatInjections();
+  initTeamsInjections();
 }

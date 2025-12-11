@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/features/settings/domain/repositories/export_repository.dart';
 import 'package:dr_copilot/src/features/settings/domain/services/export_service.dart';
@@ -12,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 
 class ExportDataPage extends StatelessWidget {
   const ExportDataPage({super.key});
@@ -71,7 +74,7 @@ class ExportDataPage extends StatelessWidget {
               elevation: 0.5,
               actions: [navMenuButton ?? const SizedBox()],
             ),
-            body: const _ExportDataBody(),
+            body: _ExportDataBody(clinicId: snapshot.data),
           ),
         );
       },
@@ -79,11 +82,86 @@ class ExportDataPage extends StatelessWidget {
   }
 }
 
-class _ExportDataBody extends StatelessWidget {
-  const _ExportDataBody();
+class _ExportDataBody extends StatefulWidget {
+  final String? clinicId;
+  const _ExportDataBody({this.clinicId});
+
+  @override
+  State<_ExportDataBody> createState() => _ExportDataBodyState();
+}
+
+class _ExportDataBodyState extends State<_ExportDataBody> {
+  bool _canExport = true;
+  bool _checkingSubscription = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSubscriptionStatus();
+  }
+
+  Future<void> _checkSubscriptionStatus() async {
+    if (widget.clinicId == null) {
+      if (mounted) setState(() => _checkingSubscription = false);
+      return;
+    }
+
+    final subscriptionService = sl<SubscriptionService>();
+    final canExport = await subscriptionService.isFeatureAllowed(
+      widget.clinicId!,
+      SubscriptionFeature.exportData,
+    );
+
+    if (mounted) {
+      setState(() {
+        _canExport = canExport;
+        _checkingSubscription = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_checkingSubscription) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (!_canExport) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                size: 64,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'dataExportRestricted'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'upgradeToExportData'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: () => context.push('/subscription_pricing'),
+                icon: const Icon(Icons.star),
+                label: Text('upgrade'.tr()),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return BlocConsumer<ExportBloc, ExportState>(
       listener: (context, state) {
         if (state is ExportFailure) {

@@ -41,6 +41,9 @@ enum AppPermission {
   // Notifications
   viewNotifications,
   manageNotifications,
+  sendNotificationMessage,
+  sendNotificationAppointment,
+  sendNotificationReminder,
 
   // Settings
   viewSettings,
@@ -52,6 +55,12 @@ enum AppPermission {
   assignRoles,
   assignPermissions,
   manageSettings,
+
+  // Teams
+  manageTeams,
+  createTeam,
+  archiveTeam,
+  unarchiveTeam,
 
   // Help & Support
   viewHelp,

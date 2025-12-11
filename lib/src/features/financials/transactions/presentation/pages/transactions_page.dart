@@ -7,7 +7,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({super.key});
@@ -60,13 +59,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
             _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<TransactionsBloc>().state;
       debugPrint(
-          'TransactionsPage: _onScroll triggered. State: ${state.runtimeType}');
+        'TransactionsPage: _onScroll triggered. State: ${state.runtimeType}',
+      );
       if (state is TransactionsLoaded || state is TransactionsCountLoaded) {
         // Only TransactionsLoaded has isLoadingMore
-        final isLoadingMore =
-            state is TransactionsLoaded ? state.isLoadingMore : false;
+        final isLoadingMore = state is TransactionsLoaded
+            ? state.isLoadingMore
+            : false;
         debugPrint(
-            'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: $isLoadingMore');
+          'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: $isLoadingMore',
+        );
         if (!isLoadingMore) {
           debugPrint('TransactionsPage: _canLoadMore is $_canLoadMore');
           if (_canLoadMore) {
@@ -75,341 +77,431 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 ? state.transactions
                 : (state as TransactionsCountLoaded).transactions;
             debugPrint(
-                'TransactionsPage: Dispatching LoadMoreTransactions event');
-            context.read<TransactionsBloc>().add(LoadMoreTransactions(
-                  lastDocumentId: transactions.last.id,
-                  limit: 20,
-                ));
+              'TransactionsPage: Dispatching LoadMoreTransactions event',
+            );
+            context.read<TransactionsBloc>().add(
+              LoadMoreTransactions(
+                lastDocumentId: transactions.last.id,
+                limit: 20,
+              ),
+            );
             Future.delayed(const Duration(seconds: 1), () {
               _canLoadMore = true;
             });
           }
         } else {
           debugPrint(
-              'TransactionsPage: isLoadingMore is true, not dispatching');
+            'TransactionsPage: isLoadingMore is true, not dispatching',
+          );
         }
       } else {
         debugPrint(
-            'TransactionsPage: State is not TransactionsLoaded/TransactionsCountLoaded, not dispatching');
+          'TransactionsPage: State is not TransactionsLoaded/TransactionsCountLoaded, not dispatching',
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // final navMenuButton = NavMenuButtonProvider.of(context);
-    final isMobile = ScreenSizeHelper.isSmall(context);
+    // final navMenuButton = NavMenuButtonProvider.of(context); // removed unused
+    // final isMobile = ScreenSizeHelper.isSmall(context); // removed unused logic derived from isMobile
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      // Removed AppBar
+      body: SafeArea(
+        child: Column(
           children: [
-            if (!(isMobile && _showFilters))
-              Expanded(
-                child: Focus(
-                  focusNode: _searchFocusNode,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'searchTransactions'.tr(),
-                      prefixIcon: Icon(Icons.search,
-                          color: Theme.of(context).colorScheme.onSurface),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 0.3),
-                      ),
-                      hintStyle: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
-                    onChanged: (newQuery) {
-                      setState(() {
-                        query = newQuery;
-                        _selectedIndex = 0; // Reset selection on new query
-                      });
-                      context.read<TransactionsBloc>().add(
-                          SearchTransactions(query)); // Trigger search event
-                    },
-                    onSubmitted: (_) {
-                      _listFocusNode.requestFocus();
-                    },
-                  ),
-                ),
-              ),
-            // Update the refresh button to clear all filters
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: 'refresh'.tr(),
-              onPressed: () {
-                setState(() {
-                  query = '';
-                  _selectedDate = null;
-                });
-                context.read<TransactionsBloc>().add(const GetTransactions());
-              },
-            ),
+            // Top Search & Filter Bar
             Container(
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                // border: Border.all(
-                //   color: Theme.of(context)
-                //       .colorScheme
-                //       .primary
-                //       .withOpacity(0.3), // Adjusted color to be less intense
-                //   width: 0.3, // Made the border thinner
+                color: Theme.of(context).scaffoldBackgroundColor,
+                // border: Border(
+                //   bottom: BorderSide(
+                //     color: Theme.of(context).dividerColor.withOpacity(0.1),
+                //   ),
                 // ),
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withValues(alpha: 0.2),
-                    blurRadius: 8.0,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.filter_alt),
-                    tooltip: 'toggleFilters'.tr(),
-                    onPressed: () {
-                      setState(() {
-                        _showFilters =
-                            !_showFilters; // Toggle filter visibility
-                      });
-                    },
-                  ),
-                  if (_showFilters) ...[
-                    // Update the filter logic to clear previous filter values when a new filter is selected, unless mixed filters are allowed.
-                    IconButton(
-                      icon: Row(
-                        children: [
-                          const Icon(Icons.calendar_month_outlined),
-                          if (_selectedDate != null)
-                            Text(
-                              _selectedDate!.toLocal().toString().split(' ')[0],
-                              style: const TextStyle(fontSize: 12),
-                            ),
+                  Expanded(
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
                         ],
                       ),
-                      tooltip: 'filterByDate'.tr(),
-                      onPressed: () async {
-                        final selectedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
-                        );
-                        if (selectedDate != null) {
+                      child: Focus(
+                        focusNode: _searchFocusNode,
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'searchTransactions'.tr(),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Theme.of(context).hintColor,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            hintStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          onChanged: (newQuery) {
+                            setState(() {
+                              query = newQuery;
+                              _selectedIndex =
+                                  0; // Reset selection on new query
+                            });
+                            context.read<TransactionsBloc>().add(
+                              SearchTransactions(query),
+                            );
+                          },
+                          onSubmitted: (_) {
+                            _listFocusNode.requestFocus();
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Filter Button
+                  Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          _showFilters
+                              ? Icons.filter_alt_off
+                              : Icons.filter_alt,
+                          color: _showFilters
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).iconTheme.color,
+                        ),
+                        tooltip: 'toggleFilters'.tr(),
+                        onPressed: () {
                           setState(() {
-                            _selectedDate = selectedDate;
+                            _showFilters = !_showFilters;
                           });
-                          if (!context.mounted) return;
-
-                          context
-                              .read<TransactionsBloc>()
-                              .add(GetTransactionsByDate(date: selectedDate));
-                        }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Refresh Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.refresh),
+                      tooltip: 'refresh'.tr(),
+                      onPressed: () {
+                        setState(() {
+                          query = '';
+                          _selectedDate = null;
+                        });
+                        context.read<TransactionsBloc>().add(
+                          const GetTransactions(),
+                        );
                       },
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
-            // if (navMenuButton != null) navMenuButton,
-          ],
-        ),
-      ),
-      body: BlocListener<TransactionsBloc, TransactionsState>(
-        listener: (context, state) {
-          if (state is TransactionsSuccess) {
-            final message = state.message;
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-              ),
-            );
-          } else if (state is TransactionsError) {
-            final message = state.message;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
-          } else if (state is TransactionsCountLoaded) {
-            setState(() {
-              _firestoreTransactionsCount = state.count;
-            });
-          }
-        },
-        child: BlocBuilder<TransactionsBloc, TransactionsState>(
-          builder: (context, state) {
-            if (state is TransactionsLoading) {
-              return Shimmer.fromColors(
-                baseColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
-                highlightColor: Theme.of(context).colorScheme.surface,
-                child: ListView.builder(
-                  itemCount: 10,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Container(
-                      height: 50.0,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
-                ),
-              );
-            } else if (state is TransactionsLoaded ||
-                state is TransactionsLoadingMore ||
-                state is TransactionsCountLoaded) {
-              final transactions = (state is TransactionsLoaded)
-                  ? state.transactions
-                  : (state is TransactionsLoadingMore)
-                      ? state.transactions
-                      : (state as TransactionsCountLoaded).transactions;
-
-              if (transactions.isEmpty) {
-                return Center(
-                  child: Text('noTransactionsMatch'.tr()),
-                );
-              }
-
-              // Group transactions by creation date
-              final groupedTransactions = <String, List<TransactionModel>>{};
-              for (var transaction in transactions) {
-                final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(transaction.transactionDate.toDate());
-                groupedTransactions
-                    .putIfAbsent(creationDate, () => [])
-                    .add(transaction);
-              }
-
-              // Sort grouped transactions by date in descending order
-              final sortedGroupedTransactions = groupedTransactions.entries
-                  .toList()
-                ..sort((a, b) => b.key.compareTo(a.key));
-
-              return Column(
-                children: [
-                  // Add a label to show the total number of transactions (like patients_page)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(Icons.assignment, size: 20, color: Colors.blue),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${transactions.length} ',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                        ),
-                        Text(
-                          'loaded'.tr(),
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        if (_firestoreTransactionsCount != null) ...[
-                          const SizedBox(width: 16),
-                          Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
-                          const SizedBox(width: 2),
-                          Text(
-                            '$_firestoreTransactionsCount',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
-                                ),
+            // Filter Options (Date Picker)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              child: _showFilters
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          ActionChip(
+                            avatar: Icon(Icons.calendar_today, size: 16),
+                            label: Text(
+                              _selectedDate != null
+                                  ? _selectedDate!.toLocal().toString().split(
+                                      ' ',
+                                    )[0]
+                                  : 'filterByDate'.tr(),
+                            ),
+                            onPressed: () async {
+                              final selectedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2101),
+                              );
+                              if (selectedDate != null) {
+                                setState(() {
+                                  _selectedDate = selectedDate;
+                                });
+                                if (!context.mounted) return;
+                                context.read<TransactionsBloc>().add(
+                                  GetTransactionsByDate(date: selectedDate),
+                                );
+                              }
+                            },
                           ),
-                          Text(
-                            ' ${'stored'.tr()} ',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ]
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: sortedGroupedTransactions.length,
-                      itemBuilder: (context, index) {
-                        debugPrint(
-                            'TransactionsPage: Building list item for group index: $index');
-                        final dateKey = sortedGroupedTransactions[index].key;
-                        final transactionsForDate =
-                            sortedGroupedTransactions[index].value;
+                          if (_selectedDate != null) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedDate = null;
+                                });
+                                context.read<TransactionsBloc>().add(
+                                  const GetTransactions(),
+                                );
+                              },
+                              icon: const Icon(Icons.close, size: 18),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: Text(
-                                _getDateLabel(dateKey),
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+            // Transactions List
+            Expanded(
+              child: BlocListener<TransactionsBloc, TransactionsState>(
+                listener: (context, state) {
+                  if (state is TransactionsSuccess) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(state.message)));
+                  } else if (state is TransactionsError) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(state.message)));
+                  } else if (state is TransactionsCountLoaded) {
+                    setState(() {
+                      _firestoreTransactionsCount = state.count;
+                    });
+                  }
+                },
+                child: BlocBuilder<TransactionsBloc, TransactionsState>(
+                  builder: (context, state) {
+                    if (state is TransactionsLoading) {
+                      return Shimmer.fromColors(
+                        baseColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        highlightColor: Theme.of(context).colorScheme.surface,
+                        child: ListView.builder(
+                          itemCount: 10,
+                          itemBuilder: (context, index) => Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 16.0,
+                            ),
+                            child: Container(
+                              height: 80.0,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            ...transactionsForDate.map((transaction) {
-                              return TransactionListItem(
-                                transaction: transaction,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedIndex =
-                                        transactions.indexOf(transaction);
-                                  });
-                                  context
-                                      .read<TransactionsBloc>()
-                                      .add(DeleteTransactionEvent(
-                                        transaction.id,
-                                      ));
-                                },
-                              );
-                            }),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  if (state is TransactionsLoaded && state.isLoadingMore ||
-                      state is TransactionsLoadingMore)
-                    Shimmer.fromColors(
-                      baseColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      highlightColor: Theme.of(context).colorScheme.surface,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          height: 50.0,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                      ),
-                    ),
-                ],
-              );
-            } else if (state is TransactionsError) {
-              debugPrint('Error: ${state.message}');
+                      );
+                    } else if (state is TransactionsLoaded ||
+                        state is TransactionsLoadingMore ||
+                        state is TransactionsCountLoaded) {
+                      final transactions = (state is TransactionsLoaded)
+                          ? state.transactions
+                          : (state is TransactionsLoadingMore)
+                          ? state.transactions
+                          : (state as TransactionsCountLoaded).transactions;
 
-              return Center(child: Text('Error: ${state.message}'));
-            }
-            return Center(child: Text('TransactionsFound'.tr()));
-          },
+                      if (transactions.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.receipt_long_outlined,
+                                size: 64,
+                                color: Theme.of(context).disabledColor,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'noTransactionsMatch'.tr(),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context).disabledColor,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // Group transactions
+                      final groupedTransactions =
+                          <String, List<TransactionModel>>{};
+                      for (var transaction in transactions) {
+                        final creationDate = DateFormat(
+                          'yyyy-MM-dd',
+                        ).format(transaction.transactionDate.toDate());
+                        groupedTransactions
+                            .putIfAbsent(creationDate, () => [])
+                            .add(transaction);
+                      }
+
+                      final sortedGroupedTransactions =
+                          groupedTransactions.entries.toList()
+                            ..sort((a, b) => b.key.compareTo(a.key));
+
+                      return Column(
+                        children: [
+                          // Count Header
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 24.0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${transactions.length} ${'loaded'.tr()}',
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                                if (_firestoreTransactionsCount != null)
+                                  Text(
+                                    '$_firestoreTransactionsCount ${'stored'.tr()}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(color: Colors.grey),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: sortedGroupedTransactions.length,
+                              itemBuilder: (context, index) {
+                                final dateKey =
+                                    sortedGroupedTransactions[index].key;
+                                final transactionsForDate =
+                                    sortedGroupedTransactions[index].value;
+
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        24,
+                                        16,
+                                        24,
+                                        8,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            _getDateLabel(dateKey),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelLarge
+                                                ?.copyWith(
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Divider(
+                                              color: Theme.of(context)
+                                                  .dividerColor
+                                                  .withValues(alpha: 0.2),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    ...transactionsForDate.map((transaction) {
+                                      return TransactionListItem(
+                                        transaction: transaction,
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedIndex = transactions
+                                                .indexOf(transaction);
+                                          });
+                                          // TODO: Add proper deletion confirmation or edit
+                                          context.read<TransactionsBloc>().add(
+                                            DeleteTransactionEvent(
+                                              transaction.id,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    }),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          if (state is TransactionsLoaded &&
+                                  state.isLoadingMore ||
+                              state is TransactionsLoadingMore)
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                        ],
+                      );
+                    } else if (state is TransactionsError) {
+                      return Center(child: Text('Error: ${state.message}'));
+                    }
+                    return Center(child: Text('TransactionsFound'.tr()));
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -459,7 +551,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         return 'yesterday'.tr();
       }
     }
-    return DateFormat('EEEE, MMMM dd, yyyy', context.locale.toString())
-        .format(parsedDate ?? DateTime.now());
+    return DateFormat(
+      'EEEE, MMMM dd, yyyy',
+      context.locale.toString(),
+    ).format(parsedDate ?? DateTime.now());
   }
 }

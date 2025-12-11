@@ -78,6 +78,7 @@ NotificationTarget _$NotificationTargetFromJson(Map<String, dynamic> json) =>
       clinicIds: (json['clinicIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      teamId: json['teamId'] as String?,
     );
 
 Map<String, dynamic> _$NotificationTargetToJson(NotificationTarget instance) =>
@@ -89,6 +90,7 @@ Map<String, dynamic> _$NotificationTargetToJson(NotificationTarget instance) =>
       ),
       'ownerId': instance.ownerId,
       'clinicIds': instance.clinicIds,
+      'teamId': instance.teamId,
     };
 
 const _$NotificationTargetTypeEnumMap = {
@@ -99,6 +101,7 @@ const _$NotificationTargetTypeEnumMap = {
   NotificationTargetType.specificRoles: 'specific_roles',
   NotificationTargetType.ownerClinics: 'owner_clinics',
   NotificationTargetType.specificClinic: 'specific_clinic',
+  NotificationTargetType.customTeam: 'custom_team',
 };
 
 Value? _$JsonConverterFromJson<Json, Value>(

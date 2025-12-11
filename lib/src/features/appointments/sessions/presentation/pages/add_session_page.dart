@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
@@ -31,10 +34,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
   final _patientNameController = TextEditingController();
   final _patientNameFocusNode = FocusNode();
   final _actualPriceFocusNode = FocusNode();
-  Timestamp? _startDate =
-      Timestamp.fromDate(DateTime.now()); // Initialize with the current date
-  Timestamp? _endDate = Timestamp.fromDate(DateTime.now().add(
-      const Duration(hours: 1))); // Initialize with the current date + 1 hour
+  Timestamp? _startDate = Timestamp.fromDate(
+    DateTime.now(),
+  ); // Initialize with the current date
+  Timestamp? _endDate = Timestamp.fromDate(
+    DateTime.now().add(const Duration(hours: 1)),
+  ); // Initialize with the current date + 1 hour
   String _selectedCalendar = 'Sessions'; // Default calendar matches the list
   String query = '';
   final FocusNode _searchFocusNode = FocusNode();
@@ -46,8 +51,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   final List<String> _calendars = ['Sessions'];
 
-  double _estimatedPrice = SessionTypePresets.basePrices[
-      SessionTypePresets.standard]!; // Default estimated price for 'Standard'
+  double _estimatedPrice =
+      SessionTypePresets.basePrices[SessionTypePresets
+          .standard]!; // Default estimated price for 'Standard'
   final _actualPriceController = TextEditingController();
 
   CurrencyProfileModel? _selectedCurrencyProfile;
@@ -55,7 +61,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
   List<CurrencyProfileModel> _currencyProfiles = [];
 
   InvoiceStatus?
-      _selectedInvoiceStatus; // Add a field to store the selected invoice status
+  _selectedInvoiceStatus; // Add a field to store the selected invoice status
 
   // Add a TextEditingController for the partial payment amount
   final _partialPaymentController = TextEditingController();
@@ -69,13 +75,13 @@ class _AddSessionPageState extends State<AddSessionPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
       _fetchCurrencyProfiles(); // Fetch currency profiles on init
-      context
-          .read<DoctorsBloc>()
-          .add(const GetDoctors()); // Fetch doctors on init
+      context.read<DoctorsBloc>().add(
+        const GetDoctors(),
+      ); // Fetch doctors on init
     });
-    context
-        .read<PatientsBloc>()
-        .add(const GetPatients()); // Fetch patients on init
+    context.read<PatientsBloc>().add(
+      const GetPatients(),
+    ); // Fetch patients on init
 
     if (widget.session != null) {
       _selectedClinicId = widget.session!.clinicId;
@@ -115,8 +121,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   Future<void> _fetchCurrencyProfiles() async {
     try {
-      final failureOrProfiles =
-          await context.read<SessionsBloc>().getCurrencyProfiles();
+      final failureOrProfiles = await context
+          .read<SessionsBloc>()
+          .getCurrencyProfiles();
       failureOrProfiles.fold(
         (failure) {
           debugPrint('Failed to fetch currency profiles: ${failure.message}');
@@ -126,7 +133,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
         },
         (profiles) {
           debugPrint(
-              'Fetched currency profiles: ${profiles.map((p) => p.name).toList()}');
+            'Fetched currency profiles: ${profiles.map((p) => p.name).toList()}',
+          );
           setState(() {
             _currencyProfiles = profiles.map((profile) => profile).toList();
           });
@@ -163,8 +171,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
     if (_selectedSessionType == SessionTypePresets.custom) {
       _estimatedPrice = 0.0; // Or keep previous? Let's say 0 for custom.
-    } else if (SessionTypePresets.basePrices
-        .containsKey(_selectedSessionType)) {
+    } else if (SessionTypePresets.basePrices.containsKey(
+      _selectedSessionType,
+    )) {
       final basePrice = SessionTypePresets.basePrices[_selectedSessionType]!;
       // Apply specific logic if needed, or just basePrice * duration
       // The previous logic had specific multipliers. Let's replicate them if possible or simplify.
@@ -183,8 +192,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final DateTime initialDate =
-        isStart ? _startDate!.toDate() : _endDate!.toDate();
+    final DateTime initialDate = isStart
+        ? _startDate!.toDate()
+        : _endDate!.toDate();
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -197,19 +207,25 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (!mounted) return;
       setState(() {
         if (isStart) {
-          _startDate = Timestamp.fromDate(DateTime(
+          _startDate = Timestamp.fromDate(
+            DateTime(
               pickedDate.year,
               pickedDate.month,
               pickedDate.day,
               _startDate?.toDate().hour ?? 0,
-              _startDate?.toDate().minute ?? 0));
+              _startDate?.toDate().minute ?? 0,
+            ),
+          );
         } else {
-          _endDate = Timestamp.fromDate(DateTime(
+          _endDate = Timestamp.fromDate(
+            DateTime(
               pickedDate.year,
               pickedDate.month,
               pickedDate.day,
               _endDate?.toDate().hour ?? 0,
-              _endDate?.toDate().minute ?? 0));
+              _endDate?.toDate().minute ?? 0,
+            ),
+          );
         }
       });
       if (!context.mounted) return;
@@ -223,16 +239,22 @@ class _AddSessionPageState extends State<AddSessionPage> {
     final int roundedMinute = (minute < 15)
         ? 0
         : (minute < 45)
-            ? 30
-            : 0;
+        ? 30
+        : 0;
     final int hour = (minute >= 45) ? dateTime.hour + 1 : dateTime.hour;
     return DateTime(
-        dateTime.year, dateTime.month, dateTime.day, hour, roundedMinute);
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      hour,
+      roundedMinute,
+    );
   }
 
   Future<void> _selectTime(BuildContext context, bool isStart) async {
-    final DateTime initialDate =
-        isStart ? _startDate!.toDate() : _endDate!.toDate();
+    final DateTime initialDate = isStart
+        ? _startDate!.toDate()
+        : _endDate!.toDate();
     final TimeOfDay initialTime = TimeOfDay.fromDateTime(initialDate);
 
     final TimeOfDay? pickedTime = await showTimePicker(
@@ -255,7 +277,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
           _startDate = Timestamp.fromDate(roundedDateTime);
           _endDate = _endDate!.toDate().isBefore(_startDate!.toDate())
               ? Timestamp.fromDate(
-                  _startDate!.toDate().add(const Duration(hours: 1)))
+                  _startDate!.toDate().add(const Duration(hours: 1)),
+                )
               : _endDate;
         } else {
           _endDate = Timestamp.fromDate(roundedDateTime);
@@ -269,12 +292,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
     context.read<SessionsBloc>().add(DetectSessionType(patientId));
   }
 
-  void _saveSession() {
+  Future<void> _saveSession() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedPatient == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('pleaseSelectPatient'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('pleaseSelectPatient'.tr())));
         return;
       }
 
@@ -282,17 +305,19 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (_selectedCurrencyProfile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Please select a currency profile before adding a session.')),
+            content: Text(
+              'Please select a currency profile before adding a session.',
+            ),
+          ),
         );
         return;
       }
 
       // Ensure a clinic is selected
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select a clinic.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Please select a clinic.')));
         return;
       }
 
@@ -303,6 +328,20 @@ class _AddSessionPageState extends State<AddSessionPage> {
           SnackBar(content: Text('Please select an invoice status.')),
         );
         return;
+      }
+
+      // Subscription Check: Only when adding a new session
+      if (widget.session == null) {
+        final subscriptionService = sl<SubscriptionService>();
+        final canAdd = await subscriptionService.checkEntityLimit(
+          _selectedClinicId!,
+          LimitType.sessions,
+        );
+
+        if (!canAdd && mounted) {
+          _showUpgradeDialog(context, 'sessionLimitReached'.tr());
+          return;
+        }
       }
 
       String finalSessionType = _selectedSessionType;
@@ -328,11 +367,13 @@ class _AddSessionPageState extends State<AddSessionPage> {
         createdAt: widget.session?.createdAt ?? now,
         sessionType: finalSessionType,
         price: double.parse(_actualPriceController.text),
-        ownerId: widget.session?.ownerId ??
+        ownerId:
+            widget.session?.ownerId ??
             FirebaseAuth.instance.currentUser?.uid ??
             '',
         clinicId: _selectedClinicId!,
-        createdBy: widget.session?.createdBy ??
+        createdBy:
+            widget.session?.createdBy ??
             FirebaseAuth.instance.currentUser?.uid ??
             '',
         doctorId: _selectedDoctor?.id, // Add the selected doctor's ID
@@ -342,11 +383,38 @@ class _AddSessionPageState extends State<AddSessionPage> {
         context.read<SessionsBloc>().add(UpdateSession(session.id, session));
       } else {
         // Pass the selected currencyProfileId to the bloc as well
-        context.read<SessionsBloc>().add(AddSession(session,
+        context.read<SessionsBloc>().add(
+          AddSession(
+            session,
             invoiceStatus: _selectedInvoiceStatus!,
-            currencyProfileId: _selectedCurrencyProfile!.id));
+            currencyProfileId: _selectedCurrencyProfile!.id,
+          ),
+        );
       }
     }
+  }
+
+  void _showUpgradeDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('upgradeRequired'.tr()),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text('cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.pop();
+              context.push('/subscription_pricing');
+            },
+            child: Text('upgrade'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -379,8 +447,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
       //     context.read<SessionsBloc>().processEvaluations(context);
       //   }),
       appBar: AppBar(
-        title:
-            Text(widget.session != null ? 'Edit Session' : 'addSession'.tr()),
+        title: Text(
+          widget.session != null ? 'Edit Session' : 'addSession'.tr(),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -395,17 +464,15 @@ class _AddSessionPageState extends State<AddSessionPage> {
               if (state is PatientsSuccess) {
                 final message = state.message;
                 if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                    ),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
                 }
               } else if (state is PatientsError) {
                 final message = state.message;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(message)));
               }
             },
           ),
@@ -414,18 +481,16 @@ class _AddSessionPageState extends State<AddSessionPage> {
               if (state is SessionsSuccess) {
                 final message = state.message;
                 if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                    ),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
                 }
               } else if (state is SessionsError) {
                 final message = state.message;
                 if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
                 }
               } else if (state is SessionTypeDetected) {
                 setState(() {
@@ -444,7 +509,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                         widget.session!.doctorId != null) {
                       try {
                         _selectedDoctor = _doctors.firstWhere(
-                            (d) => d.id == widget.session!.doctorId);
+                          (d) => d.id == widget.session!.doctorId,
+                        );
                       } catch (e) {
                         // Doctor not found in list
                       }
@@ -455,9 +521,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
               } else if (state is DoctorsError) {
                 final message = state.message;
                 if (message != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
                 }
               }
             },
@@ -495,8 +561,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               items: OwnerNotifier().clinics.map((clinic) {
                                 return DropdownMenuItem<String>(
                                   value: clinic.id,
-                                  child: Text(clinic
-                                      .name), // Replace with clinic name if available
+                                  child: Text(
+                                    clinic.name,
+                                  ), // Replace with clinic name if available
                                 );
                               }).toList(),
                               onChanged: widget.session != null
@@ -549,8 +616,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               child: BlocBuilder<PatientsBloc, PatientsState>(
                                 builder: (context, state) {
                                   if (state is PatientsLoaded) {
-                                    _filteredPatients =
-                                        state.patients.where((patient) {
+                                    _filteredPatients = state.patients.where((
+                                      patient,
+                                    ) {
                                       return patient.name
                                           .toLowerCase()
                                           .contains(query.toLowerCase());
@@ -581,13 +649,13 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                             query = newQuery;
                                           });
                                           context.read<PatientsBloc>().add(
-                                              SearchPatients(
-                                                  name:
-                                                      query)); // Trigger search event
+                                            SearchPatients(name: query),
+                                          ); // Trigger search event
                                         },
                                         onFieldSubmitted: (_) {
-                                          FocusScope.of(context).requestFocus(
-                                              _actualPriceFocusNode);
+                                          FocusScope.of(
+                                            context,
+                                          ).requestFocus(_actualPriceFocusNode);
                                         },
                                       ),
                                       if (_filteredPatients.isNotEmpty)
@@ -601,8 +669,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                             itemBuilder: (context, index) {
                                               return ListTile(
                                                 title: Text(
-                                                    _filteredPatients[index]
-                                                        .name),
+                                                  _filteredPatients[index].name,
+                                                ),
                                                 onTap: () {
                                                   setState(() {
                                                     _patientNameController
@@ -610,16 +678,17 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                         _filteredPatients[index]
                                                             .name;
                                                     _selectedPatient =
-                                                        _filteredPatients[
-                                                            index]; // Set the selected patient
+                                                        _filteredPatients[index]; // Set the selected patient
                                                     _filteredPatients = [];
                                                   });
                                                   _detectSessionTypeForPatient(
-                                                      _filteredPatients[index]
-                                                          .id);
-                                                  FocusScope.of(context)
-                                                      .requestFocus(
-                                                          _actualPriceFocusNode);
+                                                    _filteredPatients[index].id,
+                                                  );
+                                                  FocusScope.of(
+                                                    context,
+                                                  ).requestFocus(
+                                                    _actualPriceFocusNode,
+                                                  );
                                                 },
                                               );
                                             },
@@ -634,7 +703,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                               message: 'goToAddPatient'.tr(),
                                               child: IconButton(
                                                 icon: const Icon(
-                                                    Icons.arrow_forward),
+                                                  Icons.arrow_forward,
+                                                ),
                                                 onPressed: () {
                                                   // Navigate to add patient page
                                                   context.go('/patients/new');
@@ -654,9 +724,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'startDateTime'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -670,8 +738,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
-                                      text: DateFormat('yyyy-MM-dd')
-                                          .format(_startDate!.toDate()),
+                                      text: DateFormat(
+                                        'yyyy-MM-dd',
+                                      ).format(_startDate!.toDate()),
                                     ),
                                     onTap: () => _selectDate(context, true),
                                   ),
@@ -699,9 +768,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'endDateTime'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -715,8 +782,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       border: const OutlineInputBorder(),
                                     ),
                                     controller: TextEditingController(
-                                      text: DateFormat('yyyy-MM-dd')
-                                          .format(_endDate!.toDate()),
+                                      text: DateFormat(
+                                        'yyyy-MM-dd',
+                                      ).format(_endDate!.toDate()),
                                     ),
                                     onTap: () => _selectDate(context, false),
                                   ),
@@ -744,9 +812,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -772,8 +838,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                     .bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                              items:
-                                  SessionTypePresets.values.map((String type) {
+                              items: SessionTypePresets.values.map((
+                                String type,
+                              ) {
                                 return DropdownMenuItem<String>(
                                   value: type,
                                   child: Text(type),
@@ -811,12 +878,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                   .centerStart, // Replaced Align with Container for RTL/LTR support
                               child: Text(
                                 'actualPrice'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
                             const SizedBox(height: 8.0),
@@ -861,9 +924,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                 return DropdownMenuItem<String>(
                                   value: calendar,
                                   child: Row(
-                                    children: <Widget>[
-                                      Text(calendar),
-                                    ],
+                                    children: <Widget>[Text(calendar)],
                                   ),
                                 );
                               }).toList(),
@@ -902,44 +963,55 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       Row(
                                         children: [
                                           Expanded(
-                                            child: DropdownButtonFormField<
-                                                CurrencyProfileModel>(
-                                              value: _selectedCurrencyProfile,
-                                              decoration: InputDecoration(
-                                                labelText:
-                                                    'currencyProfile'.tr(),
-                                                labelStyle: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                              ),
-                                              items: _currencyProfiles.map(
-                                                  (CurrencyProfileModel
-                                                      profile) {
-                                                return DropdownMenuItem<
-                                                    CurrencyProfileModel>(
-                                                  value: profile,
-                                                  child: Text(
-                                                      profile.currency.tr()),
-                                                );
-                                              }).toList(),
-                                              onChanged: (CurrencyProfileModel?
-                                                  newValue) {
-                                                setState(() {
-                                                  _selectedCurrencyProfile =
-                                                      newValue;
-                                                });
-                                              },
-                                            ),
+                                            child:
+                                                DropdownButtonFormField<
+                                                  CurrencyProfileModel
+                                                >(
+                                                  value:
+                                                      _selectedCurrencyProfile,
+                                                  decoration: InputDecoration(
+                                                    labelText: 'currencyProfile'
+                                                        .tr(),
+                                                    labelStyle:
+                                                        Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                  ),
+                                                  items: _currencyProfiles.map((
+                                                    CurrencyProfileModel
+                                                    profile,
+                                                  ) {
+                                                    return DropdownMenuItem<
+                                                      CurrencyProfileModel
+                                                    >(
+                                                      value: profile,
+                                                      child: Text(
+                                                        profile.currency.tr(),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                  onChanged:
+                                                      (
+                                                        CurrencyProfileModel?
+                                                        newValue,
+                                                      ) {
+                                                        setState(() {
+                                                          _selectedCurrencyProfile =
+                                                              newValue;
+                                                        });
+                                                      },
+                                                ),
                                           ),
                                           IconButton(
                                             icon: const Icon(Icons.refresh),
                                             onPressed: _fetchCurrencyProfiles,
-                                            tooltip:
-                                                'refreshCurrencyProfiles'.tr(),
+                                            tooltip: 'refreshCurrencyProfiles'
+                                                .tr(),
                                           ),
                                         ],
                                       ),
@@ -947,37 +1019,47 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                       Row(
                                         children: [
                                           Expanded(
-                                            child: DropdownButtonFormField<
-                                                InvoiceStatus>(
-                                              value: _selectedInvoiceStatus,
-                                              decoration: InputDecoration(
-                                                labelText: 'invoiceStatus'.tr(),
-                                                labelStyle: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                              ),
-                                              items: InvoiceStatus.values
-                                                  .map((InvoiceStatus status) {
-                                                return DropdownMenuItem<
-                                                    InvoiceStatus>(
-                                                  value: status,
-                                                  child: Text(
-                                                      'invoiceStatus.${status.name}'
-                                                          .tr()),
-                                                );
-                                              }).toList(),
-                                              onChanged:
-                                                  (InvoiceStatus? newValue) {
-                                                setState(() {
-                                                  _selectedInvoiceStatus =
-                                                      newValue;
-                                                });
-                                              },
-                                            ),
+                                            child:
+                                                DropdownButtonFormField<
+                                                  InvoiceStatus
+                                                >(
+                                                  value: _selectedInvoiceStatus,
+                                                  decoration: InputDecoration(
+                                                    labelText: 'invoiceStatus'
+                                                        .tr(),
+                                                    labelStyle:
+                                                        Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                  ),
+                                                  items: InvoiceStatus.values.map((
+                                                    InvoiceStatus status,
+                                                  ) {
+                                                    return DropdownMenuItem<
+                                                      InvoiceStatus
+                                                    >(
+                                                      value: status,
+                                                      child: Text(
+                                                        'invoiceStatus.${status.name}'
+                                                            .tr(),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                  onChanged:
+                                                      (
+                                                        InvoiceStatus? newValue,
+                                                      ) {
+                                                        setState(() {
+                                                          _selectedInvoiceStatus =
+                                                              newValue;
+                                                        });
+                                                      },
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -999,8 +1081,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                 value.isEmpty) {
                                               return 'enterValidAmount'.tr();
                                             }
-                                            final amount =
-                                                double.tryParse(value);
+                                            final amount = double.tryParse(
+                                              value,
+                                            );
                                             if (amount == null || amount <= 0) {
                                               return 'enterValidAmountGreaterThanZero'
                                                   .tr();
