@@ -1,15 +1,26 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 
 class GPTService implements AIService {
   final FlutterSecureStorage _secureStorage;
+  final QuotaService _quotaService;
+  final SubscriptionService _subscriptionService;
 
-  GPTService(this._secureStorage);
+  GPTService(
+    this._secureStorage, {
+    required QuotaService quotaService,
+    required SubscriptionService subscriptionService,
+  }) : _quotaService = quotaService,
+       _subscriptionService = subscriptionService;
 
   Future<String?> _safeRead(String key) async {
     int retries = 0;
@@ -58,12 +69,41 @@ class GPTService implements AIService {
     return keys.where((k) => k.isNotEmpty).toSet().toList();
   }
 
+  Future<void> _checkTokenLimit(String clinicId) async {
+    final tier = await _subscriptionService.getCurrentTier(clinicId);
+    final limit = tier.maxMonthlyTokens;
+
+    // If usage tracking isn't critical or we want to allow overage for now,
+    // we could skip throwing. But requirement implies enforcement.
+    final usage = await _quotaService.getUsage(
+      clinicId,
+      null,
+      LimitType.aiTokens,
+    );
+
+    if (usage >= limit) {
+      throw Exception(
+        'Monthly AI token limit exceeded. Please upgrade your plan.',
+      );
+    }
+  }
+
   @override
   Future<String> generateResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
-    return getGPTResponse(query, messageHistory: messageHistory);
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+    return getGPTResponse(
+      query,
+      messageHistory: messageHistory,
+      clinicId: clinicId,
+      userId: userId,
+    );
   }
 
   @override
@@ -71,7 +111,13 @@ class GPTService implements AIService {
     String query,
     Uint8List imageBytes, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+
     final keys = await _getApiKeys();
     if (keys.isEmpty) {
       throw Exception(
@@ -115,6 +161,23 @@ class GPTService implements AIService {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
+
+          // Track tokens
+          if (clinicId != null) {
+            final usage = data['usage'];
+            if (usage != null) {
+              final totalTokens = usage['total_tokens'] as int?;
+              if (totalTokens != null) {
+                await _quotaService.incrementUsage(
+                  clinicId,
+                  userId,
+                  LimitType.aiTokens,
+                  amount: totalTokens,
+                );
+              }
+            }
+          }
+
           return data['choices'][0]['message']['content'];
         } else {
           final errorData = jsonDecode(response.body);
@@ -131,6 +194,8 @@ class GPTService implements AIService {
   Future<String> getGPTResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
     final keys = await _getApiKeys();
     if (keys.isEmpty) {
@@ -183,6 +248,23 @@ class GPTService implements AIService {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
+
+          // Track tokens
+          if (clinicId != null) {
+            final usage = data['usage'];
+            if (usage != null) {
+              final totalTokens = usage['total_tokens'] as int?;
+              if (totalTokens != null) {
+                await _quotaService.incrementUsage(
+                  clinicId,
+                  userId,
+                  LimitType.aiTokens,
+                  amount: totalTokens,
+                );
+              }
+            }
+          }
+
           return data['choices'][0]['message']['content'];
         } else {
           final errorData = jsonDecode(response.body);

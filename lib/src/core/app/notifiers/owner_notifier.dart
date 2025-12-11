@@ -33,12 +33,15 @@ class OwnerNotifier with ChangeNotifier {
   }
 
   Future<void> loadOwnerIdAndClinicId() async {
+    debugPrint('═══════════════════════════════════════════════════');
+    debugPrint('[OwnerNotifier] 🔄 loadOwnerIdAndClinicId() CALLED');
+    debugPrint('═══════════════════════════════════════════════════');
     _loading = true;
     notifyListeners();
     final user = FirebaseAuth.instance.currentUser;
     debugPrint('[OwnerNotifier] Current user: ${user?.uid}');
     if (user == null) {
-      debugPrint('[OwnerNotifier] No user logged in.');
+      debugPrint('[OwnerNotifier] ❌ No user logged in.');
       _ownerId = null;
       _clinicId = null;
       _role = null;
@@ -64,47 +67,68 @@ class OwnerNotifier with ChangeNotifier {
         (data?['clinicIds'] as List).isNotEmpty) {
       _clinicId = (data?['clinicIds'] as List).first;
       debugPrint(
-          '[OwnerNotifier] Loaded first clinicId from clinicIds: $_clinicId');
+        '[OwnerNotifier] Loaded first clinicId from clinicIds: $_clinicId',
+      );
     } else {
       _clinicId = null;
       debugPrint('[OwnerNotifier] No clinicId found.');
     }
 
-    // Load Role and Permissions from the clinics array
-    if (_clinicId != null && data?['clinics'] is List) {
-      final clinicsList = data!['clinics'] as List<dynamic>;
-      final currentClinicObj = clinicsList.firstWhere(
-        (c) => c['clinicId'] == _clinicId,
-        orElse: () => null,
+    // Load Role and Permissions from the clinic members subcollection (Single Source of Truth)
+    if (_clinicId != null) {
+      debugPrint(
+        '[OwnerNotifier] Fetching permissions from clinics/$_clinicId/members/${user.uid}',
       );
+      try {
+        final memberDoc = await FirebaseFirestore.instance
+            .collection('clinics')
+            .doc(_clinicId)
+            .collection('members')
+            .doc(user.uid)
+            .get();
 
-      if (currentClinicObj != null) {
-        // Parse Role
-        if (currentClinicObj['role'] != null) {
-          final roleStr = currentClinicObj['role'] as String;
-          // Handle case-insensitive matching
-          _role = AppRole.values.firstWhere(
-            (e) => e.roleToString(e).toLowerCase() == roleStr.toLowerCase(),
-            orElse: () => AppRole.readonly,
-          );
-          debugPrint('[OwnerNotifier] Loaded role: $_role');
-        }
+        if (memberDoc.exists) {
+          final memberData = memberDoc.data();
 
-        // Parse Permissions
-        if (currentClinicObj['permissions'] != null) {
-          final permsList = currentClinicObj['permissions'] as List<dynamic>;
-          _permissions = permsList.map((p) {
-            return AppPermission.values.firstWhere(
-              (e) => e.name == p,
-              orElse: () => AppPermission.viewAllPatients, // Default fallback
+          // Parse Role
+          if (memberData?['role'] != null) {
+            final roleStr = memberData!['role'] as String;
+            _role = AppRole.values.firstWhere(
+              (e) => e.name.toLowerCase() == roleStr.toLowerCase(),
+              orElse: () => AppRole.readonly,
             );
-          }).toList();
-          debugPrint(
-              '[OwnerNotifier] Loaded ${_permissions.length} permissions');
+            debugPrint('[OwnerNotifier] Loaded role: $_role');
+          }
+
+          // Parse Permissions
+          if (memberData?['permissions'] != null) {
+            final permsList = memberData!['permissions'] as List<dynamic>;
+            _permissions = permsList.map((p) {
+              return AppPermission.values.firstWhere(
+                (e) => e.name == p,
+                orElse: () => AppPermission.viewAllPatients, // Default fallback
+              );
+            }).toList();
+            debugPrint(
+              '[OwnerNotifier] Loaded ${_permissions.length} permissions',
+            );
+          } else {
+            _permissions = [];
+            debugPrint('[OwnerNotifier] No permissions field in member doc');
+          }
         } else {
+          debugPrint(
+            '[OwnerNotifier] ❌ Member document not found for user in clinic $_clinicId',
+          );
+          // Fallback or clear permissions?
+          // If member doc doesn't exist, they technically aren't a member or data is missing.
+          _role = null;
           _permissions = [];
-          debugPrint('[OwnerNotifier] No permissions found in clinic object');
         }
+      } catch (e) {
+        debugPrint('[OwnerNotifier] ❌ Error fetching member permissions: $e');
+        _role = null;
+        _permissions = [];
       }
     }
 
@@ -127,7 +151,8 @@ class OwnerNotifier with ChangeNotifier {
     }
 
     debugPrint(
-        '[OwnerNotifier] Consolidated clinic IDs to fetch: $targetClinicIds');
+      '[OwnerNotifier] Consolidated clinic IDs to fetch: $targetClinicIds',
+    );
 
     // 3. Fetch by collected IDs
     if (targetClinicIds.isNotEmpty) {
@@ -135,25 +160,30 @@ class OwnerNotifier with ChangeNotifier {
 
       // Split into chunks of 10
       for (var i = 0; i < clinicIdsList.length; i += 10) {
-        final end =
-            (i + 10 < clinicIdsList.length) ? i + 10 : clinicIdsList.length;
+        final end = (i + 10 < clinicIdsList.length)
+            ? i + 10
+            : clinicIdsList.length;
         final chunk = clinicIdsList.sublist(i, end);
 
         try {
+          debugPrint('[OwnerNotifier] Querying clinics with IDs: $chunk');
           final clinicsSnap = await FirebaseFirestore.instance
               .collection('clinics')
               .where(FieldPath.documentId, whereIn: chunk)
               .get();
 
+          debugPrint(
+            '[OwnerNotifier] Found ${clinicsSnap.docs.length} clinics in this chunk',
+          );
           for (var doc in clinicsSnap.docs) {
             final clinicData = doc.data();
-            allClinics.add(ClinicModel.fromJson({
-              'id': doc.id,
-              ...clinicData,
-            }));
+            debugPrint(
+              '[OwnerNotifier]   - Clinic: ${doc.id} -> ${clinicData['name']}',
+            );
+            allClinics.add(ClinicModel.fromJson({'id': doc.id, ...clinicData}));
           }
         } catch (e) {
-          debugPrint('[OwnerNotifier] Error fetching clinics chunk: $e');
+          debugPrint('[OwnerNotifier] ❌ Error fetching clinics chunk: $e');
         }
       }
     }
@@ -167,26 +197,34 @@ class OwnerNotifier with ChangeNotifier {
             .where('ownerId', isEqualTo: _ownerId)
             .get();
 
+        debugPrint(
+          '[OwnerNotifier] Found ${clinicsSnap.docs.length} clinics by ownerId',
+        );
         for (var doc in clinicsSnap.docs) {
           final clinicData = doc.data();
-          allClinics.add(ClinicModel.fromJson({
-            'id': doc.id,
-            ...clinicData,
-          }));
+          debugPrint(
+            '[OwnerNotifier]   - Clinic: ${doc.id} -> ${clinicData['name']}',
+          );
+          allClinics.add(ClinicModel.fromJson({'id': doc.id, ...clinicData}));
         }
       } catch (e) {
-        debugPrint('[OwnerNotifier] Error fetching clinics by ownerId: $e');
+        debugPrint('[OwnerNotifier] ❌ Error fetching clinics by ownerId: $e');
       }
     }
 
     // Deduplicate by ID
     final Map<String, ClinicModel> uniqueClinics = {
-      for (var c in allClinics) c.id: c
+      for (var c in allClinics) c.id: c,
     };
 
     _clinics = uniqueClinics.values.toList();
     debugPrint(
-        '[OwnerNotifier] Total unique clinics loaded: ${_clinics.length}');
+      '[OwnerNotifier] ✅ Total unique clinics loaded: ${_clinics.length}',
+    );
+    for (var clinic in _clinics) {
+      debugPrint('[OwnerNotifier]    - ${clinic.id}: ${clinic.name}');
+    }
+    debugPrint('═══════════════════════════════════════════════════');
 
     _loading = false;
     notifyListeners();

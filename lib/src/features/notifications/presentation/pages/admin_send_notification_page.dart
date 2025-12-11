@@ -9,6 +9,7 @@ import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/clinic_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 class AdminSendNotificationPage extends StatefulWidget {
   const AdminSendNotificationPage({super.key});
@@ -34,6 +35,17 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
   @override
   void initState() {
     super.initState();
+    // Security Check: Only Admins can access this page
+    final role = context.read<OwnerNotifier>().role;
+    if (role != AppRole.admin && role != AppRole.superAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('access_denied_admins_only'.tr())),
+        );
+        Navigator.of(context).pop();
+      });
+      return;
+    }
     _loadUserClinics();
   }
 

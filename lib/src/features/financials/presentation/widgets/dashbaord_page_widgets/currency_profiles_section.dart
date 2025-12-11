@@ -245,11 +245,24 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
         }
       },
       builder: (context, state) {
-        return Card(
+        return Container(
           margin: const EdgeInsets.symmetric(vertical: 8.0),
-          elevation: 2,
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+            ),
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -258,55 +271,63 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                   children: [
                     Text(
                       'currencyProfiles'.tr(),
-                      style: TextStyle(
-                        fontSize: 18,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    ElevatedButton.icon(
+                    FilledButton.icon(
                       onPressed: _profiles.length >= _currencies.length
                           ? null
                           : _showAddProfileSheet,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey,
-                        foregroundColor: Colors.white,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text('add'.tr()),
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                if (_profiles.isEmpty) Text('noCurrencyProfilesYet'.tr()),
+                const SizedBox(height: 24),
+                if (_profiles.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.monetization_on_outlined,
+                            size: 48,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'noCurrencyProfilesYet'.tr(),
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 if (_profiles.isNotEmpty)
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _profiles.length,
-                    separatorBuilder: (context, index) => const Divider(),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, i) {
                       final profile = _profiles[i];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blueGrey.shade100,
-                          child: Text(
-                            profile.currency[0],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          profile.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          profile.currency,
-                          style: const TextStyle(color: Colors.blueGrey),
-                        ),
+                      return InkWell(
                         onTap: () {
+                          // ... show dialog logic ...
                           showDialog(
                             context: context,
                             builder: (context) => Dialog(
@@ -428,6 +449,80 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                             ),
                           );
                         },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).dividerColor.withValues(alpha: 0.1),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                      .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    profile.currency[0],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      profile.name,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      profile.currency,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color
+                                                ?.withValues(alpha: 0.7),
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Theme.of(context).dividerColor,
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),

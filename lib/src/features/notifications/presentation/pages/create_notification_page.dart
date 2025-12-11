@@ -6,7 +6,15 @@ import 'package:dr_copilot/src/features/notifications/domain/models/notification
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_state.dart';
+
 import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
+import 'package:dr_copilot/src/features/teams/domain/models/custom_team_model.dart';
+import 'package:dr_copilot/src/features/teams/domain/repositories/abstract_custom_teams_repository.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 class CreateNotificationPage extends StatefulWidget {
   const CreateNotificationPage({super.key});
@@ -17,32 +25,135 @@ class CreateNotificationPage extends StatefulWidget {
 
 class _CreateNotificationPageState extends State<CreateNotificationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
+  // Title controller removed (Auto-generated)
   final _messageController = TextEditingController();
-  final _actionUrlController = TextEditingController();
+  final _customActionUrlController =
+      TextEditingController(); // Only for 'Custom'
 
-  NotificationType _selectedType = NotificationType.system;
-  NotificationSenderType _selectedSenderType =
-      NotificationSenderType.programmer;
+  List<NotificationType> _allowedTypes = [];
+  List<NotificationTargetType> _allowedTargetTypes = [];
+  NotificationType? _selectedType;
   NotificationTargetType _selectedTargetType =
       NotificationTargetType.allClinicOwners;
 
+  // Smart Actions
+  String _selectedAction = 'open_app'; // Default key
+  final Map<String, String> _actionOptions = {
+    'open_app': '/home', // Changed from / to /home for clarity
+    'appointments': '/sessions', // Mapped to Sessions page
+    'reports': '/clinical_reports', // Valid route
+    'profile': '/account', // Valid route
+    'custom': 'custom',
+  };
+
   final Set<AppRole> _selectedRoles = {};
-  String? _ownerId;
+
   final List<String> _selectedClinicIds = [];
+  String? _selectedTeamId;
+  List<CustomTeamModel> _availableTeams = [];
 
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _calculateAllowedTypes();
+  }
+
+  void _calculateAllowedTypes() {
+    // Access OwnerNotifier to get current real-time permissions
+    final ownerNotifier = context.read<OwnerNotifier>();
+    final permissions = ownerNotifier.permissions;
+    final role = ownerNotifier.role;
+
+    final allowed = <NotificationType>[];
+    final allowedTargets = <NotificationTargetType>[];
+
+    // 1. Determine Allowed Types based on Permissions
+    if (permissions.contains(AppPermission.sendNotificationMessage)) {
+      allowed.add(NotificationType.message);
+    }
+    if (permissions.contains(AppPermission.sendNotificationAppointment)) {
+      allowed.add(NotificationType.appointment);
+    }
+    if (permissions.contains(AppPermission.sendNotificationReminder)) {
+      allowed.add(NotificationType.reminder);
+    }
+
+    // Admin/Manager Types
+    if (role == AppRole.admin ||
+        role == AppRole.superAdmin ||
+        permissions.contains(AppPermission.manageNotifications)) {
+      allowed.add(NotificationType.system);
+      allowed.add(NotificationType.alert);
+      allowed.add(NotificationType.report);
+      allowed.add(NotificationType.payment);
+    }
+
+    // 2. Determine Allowed Targets
+    if (role == AppRole.admin ||
+        role == AppRole.superAdmin ||
+        permissions.contains(AppPermission.manageNotifications)) {
+      // Admins can target everyone
+      allowedTargets.addAll([
+        NotificationTargetType.ownerClinics,
+        NotificationTargetType.specificClinic,
+        NotificationTargetType.specificRoles,
+        NotificationTargetType.customTeam,
+      ]);
+    } else {
+      // Regular Users: STRICTLY Team Only
+      if (allowed.isNotEmpty) {
+        allowedTargets.add(NotificationTargetType.customTeam);
+      }
+    }
+
+    setState(() {
+      _allowedTypes = allowed;
+      _allowedTargetTypes = allowedTargets;
+      if (allowed.isNotEmpty) {
+        _selectedType = allowed.first;
+      }
+      // Reset selected target if not in allowed list
+      if (_allowedTargetTypes.isNotEmpty &&
+          !_allowedTargetTypes.contains(_selectedTargetType)) {
+        _selectedTargetType = _allowedTargetTypes.first;
+      }
+    });
+
+    // Load teams if customTeam is allowed
+    if (allowedTargets.contains(NotificationTargetType.customTeam)) {
+      final user = context.read<AuthBloc>().state is AuthSignedIn
+          ? (context.read<AuthBloc>().state as AuthSignedIn).user
+          : null;
+
+      if (user?.primaryClinicId != null) {
+        final teamsRepo = sl<AbstractCustomTeamsRepository>();
+        // Using 'then' to handle future result since we are in a void function
+        teamsRepo.getTeamsForClinic(user!.primaryClinicId!).then((result) {
+          result.fold((failure) => {}, (teams) {
+            if (mounted) {
+              setState(() {
+                _availableTeams = teams;
+                // If regular user has no teams, they might have an empty target list effectively
+                // But we keep the logic clean here.
+              });
+            }
+          });
+        });
+      }
+    }
+  }
+
+  @override
   void dispose() {
-    _titleController.dispose();
     _messageController.dispose();
-    _actionUrlController.dispose();
+    _customActionUrlController.dispose();
     super.dispose();
   }
 
   void _sendNotification() async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate() || _selectedType == null) {
       return;
     }
 
@@ -50,15 +161,65 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
       _isLoading = true;
     });
 
+    // Auto-generate Title
+    String title = '';
+    switch (_selectedType!) {
+      case NotificationType.message:
+        title = 'newMessage'.tr();
+        break;
+      case NotificationType.appointment:
+        title = 'appointmentUpdate'.tr();
+        break;
+      case NotificationType.reminder:
+        title = 'reminder'.tr();
+        break;
+      case NotificationType.system:
+        title = 'systemAlert'.tr();
+        break;
+      case NotificationType.alert:
+        title = 'alert'.tr();
+        break;
+      case NotificationType.report:
+        title = 'newReport'.tr();
+        break;
+      case NotificationType.payment:
+        title = 'paymentUpdate'.tr();
+        break;
+    }
+
+    // Resolve Action URL
+    String? actionUrl;
+    if (_selectedAction == 'custom') {
+      actionUrl = _customActionUrlController.text.isNotEmpty
+          ? _customActionUrlController.text
+          : null;
+    } else {
+      actionUrl = _actionOptions[_selectedAction];
+    }
+
     final template = NotificationTemplate(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text,
+      title: title, // Use auto-generated title
       message: _messageController.text,
-      type: _selectedType,
+      type: _selectedType!,
       sender: NotificationSender(
-        type: _selectedSenderType,
-        senderId: 'debug_sender',
-        senderName: 'Debug Mode',
+        type:
+            (context.read<AuthBloc>().state is AuthSignedIn &&
+                (context.read<AuthBloc>().state as AuthSignedIn).user?.clinics
+                        ?.any((c) => c['role'] == AppRole.superAdmin.name) ==
+                    true)
+            ? NotificationSenderType.programmer
+            : NotificationSenderType.clinicOwner,
+        senderId: context.read<AuthBloc>().state is AuthSignedIn
+            ? (context.read<AuthBloc>().state as AuthSignedIn).user?.uid ??
+                  'unknown_sender'
+            : 'unknown_sender',
+        senderName: context.read<AuthBloc>().state is AuthSignedIn
+            ? (context.read<AuthBloc>().state as AuthSignedIn)
+                      .user
+                      ?.displayName ??
+                  'Clinic Staff'
+            : 'Clinic Staff',
       ),
       target: NotificationTarget(
         type: _selectedTargetType,
@@ -66,34 +227,38 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             ? _selectedRoles.toList()
             : null,
         ownerId: _selectedTargetType == NotificationTargetType.ownerClinics
-            ? _ownerId
+            // Auto-use current user ID as owner ID for simplicity and security
+            ? (context.read<AuthBloc>().state is AuthSignedIn
+                  ? (context.read<AuthBloc>().state as AuthSignedIn).user?.uid
+                  : null)
             : null,
         clinicIds: _selectedTargetType == NotificationTargetType.specificClinic
             ? _selectedClinicIds
             : null,
+        teamId: _selectedTargetType == NotificationTargetType.customTeam
+            ? _selectedTeamId
+            : null,
       ),
-      actionUrl: _actionUrlController.text.isEmpty
-          ? null
-          : _actionUrlController.text,
+      actionUrl: actionUrl,
     );
 
     context.read<NotificationsBloc>().add(SendBulkNotificationEvent(template));
-
-    setState(() {
-      _isLoading = false;
-    });
+    // Don't set _isLoading to false here - let the BLoC listener handle it
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('createNotificationDebugTitle'.tr()),
-        backgroundColor: Colors.orange,
+        title: Text('createNotificationTitle'.tr()),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: BlocListener<NotificationsBloc, NotificationsState>(
         listener: (context, state) {
           if (state is NotificationSentSuccess) {
+            setState(() {
+              _isLoading = false;
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -104,6 +269,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             );
             Navigator.of(context).pop();
           } else if (state is NotificationsError) {
+            setState(() {
+              _isLoading = false;
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -119,39 +287,8 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.warning, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'debugModeInfo'.tr(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 24),
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'titleLabel'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'pleaseEnterTitle'.tr();
-                    }
-                    return null;
-                  },
-                ),
+                // Title Field Removed
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _messageController,
@@ -167,52 +304,46 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                     return null;
                   },
                 ),
+                // ... Notification Type Dropdown ...
                 const SizedBox(height: 16),
-                DropdownButtonFormField<NotificationType>(
-                  value: _selectedType,
-                  decoration: InputDecoration(
-                    labelText: 'notificationTypeLabel'.tr(),
-                    border: const OutlineInputBorder(),
+                if (_allowedTypes.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: Colors.red.shade50,
+                    child: Text(
+                      'noNotificationPermissions'.tr(),
+                      style: TextStyle(color: Colors.red.shade900),
+                    ),
+                  )
+                else
+                  DropdownButtonFormField<NotificationType>(
+                    value: _selectedType,
+                    decoration: InputDecoration(
+                      labelText: 'notificationTypeLabel'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: _allowedTypes.map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(type.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedType = value!;
+                      });
+                    },
                   ),
-                  items: NotificationType.values.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedType = value!;
-                    });
-                  },
-                ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<NotificationSenderType>(
-                  value: _selectedSenderType,
-                  decoration: InputDecoration(
-                    labelText: 'senderTypeLabel'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: NotificationSenderType.values.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSenderType = value!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
+
+                // Target Audience
                 DropdownButtonFormField<NotificationTargetType>(
                   value: _selectedTargetType,
                   decoration: InputDecoration(
                     labelText: 'targetAudienceLabel'.tr(),
                     border: const OutlineInputBorder(),
                   ),
-                  items: NotificationTargetType.values.map((type) {
+                  items: _allowedTargetTypes.map((type) {
                     return DropdownMenuItem(
                       value: type,
                       child: Text(_getTargetTypeName(type)),
@@ -222,64 +353,54 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                     setState(() {
                       _selectedTargetType = value!;
                       _selectedRoles.clear();
-                      _ownerId = null;
                       _selectedClinicIds.clear();
                     });
                   },
                 ),
                 const SizedBox(height: 16),
+
+                // Custom Selectors
                 if (_selectedTargetType == NotificationTargetType.specificRoles)
                   _buildRoleSelector(),
-                if (_selectedTargetType == NotificationTargetType.ownerClinics)
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'ownerIdLabel'.tr(),
-                      border: const OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      _ownerId = value;
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'pleaseEnterOwnerId'.tr();
-                      }
-                      return null;
-                    },
-                  ),
+
                 if (_selectedTargetType ==
                     NotificationTargetType.specificClinic)
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'clinicIdsLabel'.tr(),
-                      border: const OutlineInputBorder(),
+                  if (context.read<AuthBloc>().state is AuthSignedIn &&
+                      (context.read<AuthBloc>().state as AuthSignedIn).user !=
+                          null)
+                    _buildClinicSelector(
+                      (context.read<AuthBloc>().state as AuthSignedIn).user!,
                     ),
-                    onChanged: (value) {
-                      _selectedClinicIds.clear();
-                      _selectedClinicIds.addAll(
-                        value
-                            .split(',')
-                            .map((e) => e.trim())
-                            .where((e) => e.isNotEmpty),
-                      );
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'pleaseEnterClinicIds'.tr();
-                      }
-                      return null;
-                    },
-                  ),
+                if (_selectedTargetType == NotificationTargetType.customTeam)
+                  _buildTeamSelector(),
+
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _actionUrlController,
-                  decoration: InputDecoration(
-                    labelText: 'actionUrlLabel'.tr(),
-                    border: const OutlineInputBorder(),
+
+                // Action URL Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedAction,
+                  decoration: const InputDecoration(
+                    labelText: 'Action / Route',
+                    border: OutlineInputBorder(),
                   ),
+                  items: _actionOptions.entries
+                      .where((entry) => entry.key != 'custom') // Hide custom
+                      .map((entry) {
+                        return DropdownMenuItem(
+                          value: entry.key,
+                          child: Text(entry.key.toUpperCase()),
+                        );
+                      })
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() => _selectedAction = value!);
+                  },
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _sendNotification,
+                  onPressed: _isLoading || _allowedTypes.isEmpty
+                      ? null
+                      : _sendNotification,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                     backgroundColor: Theme.of(context).colorScheme.primary,
@@ -336,6 +457,52 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
     );
   }
 
+  Widget _buildClinicSelector(UserModel user) {
+    if (user.clinics == null || user.clinics!.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Text(
+          'noClinicsFound'.tr(),
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'selectTargetClinics'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: user.clinics!.map((clinic) {
+            final clinicId = clinic['clinicId'] as String;
+            final role = clinic['role'] as String;
+            final label = 'Clinic: $clinicId ($role)';
+
+            return FilterChip(
+              label: Text(label),
+              selected: _selectedClinicIds.contains(clinicId),
+              onSelected: (selected) {
+                setState(() {
+                  if (selected) {
+                    _selectedClinicIds.add(clinicId);
+                  } else {
+                    _selectedClinicIds.remove(clinicId);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   String _getTargetTypeName(NotificationTargetType type) {
     switch (type) {
       case NotificationTargetType.allUsers:
@@ -352,6 +519,52 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
         return 'ownerClinics'.tr();
       case NotificationTargetType.specificClinic:
         return 'specificClinic'.tr();
+      case NotificationTargetType.customTeam:
+        return 'customTeam'.tr();
     }
+  }
+
+  Widget _buildTeamSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'selectTeam'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        if (_availableTeams.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Text(
+              'noTeamsAvailable'.tr(),
+              style: const TextStyle(color: Colors.orange),
+            ),
+          )
+        else
+          DropdownButtonFormField<String>(
+            value: _selectedTeamId,
+            decoration: InputDecoration(
+              labelText: 'team'.tr(),
+              border: const OutlineInputBorder(),
+            ),
+            items: _availableTeams.map((team) {
+              return DropdownMenuItem(value: team.id, child: Text(team.name));
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedTeamId = value;
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'pleaseSelectTeam'.tr();
+              }
+              return null;
+            },
+          ),
+        const SizedBox(height: 16),
+      ],
+    );
   }
 }

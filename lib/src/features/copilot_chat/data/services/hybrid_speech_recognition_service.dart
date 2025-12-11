@@ -4,6 +4,10 @@ import 'abstract_speech_recognition_service.dart';
 import 'native_speech_recognition_service.dart';
 import 'speech_recognition_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 
 /// Hybrid speech recognition service that intelligently routes between:
 /// - Native speech recognition (speech_to_text) for Arabic and multilingual support
@@ -27,9 +31,10 @@ class HybridSpeechRecognitionService
   }) : _nativeService = nativeService,
        _deepgramService = deepgramService;
 
-  /// Determines which service to use based on current language
-  AbstractSpeechRecognitionService _getServiceForLanguage() {
-    // Use native service for Arabic and other non-English languages
+  /// Determines which service to use based on current language and subscription
+  Future<AbstractSpeechRecognitionService> _getServiceForLanguage() async {
+    // 1. Always use native for non-English (Arabic, etc.) explicit support
+    // (Optimization: don't check subscription if language forces native anyway)
     if (_currentLanguage == 'ar' ||
         _currentLanguage == 'fr' ||
         _currentLanguage == 'es' ||
@@ -40,7 +45,40 @@ class HybridSpeechRecognitionService
       return _nativeService;
     }
 
-    // Use Deepgram for English (better quality)
+    // 2. For English (or others), check if Deepgram is allowed by subscription
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String? clinicId;
+        // Try getting clinic from OwnerNotifier if available (context-less via GetIt if registered? No, unsafe)
+        // Fetch from Firestore directly
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        clinicId = userDoc.data()?['primaryClinicId'];
+
+        if (clinicId != null) {
+          final isDeepgramAllowed = await sl<SubscriptionService>()
+              .isFeatureAllowed(clinicId, SubscriptionFeature.deepgram);
+
+          if (!isDeepgramAllowed) {
+            debugPrint(
+              '[HybridSpeech] Deepgram not allowed by subscription. Using Native.',
+            );
+            return _nativeService;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint(
+        '[HybridSpeech] Error checking subscription: $e. Fallback to Native.',
+      );
+      return _nativeService; // Fail safe to native
+    }
+
+    // 3. Use Deepgram if allowed
     debugPrint(
       '[HybridSpeech] Using Deepgram service for language: $_currentLanguage',
     );
@@ -99,7 +137,7 @@ class HybridSpeechRecognitionService
 
   @override
   Future<Either<Failure, bool>> startListening() async {
-    _activeService = _getServiceForLanguage();
+    _activeService = await _getServiceForLanguage();
     return _activeService!.startListening();
   }
 

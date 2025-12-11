@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_defaults.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
@@ -426,6 +428,9 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     final primaryClinicId = newClinicRef.id;
 
     // Create user document with clinic membership
+    // Note: 'clinics' array is kept for legacy compatibility but role is removed/simplified in new arch
+    // Ideally we'd remove 'role': 'Admin' from here if we strictly follow the new path,
+    // but keeping it harmlessly for now avoids breaking other legacy readers if any exist.
     await docRef.set({
       'email': user.email,
       'displayName': user.displayName,
@@ -437,11 +442,32 @@ class AuthFirebaseApi extends AbstractAuthRepository {
         {
           'clinicId': newClinicRef.id,
           'clinicName': user.displayName ?? user.email ?? 'Clinic',
-          'role': 'Admin',
+          // 'role': 'Admin', // Removed to enforce usage of members subcollection
           'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
         },
       ],
     });
+
+    // CRITICAL: Create the Member record in the Single Source of Truth
+    // This ensures the new owner has permissions immediately
+    try {
+      final defaultPermissions = RoleDefaults.getPermissionsForRole(
+        AppRole.admin,
+      );
+      final defaultPermStrings = defaultPermissions.map((p) => p.name).toList();
+
+      await newClinicRef.collection('members').doc(user.uid).set({
+        'uid': user.uid,
+        'email': user.email,
+        'displayName': user.displayName,
+        'role': 'admin', // Owner is always admin
+        'permissions': defaultPermStrings,
+        'joinedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error creating member record for new owner: $e');
+      // We might want to rethrow or handle this more gracefully
+    }
 
     return {'clinicIds': clinicIds, 'primaryClinicId': primaryClinicId};
   }

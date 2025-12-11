@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+// import 'package:dr_copilot/src/features/admin/presentation/pages/admin_migration_page.dart'; // REMOVED
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -149,6 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: Text('security'.tr()),
             onTap: () => context.push('/settings/security'),
           ),
+
           ListTile(
             leading: const Icon(Icons.model_training),
             title: Text('aiModel'.tr()),

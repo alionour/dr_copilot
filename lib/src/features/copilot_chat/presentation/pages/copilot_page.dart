@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
@@ -33,6 +34,11 @@ import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/se
 
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -56,7 +62,7 @@ class _CopilotPageState extends State<CopilotPage> {
   final _audioRecorder = AudioRecorder();
 
   late final ConversationRepository _conversationRepo;
-  late final FunctionCallHandler _functionCallHandler;
+  FunctionCallHandler? _functionCallHandler;
   String? _currentConversationId;
   bool _isSidebarVisible = false; // Sidebar hidden by default
 
@@ -65,6 +71,12 @@ class _CopilotPageState extends State<CopilotPage> {
   Uint8List? _pickedImage;
 
   final List<String> _availableModels = [];
+
+  int _chatUsage = 0;
+  int _chatLimit = 5; // Default for free
+  int _tokenUsage = 0;
+  int _tokenLimit = 0;
+  SubscriptionTier _currentTier = SubscriptionTier.free;
 
   @override
   void initState() {
@@ -79,13 +91,53 @@ class _CopilotPageState extends State<CopilotPage> {
     });
     _initializeAvailableModels();
     _requestPermissions();
+    _loadSubscriptionInfo();
+  }
+
+  Future<void> _loadSubscriptionInfo() async {
+    final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+    String? clinicId = ownerNotifier.clinicId;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (clinicId == null && user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      clinicId = userDoc.data()?['primaryClinicId'];
+    }
+
+    if (clinicId != null && user != null) {
+      final tier = await sl<SubscriptionService>().getCurrentTier(clinicId);
+      final chatUsage = await sl<QuotaService>().getUsage(
+        clinicId,
+        user.uid,
+        LimitType.aiChat,
+      );
+      final tokenUsage = await sl<QuotaService>().getUsage(
+        clinicId,
+        null,
+        LimitType.aiTokens,
+      );
+
+      if (mounted) {
+        setState(() {
+          _currentTier = tier;
+          _chatUsage = chatUsage;
+          _chatLimit = tier.dailyChatLimit;
+          _tokenUsage = tokenUsage;
+          _tokenLimit = tier.maxMonthlyTokens;
+        });
+      }
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _initSpeechRecognitionService();
-    _functionCallHandler = FunctionCallHandler(
+    // Only initialize once to prevent LateInitializationError
+    _functionCallHandler ??= FunctionCallHandler(
       patientsUseCase: GetIt.instance<PatientsUseCase>(),
       sessionsUseCase: GetIt.instance<SessionsUseCase>(),
       evaluationsUseCase: GetIt.instance<EvaluationsUseCase>(),
@@ -169,6 +221,29 @@ class _CopilotPageState extends State<CopilotPage> {
     });
   }
 
+  void _showUpgradeDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('upgradeRequired'.tr()),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text('cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.pop();
+              context.push('/subscription_pricing');
+            },
+            child: Text('upgrade'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -185,9 +260,17 @@ class _CopilotPageState extends State<CopilotPage> {
   void _pickImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
-      setState(() {
-        _pickedImage = result.files.first.bytes;
-      });
+      Uint8List? fileBytes = result.files.first.bytes;
+
+      if (fileBytes == null && result.files.first.path != null) {
+        fileBytes = await File(result.files.first.path!).readAsBytes();
+      }
+
+      if (fileBytes != null) {
+        setState(() {
+          _pickedImage = fileBytes;
+        });
+      }
     }
   }
 
@@ -201,6 +284,34 @@ class _CopilotPageState extends State<CopilotPage> {
   void _sendMessage() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
+
+    final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+    final clinicId = ownerNotifier.clinicId;
+
+    if (clinicId != null) {
+      final subscriptionService = sl<SubscriptionService>();
+      final canChat = await subscriptionService.checkDailyChatLimit(
+        clinicId,
+        userId,
+      );
+
+      if (!canChat && mounted) {
+        _showUpgradeDialog(context, 'dailyChatLimitReached'.tr());
+        return;
+      }
+
+      // Increment usage
+      await sl<QuotaService>().incrementUsage(
+        clinicId,
+        userId,
+        LimitType.aiChat,
+      );
+      if (mounted) {
+        setState(() {
+          _chatUsage++;
+        });
+      }
+    }
 
     if (_functionCallArgs.isNotEmpty && _currentParameterBeingAsked != null) {
       // User is providing an answer to a pending function call parameter.
@@ -257,7 +368,12 @@ class _CopilotPageState extends State<CopilotPage> {
 
       if (!mounted) return;
       context.read<CopilotBloc>().add(
-        UploadImageEvent(imageBytes: _pickedImage!, text: _controller.text),
+        UploadImageEvent(
+          imageBytes: _pickedImage!,
+          text: _controller.text,
+          clinicId: clinicId,
+          userId: userId,
+        ),
       );
       setState(() {
         _pickedImage = null;
@@ -297,8 +413,9 @@ class _CopilotPageState extends State<CopilotPage> {
       context.read<CopilotBloc>().add(
         GenerateResponseEvent(
           query: _controller.text,
-
           messageHistory: recentMessages,
+          clinicId: clinicId,
+          userId: userId,
         ),
       );
     }
@@ -311,6 +428,8 @@ class _CopilotPageState extends State<CopilotPage> {
   @override
   Widget build(BuildContext context) {
     final navMenuButton = NavMenuButtonProvider.of(context);
+    final numberFormat = NumberFormat.compact();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('copilotChat'.tr()),
@@ -330,357 +449,461 @@ class _CopilotPageState extends State<CopilotPage> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0.5,
       ),
-      body: Row(
+      body: Column(
         children: [
-          // Chat Area
-          Expanded(
+          Container(
+            width: double.infinity,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: BlocListener<CopilotBloc, CopilotState>(
-                        listener: (context, state) {
-                          if (state is CopilotResponseGenerated) {
-                            _showTypingEffect(state.response);
-                          } else if (state is CopilotFunctionCall) {
-                            _handleFunctionCall(state.functionCall);
-                          } else if (state is CopilotError) {
-                            // Show error in SnackBar with Change Model button
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('AI Error: ${state.error}'),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 10),
-                                  action: SnackBarAction(
-                                    label: 'Change Model',
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      context.push('/settings/model_selection');
-                                    },
-                                  ),
-                                ),
-                              );
-                            }
-                          } else if (state is CachedMessagesLoaded) {
-                            setState(() {
-                              _messages.addAll(state.messages);
-                            });
-                            _scrollToBottom();
-                          } else if (state is NewChatStarted) {
-                            setState(() {
-                              _messages.clear();
-                            });
-                          }
-                        },
-                        child: BlocBuilder<CopilotBloc, CopilotState>(
-                          builder: (context, state) {
-                            return MessageListView(
-                              scrollController: _scrollController,
-                              messages: _messages,
-                              isLoading: state is CopilotLoading,
-                              onEdit: _handleEditMessage,
-                            );
-                          },
+              children: [
+                if (_currentTier == SubscriptionTier.free)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.bolt,
+                          size: 16,
+                          color: _chatUsage >= _chatLimit
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).colorScheme.primary,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Free Plan: $_chatUsage/$_chatLimit chats today',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: _chatUsage >= _chatLimit
+                                    ? Theme.of(context).colorScheme.error
+                                    : null,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        height: MediaQuery.of(context).size.height * 0.08,
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.token,
+                      size: 16,
+                      color: _tokenUsage >= _tokenLimit
+                          ? Theme.of(context).colorScheme.error
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Monthly Tokens: ${numberFormat.format(_tokenUsage)} / ${numberFormat.format(_tokenLimit)}',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: _tokenUsage >= _tokenLimit
+                            ? Theme.of(context).colorScheme.error
+                            : null,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_currentTier == SubscriptionTier.free &&
+                        (_chatUsage >= _chatLimit ||
+                            _tokenUsage >= _tokenLimit)) ...[
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => context.push('/subscription_pricing'),
+                        child: Text(
+                          'Upgrade',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                decoration: TextDecoration.underline,
+                              ),
                         ),
-                        child: Row(
-                          children: [
-                            if (_pickedImage != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: Stack(
-                                  children: [
-                                    SizedBox(
-                                      height: 60,
-                                      width: 60,
-                                      child: Image.memory(_pickedImage!),
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      right: 0,
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: _cancelImage,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          child: const Padding(
-                                            padding: EdgeInsets.all(2.0),
-                                            child: Icon(
-                                              Icons.cancel,
-                                              color: Colors.red,
-                                              size: 20,
-                                            ),
-                                          ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                // Chat Area
+                Expanded(
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 8.0,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: BlocListener<CopilotBloc, CopilotState>(
+                              listener: (context, state) {
+                                if (state is CopilotResponseGenerated) {
+                                  _showTypingEffect(state.response);
+                                  _loadSubscriptionInfo();
+                                } else if (state is CopilotFunctionCall) {
+                                  _handleFunctionCall(state.functionCall);
+                                } else if (state is CopilotError) {
+                                  // Show error in SnackBar with Change Model button
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'AI Error: ${state.error}',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 10),
+                                        action: SnackBarAction(
+                                          label: 'Change Model',
+                                          textColor: Colors.white,
+                                          onPressed: () {
+                                            context.push(
+                                              '/settings/model_selection',
+                                            );
+                                          },
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                ),
-                                child: TextFormField(
-                                  controller: _controller,
-                                  focusNode: _focusNode,
-                                  decoration: InputDecoration(
-                                    hintText: "messageDrCopilot".tr(),
-                                    border: InputBorder.none,
-                                    hintStyle: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface, // Text color
-                                  ),
-                                  maxLines: 1,
-                                  textInputAction: TextInputAction.send,
-                                  onFieldSubmitted: (value) {
-                                    _sendMessage();
-                                  },
-                                ),
-                              ),
-                            ),
-                            ValueListenableBuilder<bool>(
-                              valueListenable: _isButtonEnabled,
-                              builder: (context, isEnabled, child) {
-                                return IconButton(
-                                  onPressed: isEnabled ? _sendMessage : null,
-                                  icon: const Icon(Icons.send),
-                                  color: isEnabled
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                );
+                                    );
+                                  }
+                                } else if (state is CachedMessagesLoaded) {
+                                  setState(() {
+                                    _messages.addAll(state.messages);
+                                  });
+                                  _scrollToBottom();
+                                } else if (state is NewChatStarted) {
+                                  setState(() {
+                                    _messages.clear();
+                                  });
+                                }
                               },
+                              child: BlocBuilder<CopilotBloc, CopilotState>(
+                                builder: (context, state) {
+                                  return MessageListView(
+                                    scrollController: _scrollController,
+                                    messages: _messages,
+                                    isLoading: state is CopilotLoading,
+                                    onEdit: _handleEditMessage,
+                                  );
+                                },
+                              ),
                             ),
-                            ValueListenableBuilder<bool>(
-                              valueListenable: _isRecording,
-                              builder: (context, isRecording, child) {
-                                return ValueListenableBuilder<bool>(
-                                  valueListenable: _isListeningSpeech,
-                                  builder: (context, isListeningSpeech, child) {
-                                    return GestureDetector(
-                                      onLongPressStart: (_) async {
-                                        _isListeningSpeech.value = true;
-                                        final speechRecognitionService =
-                                            GetIt.instance<
-                                              AbstractSpeechRecognitionService
-                                            >();
-
-                                        // Update language based on current APP locale before starting (not device locale)
-                                        final currentLocale = context.locale;
-                                        debugPrint(
-                                          '[CopilotPage] Voice input starting with app locale: ${currentLocale.languageCode}',
-                                        );
-                                        if (speechRecognitionService
-                                            is HybridSpeechRecognitionService) {
-                                          speechRecognitionService.setLanguage(
-                                            currentLocale.languageCode,
-                                          );
-                                        }
-
-                                        final startResult =
-                                            await speechRecognitionService
-                                                .startListening();
-                                        startResult.fold((failure) {
-                                          _isListeningSpeech.value = false;
-                                          _showTypingEffect(
-                                            'Error starting speech recognition: ${failure.message}',
-                                          );
-                                        }, (_) {});
-                                      },
-                                      onLongPressEnd: (_) async {
-                                        final speechRecognitionService =
-                                            GetIt.instance<
-                                              AbstractSpeechRecognitionService
-                                            >();
-                                        debugPrint(
-                                          '[CopilotPage] Stopping speech recognition...',
-                                        );
-                                        final stopResult =
-                                            await speechRecognitionService
-                                                .stopListening();
-                                        _isListeningSpeech.value = false;
-                                        stopResult.fold(
-                                          (failure) {
-                                            debugPrint(
-                                              '[CopilotPage] Error stopping: ${failure.message}',
-                                            );
-                                            _showTypingEffect(
-                                              'Error stopping speech recognition: ${failure.message}',
-                                            );
-                                          },
-                                          (transcript) {
-                                            debugPrint(
-                                              '[CopilotPage] Received transcript: "$transcript" (length: ${transcript.length}, isEmpty: ${transcript.isEmpty})',
-                                            );
-                                            if (transcript.isNotEmpty) {
-                                              final currentText =
-                                                  _controller.text;
-                                              if (currentText.isNotEmpty) {
-                                                _controller.text =
-                                                    '$currentText $transcript';
-                                              } else {
-                                                _controller.text = transcript;
-                                              }
-                                              debugPrint(
-                                                '[CopilotPage] Text field updated with transcript',
-                                              );
-                                            } else {
-                                              debugPrint(
-                                                '[CopilotPage] WARNING: Transcript is empty, not updating text field',
-                                              );
-                                            }
-                                          },
-                                        );
-                                      },
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              height: MediaQuery.of(context).size.height * 0.08,
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Row(
+                                children: [
+                                  if (_pickedImage != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 8.0,
+                                      ),
                                       child: Stack(
-                                        alignment: Alignment.center,
                                         children: [
-                                          AnimatedOpacity(
-                                            opacity: isListeningSpeech
-                                                ? 1.0
-                                                : 0.0,
-                                            duration: const Duration(
-                                              milliseconds: 200,
-                                            ),
-                                            child: Container(
-                                              width: 48.0,
-                                              height: 48.0,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.red.withValues(
-                                                  alpha: 0.2,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.red
-                                                        .withValues(alpha: 0.5),
-                                                    blurRadius:
-                                                        isListeningSpeech
-                                                        ? 20.0
-                                                        : 0.0,
-                                                    spreadRadius:
-                                                        isListeningSpeech
-                                                        ? 10.0
-                                                        : 0.0,
+                                          SizedBox(
+                                            height: 60,
+                                            width: 60,
+                                            child: Image.memory(_pickedImage!),
+                                          ),
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                onTap: _cancelImage,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                child: const Padding(
+                                                  padding: EdgeInsets.all(2.0),
+                                                  child: Icon(
+                                                    Icons.cancel,
+                                                    color: Colors.red,
+                                                    size: 20,
                                                   ),
-                                                ],
+                                                ),
                                               ),
                                             ),
                                           ),
-                                          Icon(
-                                            isListeningSpeech
-                                                ? Icons.mic
-                                                : isRecording
-                                                ? Icons.stop_circle
-                                                : Icons.mic,
-                                            size: 24.0,
-                                            color:
-                                                isListeningSpeech || isRecording
-                                                ? Colors.red
-                                                : Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                          ),
                                         ],
                                       ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                            IconButton(
-                              onPressed: _pickImage,
-                              icon: const Icon(Icons.add_a_photo_outlined),
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            IconButton(
-                              onPressed: null, // Disabled for now
-                              icon: const Icon(Icons.chat_bubble_outline),
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            DropdownButton<String>(
-                              value: _selectedModel,
-                              onChanged: _isModelChoiceEnabled
-                                  ? (String? newValue) {
-                                      setState(() {
-                                        _selectedModel = newValue!;
-                                      });
-                                    }
-                                  : null,
-                              items: _availableModels
-                                  .map<DropdownMenuItem<String>>((
-                                    String value,
-                                  ) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  })
-                                  .toList(),
+                                    ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      child: TextFormField(
+                                        controller: _controller,
+                                        focusNode: _focusNode,
+                                        decoration: InputDecoration(
+                                          hintText: "messageDrCopilot".tr(),
+                                          border: InputBorder.none,
+                                          hintStyle: TextStyle(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface, // Text color
+                                        ),
+                                        maxLines: 1,
+                                        textInputAction: TextInputAction.send,
+                                        onFieldSubmitted: (value) {
+                                          _sendMessage();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  ValueListenableBuilder<bool>(
+                                    valueListenable: _isButtonEnabled,
+                                    builder: (context, isEnabled, child) {
+                                      return IconButton(
+                                        onPressed: isEnabled
+                                            ? _sendMessage
+                                            : null,
+                                        icon: const Icon(Icons.send),
+                                        color: isEnabled
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.primary
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                      );
+                                    },
+                                  ),
+                                  ValueListenableBuilder<bool>(
+                                    valueListenable: _isRecording,
+                                    builder: (context, isRecording, child) {
+                                      return ValueListenableBuilder<bool>(
+                                        valueListenable: _isListeningSpeech,
+                                        builder: (context, isListeningSpeech, child) {
+                                          return GestureDetector(
+                                            onLongPressStart: (_) async {
+                                              _isListeningSpeech.value = true;
+                                              final speechRecognitionService =
+                                                  GetIt.instance<
+                                                    AbstractSpeechRecognitionService
+                                                  >();
+
+                                              // Update language based on current APP locale before starting (not device locale)
+                                              final currentLocale =
+                                                  context.locale;
+                                              debugPrint(
+                                                '[CopilotPage] Voice input starting with app locale: ${currentLocale.languageCode}',
+                                              );
+                                              if (speechRecognitionService
+                                                  is HybridSpeechRecognitionService) {
+                                                speechRecognitionService
+                                                    .setLanguage(
+                                                      currentLocale
+                                                          .languageCode,
+                                                    );
+                                              }
+
+                                              final startResult =
+                                                  await speechRecognitionService
+                                                      .startListening();
+                                              startResult.fold((failure) {
+                                                _isListeningSpeech.value =
+                                                    false;
+                                                _showTypingEffect(
+                                                  'Error starting speech recognition: ${failure.message}',
+                                                );
+                                              }, (_) {});
+                                            },
+                                            onLongPressEnd: (_) async {
+                                              final speechRecognitionService =
+                                                  GetIt.instance<
+                                                    AbstractSpeechRecognitionService
+                                                  >();
+                                              debugPrint(
+                                                '[CopilotPage] Stopping speech recognition...',
+                                              );
+                                              final stopResult =
+                                                  await speechRecognitionService
+                                                      .stopListening();
+                                              _isListeningSpeech.value = false;
+                                              stopResult.fold(
+                                                (failure) {
+                                                  debugPrint(
+                                                    '[CopilotPage] Error stopping: ${failure.message}',
+                                                  );
+                                                  _showTypingEffect(
+                                                    'Error stopping speech recognition: ${failure.message}',
+                                                  );
+                                                },
+                                                (transcript) {
+                                                  debugPrint(
+                                                    '[CopilotPage] Received transcript: "$transcript" (length: ${transcript.length}, isEmpty: ${transcript.isEmpty})',
+                                                  );
+                                                  if (transcript.isNotEmpty) {
+                                                    final currentText =
+                                                        _controller.text;
+                                                    if (currentText
+                                                        .isNotEmpty) {
+                                                      _controller.text =
+                                                          '$currentText $transcript';
+                                                    } else {
+                                                      _controller.text =
+                                                          transcript;
+                                                    }
+                                                    debugPrint(
+                                                      '[CopilotPage] Text field updated with transcript',
+                                                    );
+                                                  } else {
+                                                    debugPrint(
+                                                      '[CopilotPage] WARNING: Transcript is empty, not updating text field',
+                                                    );
+                                                  }
+                                                },
+                                              );
+                                            },
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                AnimatedOpacity(
+                                                  opacity: isListeningSpeech
+                                                      ? 1.0
+                                                      : 0.0,
+                                                  duration: const Duration(
+                                                    milliseconds: 200,
+                                                  ),
+                                                  child: Container(
+                                                    width: 48.0,
+                                                    height: 48.0,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Colors.red
+                                                          .withValues(
+                                                            alpha: 0.2,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.red
+                                                              .withValues(
+                                                                alpha: 0.5,
+                                                              ),
+                                                          blurRadius:
+                                                              isListeningSpeech
+                                                              ? 20.0
+                                                              : 0.0,
+                                                          spreadRadius:
+                                                              isListeningSpeech
+                                                              ? 10.0
+                                                              : 0.0,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  isListeningSpeech
+                                                      ? Icons.mic
+                                                      : isRecording
+                                                      ? Icons.stop_circle
+                                                      : Icons.mic,
+                                                  size: 24.0,
+                                                  color:
+                                                      isListeningSpeech ||
+                                                          isRecording
+                                                      ? Colors.red
+                                                      : Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurfaceVariant,
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    onPressed: _pickImage,
+                                    icon: const Icon(
+                                      Icons.add_a_photo_outlined,
+                                    ),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                  IconButton(
+                                    onPressed: null, // Disabled for now
+                                    icon: const Icon(Icons.chat_bubble_outline),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                  DropdownButton<String>(
+                                    value: _selectedModel,
+                                    onChanged: _isModelChoiceEnabled
+                                        ? (String? newValue) {
+                                            setState(() {
+                                              _selectedModel = newValue!;
+                                            });
+                                          }
+                                        : null,
+                                    items: _availableModels
+                                        .map<DropdownMenuItem<String>>((
+                                          String value,
+                                        ) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        })
+                                        .toList(),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
+                    ], // Close Column children
+                  ), // Close Column
+                ), // Close Expanded
+                // Sidebar - conditionally shown on the right
+                if (_isSidebarVisible)
+                  ConversationSidebar(
+                    repository: _conversationRepo,
+                    currentConversationId: _currentConversationId,
+                    onConversationSelected: _loadConversation,
+                    onNewChat: _startNewConversation,
+                    onDeleteConversation: _showDeleteConfirmation,
+                    onRenameConversation: _showRenameDialog,
                   ),
-                ),
-              ], // Close Column children
-            ), // Close Column
+              ], // Close Row children
+            ), // Close Row
           ), // Close Expanded
-          // Sidebar - conditionally shown on the right
-          if (_isSidebarVisible)
-            ConversationSidebar(
-              repository: _conversationRepo,
-              currentConversationId: _currentConversationId,
-              onConversationSelected: _loadConversation,
-              onNewChat: _startNewConversation,
-              onDeleteConversation: _showDeleteConfirmation,
-              onRenameConversation: _showRenameDialog,
-            ),
-        ], // Close Row children
-      ), // Close Row
+        ], // Close Column children
+      ), // Close Column
     ); // Close Scaffold
   }
 
@@ -1065,8 +1288,14 @@ class _CopilotPageState extends State<CopilotPage> {
       cleanArgs['price'] = double.tryParse(cleanArgs['price']);
     }
 
+    // Null safety check for _functionCallHandler
+    if (_functionCallHandler == null) {
+      _showTypingEffect('Error: Function handler not initialized.');
+      return;
+    }
+
     final functionCall = FunctionCall(functionName, cleanArgs);
-    final result = await _functionCallHandler.handleFunctionCall(functionCall);
+    final result = await _functionCallHandler!.handleFunctionCall(functionCall);
 
     if (result.containsKey('error')) {
       _showTypingEffect('Error: ${result['error']}');

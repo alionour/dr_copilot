@@ -3,18 +3,54 @@ import 'dart:typed_data';
 
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:http/http.dart' as http;
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 
 class VertexAIService implements AIService {
   final String apiKey;
+  final QuotaService _quotaService;
+  final SubscriptionService _subscriptionService;
 
-  VertexAIService(this.apiKey);
+  VertexAIService(
+    this.apiKey, {
+    required QuotaService quotaService,
+    required SubscriptionService subscriptionService,
+  }) : _quotaService = quotaService,
+       _subscriptionService = subscriptionService;
+
+  Future<void> _checkTokenLimit(String clinicId) async {
+    final tier = await _subscriptionService.getCurrentTier(clinicId);
+    final limit = tier.maxMonthlyTokens;
+    final usage = await _quotaService.getUsage(
+      clinicId,
+      null,
+      LimitType.aiTokens,
+    );
+
+    if (usage >= limit) {
+      throw Exception(
+        'Monthly AI token limit exceeded. Please upgrade your plan.',
+      );
+    }
+  }
 
   @override
   Future<String> generateResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
-    return getMedPaLMResponse(query, messageHistory: messageHistory);
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
+    return getMedPaLMResponse(
+      query,
+      messageHistory: messageHistory,
+      clinicId: clinicId,
+      userId: userId,
+    );
   }
 
   @override
@@ -22,22 +58,29 @@ class VertexAIService implements AIService {
     String query,
     Uint8List imageBytes, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
+    if (clinicId != null) {
+      await _checkTokenLimit(clinicId);
+    }
     // Vertex AI (MedPaLM) might handle images differently, but for now we map to the existing byte method
-    // Note: The existing method didn't take a query with the image, just the image.
-    // We might need to adjust this if the API supports both.
-    // For now, let's assume we just send the image as per previous implementation,
-    // or we can try to send both if the API allows.
-    // Looking at the previous implementation `getMedPaLMResponseFromBytes`, it only sent bytes.
-    return getMedPaLMResponseFromBytes(imageBytes);
+    return getMedPaLMResponseFromBytes(
+      imageBytes,
+      clinicId: clinicId,
+      userId: userId,
+    );
   }
 
   Future<String> getMedPaLMResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
+    String? clinicId,
+    String? userId,
   }) async {
     final url = Uri.parse(
-        'https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/models/YOUR_MODEL_ID:predict');
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/models/YOUR_MODEL_ID:predict',
+    );
 
     // Build context from message history
     String context = '';
@@ -51,8 +94,9 @@ class VertexAIService implements AIService {
     }
 
     // Combine context with current query
-    final fullPrompt =
-        context.isNotEmpty ? '$context\nUser: $query\nAssistant:' : query;
+    final fullPrompt = context.isNotEmpty
+        ? '$context\nUser: $query\nAssistant:'
+        : query;
 
     final response = await http.post(
       url,
@@ -62,23 +106,54 @@ class VertexAIService implements AIService {
       },
       body: jsonEncode({
         'instances': [
-          {'content': fullPrompt}
-        ]
+          {'content': fullPrompt},
+        ],
       }),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+
+      // Attempt to track tokens from metadata if available, otherwise estimate
+      if (clinicId != null) {
+        int estimatedTokens = 0;
+        if (data['metadata'] != null &&
+            data['metadata']['tokenCount'] != null) {
+          estimatedTokens = data['metadata']['tokenCount'] as int;
+        } else {
+          // Rough estimation: 4 chars per token for input + output
+          estimatedTokens =
+              (fullPrompt.length +
+                  (data['predictions'][0]['content'] as String).length) ~/
+              4;
+        }
+
+        if (estimatedTokens > 0) {
+          await _quotaService.incrementUsage(
+            clinicId,
+            userId,
+            LimitType.aiTokens,
+            amount: estimatedTokens,
+          );
+        }
+      }
+
       return data['predictions'][0]['content'];
     } else {
       throw Exception(
-          'Failed to get response from Vertex AI: ${response.body}');
+        'Failed to get response from Vertex AI: ${response.body}',
+      );
     }
   }
 
-  Future<String> getMedPaLMResponseFromBytes(Uint8List fileBytes) async {
+  Future<String> getMedPaLMResponseFromBytes(
+    Uint8List fileBytes, {
+    String? clinicId,
+    String? userId,
+  }) async {
     final url = Uri.parse(
-        'https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/models/YOUR_MODEL_ID:predict');
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/models/YOUR_MODEL_ID:predict',
+    );
     final response = await http.post(
       url,
       headers: {
@@ -87,13 +162,25 @@ class VertexAIService implements AIService {
       },
       body: jsonEncode({
         'instances': [
-          {'content': base64Encode(fileBytes)}
-        ]
+          {'content': base64Encode(fileBytes)},
+        ],
       }),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+
+      if (clinicId != null) {
+        // Token logic for images is complex, specific to model.
+        // Using a flat rate for image requests if not provided by API
+        await _quotaService.incrementUsage(
+          clinicId,
+          userId,
+          LimitType.aiTokens,
+          amount: 1000,
+        );
+      }
+
       return data['predictions'][0]['content'];
     } else {
       throw Exception('Failed to get response from Vertex AI');

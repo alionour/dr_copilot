@@ -12,34 +12,26 @@ ClinicModel _$ClinicModelFromJson(Map<String, dynamic> json) => ClinicModel(
   location: json['location'] as String?,
   ownerId: json['ownerId'] as String,
   adminEmail: json['adminEmail'] as String,
-  createdAt: const TimestampConverter().fromJson(json['createdAt']),
+  createdAt: const NullableTimestampConverter().fromJson(json['createdAt']),
   subscriptionTier: json['subscriptionTier'] as String?,
   isSubscriptionActive: json['isSubscriptionActive'] as bool?,
-  subscriptionUpdatedAt: const TimestampConverter().fromJson(
+  subscriptionUpdatedAt: const NullableTimestampConverter().fromJson(
     json['subscriptionUpdatedAt'],
   ),
 );
 
-Map<String, dynamic> _$ClinicModelToJson(ClinicModel instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'location': instance.location,
-      'ownerId': instance.ownerId,
-      'adminEmail': instance.adminEmail,
-      'createdAt': _$JsonConverterToJson<dynamic, Timestamp>(
-        instance.createdAt,
-        const TimestampConverter().toJson,
-      ),
-      'subscriptionTier': instance.subscriptionTier,
-      'isSubscriptionActive': instance.isSubscriptionActive,
-      'subscriptionUpdatedAt': _$JsonConverterToJson<dynamic, Timestamp>(
-        instance.subscriptionUpdatedAt,
-        const TimestampConverter().toJson,
-      ),
-    };
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) => value == null ? null : toJson(value);
+Map<String, dynamic> _$ClinicModelToJson(
+  ClinicModel instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'location': instance.location,
+  'ownerId': instance.ownerId,
+  'adminEmail': instance.adminEmail,
+  'createdAt': const NullableTimestampConverter().toJson(instance.createdAt),
+  'subscriptionTier': instance.subscriptionTier,
+  'isSubscriptionActive': instance.isSubscriptionActive,
+  'subscriptionUpdatedAt': const NullableTimestampConverter().toJson(
+    instance.subscriptionUpdatedAt,
+  ),
+};
