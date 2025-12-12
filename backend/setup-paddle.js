@@ -1,9 +1,11 @@
 const https = require('https');
 
-const API_KEY = process.argv[2] || process.env.PADDLE_API_KEY;
+// SECURITY: Only use environment variables from Doppler (never command-line args or hardcoded values)
+const API_KEY = process.env.PADDLE_API_KEY;
 
 if (!API_KEY) {
-    console.error('Usage: node setup-paddle.js <PADDLE_API_KEY>');
+    console.error('❌ PADDLE_API_KEY environment variable is required.');
+    console.error('Run this script with Doppler: doppler run -- node setup-paddle.js');
     process.exit(1);
 }
 
@@ -115,12 +117,12 @@ async function main() {
         // Create Elite Plan ($59)
         const elitePriceId = await getOrCreatePlan('Dr. Copilot Elite', 59);
 
-        console.log('\n🎉 Setup Complete! Here are your keys for Doppler:\n');
-        console.log(`PADDLE_API_KEY=${API_KEY}`);
-        console.log(`PADDLE_API_URL=${BASE_URL}`);
-        console.log(`PADDLE_PRICE_ID_PRO=${proPriceId}`);
-        console.log(`PADDLE_PRICE_ID_ELITE=${elitePriceId}`);
-        console.log('\nCopy the lines above and use them to configure your backend.');
+        console.log('\n🎉 Setup Complete!\n');
+        console.log('⚠️  IMPORTANT: Add these to your Doppler secrets (NEVER commit to Git):');
+        console.log(`   PADDLE_API_URL=${BASE_URL}`);
+        console.log(`   PADDLE_PRICE_ID_PRO=${proPriceId}`);
+        console.log(`   PADDLE_PRICE_ID_ELITE=${elitePriceId}`);
+        console.log('\n✅ Your PADDLE_API_KEY is already configured in Doppler (not shown for security).');
 
     } catch (error) {
         if (error.statusCode === 401 || error.statusCode === 403) {

@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "paddle:setup": "doppler run -- node setup-paddle.js",
+    "paddle:cleanup": "doppler run -- node cleanup-paddle.js"
   },
   "keywords": [],
   "author": "",
