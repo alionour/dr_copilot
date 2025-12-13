@@ -33,6 +33,7 @@ class NavigationHelper {
         Destination.settings,
         Destination.teamChat,
         Destination.teams,
+        Destination.recycleBin,
       ],
     };
 
@@ -80,6 +81,7 @@ class NavigationHelper {
           case Destination.notifications:
           case Destination.teamChat:
           case Destination.teams:
+          case Destination.recycleBin:
             allowedInCategory.add(dest);
             break;
 

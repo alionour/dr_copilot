@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/subscription/domain/services/subscriptio
 import 'package:dr_copilot/src/features/auth/auth_injections.dart';
 import 'package:dr_copilot/src/core/services/services_injections.dart';
 import 'package:dr_copilot/src/features/calendar/calendar_injections.dart';
+import 'package:dr_copilot/src/features/calendar_events/calendar_events_injections.dart';
 import 'package:dr_copilot/src/features/copilot_chat/copilot_injections.dart';
 import 'package:dr_copilot/src/features/clinical_reports/clinical_reports_injections.dart';
 import 'package:dr_copilot/src/features/chatgpt_project/chatgpt_project_injections.dart';
@@ -14,6 +15,7 @@ import 'package:dr_copilot/src/features/invitations/invitations_injections.dart'
 import 'package:dr_copilot/src/features/team_chat/team_chat_injections.dart';
 import 'package:dr_copilot/src/features/support_chat/support_chat_injections.dart';
 import 'package:dr_copilot/src/features/teams/teams_injections.dart';
+import 'package:dr_copilot/src/features/recycle_bin/presentation/bloc/recycle_bin_bloc.dart';
 
 import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
 import 'package:dr_copilot/src/features/settings/settings_injections.dart';
@@ -31,6 +33,10 @@ import 'package:dr_copilot/src/features/copilot_chat/data/services/native_speech
 import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
 
 import 'package:dr_copilot/src/core/services/biometric_auth_service.dart';
+import 'package:dr_copilot/src/features/medical_files/data/repositories/medical_file_repository.dart';
+import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
+import 'package:dr_copilot/src/features/medications/data/repositories/medication_repository.dart';
+import 'package:dr_copilot/src/features/medications/presentation/bloc/medication_bloc.dart';
 
 // Import other feature injection files as needed
 /// Initializes dependency injection for the application using GetIt.
@@ -65,6 +71,9 @@ Future<void> initInjections() async {
   initPatientsInjections();
   initDoctorsInjections();
   initStaffInjections();
+
+  /// Initializes the dependency injections required for calendar events.
+  initCalendarEventsInjections();
 
   /// Initializes the dependency injections required for session management.
   ///
@@ -154,4 +163,17 @@ Future<void> initInjections() async {
   initTeamChatInjections();
   initSupportChatInjections();
   initTeamsInjections();
+
+  // Medical Files
+  sl.registerLazySingleton(() => MedicalFileRepository());
+  sl.registerFactory(() => MedicalFileBloc(sl()));
+
+  // Medications
+  sl.registerLazySingleton(() => MedicationRepository());
+  sl.registerFactory(() => MedicationBloc(sl()));
+
+  // Recycle Bin
+  sl.registerFactory(
+    () => RecycleBinBloc(evaluationsRepository: sl(), sessionsRepository: sl()),
+  );
 }

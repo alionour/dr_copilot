@@ -12,7 +12,20 @@
           "package_name": "com.alionour.drcopilot"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "253522261255-isrre7eqci9ah1m83piv9ivcvh8c8sk7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alionour.drcopilot",
+            "certificate_hash": "517b4604ef405d6220a47546987377c2be3a00c9"
+          }
+        },
+        {
+          "client_id": "253522261255-hf54023350fv5l8k1iiv0oanr5aa7vmg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCqDfzCa3Vu_ic4ThJRXkUMj5i327Rd5L0"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "253522261255-cb415bhb6n4ni58mqslcqhq7547gqmbb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "253522261255-a72g8gctq7l67ivr5gobrjdagdodajbr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.alionour.drcopilot"
+              }
+            }
+          ]
         }
       }
     }

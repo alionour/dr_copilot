@@ -1,16 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
-import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
+import 'package:dr_copilot/src/features/calendar_events/presentation/bloc/calendar_events_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:googleapis/calendar/v3.dart' as google_calendar;
-import 'package:uuid/uuid.dart';
 
 class AddCalendarEventPage extends StatefulWidget {
-  const AddCalendarEventPage({super.key});
+  final CalendarEventModel? eventToEdit;
+
+  const AddCalendarEventPage({super.key, this.eventToEdit});
 
   @override
   State<AddCalendarEventPage> createState() => _AddCalendarEventPageState();
@@ -18,362 +20,440 @@ class AddCalendarEventPage extends StatefulWidget {
 
 class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
   final _formKey = GlobalKey<FormState>();
-  final _patientNameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _patientNameFocusNode = FocusNode();
-  final _descriptionFocusNode = FocusNode();
-  DateTime? _startDate = DateTime.now(); // Initialize with the current date
-  DateTime? _endDate = DateTime.now().add(
-      const Duration(hours: 1)); // Initialize with the current date + 1 hour
-  String _selectedCalendar = 'primary'; // Default calendar
-  String query = '';
-  final FocusNode _searchFocusNode = FocusNode();
-  List<PatientModel> _filteredPatients = [];
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _locationController;
+  late DateTime _startDate;
+  late TimeOfDay _startTime;
+  late DateTime _endDate;
+  late TimeOfDay _endTime;
+  String _selectedEventType = 'custom';
+  bool _isCloneWide = false;
+  String? _recurrence = 'none';
+  Color _selectedColor = Colors.blue;
 
-  final List<String> _calendars = ['Sessions', 'Evaluation', 'primary'];
-  final Map<String, Color> _calendarColors = {
-    'Sessions': Colors.red,
-    'Evaluation': Colors.yellow,
-    'primary': Colors.blue,
-  };
+  final List<Color> _colorOptions = [
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.teal,
+    Colors.indigo,
+    Colors.brown,
+    Colors.grey,
+  ];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_patientNameFocusNode);
-    });
-    context
-        .read<PatientsBloc>()
-        .add(const GetPatients()); // Fetch patients on init
-  }
-
-  Future<void> _selectDateTime(BuildContext context, bool isStart) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+    final event = widget.eventToEdit;
+    _titleController = TextEditingController(text: event?.title ?? '');
+    _descriptionController = TextEditingController(
+      text: event?.description ?? '',
     );
-    if (pickedDate != null) {
-      if (!context.mounted) return;
+    _locationController = TextEditingController(text: event?.location ?? '');
 
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(DateTime.now()),
-      );
-      if (pickedTime != null) {
-        final DateTime pickedDateTime = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-        if (mounted) {
-          setState(() {
-            if (isStart) {
-              _startDate = pickedDateTime;
-              _endDate = pickedDateTime.add(const Duration(
-                  hours: 1)); // Set end date-time 1 hour after start date-time
-            } else {
-              _endDate = pickedDateTime;
-            }
-          });
+    if (event != null) {
+      _startDate = event.startDateTime.toDate();
+      _startTime = TimeOfDay.fromDateTime(_startDate);
+      _endDate = event.endDateTime.toDate();
+      _endTime = TimeOfDay.fromDateTime(_endDate);
+      _selectedEventType =
+          event.eventType; // Ensure this matches dropdown items
+      _isCloneWide = event.isClinicWide;
+      _recurrence = event.recurrence ?? 'none';
+      if (event.color != null) {
+        try {
+          _selectedColor = Color(
+            int.parse(event.color!.replaceAll('#', '0xFF')),
+          );
+        } catch (_) {
+          _selectedColor = Colors.blue;
         }
       }
-    }
-  }
-
-  void _saveEvent() {
-    if (_formKey.currentState!.validate()) {
-      final newEvent = google_calendar.Event(
-        summary: _patientNameController.text,
-        description: _descriptionController.text,
-        start: google_calendar.EventDateTime(dateTime: _startDate),
-        end: google_calendar.EventDateTime(dateTime: _endDate),
-      );
-      if (mounted) {
-        Navigator.of(context)
-            .pop({'event': newEvent, 'calendar': _selectedCalendar});
-      }
+    } else {
+      _startDate = DateTime.now();
+      _startTime = TimeOfDay.now();
+      _endDate = DateTime.now().add(const Duration(hours: 1));
+      _endTime = TimeOfDay.fromDateTime(_endDate);
     }
   }
 
   @override
   void dispose() {
-    _patientNameFocusNode.dispose();
-    _descriptionFocusNode.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStart) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? _startDate : _endDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startDate = picked;
+          // If end date is before new start date, update end date
+          if (_endDate.isBefore(_startDate)) {
+            _endDate = _startDate;
+          }
+        } else {
+          _endDate = picked;
+        }
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, bool isStart) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: isStart ? _startTime : _endTime,
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startTime = picked;
+        } else {
+          _endTime = picked;
+        }
+      });
+    }
+  }
+
+  DateTime _combineDateTime(DateTime date, TimeOfDay time) {
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
+  void _saveEvent() {
+    if (_formKey.currentState!.validate()) {
+      final startDateTime = _combineDateTime(_startDate, _startTime);
+      final endDateTime = _combineDateTime(_endDate, _endTime);
+
+      if (endDateTime.isBefore(startDateTime)) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('endTimeAfterStartTime'.tr())));
+        return;
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final clinicId = OwnerNotifier().clinicId;
+
+      final newEvent = CalendarEventModel(
+        id: widget.eventToEdit?.id ?? '', // Preserve ID if editing
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+        location: _locationController.text.trim().isEmpty
+            ? null
+            : _locationController.text.trim(),
+        startDateTime: Timestamp.fromDate(startDateTime),
+        endDateTime: Timestamp.fromDate(endDateTime),
+        eventType: _selectedEventType,
+        clinicId: clinicId!,
+        createdBy: widget.eventToEdit?.createdBy ?? user.uid,
+        createdAt: widget.eventToEdit?.createdAt ?? Timestamp.now(),
+        doctorId: widget.eventToEdit?.doctorId ?? user.uid,
+        isClinicWide: _isCloneWide,
+        recurrence: _recurrence == 'none' ? null : _recurrence,
+        color:
+            '#${_selectedColor.value.toRadixString(16).padLeft(8, '0').substring(2)}', // Hex string
+      );
+
+      Navigator.of(context).pop(newEvent);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+    // Event types excluding auto-generated ones typically
+    final eventTypes = [
+      'appointment',
+      'meeting',
+      'reminder',
+      'holiday',
+      'vacation',
+      'clinicClosure',
+      'custom',
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('addCalendarEvent'.tr()),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.pop(); // Navigate back to previous route
-          },
+        title: Text(
+          widget.eventToEdit != null
+              ? 'editEvent'.tr()
+              : 'addCalendarEvent'.tr(),
         ),
+        actions: [
+          TextButton(
+            onPressed: _saveEvent,
+            child: Text(
+              'save'.tr(),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
-      body: BlocListener<PatientsBloc, PatientsState>(
-        listener: (context, state) {
-          if (state is PatientsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
-            }
-          } else if (state is PatientsError) {
-            final message = state.message;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
-          }
-        },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isSmallScreen = constraints.maxWidth < 600;
-            return Center(
-              child: SingleChildScrollView(
-                child: Container(
-                  width: isSmallScreen ? double.infinity : 600,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Focus(
-                          focusNode: _searchFocusNode,
-                          child: BlocBuilder<PatientsBloc, PatientsState>(
-                            builder: (context, state) {
-                              if (state is PatientsLoaded) {
-                                _filteredPatients =
-                                    state.patients.where((patient) {
-                                  return patient.name
-                                      .toLowerCase()
-                                      .contains(query.toLowerCase());
-                                }).toList();
-                              }
-                              return Column(
-                                children: [
-                                  TextFormField(
-                                    controller: _patientNameController,
-                                    focusNode: _patientNameFocusNode,
-                                    decoration: InputDecoration(
-                                      labelText: 'patientName'.tr(),
-                                      hintText: 'searchPatients'.tr(),
-                                      prefixIcon: const Icon(Icons.search),
-                                      border: InputBorder.none,
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'pleaseEnterPatientName'.tr();
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (newQuery) {
-                                      setState(() {
-                                        query = newQuery;
-                                      });
-                                      context.read<PatientsBloc>().add(
-                                          SearchPatients(
-                                              name:
-                                                  query)); // Trigger search event
-                                    },
-                                    onFieldSubmitted: (_) {
-                                      FocusScope.of(context)
-                                          .requestFocus(_descriptionFocusNode);
-                                    },
-                                  ),
-                                  if (_filteredPatients.isNotEmpty)
-                                    Container(
-                                      constraints: const BoxConstraints(
-                                        maxHeight: 200,
-                                      ),
-                                      child: ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: _filteredPatients.length,
-                                        itemBuilder: (context, index) {
-                                          return ListTile(
-                                            title: Text(
-                                                _filteredPatients[index].name),
-                                            onTap: () {
-                                              setState(() {
-                                                _patientNameController.text =
-                                                    _filteredPatients[index]
-                                                        .name;
-                                                _filteredPatients = [];
-                                              });
-                                              FocusScope.of(context)
-                                                  .requestFocus(
-                                                      _descriptionFocusNode);
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  if (_filteredPatients.isEmpty &&
-                                      query.isNotEmpty)
-                                    Column(
-                                      children: [
-                                        Text('noPatientsWithQuery'.tr()),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Tooltip(
-                                              message: 'addPatient'.tr(),
-                                              child: IconButton(
-                                                icon: const Icon(Icons.add),
-                                                onPressed: () {
-                                                  final userId = FirebaseAuth
-                                                      .instance
-                                                      .currentUser
-                                                      ?.uid;
-                                                  if (userId != null) {
-                                                    // Add patient directly
-                                                    final newPatient =
-                                                        PatientModel(
-                                                      id: const Uuid().v4(),
-                                                      name: query,
-                                                      ownerId: OwnerNotifier()
-                                                          .ownerId!,
-                                                      clinicId: OwnerNotifier()
-                                                          .clinicId!,
-                                                      createdBy: FirebaseAuth
-                                                          .instance
-                                                          .currentUser!
-                                                          .uid,
-                                                    );
-                                                    context
-                                                        .read<PatientsBloc>()
-                                                        .add(AddPatient(
-                                                            newPatient));
-                                                    setState(() {
-                                                      _patientNameController
-                                                          .text = query;
-                                                      _filteredPatients = [];
-                                                    });
-                                                    FocusScope.of(context)
-                                                        .requestFocus(
-                                                            _descriptionFocusNode);
-                                                  } else {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      SnackBar(
-                                                          content: Text(
-                                                              'userIdCannotBeNull'
-                                                                  .tr())),
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                            Tooltip(
-                                              message: 'goToAddPatient'.tr(),
-                                              child: IconButton(
-                                                icon: const Icon(
-                                                    Icons.arrow_forward),
-                                                onPressed: () {
-                                                  // Navigate to add patient page
-                                                  context.go('/patients/new');
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              );
-                            },
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            TextFormField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                labelText: 'eventTitle'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'title_required'.tr();
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Event Type Dropdown
+            DropdownButtonFormField<String>(
+              value: eventTypes.contains(_selectedEventType)
+                  ? _selectedEventType
+                  : 'custom',
+              decoration: InputDecoration(
+                labelText: 'type'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+              items: eventTypes.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text('eventType.$type'.tr()),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedEventType = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Date & Time Selection
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'startDateTime'.tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _selectDate(context, true),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16.0),
-                        TextFormField(
-                          controller: _descriptionController,
-                          focusNode: _descriptionFocusNode,
-                          decoration:
-                              InputDecoration(labelText: 'description'.tr()),
-                          onFieldSubmitted: (_) {
-                            FocusScope.of(context).unfocus();
-                          },
-                        ),
-                        const SizedBox(height: 16.0),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(dateFormat.format(_startDate!)),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_month_outlined),
-                              onPressed: () => _selectDateTime(context, true),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16.0),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(dateFormat.format(_endDate!)),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_month_outlined),
-                              onPressed: () => _selectDateTime(context, false),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16.0),
-                        DropdownButtonFormField<String>(
-                          value: _selectedCalendar,
-                          decoration:
-                              InputDecoration(labelText: 'calendar'.tr()),
-                          items: _calendars.map((String calendar) {
-                            return DropdownMenuItem<String>(
-                              value: calendar,
-                              child: Row(
-                                children: <Widget>[
-                                  CircleAvatar(
-                                    backgroundColor: _calendarColors[calendar],
-                                    radius: 5,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(calendar),
-                                ],
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                DateFormat('MMM dd, yyyy').format(_startDate),
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedCalendar = newValue!;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16.0),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _saveEvent,
-                            child: Text('saveAppointment'.tr()),
+                              const Icon(Icons.calendar_today, size: 18),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _selectTime(context, true),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(_startTime.format(context)),
+                              const Icon(Icons.access_time, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'endDateTime'.tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _selectDate(context, false),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(DateFormat('MMM dd, yyyy').format(_endDate)),
+                              const Icon(Icons.calendar_today, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _selectTime(context, false),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(_endTime.format(context)),
+                              const Icon(Icons.access_time, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Description
+            TextFormField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: 'eventDescription'.tr(),
+                border: const OutlineInputBorder(),
               ),
-            );
-          },
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+
+            // Location
+            TextFormField(
+              controller: _locationController,
+              decoration: InputDecoration(
+                labelText: 'eventLocation'.tr(),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.location_on_outlined),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Recurrence
+            DropdownButtonFormField<String>(
+              value: _recurrence,
+              decoration: InputDecoration(
+                labelText: 'recurrence'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+              items: ['none', 'daily', 'weekly', 'monthly', 'yearly'].map((r) {
+                return DropdownMenuItem(
+                  value: r,
+                  child: Text('recurrence.$r'.tr()),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _recurrence = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Color Selection
+            Text(
+              'eventColor'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _colorOptions.map((color) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedColor = color;
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 12),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: _selectedColor == color
+                            ? Border.all(color: Colors.black, width: 2)
+                            : null,
+                      ),
+                      child: _selectedColor == color
+                          ? const Icon(Icons.check, color: Colors.white)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Clinic Wide Checkbox
+            SwitchListTile(
+              title: Text('isClinicWide'.tr()),
+              value: _isCloneWide,
+              onChanged: (bool value) {
+                setState(() {
+                  _isCloneWide = value;
+                });
+              },
+            ),
+          ],
         ),
       ),
     );

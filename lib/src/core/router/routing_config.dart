@@ -29,11 +29,12 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/notification
 import 'package:dr_copilot/src/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/data_storage_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/appearance_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/export_data_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/model_selection_page.dart';
 import 'package:dr_copilot/src/features/subscription/presentation/pages/subscription_pricing_page.dart';
-import 'package:dr_copilot/src/features/subscription/presentation/pages/payment_result_page.dart';
+
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
@@ -49,18 +50,8 @@ import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
-import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
-import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
-import 'package:dr_copilot/src/features/team_chat/presentation/pages/user_selection_page.dart';
-import 'package:dr_copilot/src/features/team_chat/presentation/bloc/chat_room_bloc.dart';
-import 'package:dr_copilot/src/features/support_chat/presentation/pages/support_chat_page.dart';
-import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard_page.dart';
-import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
 
 class RoutingConfig {
-  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
-      GlobalKey<ScaffoldMessengerState>();
-
   static final GoRouter router = GoRouter(
     errorBuilder: (context, state) => const ErrorRoutePage(),
     routes: [
@@ -70,8 +61,9 @@ class RoutingConfig {
         builder: (context, state) => const LoginPage(),
       ),
       ShellRoute(
-        builder: (context, state, child) =>
-            SelectionArea(child: NavigationSide(child: child)),
+        builder: (context, state, child) {
+          return SelectionArea(child: NavigationSide(child: child));
+        },
         routes: [
           GoRoute(
             path: '/home',
@@ -117,38 +109,6 @@ class RoutingConfig {
             path: '/chat',
             name: 'chat',
             builder: (context, state) => const CopilotPage(title: 'Chat'),
-          ),
-          GoRoute(
-            path: '/team_chat',
-            name: 'team_chat',
-            builder: (context, state) => const TeamChatListPage(),
-            routes: [
-              GoRoute(
-                path: 'new',
-                name: 'new_team_chat',
-                builder: (context, state) => const UserSelectionPage(),
-              ),
-              GoRoute(
-                path: ':conversationId',
-                name: 'team_chat_room',
-                builder: (context, state) {
-                  final conversationId =
-                      state.pathParameters['conversationId']!;
-                  return BlocProvider(
-                    create: (context) => sl<ChatRoomBloc>(),
-                    child: TeamChatPage(conversationId: conversationId),
-                  );
-                },
-              ),
-            ],
-          ),
-          GoRoute(
-            path: '/teams',
-            name: 'teams',
-            builder: (context, state) => BlocProvider(
-              create: (context) => sl<TeamsBloc>(),
-              child: const TeamsDashboardPage(),
-            ),
           ),
           GoRoute(
             path: '/patients',
@@ -274,15 +234,10 @@ class RoutingConfig {
             name: 'model_selection',
             builder: (context, state) => const ModelSelectionPage(),
           ),
-          // Payment result route
           GoRoute(
-            path: '/payment/result',
-            name: 'payment_result',
-            builder: (context, state) {
-              final status = state.uri.queryParameters['status'];
-              final plan = state.uri.queryParameters['plan'];
-              return PaymentResultPage(status: status, planId: plan);
-            },
+            path: '/settings/export_data',
+            name: 'export_data',
+            builder: (context, state) => const ExportDataPage(),
           ),
           GoRoute(
             path: '/settings/subscription',
@@ -337,6 +292,7 @@ class RoutingConfig {
                   final extra = state.extra as Map<String, dynamic>;
                   final clinicId = extra['clinicId'] as String;
                   final currentUserId = extra['currentUserId'] as String;
+
                   return BlocProvider.value(
                     value: sl<InvitationBloc>(),
                     child: CreateInvitationPage(
@@ -352,11 +308,6 @@ class RoutingConfig {
             path: '/help_support',
             name: 'help_support',
             builder: (context, state) => const HelpSupportPage(),
-          ),
-          GoRoute(
-            path: '/support_chat',
-            name: 'support_chat',
-            builder: (context, state) => const SupportChatPage(),
           ),
           GoRoute(
             path: '/about',
@@ -380,7 +331,9 @@ class RoutingConfig {
         name: 'accept-invitation',
         builder: (context, state) {
           final token = state.uri.queryParameters['token'];
-          if (token == null || token.isEmpty) return const ErrorRoutePage();
+          if (token == null || token.isEmpty) {
+            return const ErrorRoutePage();
+          }
           return AcceptInvitationPage(token: token);
         },
       ),
@@ -405,7 +358,9 @@ class RoutingConfig {
         builder: (context, state) {
           final title = state.uri.queryParameters['title'] ?? 'Web View';
           final url = state.uri.queryParameters['url'];
-          if (url == null) return const ErrorRoutePage();
+          if (url == null) {
+            return const ErrorRoutePage();
+          }
           return WebViewScreen(title: title, url: url);
         },
       ),
@@ -423,7 +378,9 @@ class ErrorRoutePage extends StatelessWidget {
         title: Text('errorPageTitle'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
       ),
       body: Center(
@@ -441,7 +398,9 @@ class ErrorRoutePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => context.go('/home'),
+                onPressed: () {
+                  context.go('/home');
+                },
                 child: Text('goToHome'.tr()),
               ),
             ],

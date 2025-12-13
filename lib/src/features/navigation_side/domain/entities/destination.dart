@@ -72,6 +72,10 @@ enum Destination {
     NavItemModel('chatGptProject', Icons.api_outlined),
     'Manage your ChatGPT projects',
   ),
+  recycleBin(
+    NavItemModel('recycleBin', Icons.delete_outline),
+    'View deleted items',
+  ),
 
   // Team Collaboration
   teamChat(NavItemModel('messages', Icons.chat), 'Messages'),

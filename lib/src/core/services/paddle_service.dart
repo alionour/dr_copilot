@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/services/backend_service.dart';
 
 class PaddleService {
@@ -15,62 +15,44 @@ class PaddleService {
   }) async {
     final url = Uri.parse('$_baseUrl/payment/create-checkout-session');
 
-    // Success/Cancel URLs using deep link scheme
-    final successUrl = 'drcopilot://payment/success?plan=$planId';
-    final cancelUrl = 'drcopilot://payment/cancel';
+    // Success/Cancel URLs
+    // In a real desktop app, you might use a deep link scheme like 'drcopilot://payment/success'
+    // For now, we'll redirect to a generic success page or a placeholder.
+    const successUrl = 'https://google.com?status=success'; // Placeholder
+    const cancelUrl = 'https://google.com?status=cancel'; // Placeholder
 
-    // Get the current user's ID token
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-    // Force refresh to ensure we have a valid token
-    final token = await user.getIdToken(true);
-
-    print('Token retrieved: ${token?.substring(0, 10)}...');
-    if (token == null) {
-      throw Exception('Failed to retrieve ID token');
-    }
-
-    // Attempting to pass token in body as well
     final body = json.encode({
       'clinicId': clinicId,
       'planId': planId,
       'period': period,
       'successUrl': successUrl,
       'cancelUrl': cancelUrl,
-      'idToken': token,
     });
 
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-
-    print('--- Creating Paddle Checkout Session ---');
-    print('URL: $url');
-    print('Headers: $headers');
-    print('Body: $body');
+    log('--- Creating Paddle Checkout Session ---');
+    log('URL: $url');
+    log('Body: $body');
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
 
-      print('Actual Request Headers: ${response.request?.headers}');
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
+      log('Response Status: ${response.statusCode}');
+      log('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['url'] as String?;
       } else {
-        print('Failed to create session: ${response.body}');
-        throw Exception(
-          'Failed to create session: ${response.statusCode} - ${response.body}',
-        );
+        log('Failed to create session: ${response.body}');
+        return null;
       }
     } catch (e) {
-      print('Exception creating session: $e');
-      throw Exception('Error creating session: $e');
+      log('Exception creating session: $e');
+      return null;
     }
   }
 }

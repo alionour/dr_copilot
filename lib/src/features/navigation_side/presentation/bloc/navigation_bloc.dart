@@ -91,6 +91,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.teams:
         emit(state.copyWith(destination: Destination.teams));
         break;
+      case Destination.recycleBin:
+        emit(state.copyWith(destination: Destination.recycleBin));
+        break;
     }
   }
 

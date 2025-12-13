@@ -140,46 +140,19 @@ class _HelpSupportPageState extends State<HelpSupportPage>
 
   Widget _buildFAQTab(ThemeData theme, ColorScheme colorScheme) {
     final faqs = [
+      {'question': 'faqInviteStaff'.tr(), 'answer': 'faqInviteStaffAns'.tr()},
       {
-        'question': 'How do I reset my password?',
-        'answer':
-            'You can reset your password by going to the Settings → Security page and clicking on "Change Password".',
+        'question': 'faqFreePlanLimits'.tr(),
+        'answer': 'faqFreePlanLimitsAns'.tr(),
       },
+      {'question': 'faqExportData'.tr(), 'answer': 'faqExportDataAns'.tr()},
+      {'question': 'faqSwitchAI'.tr(), 'answer': 'faqSwitchAIAns'.tr()},
+      {'question': 'faqCreateReport'.tr(), 'answer': 'faqCreateReportAns'.tr()},
       {
-        'question': 'How do I add a new patient?',
-        'answer':
-            'Navigate to the Patients section from the sidebar and click the "+" button or "Add Patient" to create a new patient record.',
+        'question': 'faqManageSubscription'.tr(),
+        'answer': 'faqManageSubscriptionAns'.tr(),
       },
-      {
-        'question': 'How do I schedule an appointment?',
-        'answer':
-            'Go to the Calendar page, click on a date and time, and fill in the appointment details including patient information.',
-      },
-      {
-        'question': 'How do I generate a clinical report?',
-        'answer':
-            'Visit the Clinical Reports section, click "Create Report", select a patient, and you can use AI assistance or create manually.',
-      },
-      {
-        'question': 'How do I manage billing and invoices?',
-        'answer':
-            'Access the Financials section where you can track revenue, expenses, create invoices, and manage bills.',
-      },
-      {
-        'question': 'How do I connect Google Drive?',
-        'answer':
-            'Go to Settings → Data & Storage, and click "Connect Google Drive" to link your account for document storage.',
-      },
-      {
-        'question': 'How do I use the AI assistant?',
-        'answer':
-            'Click on the Copilot icon in the sidebar or Settings → Model Selection to configure your preferred AI model (Gemini, GPT, or Claude).',
-      },
-      {
-        'question': 'How do I export my data?',
-        'answer':
-            'Go to Settings → Data & Storage → Export My Data. You can export once per week in JSON format.',
-      },
+      {'question': 'faqDataBackup'.tr(), 'answer': 'faqDataBackupAns'.tr()},
     ];
 
     return SingleChildScrollView(
