@@ -1,0 +1,22 @@
+Environment detected: LIVE (https://api.paddle.com)
+
+🚀 Setting up Paddle Products on https://api.paddle.com...
+
+✅ API Key is valid.
+Creating product: Dr. Copilot Pro...
+✅ Created Product: Dr. Copilot Pro (ID: pro_01kc24kjpvpjndsp24rdzwyne1)
+Creating price for product pro_01kc24kjpvpjndsp24rdzwyne1...
+✅ Created Price: pri_01kc24kk104xbfs3bmynr90rv3
+Creating product: Dr. Copilot Elite...
+✅ Created Product: Dr. Copilot Elite (ID: pro_01kc24kkcena0dgs3qpmnr7v84)
+Creating price for product pro_01kc24kkcena0dgs3qpmnr7v84...
+✅ Created Price: pri_01kc24kkq2xfwbptz83zmgkmsc
+
+🎉 Setup Complete! Here are your keys for Doppler:
+
+PADDLE_API_KEY=pdl_live_apikey_01kbzrqhhtb9dy1gqg3g4jq8jm_crGSCsGYJa3wRXkCcc6kZc_AVd
+PADDLE_API_URL=https://api.paddle.com
+PADDLE_PRICE_ID_PRO=pri_01kc24kk104xbfs3bmynr90rv3
+PADDLE_PRICE_ID_ELITE=pri_01kc24kkq2xfwbptz83zmgkmsc
+
+Copy the lines above and use them to configure your backend.

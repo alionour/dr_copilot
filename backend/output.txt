@@ -1,0 +1,14 @@
+Environment detected: LIVE (https://api.paddle.com)
+
+≡اأ Setting up Paddle Products on https://api.paddle.com...
+
+ظ£à API Key is valid.
+Checking for product: Dr. Copilot Pro...
+Failed to create product Dr. Copilot Pro: {
+  "statusCode": 400,
+  "body": "{\"error\":{\"type\":\"request_error\",\"code\":\"bad_request\",\"detail\":\"Invalid request.\",\"documentation_url\":\"https://developer.paddle.com/v1/errors/shared/bad_request\",\"errors\":[{\"field\":\"(root)\",\"message\":\"Additional property prices is not allowed\"}]},\"meta\":{\"request_id\":\"de7d67a8-f6bd-4ce5-9d16-4e110a303645\"}}"
+}
+ظإî An error occurred: {
+  statusCode: 400,
+  body: '{"error":{"type":"request_error","code":"bad_request","detail":"Invalid request.","documentation_url":"https://developer.paddle.com/v1/errors/shared/bad_request","errors":[{"field":"(root)","message":"Additional property prices is not allowed"}]},"meta":{"request_id":"de7d67a8-f6bd-4ce5-9d16-4e110a303645"}}'
+}

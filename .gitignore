@@ -46,11 +46,3 @@ app.*.map.json
 *.jks
 keystore_base64.txt
 release-keystore.jks
-
-# Backend sensitive files
-backend/keys.txt
-backend/output.txt
-backend/.env
-backend/.env.*
-backend/node_modules/
-backend/.serverless/
