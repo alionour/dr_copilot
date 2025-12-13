@@ -52,6 +52,9 @@ import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart'
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
 class RoutingConfig {
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   static final GoRouter router = GoRouter(
     errorBuilder: (context, state) => const ErrorRoutePage(),
     routes: [
