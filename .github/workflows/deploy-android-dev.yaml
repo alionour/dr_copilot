@@ -28,9 +28,6 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Doppler CLI
-        uses: dopplerhq/cli-action@v3
-
       - name: Get build number from commit count
         id: build_number
         run: |
@@ -48,58 +45,28 @@ jobs:
           cat pubspec.yaml | grep version
 
       - name: Install dependencies
-        run: doppler run -- flutter pub get
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: flutter pub get
 
-      - name: Decode keystore from Doppler
+      - name: Decode keystore from GitHub Secrets
         run: |
-          doppler secrets get ANDROID_KEYSTORE_BASE64 --plain | base64 --decode > android/app/keystore.jks
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
 
-      - name: Create key.properties from Doppler
+      - name: Create key.properties from GitHub Secrets
         run: |
           cat > android/key.properties << EOF
-          storePassword=$(doppler secrets get ANDROID_KEYSTORE_PASSWORD --plain)
-          keyPassword=$(doppler secrets get ANDROID_KEY_PASSWORD --plain)
-          keyAlias=$(doppler secrets get ANDROID_KEY_ALIAS --plain)
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           storeFile=keystore.jks
           EOF
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Build App Bundle
-        run: doppler run -- flutter build appbundle --release
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-
-      - name: Get service account JSON from Doppler (with GitHub fallback)
-        id: service_account
-        run: |
-          # Try Doppler first
-          if SA_JSON=$(doppler secrets get GOOGLE_PLAY_SERVICE_ACCOUNT_JSON --plain 2>/dev/null); then
-            echo "✅ Using service account from Doppler"
-            echo "json<<EOF" >> $GITHUB_OUTPUT
-            echo "$SA_JSON" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          elif [ -n "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" ]; then
-            # Fallback to GitHub Secrets
-            echo "⚠️ Doppler failed, using service account from GitHub Secrets"
-            echo "json<<EOF" >> $GITHUB_OUTPUT
-            echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "❌ Service account JSON not found in Doppler or GitHub Secrets"
-            exit 1
-          fi
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: flutter build appbundle --release
 
       - name: Upload to Google Play Internal Testing
         uses: r0adkll/upload-google-play@v1.1.3
         with:
-          serviceAccountJsonPlainText: ${{ steps.service_account.outputs.json }}
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.alionour.drcopilot
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
@@ -130,3 +97,4 @@ jobs:
               commit_sha: context.sha,
               body: `✅ Successfully deployed build #${buildNumber} to Google Play Internal Testing!\n\n[View in Play Console](https://play.google.com/console/)`
             })
+
