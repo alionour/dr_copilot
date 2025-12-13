@@ -137,7 +137,7 @@ dev_dependencies:
   build_runner: ^2.4.14
   json_serializable: ^6.9.3
   mocktail: ^1.0.4
-  bloc_test: ^11.0.0
+  # bloc_test: ^10.0.0  <-- Temporarily removed to fix build conflict with Flutter Beta
   freezed: ^3.0.4
   shorebird_code_push: ^2.0.3
   firebase_dart: ^1.4.0
