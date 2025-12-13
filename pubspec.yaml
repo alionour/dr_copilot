@@ -26,7 +26,7 @@ environment:
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
 # dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
+# the latest version available on pub.dev. To see which depenRdencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
@@ -120,6 +120,7 @@ dependencies:
 dependency_overrides:
   speech_to_text_windows:
     path: ./packages/speech_to_text_windows
+  get_it: ^9.0.5
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6
