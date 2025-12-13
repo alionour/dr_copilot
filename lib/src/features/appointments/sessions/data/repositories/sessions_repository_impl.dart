@@ -11,10 +11,14 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
 
   /// Gets a list of sessions.
   @override
-  Future<Either<Failure, List<SessionModel>>> getSessions(
-      {String? lastDocumentID, int limit = 20}) {
+  Future<Either<Failure, List<SessionModel>>> getSessions({
+    String? lastDocumentID,
+    int limit = 20,
+  }) {
     return firebaseApi.getSessions(
-        lastDocumentID: lastDocumentID, limit: limit);
+      lastDocumentID: lastDocumentID,
+      limit: limit,
+    );
   }
 
   /// Adds a new session.
@@ -26,7 +30,9 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   /// Updates an existing session.
   @override
   Future<Either<Failure, SessionModel>> updateSession(
-      String id, SessionModel sessionModel) {
+    String id,
+    SessionModel sessionModel,
+  ) {
     return firebaseApi.updateSession(id, sessionModel);
   }
 
@@ -36,12 +42,36 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
     return firebaseApi.deleteSession(id);
   }
 
+  /// Gets a list of deleted sessions.
+  @override
+  Future<Either<Failure, List<SessionModel>>> getDeletedSessions() {
+    return firebaseApi.getDeletedSessions();
+  }
+
+  /// Restores a deleted session.
+  @override
+  Future<Either<Failure, void>> restoreSession(String id) {
+    return firebaseApi.restoreSession(id);
+  }
+
+  /// Permanently deletes a session.
+  @override
+  Future<Either<Failure, void>> permanentlyDeleteSession(String id) {
+    return firebaseApi.permanentlyDeleteSession(id);
+  }
+
   /// Searches sessions based on criteria.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions(
-      {String? name, String? lastDocumentID, int limit = 20}) {
+  Future<Either<Failure, List<SessionModel>>> searchSessions({
+    String? name,
+    String? lastDocumentID,
+    int limit = 20,
+  }) {
     return firebaseApi.searchSessions(
-        name: name, lastDocumentID: lastDocumentID, limit: limit);
+      name: name,
+      lastDocumentID: lastDocumentID,
+      limit: limit,
+    );
   }
 
   /// Gets sessions by a specific date.
@@ -63,7 +93,7 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
   }
 
   /// Detects the type of session based on patient ID.
-  /// Detects the type of session based on patient ID.
+
   @override
   Future<Either<Failure, String>> detectSessionType(String patientId) {
     return firebaseApi.detectSessionType(patientId);
@@ -77,8 +107,10 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
 
   /// Returns the count of sessions for a specific month and year.
   @override
-  Future<Either<Failure, int>> getSessionsCountForMonth(
-      {required int year, required int month}) {
+  Future<Either<Failure, int>> getSessionsCountForMonth({
+    required int year,
+    required int month,
+  }) {
     return firebaseApi.getSessionsCountForMonth(year: year, month: month);
   }
 
@@ -90,8 +122,10 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
 
   /// Sums the total price of all sessions in a specific month for the authenticated user.
   @override
-  Future<Either<Failure, double>> sumSessionCostsForMonth(
-      {required int year, required int month}) {
+  Future<Either<Failure, double>> sumSessionCostsForMonth({
+    required int year,
+    required int month,
+  }) {
     return firebaseApi.sumSessionCostsForMonth(year: year, month: month);
   }
 

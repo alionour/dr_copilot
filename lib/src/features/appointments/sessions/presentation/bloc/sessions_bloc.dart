@@ -25,7 +25,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   final FinancialsUseCase _financialsUseCase;
 
   SessionsBloc(this._sessionsUseCase, this._financialsUseCase)
-      : super(const SessionsInitial([])) {
+    : super(const SessionsInitial([])) {
     on<GetSessions>(_onGetSessions);
     on<AddSession>(_onAddSession);
     on<UpdateSession>(_onUpdateSession);
@@ -45,11 +45,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       lastDocumentID: event.lastDocumentID,
       limit: event.limit,
     );
-    emit(failureOrSessions.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (sessions) => SessionsLoaded(sessions),
-    ));
+    emit(
+      failureOrSessions.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (sessions) => SessionsLoaded(sessions),
+      ),
+    );
   }
 
   void _onAddSession(AddSession event, Emitter<SessionsState> emit) async {
@@ -57,8 +61,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     final failureOrSession = await _sessionsUseCase.addSession(event.model);
     await failureOrSession.fold(
       (failure) {
-        emit(SessionsError(state.sessions,
-            message: _mapFailureToMessage(failure)));
+        emit(
+          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
+        );
       },
       (addedSession) async {
         debugPrint('Add successful: $addedSession');
@@ -83,7 +88,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               .currencyProfileId, // You may want to pass this from the UI or event
           issuedAt: addedSession.createdAt,
           dueDate: Timestamp.fromDate(
-              addedSession.startDateTime.toDate().add(const Duration(days: 2))),
+            addedSession.startDateTime.toDate().add(const Duration(days: 2)),
+          ),
           ownerId: addedSession.ownerId,
           clinicId: addedSession.clinicId,
           customerType: CustomerType.patient,
@@ -98,94 +104,136 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   }
 
   void _onUpdateSession(
-      UpdateSession event, Emitter<SessionsState> emit) async {
-    final failureOrSession =
-        await _sessionsUseCase.updateSession(event.sessionId, event.model);
+    UpdateSession event,
+    Emitter<SessionsState> emit,
+  ) async {
+    final failureOrSession = await _sessionsUseCase.updateSession(
+      event.sessionId,
+      event.model,
+    );
     debugPrint(': ${event.model.toJson()}');
 
-    emit(failureOrSession.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (updatedSession) {
-        debugPrint('Update successful: ${updatedSession.toJson()}');
-        final sessions = state.sessions.map((session) {
-          return session.id == updatedSession.id ? updatedSession : session;
-        }).toList();
-        emit(
-            SessionsSuccess(sessions, message: 'Session updated successfully'));
-        return SessionsLoaded(sessions);
-      },
-    ));
+    emit(
+      failureOrSession.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (updatedSession) {
+          debugPrint('Update successful: ${updatedSession.toJson()}');
+          final sessions = state.sessions.map((session) {
+            return session.id == updatedSession.id ? updatedSession : session;
+          }).toList();
+          emit(
+            SessionsSuccess(sessions, message: 'Session updated successfully'),
+          );
+          return SessionsLoaded(sessions);
+        },
+      ),
+    );
   }
 
   Future<void> _onDeleteSession(
-      DeleteSession event, Emitter<SessionsState> emit) async {
+    DeleteSession event,
+    Emitter<SessionsState> emit,
+  ) async {
     emit(SessionsLoading(state.sessions));
-    final failureOrSession =
-        await _sessionsUseCase.deleteSession(event.sessionId);
-    emit(await failureOrSession.fold(
-        (failure) => SessionsError(state.sessions,
-            message: _mapFailureToMessage(failure)), (deletedSession) async {
-      debugPrint('Delete successful: ${event.sessionId}');
-      final sessions = state.sessions
-        ..removeWhere((session) => session.id == event.sessionId);
-      emit(SessionsSuccess(sessions, message: 'sessionDeleted'.tr()));
-      // If the invoice and transaction should be deleted, handle that here
-      if (event.deleteInvoiceAndTransaction) {
-        final failureOrInvoice = await _financialsUseCase
-            .deleteInvoiceByReferenceId(event.sessionId);
-        return await failureOrInvoice.fold(
-          (failure) {
-            return SessionsError(state.sessions,
-                message: _mapFailureToMessage(failure));
-          },
-          (deletedInvoice) async {
-            debugPrint('Invoice Delete successful: ${event.sessionId}');
-            // Now delete the transaction associated with this invoice/session
-            final failureOrTransaction = await _financialsUseCase
-                .deleteTransactionByReferenceId(event.sessionId);
-            return failureOrTransaction.fold(
-              (failure) => SessionsError(state.sessions,
-                  message: _mapFailureToMessage(failure)),
-              (deletedTransaction) {
-                debugPrint('Transaction Delete successful: ${event.sessionId}');
-                return SessionsSuccess(sessions,
-                    message: 'invoiceAndTransactionDeleted'.tr());
+    final failureOrSession = await _sessionsUseCase.deleteSession(
+      event.sessionId,
+    );
+    emit(
+      await failureOrSession.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (deletedSession) async {
+          debugPrint('Delete successful: ${event.sessionId}');
+          final sessions = state.sessions
+            ..removeWhere((session) => session.id == event.sessionId);
+          emit(SessionsSuccess(sessions, message: 'sessionDeleted'.tr()));
+          // If the invoice and transaction should be deleted, handle that here
+          if (event.deleteInvoiceAndTransaction) {
+            final failureOrInvoice = await _financialsUseCase
+                .deleteInvoiceByReferenceId(event.sessionId);
+            return await failureOrInvoice.fold(
+              (failure) {
+                return SessionsError(
+                  state.sessions,
+                  message: _mapFailureToMessage(failure),
+                );
+              },
+              (deletedInvoice) async {
+                debugPrint('Invoice Delete successful: ${event.sessionId}');
+                // Now delete the transaction associated with this invoice/session
+                final failureOrTransaction = await _financialsUseCase
+                    .deleteTransactionByReferenceId(event.sessionId);
+                return failureOrTransaction.fold(
+                  (failure) => SessionsError(
+                    state.sessions,
+                    message: _mapFailureToMessage(failure),
+                  ),
+                  (deletedTransaction) {
+                    debugPrint(
+                      'Transaction Delete successful: ${event.sessionId}',
+                    );
+                    return SessionsSuccess(
+                      sessions,
+                      message: 'invoiceAndTransactionDeleted'.tr(),
+                    );
+                  },
+                );
               },
             );
-          },
-        );
-      }
-      return SessionsLoaded(sessions);
-    }));
+          }
+          return SessionsLoaded(sessions);
+        },
+      ),
+    );
   }
 
   Future<void> _onSearchSessions(
-      SearchSessions event, Emitter<SessionsState> emit) async {
+    SearchSessions event,
+    Emitter<SessionsState> emit,
+  ) async {
     emit(SessionsLoading(state.sessions));
-    final failureOrSessions =
-        await _sessionsUseCase.searchSessions(name: event.name);
-    emit(failureOrSessions.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (sessions) => SessionsLoaded(sessions),
-    ));
+    final failureOrSessions = await _sessionsUseCase.searchSessions(
+      name: event.name,
+    );
+    emit(
+      failureOrSessions.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (sessions) => SessionsLoaded(sessions),
+      ),
+    );
   }
 
   void _onGetSessionsByDate(
-      GetSessionsByDate event, Emitter<SessionsState> emit) async {
+    GetSessionsByDate event,
+    Emitter<SessionsState> emit,
+  ) async {
     emit(SessionsLoading(state.sessions));
-    final failureOrSessions =
-        await _sessionsUseCase.getSessionsByDate(event.date);
-    emit(failureOrSessions.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (sessions) => SessionsLoaded(sessions),
-    ));
+    final failureOrSessions = await _sessionsUseCase.getSessionsByDate(
+      event.date,
+    );
+    emit(
+      failureOrSessions.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (sessions) => SessionsLoaded(sessions),
+      ),
+    );
   }
 
   void _onLoadMoreSessions(
-      LoadMoreSessions event, Emitter<SessionsState> emit) async {
+    LoadMoreSessions event,
+    Emitter<SessionsState> emit,
+  ) async {
     if (state is SessionsLoaded) {
       final currentState = state as SessionsLoaded;
       if (currentState.isLoadingMore) return;
@@ -200,19 +248,30 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       result.fold(
         (failure) {
           debugPrint(
-              'LoadMoreSessions failed: ${_mapFailureToMessage(failure)}');
-          emit(SessionsError(currentState.sessions,
-              message: _mapFailureToMessage(failure)));
+            'LoadMoreSessions failed: ${_mapFailureToMessage(failure)}',
+          );
+          emit(
+            SessionsError(
+              currentState.sessions,
+              message: _mapFailureToMessage(failure),
+            ),
+          );
         },
         (newSessions) {
           debugPrint(
-              'Fetched ${newSessions.length} new sessions: ${newSessions.map((s) => s.id).toList()}');
+            'Fetched ${newSessions.length} new sessions: ${newSessions.map((s) => s.id).toList()}',
+          );
           final updatedSessions = List<SessionModel>.from(currentState.sessions)
-            ..addAll(newSessions.where((newSession) => !currentState.sessions
-                .any(
-                    (existingSession) => existingSession.id == newSession.id)));
+            ..addAll(
+              newSessions.where(
+                (newSession) => !currentState.sessions.any(
+                  (existingSession) => existingSession.id == newSession.id,
+                ),
+              ),
+            );
           debugPrint(
-              'Updated sessions list contains ${updatedSessions.length} sessions.');
+            'Updated sessions list contains ${updatedSessions.length} sessions.',
+          );
           emit(SessionsLoaded(updatedSessions));
         },
       );
@@ -220,15 +279,22 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   }
 
   void _onDetectSessionType(
-      DetectSessionType event, Emitter<SessionsState> emit) async {
+    DetectSessionType event,
+    Emitter<SessionsState> emit,
+  ) async {
     emit(SessionsLoading(state.sessions));
-    final failureOrSessionType =
-        await _sessionsUseCase.detectSessionType(event.patientId);
-    emit(failureOrSessionType.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (sessionType) => SessionTypeDetected(sessionType),
-    ));
+    final failureOrSessionType = await _sessionsUseCase.detectSessionType(
+      event.patientId,
+    );
+    emit(
+      failureOrSessionType.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (sessionType) => SessionTypeDetected(sessionType),
+      ),
+    );
   }
 
   /// Handles the [GetSessionsCount] event by emitting new [SessionsState]s.
@@ -241,55 +307,43 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   /// - [event]: The [GetSessionsCount] event to handle.
   /// - [emit]: The function used to emit new [SessionsState]s.
   void _onGetSessionsCount(
-      GetSessionsCount event, Emitter<SessionsState> emit) async {
+    GetSessionsCount event,
+    Emitter<SessionsState> emit,
+  ) async {
     final failureOrCount = await _sessionsUseCase.getSessionsCount();
-    emit(failureOrCount.fold(
-      (failure) =>
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
-      (acc) {
-        debugPrint('Total sessions count: $count');
-        return SessionsCountLoaded(acc, state.sessions);
-      },
-    ));
+    emit(
+      failureOrCount.fold(
+        (failure) => SessionsError(
+          state.sessions,
+          message: _mapFailureToMessage(failure),
+        ),
+        (acc) {
+          debugPrint('Total sessions count: $count');
+          return SessionsCountLoaded(acc, state.sessions);
+        },
+      ),
+    );
   }
 
   void _onAddInvoice(AddInvoice event, Emitter<SessionsState> emit) async {
     try {
-      final failureOrInvoice =
-          await _financialsUseCase.addInvoice(invoice: event.invoice);
+      final failureOrInvoice = await _financialsUseCase.addInvoice(
+        invoice: event.invoice,
+      );
       failureOrInvoice.fold(
-          (failure) => emit(SessionsError(state.sessions,
-              message: _mapFailureToMessage(failure))), (invoice) {
-        bool transactionAdded = false;
-        if (invoice.status == InvoiceStatus.paid) {
-          final transaction = TransactionModel(
-            id: const Uuid().v4(),
-            currencyProfileId: invoice.currencyProfileId,
-            direction:
-                TransactionDirection.fromSource(TransactionSource.invoice),
-            transactionSource: TransactionSource.invoice,
-            status: TransactionStatus.completed,
-            transactionDate: invoice.createdAt,
-            referenceId: invoice.id,
-            ownerId: invoice.ownerId,
-            clinicId: invoice.clinicId,
-            amount: invoice.amount,
-            createdAt: invoice.createdAt,
-            createdBy: invoice.createdBy,
-            description: 'Full payment for invoice ${invoice.id}',
-          );
-
-          add(AddTransaction(transaction));
-          transactionAdded = true;
-        } else if (invoice.status == InvoiceStatus.partiallyPaid) {
-          final partialPaymentAmount = event.partialAmount ?? 0.0;
-          if (partialPaymentAmount > 0) {
+        (failure) => emit(
+          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
+        ),
+        (invoice) {
+          bool transactionAdded = false;
+          if (invoice.status == InvoiceStatus.paid) {
             final transaction = TransactionModel(
               id: const Uuid().v4(),
               currencyProfileId: invoice.currencyProfileId,
+              direction: TransactionDirection.fromSource(
+                TransactionSource.invoice,
+              ),
               transactionSource: TransactionSource.invoice,
-              direction:
-                  TransactionDirection.fromSource(TransactionSource.invoice),
               status: TransactionStatus.completed,
               transactionDate: invoice.createdAt,
               referenceId: invoice.id,
@@ -298,38 +352,73 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               amount: invoice.amount,
               createdAt: invoice.createdAt,
               createdBy: invoice.createdBy,
-              description: 'Partial payment for invoice ${invoice.id}',
+              description: 'Full payment for invoice ${invoice.id}',
             );
+
             add(AddTransaction(transaction));
             transactionAdded = true;
+          } else if (invoice.status == InvoiceStatus.partiallyPaid) {
+            final partialPaymentAmount = event.partialAmount ?? 0.0;
+            if (partialPaymentAmount > 0) {
+              final transaction = TransactionModel(
+                id: const Uuid().v4(),
+                currencyProfileId: invoice.currencyProfileId,
+                transactionSource: TransactionSource.invoice,
+                direction: TransactionDirection.fromSource(
+                  TransactionSource.invoice,
+                ),
+                status: TransactionStatus.completed,
+                transactionDate: invoice.createdAt,
+                referenceId: invoice.id,
+                ownerId: invoice.ownerId,
+                clinicId: invoice.clinicId,
+                amount: invoice.amount,
+                createdAt: invoice.createdAt,
+                createdBy: invoice.createdBy,
+                description: 'Partial payment for invoice ${invoice.id}',
+              );
+              add(AddTransaction(transaction));
+              transactionAdded = true;
+            }
           }
-        }
-        if (!transactionAdded) {
-          emit(SessionsSuccess(state.sessions,
-              message: 'sessionAndInvoiceAddedSuccessfully'.tr()));
-        }
-      });
+          if (!transactionAdded) {
+            emit(
+              SessionsSuccess(
+                state.sessions,
+                message: 'sessionAndInvoiceAddedSuccessfully'.tr(),
+              ),
+            );
+          }
+        },
+      );
     } catch (e) {
       emit(SessionsError(state.sessions, message: 'failedToAddInvoice'.tr()));
     }
   }
 
   void _onAddTransaction(
-      AddTransaction event, Emitter<SessionsState> emit) async {
+    AddTransaction event,
+    Emitter<SessionsState> emit,
+  ) async {
     try {
       await _financialsUseCase.addTransaction(transaction: event.transaction);
-      emit(SessionsSuccess(state.sessions,
-          message: 'sessionInvoiceAndTransactionAddedSuccessfully'.tr()));
+      emit(
+        SessionsSuccess(
+          state.sessions,
+          message: 'sessionInvoiceAndTransactionAddedSuccessfully'.tr(),
+        ),
+      );
       emit(SessionsLoaded(state.sessions));
     } catch (e) {
-      emit(SessionsError(state.sessions,
-          message: 'failedToAddTransaction'.tr()));
+      emit(
+        SessionsError(state.sessions, message: 'failedToAddTransaction'.tr()),
+      );
     }
   }
 
   /// Fetches the currency profiles
   Future<Either<Failure, List<CurrencyProfileModel>>>
-      getCurrencyProfiles() async {
+  getCurrencyProfiles() async {
     final failureOrProfiles = await _financialsUseCase.fetchCurrencyProfiles();
     return failureOrProfiles.fold(
       (failure) => Left(ServerFailure(_mapFailureToMessage(failure), 404)),
@@ -355,15 +444,18 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       // Step 1: Fetch all sessions
       debugPrint('Fetching all sessions');
       final failureOrSessions = await _sessionsUseCase.getSessions(
-          limit: 1000); // Adjust limit as needed
+        limit: 1000,
+      ); // Adjust limit as needed
 
       failureOrSessions.fold(
         (failure) {
           debugPrint('Failed to fetch sessions: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content:
-                    Text('Failed to fetch sessions: ${failure.message}'.tr())),
+              content: Text(
+                'Failed to fetch sessions: ${failure.message}'.tr(),
+              ),
+            ),
           );
         },
         (sessions) async {
@@ -385,7 +477,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               currencyProfileId: '38Ft2Q4TM0PwuUdZq8Q9',
               issuedAt: session.startDateTime,
               dueDate: Timestamp.fromDate(
-                  session.startDateTime.toDate().add(const Duration(days: 2))),
+                session.startDateTime.toDate().add(const Duration(days: 2)),
+              ),
               ownerId: session.ownerId,
               clinicId: session.clinicId,
               customerType: CustomerType.patient,
@@ -394,13 +487,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
             );
 
             debugPrint('Creating invoice for session ID: ${session.id}');
-            final failureOrInvoice =
-                await _financialsUseCase.addInvoice(invoice: invoice);
+            final failureOrInvoice = await _financialsUseCase.addInvoice(
+              invoice: invoice,
+            );
 
             failureOrInvoice.fold(
               (failure) {
                 debugPrint(
-                    'Failed to add invoice for session ${session.id}: ${failure.message}');
+                  'Failed to add invoice for session ${session.id}: ${failure.message}',
+                );
               },
               (addedInvoice) async {
                 debugPrint('Invoice created with ID: ${addedInvoice.id}');
@@ -408,13 +503,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                 // Step 3: Create a transaction based on the invoice status
                 if (addedInvoice.status == InvoiceStatus.paid) {
                   debugPrint(
-                      'Creating full payment transaction for invoice ID: ${addedInvoice.id}');
+                    'Creating full payment transaction for invoice ID: ${addedInvoice.id}',
+                  );
                   final transaction = TransactionModel(
                     id: const Uuid().v4(),
                     currencyProfileId: addedInvoice.currencyProfileId,
                     transactionSource: TransactionSource.invoice,
                     direction: TransactionDirection.fromSource(
-                        TransactionSource.invoice),
+                      TransactionSource.invoice,
+                    ),
                     status: TransactionStatus.completed,
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
@@ -426,12 +523,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     description: 'Full payment for invoice ${addedInvoice.id}',
                   );
                   await _financialsUseCase.addTransaction(
-                      transaction: transaction);
+                    transaction: transaction,
+                  );
                   debugPrint(
-                      'Transaction created for invoice ID: ${addedInvoice.id}');
+                    'Transaction created for invoice ID: ${addedInvoice.id}',
+                  );
                 } else if (addedInvoice.status == InvoiceStatus.partiallyPaid) {
                   debugPrint(
-                      'Creating partial payment transaction for invoice ID: ${addedInvoice.id}');
+                    'Creating partial payment transaction for invoice ID: ${addedInvoice.id}',
+                  );
                   final partialPaymentAmount =
                       50.0; // Example partial payment amount
                   final transaction = TransactionModel(
@@ -440,7 +540,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     transactionSource: TransactionSource.invoice,
                     status: TransactionStatus.completed,
                     direction: TransactionDirection.fromSource(
-                        TransactionSource.invoice),
+                      TransactionSource.invoice,
+                    ),
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
                     ownerId: addedInvoice.ownerId,
@@ -452,9 +553,11 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                         'Partial payment for invoice ${addedInvoice.id}',
                   );
                   await _financialsUseCase.addTransaction(
-                      transaction: transaction);
+                    transaction: transaction,
+                  );
                   debugPrint(
-                      'Partial payment transaction created for invoice ID: ${addedInvoice.id}');
+                    'Partial payment transaction created for invoice ID: ${addedInvoice.id}',
+                  );
                 }
               },
             );
@@ -465,7 +568,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Processed all sessions successfully!'.tr())),
+              content: Text('Processed all sessions successfully!'.tr()),
+            ),
           );
         },
       );
@@ -479,7 +583,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     }
   }
 
-  final EvaluationsFirebaseApi _evaluationsFirebaseApi =
+  late final EvaluationsFirebaseApi _evaluationsFirebaseApi =
       EvaluationsFirebaseApi();
   void processEvaluations(BuildContext context) async {
     try {
@@ -488,15 +592,18 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       // Step 1: Fetch all sessions
       debugPrint('Fetching all evaluations');
       final failureOrSessions = await _evaluationsFirebaseApi.getEvaluations(
-          limit: 1000); // Adjust limit as needed
+        limit: 1000,
+      ); // Adjust limit as needed
 
       failureOrSessions.fold(
         (failure) {
           debugPrint('Failed to fetch sessions: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content:
-                    Text('Failed to fetch sessions: ${failure.message}'.tr())),
+              content: Text(
+                'Failed to fetch sessions: ${failure.message}'.tr(),
+              ),
+            ),
           );
         },
         (sessions) async {
@@ -518,7 +625,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
               currencyProfileId: '38Ft2Q4TM0PwuUdZq8Q9',
               issuedAt: session.startDateTime,
               dueDate: Timestamp.fromDate(
-                  session.startDateTime.toDate().add(const Duration(days: 2))),
+                session.startDateTime.toDate().add(const Duration(days: 2)),
+              ),
               ownerId: session.ownerId,
               clinicId: session.clinicId,
               customerType: CustomerType.patient,
@@ -527,13 +635,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
             );
 
             debugPrint('Creating invoice for session ID: ${session.id}');
-            final failureOrInvoice =
-                await _financialsUseCase.addInvoice(invoice: invoice);
+            final failureOrInvoice = await _financialsUseCase.addInvoice(
+              invoice: invoice,
+            );
 
             failureOrInvoice.fold(
               (failure) {
                 debugPrint(
-                    'Failed to add invoice for session ${session.id}: ${failure.message}');
+                  'Failed to add invoice for session ${session.id}: ${failure.message}',
+                );
               },
               (addedInvoice) async {
                 debugPrint('Invoice created with ID: ${addedInvoice.id}');
@@ -541,13 +651,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                 // Step 3: Create a transaction based on the invoice status
                 if (addedInvoice.status == InvoiceStatus.paid) {
                   debugPrint(
-                      'Creating full payment transaction for invoice ID: ${addedInvoice.id}');
+                    'Creating full payment transaction for invoice ID: ${addedInvoice.id}',
+                  );
                   final transaction = TransactionModel(
                     id: const Uuid().v4(),
                     currencyProfileId: addedInvoice.currencyProfileId,
                     transactionSource: TransactionSource.invoice,
                     direction: TransactionDirection.fromSource(
-                        TransactionSource.invoice),
+                      TransactionSource.invoice,
+                    ),
                     status: TransactionStatus.completed,
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
@@ -559,12 +671,15 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     description: 'Full payment for invoice ${addedInvoice.id}',
                   );
                   await _financialsUseCase.addTransaction(
-                      transaction: transaction);
+                    transaction: transaction,
+                  );
                   debugPrint(
-                      'Transaction created for invoice ID: ${addedInvoice.id}');
+                    'Transaction created for invoice ID: ${addedInvoice.id}',
+                  );
                 } else if (addedInvoice.status == InvoiceStatus.partiallyPaid) {
                   debugPrint(
-                      'Creating partial payment transaction for invoice ID: ${addedInvoice.id}');
+                    'Creating partial payment transaction for invoice ID: ${addedInvoice.id}',
+                  );
                   final partialPaymentAmount =
                       50.0; // Example partial payment amount
                   final transaction = TransactionModel(
@@ -573,7 +688,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     transactionSource: TransactionSource.invoice,
                     status: TransactionStatus.completed,
                     direction: TransactionDirection.fromSource(
-                        TransactionSource.invoice),
+                      TransactionSource.invoice,
+                    ),
                     transactionDate: addedInvoice.createdAt,
                     referenceId: addedInvoice.id,
                     ownerId: addedInvoice.ownerId,
@@ -585,9 +701,11 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                         'Partial payment for invoice ${addedInvoice.id}',
                   );
                   await _financialsUseCase.addTransaction(
-                      transaction: transaction);
+                    transaction: transaction,
+                  );
                   debugPrint(
-                      'Partial payment transaction created for invoice ID: ${addedInvoice.id}');
+                    'Partial payment transaction created for invoice ID: ${addedInvoice.id}',
+                  );
                 }
               },
             );
@@ -598,7 +716,8 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Processed all sessions successfully!'.tr())),
+              content: Text('Processed all sessions successfully!'.tr()),
+            ),
           );
         },
       );

@@ -140,6 +140,23 @@ class _PatientListItemState extends State<PatientListItem> {
                       OutlinedButton.icon(
                         onPressed: () {
                           context.pushNamed(
+                            'patient_details',
+                            pathParameters: {
+                              'patientId': widget.patientModel.id,
+                            },
+                          );
+                        },
+                        icon: const Icon(Icons.visibility_outlined, size: 18),
+                        label: Text('viewDetails'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          context.pushNamed(
                             'edit_patient',
                             extra: widget.patientModel,
                           );

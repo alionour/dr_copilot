@@ -16,12 +16,12 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   String? get clinicId => OwnerNotifier().clinicId;
 
   /// Reference to the Firestore collection for sessions.
-  final CollectionReference _sessionsCollection =
-      FirebaseFirestore.instance.collection('sessions');
+  final CollectionReference _sessionsCollection = FirebaseFirestore.instance
+      .collection('sessions');
 
   /// Reference to the Firestore collection for patients.
-  final CollectionReference _patientsCollection =
-      FirebaseFirestore.instance.collection('patients');
+  final CollectionReference _patientsCollection = FirebaseFirestore.instance
+      .collection('patients');
 
   /// Firebase Authentication instance for user authentication.
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -48,17 +48,23 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query queryRef = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        queryRef = queryRef.where('deletedAt', isNull: true);
+
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot =
-              await _sessionsCollection.doc(lastDocumentID).get();
+          final lastDocumentSnapshot = await _sessionsCollection
+              .doc(lastDocumentID)
+              .get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef
                 .orderBy('startDateTime', descending: true)
@@ -68,31 +74,34 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         } else {
-          queryRef =
-              queryRef.orderBy('startDateTime', descending: true).limit(limit);
+          queryRef = queryRef
+              .orderBy('startDateTime', descending: true)
+              .limit(limit);
         }
 
         final snapshot = await queryRef.get();
 
         // Map the snapshot documents to a list of SessionModel objects
-        List<SessionModel> sessions =
-            await Future.wait(snapshot.docs.map((doc) async {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          // Fetch the patient name dynamically using the patient ID
-          final patientName =
-              await getPatientNameById(data['patientId'] as String);
-          if (patientName == null) {
-            debugPrint('Patient name not found for ID: ${data['patientId']}');
-          }
-          return SessionModel.fromJson({
-            ...data,
-            'id': doc.id, // Ensure the document ID is included
-            'patientName': patientName ?? 'No Name Available',
-          });
-        }).toList());
+        List<SessionModel> sessions = await Future.wait(
+          snapshot.docs.map((doc) async {
+            final data = doc.data() as Map<String, dynamic>?;
+            if (data == null) {
+              throw Exception('Document data is null');
+            }
+            // Fetch the patient name dynamically using the patient ID
+            final patientName = await getPatientNameById(
+              data['patientId'] as String,
+            );
+            if (patientName == null) {
+              debugPrint('Patient name not found for ID: ${data['patientId']}');
+            }
+            return SessionModel.fromJson({
+              ...data,
+              'id': doc.id, // Ensure the document ID is included
+              'patientName': patientName ?? 'No Name Available',
+            });
+          }).toList(),
+        );
 
         return Right(sessions);
       }
@@ -110,7 +119,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// or a [Failure] in case of an error.
   @override
   Future<Either<Failure, SessionModel>> addSession(
-      SessionModel sessionModel) async {
+    SessionModel sessionModel,
+  ) async {
     // Check if the user is authenticated
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
@@ -165,7 +175,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// Returns the updated [SessionModel] or a [Failure] in case of an error.
   @override
   Future<Either<Failure, SessionModel>> updateSession(
-      String id, SessionModel sessionModel) async {
+    String id,
+    SessionModel sessionModel,
+  ) async {
     // Check if the user is authenticated
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
@@ -188,9 +200,11 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           final createdBy = data['createdBy'] as String?;
           if (createdBy == null) {
             debugPrint(
-                'Error: createdBy field is missing or null in the document');
+              'Error: createdBy field is missing or null in the document',
+            );
             return Left(
-                ServerFailure('createdBy field is missing or null', 400));
+              ServerFailure('createdBy field is missing or null', 400),
+            );
           }
 
           // Check if the authenticated user is authorized to update the document
@@ -213,7 +227,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             return Right(sessionModel.copyWith(id: id));
           } else {
             debugPrint(
-                'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}');
+              'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}',
+            );
             return Left(ServerFailure('Unauthorized', 403));
           }
         } else {
@@ -257,12 +272,17 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           final createdBy = data['createdBy']?.toString();
 
           if (createdBy == user.uid) {
-            await _sessionsCollection.doc(id).delete();
-            debugPrint('Session with ID $id deleted successfully');
+            // Soft delete: Update deletedAt timestamp and deletedBy
+            await _sessionsCollection.doc(id).update({
+              'deletedAt': Timestamp.now(),
+              'deletedBy': user.uid,
+            });
+            debugPrint('Session with ID $id soft deleted successfully');
             return Right(null); // Return void on successful deletion
           } else {
             debugPrint(
-                'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}');
+              'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}',
+            );
             return Left(ServerFailure('Unauthorized', 403));
           }
         } else {
@@ -277,6 +297,80 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<SessionModel>>> getDeletedSessions() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Query queryRef = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
+
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        queryRef = queryRef
+            .where('deletedAt', isNull: false)
+            .orderBy('deletedAt', descending: true);
+
+        final snapshot = await queryRef.get();
+
+        List<SessionModel> sessions = await Future.wait(
+          snapshot.docs.map((doc) async {
+            final data = doc.data() as Map<String, dynamic>?;
+            if (data == null) {
+              throw Exception('Document data is null');
+            }
+            final patientName = await getPatientNameById(
+              data['patientId'] as String,
+            );
+            return SessionModel.fromJson({
+              ...data,
+              'id': doc.id,
+              'patientName': patientName ?? 'No Name Available',
+            });
+          }).toList(),
+        );
+
+        return Right(sessions);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> restoreSession(String id) async {
+    if (!await _isAuthenticated()) {
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      await _sessionsCollection.doc(id).update({
+        'deletedAt': null,
+        'deletedBy': null,
+      });
+      return Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> permanentlyDeleteSession(String id) async {
+    if (!await _isAuthenticated()) {
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      await _sessionsCollection.doc(id).delete();
+      return Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
   /// Searches for sessions based on the provided criteria.
   ///
   /// [patientId] is the ID of the patient to filter sessions by.
@@ -286,8 +380,11 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   ///
   /// Returns a list of [SessionModel] objects or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, List<SessionModel>>> searchSessions(
-      {String? name, String? lastDocumentID, int limit = 20}) async {
+  Future<Either<Failure, List<SessionModel>>> searchSessions({
+    String? name,
+    String? lastDocumentID,
+    int limit = 20,
+  }) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -309,23 +406,31 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           }
         }
 
-        Query queryRef =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query queryRef = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        queryRef = queryRef.where('deletedAt', isNull: true);
+
         if (patientIds.isNotEmpty) {
           // Firestore whereIn supports max 10 items, so take first 10
-          queryRef = queryRef.where('patientId',
-              whereIn: patientIds.take(10).toList());
+          queryRef = queryRef.where(
+            'patientId',
+            whereIn: patientIds.take(10).toList(),
+          );
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot =
-              await _sessionsCollection.doc(lastDocumentID).get();
+          final lastDocumentSnapshot = await _sessionsCollection
+              .doc(lastDocumentID)
+              .get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
@@ -335,33 +440,40 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
 
         final snapshot = await queryRef.get();
 
-        List<SessionModel> sessions =
-            await Future.wait(snapshot.docs.map((doc) async {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          // Fetch the patient name dynamically using the patient ID
-          final patientName =
-              await getPatientNameById(data['patientId'] as String);
-          if (patientName == null) {
-            debugPrint('Patient name not found for ID: \\${data['patientId']}');
-          }
-          return SessionModel.fromJson({
-            ...data,
-            'id': doc.id, // Ensure the document ID is included
-            'patientName': patientName ?? 'No Name Available',
-          });
-        }).toList());
+        List<SessionModel> sessions = await Future.wait(
+          snapshot.docs.map((doc) async {
+            final data = doc.data() as Map<String, dynamic>?;
+            if (data == null) {
+              throw Exception('Document data is null');
+            }
+            // Fetch the patient name dynamically using the patient ID
+            final patientName = await getPatientNameById(
+              data['patientId'] as String,
+            );
+            if (patientName == null) {
+              debugPrint(
+                'Patient name not found for ID: \\${data['patientId']}',
+              );
+            }
+            return SessionModel.fromJson({
+              ...data,
+              'id': doc.id, // Ensure the document ID is included
+              'patientName': patientName ?? 'No Name Available',
+            });
+          }).toList(),
+        );
         return Right(sessions);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } on FirebaseException catch (e) {
       if (e.code == 'failed-precondition') {
         debugPrint('Firestore index required: ${e.message}');
-        return Left(ServerFailure(
+        return Left(
+          ServerFailure(
             'Firestore index required. Please create the index in the Firestore console.',
-            400));
+            400,
+          ),
+        );
       }
       debugPrint('Error searching evaluations: $e');
       return Left(ServerFailure(e.toString(), 404));
@@ -376,8 +488,11 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   ///
   /// Returns a list of [SessionModel] objects or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, List<SessionModel>>> getSessionsByDate(DateTime date,
-      {DocumentSnapshot? lastDocument, int limit = 20}) async {
+  Future<Either<Failure, List<SessionModel>>> getSessionsByDate(
+    DateTime date, {
+    DocumentSnapshot? lastDocument,
+    int limit = 20,
+  }) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -386,21 +501,32 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       final user = _auth.currentUser;
       if (user != null) {
         debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
-        Query queryRef =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query queryRef = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        queryRef = queryRef.where('deletedAt', isNull: true);
+
         queryRef = queryRef
-            .where('startDateTime',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(
-                    DateTime(date.year, date.month, date.day)))
-            .where('startDateTime',
-                isLessThan: Timestamp.fromDate(
-                    DateTime(date.year, date.month, date.day + 1)))
+            .where(
+              'startDateTime',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(
+                DateTime(date.year, date.month, date.day),
+              ),
+            )
+            .where(
+              'startDateTime',
+              isLessThan: Timestamp.fromDate(
+                DateTime(date.year, date.month, date.day + 1),
+              ),
+            )
             .limit(limit);
 
         if (lastDocument != null) {
@@ -427,20 +553,18 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     } on FirebaseException catch (e) {
       if (e.code == 'failed-precondition') {
         debugPrint('Firestore index required: ${e.message}');
-        return Left(ServerFailure(
+        return Left(
+          ServerFailure(
             'Firestore index required. Please create the index in the Firestore console.',
-            400));
+            400,
+          ),
+        );
       }
       debugPrint('Error getting sessions by date: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
   }
 
-  /// Detects the session type for a given patient.
-  ///
-  /// [patientId] is the ID of the patient to detect the session type for.
-  ///
-  /// Returns the detected [SessionType] or a [Failure] in case of an error.
   /// Detects the session type for a given patient.
   ///
   /// [patientId] is the ID of the patient to detect the session type for.
@@ -455,6 +579,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final querySnapshot = await _sessionsCollection
           .where('patientId', isEqualTo: patientId)
+          .where('deletedAt', isNull: true) // Filter out deleted sessions
           .limit(1)
           .get();
 
@@ -464,8 +589,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           debugPrint('Error: Document data is null');
           return Left(ServerFailure('Document data is null', 400));
         }
-        final sessionTypeString = data['sessionType']
-            as String?; // Changed from 'type' to 'sessionType' based on model
+        final sessionTypeString =
+            data['sessionType']
+                as String?; // Changed from 'type' to 'sessionType' based on model
 
         if (sessionTypeString != null) {
           return Right(sessionTypeString);
@@ -477,7 +603,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       } else {
         debugPrint('Error: No sessions found for the given patientId');
         return Left(
-            ServerFailure('No sessions found for the given patientId', 404));
+          ServerFailure('No sessions found for the given patientId', 404),
+        );
       }
     } catch (e) {
       debugPrint('Error detecting session type: $e');
@@ -500,7 +627,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           return data['name'] as String;
         } else {
           debugPrint(
-              'Patient document found but name is missing for ID: $patientId');
+            'Patient document found but name is missing for ID: $patientId',
+          );
         }
       } else {
         debugPrint('No patient document found for ID: $patientId');
@@ -527,13 +655,16 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         if (data == null) {
           throw Exception('Document data is null');
         }
-        final patientName =
-            await getPatientNameById(data['patientId'] as String);
-        return Right(SessionModel.fromJson({
-          ...data,
-          'id': docSnapshot.id,
-          'patientName': patientName ?? 'No Name Available',
-        }));
+        final patientName = await getPatientNameById(
+          data['patientId'] as String,
+        );
+        return Right(
+          SessionModel.fromJson({
+            ...data,
+            'id': docSnapshot.id,
+            'patientName': patientName ?? 'No Name Available',
+          }),
+        );
       } else {
         return Left(ServerFailure('Session not found', 404));
       }
@@ -549,34 +680,42 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query queryRef = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
-        final snapshot =
-            await queryRef.orderBy('startDateTime', descending: true).get();
+        // Filter out deleted sessions
+        queryRef = queryRef.where('deletedAt', isNull: true);
 
-        List<SessionModel> sessions =
-            await Future.wait(snapshot.docs.map((doc) async {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          final patientName =
-              await getPatientNameById(data['patientId'] as String);
-          if (patientName == null) {
-            debugPrint('Patient name not found for ID: ${data['patientId']}');
-          }
-          return SessionModel.fromJson({
-            ...data,
-            'id': doc.id,
-            'patientName': patientName ?? 'No Name Available',
-          });
-        }).toList());
+        final snapshot = await queryRef
+            .orderBy('startDateTime', descending: true)
+            .get();
+
+        List<SessionModel> sessions = await Future.wait(
+          snapshot.docs.map((doc) async {
+            final data = doc.data() as Map<String, dynamic>?;
+            if (data == null) {
+              throw Exception('Document data is null');
+            }
+            final patientName = await getPatientNameById(
+              data['patientId'] as String,
+            );
+            if (patientName == null) {
+              debugPrint('Patient name not found for ID: ${data['patientId']}');
+            }
+            return SessionModel.fromJson({
+              ...data,
+              'id': doc.id,
+              'patientName': patientName ?? 'No Name Available',
+            });
+          }).toList(),
+        );
 
         return Right(sessions);
       }
@@ -596,13 +735,18 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        Query query =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query query = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
+
+        // Filter out deleted sessions
+        query = query.where('deletedAt', isNull: true);
 
         final aggregateQuerySnapshot = await query.count().get();
         return Right(aggregateQuerySnapshot.count ?? 0);
@@ -616,8 +760,10 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
 
   /// Returns the count of sessions for a specific month and year.
   @override
-  Future<Either<Failure, int>> getSessionsCountForMonth(
-      {required int year, required int month}) async {
+  Future<Either<Failure, int>> getSessionsCountForMonth({
+    required int year,
+    required int month,
+  }) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -629,17 +775,24 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        Query query =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query query = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        query = query.where('deletedAt', isNull: true);
+
         query = query
-            .where('startDateTime',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where(
+              'startDateTime',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+            )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
         final aggregateQuerySnapshot = await query.count().get();
         return Right(aggregateQuerySnapshot.count ?? 0);
@@ -653,8 +806,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
 
   /// Returns the count of sessions for a specific year.
   @override
-  Future<Either<Failure, int>> getSessionsCountForYear(
-      {required int year}) async {
+  Future<Either<Failure, int>> getSessionsCountForYear({
+    required int year,
+  }) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -664,17 +818,24 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        Query query =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query query = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        query = query.where('deletedAt', isNull: true);
+
         query = query
-            .where('startDateTime',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where(
+              'startDateTime',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+            )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
         final aggregateQuerySnapshot = await query.count().get();
         return Right(aggregateQuerySnapshot.count ?? 0);
@@ -692,8 +853,10 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// [month] is the month (1-12).
   /// Returns the total cost as a double, or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, double>> sumSessionCostsForMonth(
-      {required int year, required int month}) async {
+  Future<Either<Failure, double>> sumSessionCostsForMonth({
+    required int year,
+    required int month,
+  }) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -705,23 +868,32 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         final end = (month < 12)
             ? DateTime(year, month + 1, 1)
             : DateTime(year + 1, 1, 1);
-        Query query =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query query = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        query = query.where('deletedAt', isNull: true);
+
         query = query
-            .where('startDateTime',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where(
+              'startDateTime',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+            )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
-        final aggregateQuerySnapshot =
-            await query.aggregate(sum('price')).get();
+        final aggregateQuerySnapshot = await query
+            .aggregate(sum('price'))
+            .get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
-            endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0));
+          endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
+        );
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -735,8 +907,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// [year] is the year (e.g., 2025).
   /// Returns the total cost as a double, or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, double>> sumSessionCostsForYear(
-      {required int year}) async {
+  Future<Either<Failure, double>> sumSessionCostsForYear({
+    required int year,
+  }) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -746,23 +919,32 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
-        Query query =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query query = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
 
+        // Filter out deleted sessions
+        query = query.where('deletedAt', isNull: true);
+
         query = query
-            .where('startDateTime',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where(
+              'startDateTime',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+            )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
-        final aggregateQuerySnapshot =
-            await query.aggregate(sum('price')).get();
+        final aggregateQuerySnapshot = await query
+            .aggregate(sum('price'))
+            .get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
-            endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0));
+          endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
+        );
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -782,19 +964,26 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        Query query =
-            _sessionsCollection.where('clinicId', isEqualTo: clinicId);
+        Query query = _sessionsCollection.where(
+          'clinicId',
+          isEqualTo: clinicId,
+        );
 
         // Filter by doctorId if the user does not have permission to view all sessions
         if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
 
-        final aggregateQuerySnapshot =
-            await query.aggregate(sum('price')).get();
+        // Filter out deleted sessions
+        query = query.where('deletedAt', isNull: true);
+
+        final aggregateQuerySnapshot = await query
+            .aggregate(sum('price'))
+            .get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
-            endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0));
+          endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
+        );
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {

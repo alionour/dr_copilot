@@ -9,10 +9,10 @@ import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/navigation_side/domain/entities/destination.dart';
-import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
-
+// import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart'; // Removed
 import 'package:dr_copilot/src/features/navigation_side/presentation/helpers/navigation_helper.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
@@ -26,21 +26,9 @@ class NavigationSide extends StatefulWidget {
 class _NavigationSideState extends State<NavigationSide> {
   final FocusNode _navigationFocusNode = FocusNode();
   bool _showMobileNav = false;
+  bool _showSwipeHint = false;
   GoRouterDelegate? _routerDelegate;
   final SideMenuController _sideMenuController = SideMenuController();
-
-  void _toggleMobileNav() {
-    setState(() {
-      _showMobileNav = !_showMobileNav;
-    });
-  }
-
-  void _closeMobileNav() {
-    setState(() {
-      _showMobileNav = false;
-    });
-  }
-
   OwnerNotifier? _ownerNotifier;
 
   @override
@@ -58,21 +46,19 @@ class _NavigationSideState extends State<NavigationSide> {
   @override
   void initState() {
     super.initState();
+    _checkSwipeHint();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _navigationFocusNode.requestFocus();
-      // Save router delegate reference for safe disposal
       _routerDelegate = GoRouter.of(context).routerDelegate;
       _routerDelegate?.addListener(_handleRouteChange);
-      // Listener is now added in didChangeDependencies
 
-      // Initialize NavigationBloc with current AuthBloc state
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthSignedIn) {
         context.read<NavigationBloc>().add(UserChanged(authState.user));
       }
 
-      _updateDestinations(); // Initial update
+      _updateDestinations();
     });
   }
 
@@ -82,6 +68,37 @@ class _NavigationSideState extends State<NavigationSide> {
     _ownerNotifier?.removeListener(_updateDestinations);
     _navigationFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkSwipeHint() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeen = prefs.getBool('has_seen_swipe_hint') ?? false;
+    if (!hasSeen && mounted) {
+      setState(() {
+        _showSwipeHint = true;
+      });
+    }
+  }
+
+  Future<void> _dismissSwipeHint() async {
+    if (!_showSwipeHint) return;
+    setState(() {
+      _showSwipeHint = false;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_swipe_hint', true);
+  }
+
+  void _toggleMobileNav() {
+    setState(() {
+      _showMobileNav = !_showMobileNav;
+    });
+  }
+
+  void _closeMobileNav() {
+    setState(() {
+      _showMobileNav = false;
+    });
   }
 
   void _updateDestinations() async {
@@ -135,6 +152,7 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.financials: '/financials',
     Destination.clinicalReports: '/clinical_reports',
     Destination.chatGptProject: '/chatgpt_project',
+    Destination.recycleBin: '/recycle_bin',
   };
 
   @override
@@ -162,69 +180,108 @@ class _NavigationSideState extends State<NavigationSide> {
         builder: (context, constraints) {
           final isMobile = constraints.maxWidth < 600;
           if (isMobile) {
-            // MOBILE: Stack with menu button and overlay nav
-            return Scaffold(
-              body: Stack(
-                children: [
-                  // Main content
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.transparent,
-                      child: widget.child,
-                    ),
-                  ),
-                  // Menu icon button (only when nav is closed)
-                  if (!_showMobileNav)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: NavMenuButton(
-                        showMobileNav: _showMobileNav,
-                        tooltip: 'Open navigation',
-                        onTap: _toggleMobileNav,
+            return GestureDetector(
+              onHorizontalDragEnd: (details) {
+                _dismissSwipeHint();
+                if (details.primaryVelocity! > 0) {
+                  if (!_showMobileNav) _toggleMobileNav();
+                } else if (details.primaryVelocity! < 0) {
+                  if (_showMobileNav) _closeMobileNav();
+                }
+              },
+              child: Scaffold(
+                body: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.transparent,
+                        child: widget.child,
                       ),
                     ),
 
-                  // Sidebar overlay
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 250),
-                    left: _showMobileNav ? 0 : -240,
-                    top: 0,
-                    bottom: 0,
-                    child: SizedBox(
-                      width: 240,
-                      child: Material(
-                        elevation: 16,
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: _buildSideMenu(
-                            context,
-                            bloc,
-                            onItemTap: _closeMobileNav,
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      left: _showMobileNav ? 0 : -240,
+                      top: 0,
+                      bottom: 0,
+                      child: SizedBox(
+                        width: 240,
+                        child: Material(
+                          elevation: 16,
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: _buildSideMenu(
+                              context,
+                              bloc,
+                              onItemTap: _closeMobileNav,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  // Fade overlay when nav is open
-                  if (_showMobileNav)
-                    Positioned(
-                      left: 240,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: GestureDetector(
-                        onTap: _closeMobileNav,
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.2),
+
+                    if (_showMobileNav)
+                      Positioned(
+                        left: 240,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: GestureDetector(
+                          onTap: _closeMobileNav,
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.2),
+                          ),
                         ),
                       ),
-                    ),
-                ],
+
+                    if (_showSwipeHint && !_showMobileNav)
+                      Positioned(
+                        bottom: 100,
+                        left: 20,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Swipe right to navigate',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(color: Colors.white),
+                                ),
+                                const SizedBox(width: 8),
+                                InkWell(
+                                  onTap: _dismissSwipeHint,
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white70,
+                                    size: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             );
           } else {
-            // DESKTOP/TABLET: Always show sidebar
             return Scaffold(
               body: Row(
                 children: [
@@ -277,8 +334,7 @@ class _NavigationSideState extends State<NavigationSide> {
                   behavior: HitTestBehavior.translucent,
                   child: SideMenu(
                     controller: _sideMenuController,
-                    mode: SideMenuMode
-                        .open, // Keep it open by default for desktop
+                    mode: SideMenuMode.open,
                     hasResizer: false,
                     hasResizerToggle: false,
                     builder: (data) {
@@ -288,47 +344,51 @@ class _NavigationSideState extends State<NavigationSide> {
                                 onTap: () {
                                   _sideMenuController.toggle();
                                 },
-                                child: Column(
-                                  children: [
-                                    LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        if (constraints.maxWidth < 60) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        return Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16.0,
-                                            vertical: 8.0,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              SvgPicture.asset(
-                                                'assets/icon.svg',
-                                                width: 32,
-                                                height: 32,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  'drCopilot'.tr(),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge
-                                                      ?.copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Theme.of(
-                                                          context,
-                                                        ).colorScheme.onSurface,
-                                                      ),
+                                child: SafeArea(
+                                  bottom: false,
+                                  child: Column(
+                                    children: [
+                                      LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          if (constraints.maxWidth < 60) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0,
+                                              vertical: 8.0,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                SvgPicture.asset(
+                                                  'assets/icon.svg',
+                                                  width: 32,
+                                                  height: 32,
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    'drCopilot'.tr(),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               )
                             : null,
@@ -384,20 +444,6 @@ class _NavigationSideState extends State<NavigationSide> {
                                       final String profileImageUrl =
                                           state.user?.photoURL ?? '';
 
-                                      // Debug logging
-                                      debugPrint(
-                                        '[NavigationSide] User in state: ${state.user?.uid}',
-                                      );
-                                      debugPrint(
-                                        '[NavigationSide] Display name: ${state.user?.displayName}',
-                                      );
-                                      debugPrint(
-                                        '[NavigationSide] Photo URL: ${state.user?.photoURL}',
-                                      );
-                                      debugPrint(
-                                        '[NavigationSide] Email: ${state.user?.email}',
-                                      );
-
                                       return LayoutBuilder(
                                         builder: (context, constraints) {
                                           if (constraints.maxWidth < 60) {
@@ -443,9 +489,6 @@ class _NavigationSideState extends State<NavigationSide> {
                                                                 url,
                                                                 error,
                                                               ) {
-                                                                debugPrint(
-                                                                  'Failed to load image: $error',
-                                                                );
                                                                 return const SizedBox();
                                                               },
                                                         ),

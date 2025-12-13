@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/services/paddle_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
-import 'package:dr_copilot/src/features/subscription/presentation/pages/plan_details_page.dart';
 
 class SubscriptionPricingPage extends StatefulWidget {
   const SubscriptionPricingPage({super.key});
@@ -16,262 +14,222 @@ class SubscriptionPricingPage extends StatefulWidget {
 
 class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
   bool _isYearly = false;
-  bool _isLoading = false;
+
+  Future<void> _handleUpgrade(String planTitle) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Get current user
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please sign in first')));
+        return;
+      }
+
+      // Map plan names to IDs
+      final planIds = {'Pro': 'pro', 'Elite': 'elite'};
+
+      // Create checkout session
+      final checkoutUrl = await PaddleService.createCheckoutSession(
+        planId: planIds[planTitle] ?? 'pro',
+        clinicId: user.uid,
+        period: _isYearly ? 'yearly' : 'monthly',
+      );
+
+      Navigator.pop(context); // Close loading
+
+      if (checkoutUrl != null) {
+        // Launch checkout URL
+        final uri = Uri.parse(checkoutUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open payment page')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Failed to create checkout session. Please try again.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final user = FirebaseAuth.instance.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Stream the clinic document to get real-time subscription status
-    return StreamBuilder<DocumentSnapshot>(
-      stream: user != null
-          ? FirebaseFirestore.instance
-                .collection('clinics')
-                .doc(user.uid)
-                .snapshots()
-          : null,
-      builder: (context, snapshot) {
-        // Determine current plan from Firestore data
-        String currentPlan = 'free';
-        if (snapshot.hasData &&
-            snapshot.data != null &&
-            snapshot.data!.exists) {
-          final data = snapshot.data!.data() as Map<String, dynamic>?;
-          final tierStr = data?['subscriptionTier'] as String?;
-          currentPlan = SubscriptionTier.fromString(tierStr).name;
-        }
-
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: Text(
-              'subscriptionAndBilling'.tr(),
-              style: TextStyle(color: colorScheme.onSurface),
-            ),
-            iconTheme: IconThemeData(color: colorScheme.onSurface),
-            bottom: _isLoading
-                ? const PreferredSize(
-                    preferredSize: Size.fromHeight(4.0),
-                    child: LinearProgressIndicator(),
-                  )
-                : null,
-          ),
-          body: SingleChildScrollView(
-            child: IgnorePointer(
-              ignoring: _isLoading,
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0A0E27) : Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text('subscriptionAndBilling'.tr()),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Header Section
+            Padding(
+              padding: const EdgeInsets.all(32.0),
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
+                  Text(
+                    'All-In-One Price, Zero Hassle.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Cancel Anytime. Let\'s Get Started!',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Unlock advanced features, unlimited AI models, and premium support',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.white60),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Billing Toggle
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1F3A),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF2D3458)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'All-In-One Price, Zero Hassle.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.displaySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Unlock advanced AI features and manage your clinic effectively.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.8),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: theme.dividerColor),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildToggleButton('Monthly', !_isYearly, () {
-                                setState(() => _isYearly = false);
-                              }),
-                              _buildToggleButton('Yearly', _isYearly, () {
-                                setState(() => _isYearly = true);
-                              }, badge: 'Save 20%'),
-                            ],
-                          ),
-                        ),
+                        _buildToggleButton('Monthly', !_isYearly, () {
+                          setState(() => _isYearly = false);
+                        }),
+                        _buildToggleButton('Yearly', _isYearly, () {
+                          setState(() => _isYearly = true);
+                        }, badge: 'Save 20%'),
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final cards = [
-                          _PricingCard(
-                            title: 'Free',
-                            monthlyPrice: 0,
-                            yearlyPrice: 0,
-                            description: 'Perfect for trying out Dr. Copilot',
-                            features: const [
-                              '50 Patients Total',
-                              '50 Sessions / Month',
-                              '50 Evaluations / Month',
-                              '5 AI Chats / Day (Gemini Flash)',
-                              '1 User (No Team Access)',
-                              'No Data Export',
-                            ],
-                            buttonText: 'Read More',
-                            isPopular: false,
-                            isCurrent: currentPlan == 'free',
-                            isYearly: _isYearly,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PlanDetailsPage(
-                                    title: 'Free',
-                                    price: 0,
-                                    isYearly: _isYearly,
-                                    description:
-                                        'Perfect for trying out Dr. Copilot',
-                                    features: const [
-                                      '50 Patients Total',
-                                      '50 Sessions / Month',
-                                      '50 Evaluations / Month',
-                                      '5 AI Chats / Day (Gemini Flash)',
-                                      '1 User (No Team Access)',
-                                      'No Data Export',
-                                    ],
-                                    isCurrent: currentPlan == 'free',
-                                    isUpgrade: false,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          _PricingCard(
-                            title: 'Pro',
-                            monthlyPrice: 9.99,
-                            yearlyPrice: 95.90,
-                            description: 'Best for growing clinics',
-                            features: const [
-                              '1,000 Patients',
-                              '3,000 Sessions / Month',
-                              '1,500 Evaluations / Month',
-                              'Team: 3 Doctors, 5 Staff',
-                              '100 AI Chats / Day (GPT-4o Mini)',
-                              '50 Image Analyses / Month',
-                            ],
-                            buttonText: 'Read More',
-                            isPopular: true,
-                            isCurrent: currentPlan == 'pro',
-                            isYearly: _isYearly,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PlanDetailsPage(
-                                    title: 'Pro',
-                                    price: _isYearly ? 95.90 : 9.99,
-                                    isYearly: _isYearly,
-                                    description: 'Best for growing clinics',
-                                    features: const [
-                                      '1,000 Patients',
-                                      '3,000 Sessions / Month',
-                                      '1,500 Evaluations / Month',
-                                      'Team: 3 Doctors, 5 Staff',
-                                      '100 AI Chats / Day (GPT-4o Mini)',
-                                      '50 Image Analyses / Month',
-                                    ],
-                                    isCurrent: currentPlan == 'pro',
-                                    isUpgrade: true,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          _PricingCard(
-                            title: 'Elite',
-                            monthlyPrice: 24.99,
-                            yearlyPrice: 239.90,
-                            description: 'For power users & large clinics',
-                            features: const [
-                              '10,000 Patients',
-                              '50,000 Sessions / Month',
-                              '25,000 Evaluations / Month',
-                              'Team: 15 Doctors, 30 Staff',
-                              '500 AI Chats / Day (Claude 3.5)',
-                              '500 Image Analyses / Month',
-                            ],
-                            buttonText: 'Read More',
-                            isPopular: false,
-                            isCurrent: currentPlan == 'elite',
-                            isYearly: _isYearly,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PlanDetailsPage(
-                                    title: 'Elite',
-                                    price: _isYearly ? 239.90 : 24.99,
-                                    isYearly: _isYearly,
-                                    description:
-                                        'For power users & large clinics',
-                                    features: const [
-                                      '10,000 Patients',
-                                      '50,000 Sessions / Month',
-                                      '25,000 Evaluations / Month',
-                                      'Team: 15 Doctors, 30 Staff',
-                                      '500 AI Chats / Day (Claude 3.5)',
-                                      '500 Image Analyses / Month',
-                                    ],
-                                    isCurrent: currentPlan == 'elite',
-                                    isUpgrade: true,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ];
-
-                        if (constraints.maxWidth > 900) {
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (var i = 0; i < cards.length; i++) ...[
-                                Expanded(child: cards[i]),
-                                if (i < cards.length - 1)
-                                  const SizedBox(width: 16),
-                              ],
-                            ],
-                          );
-                        } else {
-                          return Column(
-                            children: [
-                              for (var i = 0; i < cards.length; i++) ...[
-                                cards[i],
-                                if (i < cards.length - 1)
-                                  const SizedBox(height: 16),
-                              ],
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 48),
                 ],
               ),
             ),
-          ),
-        );
-      },
+
+            // Pricing Cards
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final cards = [
+                    _PricingCard(
+                      title: 'Free',
+                      monthlyPrice: 0,
+                      yearlyPrice: 0,
+                      description: 'Perfect for trying out Dr. Copilot',
+                      features: const [
+                        'Core Patient Management',
+                        'Standard AI Chat (Gemini Flash)',
+                        'Native Speech-to-Text',
+                        '5 AI chats/day limit',
+                      ],
+                      buttonText: 'Current Plan',
+                      isPopular: false,
+                      isCurrent: true,
+                      isYearly: _isYearly,
+                      onUpgrade: null,
+                    ),
+                    _PricingCard(
+                      title: 'Pro',
+                      monthlyPrice: 9.99,
+                      yearlyPrice: 95.90,
+                      description: 'Best for individual practitioners',
+                      features: const [
+                        'Unlimited AI Chat',
+                        'GPT-3.5 & Gemini Access',
+                        'Deepgram Speech Recognition',
+                        'Cloud Backup',
+                        'Basic Image Analysis',
+                        '50 image analyses/month',
+                      ],
+                      buttonText: 'Get Started',
+                      isPopular: true,
+                      isYearly: _isYearly,
+                      onUpgrade: () => _handleUpgrade('Pro'),
+                    ),
+                    _PricingCard(
+                      title: 'Elite',
+                      monthlyPrice: 24.99,
+                      yearlyPrice: 239.90,
+                      description: 'For power users & clinics',
+                      features: const [
+                        'Claude 3.5 Sonnet & GPT-4o',
+                        'Unlimited Image Analysis',
+                        'Priority Support',
+                        'Advanced Exporting',
+                        'Multi-clinic Support',
+                      ],
+                      buttonText: 'Get Started',
+                      isPopular: false,
+                      isYearly: _isYearly,
+                      onUpgrade: () => _handleUpgrade('Elite'),
+                    ),
+                  ];
+
+                  if (constraints.maxWidth > 900) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (var i = 0; i < cards.length; i++) ...[
+                          Expanded(child: cards[i]),
+                          if (i < cards.length - 1) const SizedBox(width: 16),
+                        ],
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        for (var i = 0; i < cards.length; i++) ...[
+                          cards[i],
+                          if (i < cards.length - 1) const SizedBox(height: 16),
+                        ],
+                      ],
+                    );
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
     );
   }
 
@@ -281,9 +239,6 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
     VoidCallback onTap, {
     String? badge,
   }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -291,8 +246,8 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
           gradient: isSelected
-              ? LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.secondary],
+              ? const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                 )
               : null,
           color: isSelected ? null : Colors.transparent,
@@ -304,9 +259,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected
-                    ? colorScheme.onPrimary
-                    : colorScheme.onSurface,
+                color: Colors.white,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -315,13 +268,13 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: colorScheme.surface.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   badge,
-                  style: TextStyle(
-                    color: colorScheme.onPrimary,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -345,7 +298,7 @@ class _PricingCard extends StatefulWidget {
   final bool isPopular;
   final bool isCurrent;
   final bool isYearly;
-  final VoidCallback? onPressed;
+  final VoidCallback? onUpgrade;
 
   const _PricingCard({
     required this.title,
@@ -357,7 +310,7 @@ class _PricingCard extends StatefulWidget {
     required this.isPopular,
     this.isCurrent = false,
     required this.isYearly,
-    this.onPressed,
+    this.onUpgrade,
   });
 
   @override
@@ -369,21 +322,9 @@ class _PricingCardState extends State<_PricingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final price = widget.isYearly ? widget.yearlyPrice : widget.monthlyPrice;
     final priceText = price == 0 ? '\$0' : '\$${price.toStringAsFixed(2)}';
     final period = widget.isYearly ? '/year' : '/month';
-
-    // Theme-based colors
-    final popularGradient = LinearGradient(
-      colors: [colorScheme.primary, colorScheme.secondary],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-
-    // Using tertiary for "Current Plan" to distinguish from "Popular" (Primary)
-    final currentPlanColor = colorScheme.tertiary;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -393,27 +334,25 @@ class _PricingCardState extends State<_PricingCard> {
         transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
         child: Container(
           decoration: BoxDecoration(
-            gradient: widget.isPopular ? popularGradient : null,
-            color: widget.isPopular
-                ? null
-                : colorScheme.surfaceContainer, // Darker card background
+            gradient: widget.isPopular
+                ? const LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: widget.isPopular ? null : const Color(0xFF1A1F3A),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: widget.isCurrent
-                  ? currentPlanColor
-                  : (widget.isPopular
-                        ? Colors.transparent
-                        : theme.dividerColor),
-              width: widget.isCurrent ? 2 : 1,
+              color: widget.isPopular
+                  ? Colors.transparent
+                  : const Color(0xFF2D3458),
+              width: 1,
             ),
-            boxShadow: _isHovered || widget.isPopular || widget.isCurrent
+            boxShadow: _isHovered || widget.isPopular
                 ? [
                     BoxShadow(
-                      color: widget.isCurrent
-                          ? currentPlanColor.withOpacity(0.3)
-                          : (widget.isPopular
-                                ? colorScheme.primary.withOpacity(0.4)
-                                : Colors.black.withOpacity(0.1)),
+                      color: const Color(0xFF6366F1).withOpacity(0.4),
                       blurRadius: _isHovered ? 30 : 20,
                       offset: Offset(0, _isHovered ? 15 : 10),
                     ),
@@ -425,56 +364,31 @@ class _PricingCardState extends State<_PricingCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.isCurrent)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: currentPlanColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: currentPlanColor),
-                    ),
-                    child: Text(
-                      'CURRENT PLAN',
-                      style: TextStyle(
-                        color: currentPlanColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  )
-                else if (widget.isPopular)
+                if (widget.isPopular)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.surface.withOpacity(0.2),
+                      color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
+                    child: const Text(
                       'RECOMMENDED',
                       style: TextStyle(
-                        color: colorScheme.onPrimary,
+                        color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),
                     ),
                   ),
-                if (widget.isPopular || widget.isCurrent)
-                  const SizedBox(height: 12),
+                if (widget.isPopular) const SizedBox(height: 12),
                 Text(
                   widget.title,
-                  style: TextStyle(
-                    color: widget.isPopular
-                        ? colorScheme.onPrimary
-                        : colorScheme.onSurface,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
@@ -483,9 +397,7 @@ class _PricingCardState extends State<_PricingCard> {
                 Text(
                   widget.description,
                   style: TextStyle(
-                    color: widget.isPopular
-                        ? colorScheme.onPrimary.withOpacity(0.7)
-                        : colorScheme.onSurface.withOpacity(0.7),
+                    color: Colors.white.withOpacity(0.7),
                     fontSize: 13,
                   ),
                 ),
@@ -498,10 +410,8 @@ class _PricingCardState extends State<_PricingCard> {
                       child: Text(
                         priceText,
                         key: ValueKey(priceText),
-                        style: TextStyle(
-                          color: widget.isPopular
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurface,
+                        style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
                         ),
@@ -512,9 +422,7 @@ class _PricingCardState extends State<_PricingCard> {
                       child: Text(
                         period,
                         style: TextStyle(
-                          color: widget.isPopular
-                              ? colorScheme.onPrimary.withOpacity(0.7)
-                              : colorScheme.onSurface.withOpacity(0.7),
+                          color: Colors.white.withOpacity(0.7),
                           fontSize: 13,
                         ),
                       ),
@@ -530,10 +438,8 @@ class _PricingCardState extends State<_PricingCard> {
                         Icon(
                           Icons.check_circle,
                           color: widget.isPopular
-                              ? colorScheme.onPrimary
-                              : (widget.isCurrent
-                                    ? currentPlanColor
-                                    : colorScheme.primary),
+                              ? Colors.white
+                              : const Color(0xFF6366F1),
                           size: 18,
                         ),
                         const SizedBox(width: 10),
@@ -541,9 +447,7 @@ class _PricingCardState extends State<_PricingCard> {
                           child: Text(
                             feature,
                             style: TextStyle(
-                              color: widget.isPopular
-                                  ? colorScheme.onPrimary.withOpacity(0.9)
-                                  : colorScheme.onSurface.withOpacity(0.9),
+                              color: Colors.white.withOpacity(0.9),
                               fontSize: 13,
                             ),
                           ),
@@ -555,28 +459,29 @@ class _PricingCardState extends State<_PricingCard> {
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: widget.onPressed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.isPopular
-                          ? colorScheme.surface
-                          : (widget.isCurrent
-                                ? currentPlanColor.withOpacity(0.2)
-                                : colorScheme.primary),
-                      foregroundColor: widget.isPopular
-                          ? colorScheme.primary
-                          : colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    child: ElevatedButton(
+                      onPressed: widget.isCurrent ? null : widget.onUpgrade,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: widget.isPopular
+                            ? Colors.white
+                            : const Color(0xFF6366F1),
+                        foregroundColor: widget.isPopular
+                            ? const Color(0xFF6366F1)
+                            : Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: _isHovered ? 8 : 0,
                       ),
-                      elevation: _isHovered ? 8 : 0,
-                    ),
-                    child: Text(
-                      widget.buttonText,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        widget.buttonText,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
