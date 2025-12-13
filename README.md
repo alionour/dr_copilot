@@ -590,3 +590,4 @@ shorebird release macos
 
 For more details, see the [Shorebird documentation](https://docs.shorebird.dev/).
 
+# Testing Google Play Auto-Deployment
