@@ -8,6 +8,15 @@ Created GitHub Actions workflow (`.github/workflows/deploy-android-dev.yaml`) th
 - Builds signed Android App Bundle (.aab)
 - Uploads to Google Play internal testing track
 
+## 🔗 Critical URLs (Quick Links)
+
+| Type | URL |
+|------|-----|
+| **Privacy Policy** | `https://drcopilot-bfc9e.web.app/privacy_policy.html` |
+| **Web App** | `https://drcopilot-bfc9e.web.app/` |
+| **Backend API** | `https://hg4orotvf0.execute-api.us-east-1.amazonaws.com` |
+| **Play Console** | [Google Play Console](https://play.google.com/console/) |
+
 ## 🔧 What You Need to Do
 
 ### 1. Create Google Play Service Account

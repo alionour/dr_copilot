@@ -25,8 +25,13 @@ jobs:
       - name: Build MSIX
         run: dart run msix:create --store
 
-      - name: Upload MSIX Artifact
+      - name: Publish to Microsoft Store
+        uses: microsoft/setup-msstore-cli@v1
+      - run: msstore publish --path "build/windows/runner/Release/DrCopilot.msix" --tenantId "${{ secrets.WINDOWS_STORE_TENANT_ID }}" --clientId "${{ secrets.WINDOWS_STORE_CLIENT_ID }}" --clientSecret "${{ secrets.WINDOWS_STORE_CLIENT_SECRET }}"
+
+      - name: Upload MSIX Artifact (Backup)
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: dr-copilot-windows
           path: build/windows/runner/Release/*.msix
