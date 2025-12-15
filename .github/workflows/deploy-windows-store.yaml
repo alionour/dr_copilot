@@ -81,7 +81,7 @@ jobs:
         run: flutter pub run msix:create --store
 
       - name: Publish to Microsoft Store
-        run: flutter pub run msix:publish
+        run: flutter pub run msix:publish --store
         env:
           MSIX_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
           MSIX_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
