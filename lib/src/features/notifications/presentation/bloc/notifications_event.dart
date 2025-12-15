@@ -79,3 +79,4 @@ class SendBulkNotificationEvent extends NotificationsEvent {
   @override
   List<Object?> get props => [template];
 }
+

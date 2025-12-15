@@ -10,3 +10,4 @@ abstract class ChatGptProjectListEvent extends Equatable {
 class LoadChatGptProjectList extends ChatGptProjectListEvent {
   const LoadChatGptProjectList();
 }
+

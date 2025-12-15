@@ -151,3 +151,4 @@ abstract class AbstractFinancialApi {
   Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
       String referenceId);
 }
+

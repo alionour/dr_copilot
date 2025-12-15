@@ -288,3 +288,4 @@ class _DeleteSessionDialogResult {
   final bool deleteInvoiceAndTransaction;
   _DeleteSessionDialogResult({required this.deleteInvoiceAndTransaction});
 }
+

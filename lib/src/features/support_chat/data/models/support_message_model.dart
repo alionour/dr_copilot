@@ -60,3 +60,4 @@ class SupportMessageModel extends Equatable {
         readBy,
       ];
 }
+

@@ -5,7 +5,6 @@ import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_
 import 'package:http/http.dart' as http;
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
-import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 
 class VertexAIService implements AIService {
   final String apiKey;
@@ -187,3 +186,4 @@ class VertexAIService implements AIService {
     }
   }
 }
+

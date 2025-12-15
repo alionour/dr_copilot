@@ -100,3 +100,4 @@ class _BiometricGuardState extends State<BiometricGuard>
     );
   }
 }
+

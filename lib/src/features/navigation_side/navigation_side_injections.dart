@@ -12,3 +12,4 @@ void initNavigationSideInjections() {
   // Bloc
   sl.registerFactory(() => NavigationBloc());
 }
+

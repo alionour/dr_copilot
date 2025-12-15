@@ -30,3 +30,4 @@ class PermanentlyDeleteItem extends RecycleBinEvent {
 }
 
 enum RecycleBinItemType { evaluation, session }
+

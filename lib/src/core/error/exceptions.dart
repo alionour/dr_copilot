@@ -36,3 +36,4 @@ class CacheException implements Exception {
   /// [code] is the error code associated with the exception.
   const CacheException(this.message, this.code);
 }
+

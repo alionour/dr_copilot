@@ -158,3 +158,4 @@ final appBlocProviders = <BlocProvider<dynamic>>[
     create: (context) => sl<NotificationsBloc>(),
   ),
 ];
+

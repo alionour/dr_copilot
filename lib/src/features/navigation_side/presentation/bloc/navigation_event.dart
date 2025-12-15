@@ -44,3 +44,4 @@ class DestinationsUpdated extends NavigationEvent {
   List<Object?> get props => [destinations];
 }
 
+

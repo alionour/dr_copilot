@@ -320,3 +320,4 @@ class PayBill extends FinancialsEvent {
   @override
   List<Object?> get props => [bill];
 }
+

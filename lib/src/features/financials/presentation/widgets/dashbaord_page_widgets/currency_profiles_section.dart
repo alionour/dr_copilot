@@ -80,7 +80,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                     ),
                     const SizedBox(height: 18),
                     DropdownButtonFormField<String>(
-                      value: selectedCurrency,
+                      initialValue: selectedCurrency,
                       decoration: InputDecoration(
                         labelText: 'currency'.tr(),
                         border: OutlineInputBorder(),
@@ -534,3 +534,4 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
     );
   }
 }
+

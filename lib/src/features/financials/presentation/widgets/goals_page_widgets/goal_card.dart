@@ -78,3 +78,4 @@ class GoalCard extends StatelessWidget {
     );
   }
 }
+

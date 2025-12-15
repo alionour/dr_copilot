@@ -26,3 +26,4 @@ class CopilotRemoteDataSource {
     await _firestore.collection('copilots').doc(id).delete();
   }
 }
+

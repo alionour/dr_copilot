@@ -12,3 +12,4 @@ class SendBulkNotificationUseCase {
     return await repository.sendBulkNotification(template);
   }
 }
+

@@ -7,7 +7,6 @@ import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecas
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 class MockPatientsUseCase extends Mock implements PatientsUseCase {}
 

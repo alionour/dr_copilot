@@ -376,3 +376,4 @@ class FinancialsRepositoryImpl extends AbstractFinancialsRepository {
     return firebaseApi.updateTransaction(transaction: transaction);
   }
 }
+

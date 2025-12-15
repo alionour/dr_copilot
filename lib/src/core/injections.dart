@@ -177,3 +177,4 @@ Future<void> initInjections() async {
     () => RecycleBinBloc(evaluationsRepository: sl(), sessionsRepository: sl()),
   );
 }
+

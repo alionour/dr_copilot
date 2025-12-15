@@ -6,3 +6,4 @@ abstract class CopilotRepository {
   Future<void> updateCopilot(CopilotModel copilot);
   Future<void> deleteCopilot(String id);
 }
+

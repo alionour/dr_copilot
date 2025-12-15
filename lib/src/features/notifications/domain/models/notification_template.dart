@@ -30,3 +30,4 @@ class NotificationTemplate {
 
   Map<String, dynamic> toJson() => _$NotificationTemplateToJson(this);
 }
+

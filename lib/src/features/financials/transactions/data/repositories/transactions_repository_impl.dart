@@ -134,3 +134,4 @@ class TransactionsRepositoryImpl extends AbstractTransactionsRepository {
     return firebaseApi.deleteTransactionByReferenceId(referenceId);
   }
 }
+

@@ -59,7 +59,7 @@ class _AboutPageState extends State<AboutPage>
                     end: Alignment.bottomRight,
                     colors: [
                       colorScheme.primary,
-                      colorScheme.primary.withOpacity(0.7),
+                      colorScheme.primary.withValues(alpha: 0.7),
                       colorScheme.secondary,
                     ],
                   ),
@@ -77,7 +77,7 @@ class _AboutPageState extends State<AboutPage>
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -105,7 +105,7 @@ class _AboutPageState extends State<AboutPage>
                         child: Text(
                           'aboutAppTagline'.tr(),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -120,7 +120,7 @@ class _AboutPageState extends State<AboutPage>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -141,7 +141,7 @@ class _AboutPageState extends State<AboutPage>
               controller: _tabController,
               indicatorColor: Colors.white,
               labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.6),
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
               tabs: [
                 Tab(text: 'featuresTitle'.tr()),
                 Tab(text: 'creditsTitle'.tr()),
@@ -228,7 +228,7 @@ class _AboutPageState extends State<AboutPage>
           // Mission Card
           Card(
             elevation: 0,
-            color: colorScheme.primaryContainer.withOpacity(0.3),
+            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -382,7 +382,7 @@ class _AboutPageState extends State<AboutPage>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: (tech['color'] as Color).withOpacity(0.1),
+                              color: (tech['color'] as Color).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -592,7 +592,7 @@ class _FeatureCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -658,7 +658,7 @@ class _ContactCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 32),
@@ -719,7 +719,7 @@ class _SystemInfoRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 24),
@@ -749,3 +749,4 @@ class _SystemInfoRow extends StatelessWidget {
     );
   }
 }
+

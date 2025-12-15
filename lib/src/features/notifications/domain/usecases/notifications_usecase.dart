@@ -44,3 +44,4 @@ class NotificationsUseCase {
     return repository.watchUnreadCount(userId);
   }
 }
+

@@ -992,3 +992,4 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
   }
 }
+

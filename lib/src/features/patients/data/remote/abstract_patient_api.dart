@@ -17,3 +17,4 @@ abstract class AbstractPatientApi {
   /// Searches patients based on criteria.
   Future<List<PatientModel>> searchPatients(String query);
 }
+

@@ -105,16 +105,16 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
     if (_formKey.currentState!.validate()) {
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
         debugPrint('SnackBar Error: ${'selectClinic'.tr()}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('selectClinic'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('selectClinic'.tr())));
         return;
       }
       if (_selectedRole == null || _selectedRole!.isEmpty) {
         debugPrint('SnackBar Error: ${'pleaseSelectRole'.tr()}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('pleaseSelectRole'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('pleaseSelectRole'.tr())));
         return;
       }
 
@@ -156,16 +156,16 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
           if (state is StaffSuccess) {
             final message = state.message ?? 'Success'.tr();
             debugPrint('SnackBar Success: $message');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
             context.pop();
           } else if (state is StaffError) {
             final message = state.message ?? 'Error'.tr();
             debugPrint('SnackBar Error: $message');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
           }
         },
         child: Center(
@@ -186,18 +186,15 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         DropdownButtonFormField<String>(
-                          value: _selectedClinicId,
+                          initialValue: _selectedClinicId,
                           decoration: InputDecoration(
                             labelText: 'clinic'.tr(),
-                            labelStyle: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            labelStyle: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          items: context
-                              .watch<OwnerNotifier>()
-                              .clinics
-                              .map((clinic) {
+                          items: context.watch<OwnerNotifier>().clinics.map((
+                            clinic,
+                          ) {
                             return DropdownMenuItem<String>(
                               value: clinic.id,
                               child: Text(clinic.name),
@@ -233,7 +230,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                         ),
                         const SizedBox(height: 16.0),
                         DropdownButtonFormField<String>(
-                          value: _selectedRole,
+                          initialValue: _selectedRole,
                           decoration: InputDecoration(
                             labelText: 'role'.tr(),
                             border: const OutlineInputBorder(),
@@ -269,8 +266,8 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                               return 'pleaseEnterEmail'.tr();
                             }
                             if (!RegExp(
-                                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                .hasMatch(value)) {
+                              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                            ).hasMatch(value)) {
                               return 'enterValidEmail'.tr();
                             }
                             return null;

@@ -261,3 +261,4 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
     // Navigation handled by BlocListener
   }
 }
+

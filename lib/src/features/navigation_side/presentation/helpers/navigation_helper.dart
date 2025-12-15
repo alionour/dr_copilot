@@ -106,3 +106,4 @@ class NavigationHelper {
     return allowed;
   }
 }
+

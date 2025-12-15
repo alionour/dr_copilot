@@ -60,3 +60,4 @@ class TeamMessageModel extends Equatable {
     readBy,
   ];
 }
+

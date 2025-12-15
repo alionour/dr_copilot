@@ -235,3 +235,4 @@ class _PatientListItemState extends State<PatientListItem> {
     );
   }
 }
+

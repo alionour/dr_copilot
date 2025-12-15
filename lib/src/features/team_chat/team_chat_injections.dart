@@ -31,3 +31,4 @@ void initTeamChatInjections() {
   sl.registerFactory(() => ChatRoomBloc(sl()));
   sl.registerFactory(() => UserDiscoveryCubit(sl(), sl()));
 }
+

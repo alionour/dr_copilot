@@ -59,3 +59,4 @@ class AuthCheckRequested extends AuthEvent {
   @override
   List<Object> get props => [];
 }
+

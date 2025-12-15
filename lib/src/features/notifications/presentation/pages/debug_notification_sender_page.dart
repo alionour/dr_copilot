@@ -291,7 +291,7 @@ class _DebugNotificationSenderPageState
 
                     // Notification Type
                     DropdownButtonFormField<NotificationType>(
-                      value: _selectedType,
+                      initialValue: _selectedType,
                       decoration: InputDecoration(
                         labelText: 'notificationTypeLabel'.tr(),
                         border: const OutlineInputBorder(),
@@ -482,3 +482,4 @@ class _DebugNotificationSenderPageState
     );
   }
 }
+

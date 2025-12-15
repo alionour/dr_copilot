@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
@@ -70,3 +69,4 @@ abstract class AbstractCalendarEventsRepository {
     String evaluationId,
   );
 }
+

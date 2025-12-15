@@ -331,3 +331,4 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     }
   }
 }
+

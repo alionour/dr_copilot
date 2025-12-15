@@ -58,3 +58,4 @@ class DirectConversationModel extends Equatable {
     lastMessageTimestamp,
   ];
 }
+

@@ -213,3 +213,4 @@ class _AcceptInvitationPageState extends State<AcceptInvitationPage> {
     );
   }
 }
+

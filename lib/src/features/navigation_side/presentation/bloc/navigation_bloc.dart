@@ -123,3 +123,4 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     emit(state.copyWith(isNavigationFocused: event.isFocused));
   }
 }
+

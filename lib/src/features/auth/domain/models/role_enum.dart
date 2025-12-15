@@ -50,3 +50,4 @@ class RoleListJsonConverter
   List<dynamic> toJson(List<AppRole> object) =>
       object.map((e) => AppRole.admin.roleToString(e)).toList();
 }
+

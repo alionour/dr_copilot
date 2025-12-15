@@ -115,3 +115,4 @@ class AddEditClinicalReportError extends AddEditClinicalReportState {
   @override
   List<Object?> get props => [message];
 }
+

@@ -25,3 +25,4 @@ class UpdateStaffUseCase implements UseCase<void, Staff> {
     return repository.updateStaff(params.id, staffModel);
   }
 }
+

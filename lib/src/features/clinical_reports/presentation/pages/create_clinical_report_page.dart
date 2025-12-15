@@ -335,3 +335,4 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
     );
   }
 }
+

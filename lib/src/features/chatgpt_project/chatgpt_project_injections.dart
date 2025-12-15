@@ -51,3 +51,4 @@ Future<void> initChatGptProjectInjections() async {
   // External
   sl.registerLazySingleton(() => http.Client());
 }
+

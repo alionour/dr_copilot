@@ -21,3 +21,4 @@ class LocaleNotifier extends ChangeNotifier {
     notifyListeners();
   }
 }
+

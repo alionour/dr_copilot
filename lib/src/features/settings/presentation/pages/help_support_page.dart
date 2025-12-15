@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class HelpSupportPage extends StatefulWidget {
   const HelpSupportPage({super.key});
@@ -53,7 +52,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
                     end: Alignment.bottomRight,
                     colors: [
                       colorScheme.primary,
-                      colorScheme.primary.withOpacity(0.7),
+                      colorScheme.primary.withValues(alpha: 0.7),
                       colorScheme.tertiary,
                     ],
                   ),
@@ -71,7 +70,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -97,7 +96,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
                         child: Text(
                           'supportDescription'.tr(),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -113,7 +112,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
               controller: _tabController,
               indicatorColor: Colors.white,
               labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.6),
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
               tabs: [
                 Tab(text: 'faq'.tr()),
                 Tab(text: 'contactTitle'.tr()),
@@ -219,7 +218,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
           const SizedBox(height: 32),
           Card(
             elevation: 0,
-            color: colorScheme.primaryContainer.withOpacity(0.3),
+            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -395,7 +394,7 @@ class _ContactMethodCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 32),
@@ -463,7 +462,7 @@ class _ResourceCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 28),
@@ -500,3 +499,4 @@ class _ResourceCard extends StatelessWidget {
     );
   }
 }
+

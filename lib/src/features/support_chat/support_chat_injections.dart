@@ -13,3 +13,4 @@ void initSupportChatInjections() {
   // BLoC
   sl.registerFactory<SupportChatBloc>(() => SupportChatBloc(repository: sl()));
 }
+

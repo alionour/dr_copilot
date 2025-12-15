@@ -44,3 +44,4 @@ final appProviders = [
 
   ...appBlocProviders,
 ];
+

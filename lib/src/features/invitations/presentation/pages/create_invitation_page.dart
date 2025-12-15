@@ -551,7 +551,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
             hintText: 'chooseFromStaffOrDoctors'.tr(),
             prefixIcon: const Icon(Icons.person_outline),
           ),
-          value: _selectedPerson,
+          initialValue: _selectedPerson,
           selectedItemBuilder: (BuildContext context) {
             return _availablePeople.map<Widget>((PersonOption person) {
               return Align(
@@ -837,3 +837,4 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     }
   }
 }
+

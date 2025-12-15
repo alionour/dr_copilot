@@ -171,3 +171,4 @@ class FinancialsUseCase {
     return repository.deleteTransactionByReferenceId(referenceId);
   }
 }
+

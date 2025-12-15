@@ -12,3 +12,4 @@ void initTeamsInjections() {
     () => CustomTeamsRepositoryImpl(),
   );
 }
+

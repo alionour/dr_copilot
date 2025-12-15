@@ -64,3 +64,4 @@ class AWSNotificationAdapter implements AWSNotificationService {
     }
   }
 }
+

@@ -468,3 +468,4 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('[FCM] Body: ${message.notification?.body}');
   debugPrint('[FCM] Data: ${message.data}');
 }
+

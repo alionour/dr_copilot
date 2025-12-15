@@ -217,3 +217,4 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
     );
   }
 }
+

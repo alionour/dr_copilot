@@ -15,3 +15,4 @@ abstract class AbstractCustomTeamsRepository {
     String clinicId,
   );
 }
+

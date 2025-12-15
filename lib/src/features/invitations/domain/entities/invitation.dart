@@ -36,3 +36,4 @@ class Invitation extends Equatable {
         acceptedAt,
       ];
 }
+

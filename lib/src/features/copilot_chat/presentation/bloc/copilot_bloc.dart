@@ -186,3 +186,4 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     }
   }
 }
+

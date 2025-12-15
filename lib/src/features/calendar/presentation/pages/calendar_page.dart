@@ -390,3 +390,4 @@ class InternalCalendarDataSource extends CalendarDataSource {
         event.type == CalendarEventType.vacation;
   }
 }
+

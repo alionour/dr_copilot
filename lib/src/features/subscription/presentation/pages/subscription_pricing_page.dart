@@ -268,7 +268,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -352,7 +352,7 @@ class _PricingCardState extends State<_PricingCard> {
             boxShadow: _isHovered || widget.isPopular
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.4),
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.4),
                       blurRadius: _isHovered ? 30 : 20,
                       offset: Offset(0, _isHovered ? 15 : 10),
                     ),
@@ -371,7 +371,7 @@ class _PricingCardState extends State<_PricingCard> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -397,7 +397,7 @@ class _PricingCardState extends State<_PricingCard> {
                 Text(
                   widget.description,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 13,
                   ),
                 ),
@@ -422,7 +422,7 @@ class _PricingCardState extends State<_PricingCard> {
                       child: Text(
                         period,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 13,
                         ),
                       ),
@@ -447,7 +447,7 @@ class _PricingCardState extends State<_PricingCard> {
                           child: Text(
                             feature,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontSize: 13,
                             ),
                           ),
@@ -494,3 +494,4 @@ class _PricingCardState extends State<_PricingCard> {
     );
   }
 }
+

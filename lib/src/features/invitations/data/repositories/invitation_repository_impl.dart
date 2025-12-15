@@ -63,3 +63,4 @@ class InvitationRepositoryImpl implements InvitationRepository {
     }
   }
 }
+

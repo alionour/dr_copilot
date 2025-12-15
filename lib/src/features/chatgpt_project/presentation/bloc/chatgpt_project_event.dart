@@ -15,3 +15,4 @@ class GetProject extends ChatGptProjectEvent {
   @override
   List<Object> get props => [name];
 }
+

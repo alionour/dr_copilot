@@ -34,3 +34,4 @@ class TotalRevenueByMonthChart extends StatelessWidget {
     );
   }
 }
+

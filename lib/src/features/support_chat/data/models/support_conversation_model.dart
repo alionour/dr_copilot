@@ -63,3 +63,4 @@ class SupportConversationModel extends Equatable {
     status,
   ];
 }
+

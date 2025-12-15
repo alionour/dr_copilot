@@ -29,3 +29,4 @@ class SendNotificationBloc extends Bloc<SendNotificationEvent, SendNotificationS
     );
   }
 }
+

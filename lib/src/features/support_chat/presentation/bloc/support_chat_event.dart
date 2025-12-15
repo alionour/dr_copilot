@@ -39,3 +39,4 @@ class SendSupportMessage extends SupportChatEvent {
   @override
   List<Object?> get props => [conversationId, senderId, content];
 }
+

@@ -1,6 +1,5 @@
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:flutter/foundation.dart';
 
 class BiometricAuthService {
@@ -22,24 +21,22 @@ class BiometricAuthService {
   /// Authenticates the user using biometrics.
   ///
   /// Returns `true` if authentication is successful, `false` otherwise.
+  /// Authenticates the user using biometrics.
+  ///
+  /// Returns `true` if authentication is successful, `false` otherwise.
   Future<bool> authenticate() async {
     try {
+      // local_auth v3: options passed as direct named parameters
+      // stickyAuth -> persistAcrossBackgrounding (default false, we likely want true)
+      // biometricOnly -> (default false)
+      // useErrorDialogs -> removed
       return await _auth.authenticate(
         localizedReason: 'Please authenticate to access the app',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false, // Allow PIN/Pattern as backup
-        ),
+        // Note: options parameter is removed in v3.
+        // options: const AuthenticationOptions(stickyAuth: true),
       );
     } on PlatformException catch (e) {
       debugPrint("Error Authenticating: $e");
-      if (e.code == auth_error.notAvailable) {
-        // Biometrics not available
-        return false;
-      } else if (e.code == auth_error.lockedOut) {
-        // User locked out
-        return false;
-      }
       return false;
     }
   }

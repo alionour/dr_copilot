@@ -34,3 +34,4 @@ class CalendarEventsError extends CalendarEventsState {
   @override
   List<Object?> get props => [message];
 }
+

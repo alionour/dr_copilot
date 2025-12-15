@@ -56,3 +56,4 @@ abstract class AbstractTransactionApi {
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
       String referenceId);
 }
+

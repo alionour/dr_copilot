@@ -493,3 +493,4 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         });
   }
 }
+

@@ -93,3 +93,4 @@ class SessionsUseCase {
     return await repository.sumAllSessionCostsForUser();
   }
 }
+

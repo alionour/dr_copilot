@@ -4,3 +4,4 @@ abstract class ChatGptProjectRepository {
   Future<ChatGptProject?> getProjectByName(String name);
   Future<ChatGptProject> createProject(String name);
 }
+

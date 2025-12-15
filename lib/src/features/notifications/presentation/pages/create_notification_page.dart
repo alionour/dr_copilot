@@ -317,7 +317,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   )
                 else
                   DropdownButtonFormField<NotificationType>(
-                    value: _selectedType,
+                    initialValue: _selectedType,
                     decoration: InputDecoration(
                       labelText: 'notificationTypeLabel'.tr(),
                       border: const OutlineInputBorder(),
@@ -338,7 +338,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
 
                 // Target Audience
                 DropdownButtonFormField<NotificationTargetType>(
-                  value: _selectedTargetType,
+                  initialValue: _selectedTargetType,
                   decoration: InputDecoration(
                     labelText: 'targetAudienceLabel'.tr(),
                     border: const OutlineInputBorder(),
@@ -378,7 +378,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
 
                 // Action URL Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedAction,
+                  initialValue: _selectedAction,
                   decoration: const InputDecoration(
                     labelText: 'Action / Route',
                     border: OutlineInputBorder(),
@@ -543,7 +543,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
           )
         else
           DropdownButtonFormField<String>(
-            value: _selectedTeamId,
+            initialValue: _selectedTeamId,
             decoration: InputDecoration(
               labelText: 'team'.tr(),
               border: const OutlineInputBorder(),
@@ -568,3 +568,4 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
     );
   }
 }
+

@@ -42,3 +42,4 @@ class NullableTimestampConverter implements JsonConverter<Timestamp?, dynamic> {
   @override
   dynamic toJson(Timestamp? object) => object;
 }
+

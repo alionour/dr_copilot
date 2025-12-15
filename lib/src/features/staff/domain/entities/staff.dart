@@ -47,3 +47,4 @@ class Staff extends Equatable {
   List<Object?> get props =>
       [id, name, email, phoneNumber, role, clinicId, createdAt, updatedAt];
 }
+

@@ -27,7 +27,7 @@ class CountGoalFields extends StatelessWidget {
       children: [
         if (goalType == 'sessions_year' || goalType == 'evaluations_year') ...[
           DropdownButtonFormField<int>(
-            value: selectedYear,
+            initialValue: selectedYear,
             decoration: InputDecoration(
               labelText: 'year'.tr(),
               border: const OutlineInputBorder(),
@@ -47,7 +47,7 @@ class CountGoalFields extends StatelessWidget {
         if (goalType == 'sessions_month' ||
             goalType == 'evaluations_month') ...[
           DropdownButtonFormField<int>(
-            value: selectedYear,
+            initialValue: selectedYear,
             decoration: InputDecoration(
               labelText: 'year'.tr(),
               border: const OutlineInputBorder(),
@@ -64,7 +64,7 @@ class CountGoalFields extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<int>(
-            value: selectedMonth,
+            initialValue: selectedMonth,
             decoration: InputDecoration(
               labelText: 'month'.tr(),
               border: const OutlineInputBorder(),
@@ -114,3 +114,4 @@ class CountGoalFields extends StatelessWidget {
     );
   }
 }
+

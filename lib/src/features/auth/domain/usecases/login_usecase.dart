@@ -67,3 +67,4 @@ class AuthUseCase {
         displayName: displayName, photoURL: photoURL);
   }
 }
+

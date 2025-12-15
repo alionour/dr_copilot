@@ -25,3 +25,4 @@ class StaffUseCases {
     return _repository.deleteStaff(staffId);
   }
 }
+

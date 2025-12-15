@@ -259,3 +259,4 @@ class _AddGoalBottomSheetState extends State<AddGoalBottomSheet> {
     );
   }
 }
+

@@ -81,3 +81,4 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
         lastDocument: lastDocument, limit: limit);
   }
 }
+

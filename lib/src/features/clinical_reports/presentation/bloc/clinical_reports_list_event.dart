@@ -18,3 +18,4 @@ class LoadClinicalReportsFromDrive extends ClinicalReportsListEvent {
   @override
   List<Object> get props => [driveFiles];
 }
+

@@ -996,3 +996,4 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     emit(successState(message: 'billHasPaid'.tr(args: [bill.title])));
   }
 }
+

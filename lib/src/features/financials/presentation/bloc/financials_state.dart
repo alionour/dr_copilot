@@ -328,3 +328,4 @@ class FinancialsError extends FinancialsState {
     );
   }
 }
+

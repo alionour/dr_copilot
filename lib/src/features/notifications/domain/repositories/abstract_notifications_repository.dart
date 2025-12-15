@@ -37,3 +37,4 @@ abstract class AbstractNotificationsRepository {
   /// Get target user IDs based on notification target
   Future<Either<Failure, List<String>>> getTargetUserIds(NotificationTarget target);
 }
+

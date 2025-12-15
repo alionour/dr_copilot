@@ -12,3 +12,4 @@ void initCalendarInjections() {
   // BLoC
   sl.registerFactory(() => CalendarBloc());
 }
+

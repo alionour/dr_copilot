@@ -92,3 +92,4 @@ enum Destination {
   final String message; // Tooltip or explanation for the destination
   const Destination(this.model, this.message);
 }
+

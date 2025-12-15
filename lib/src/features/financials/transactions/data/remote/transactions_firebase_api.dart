@@ -537,3 +537,4 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     }
   }
 }
+

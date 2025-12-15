@@ -88,3 +88,4 @@ class MedicationModel extends Equatable {
     createdAt,
   ];
 }
+

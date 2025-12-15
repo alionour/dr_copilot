@@ -119,3 +119,4 @@ class DirectMessagesRepository {
     return newChatRef.id;
   }
 }
+

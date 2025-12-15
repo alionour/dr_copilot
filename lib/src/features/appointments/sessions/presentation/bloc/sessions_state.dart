@@ -98,3 +98,4 @@ class SessionsCountLoaded extends SessionsState {
   @override
   List<Object?> get props => [count, sessions];
 }
+

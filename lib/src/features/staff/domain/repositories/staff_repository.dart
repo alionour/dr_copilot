@@ -9,3 +9,4 @@ abstract class StaffRepository {
   Future<Either<Failure, void>> updateStaff(String staffId, StaffModel staff);
   Future<Either<Failure, void>> deleteStaff(String staffId);
 }
+

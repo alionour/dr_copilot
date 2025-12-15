@@ -53,3 +53,4 @@ class ClinicalReportInstruction extends Equatable {
   @override
   List<Object?> get props => [id, userId, label, instruction];
 }
+

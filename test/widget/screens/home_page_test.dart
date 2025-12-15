@@ -2,16 +2,11 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/abstract_speech_recognition_service.dart';
-import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:provider/provider.dart';
-import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 
 class MockCopilotBloc extends MockBloc<CopilotEvent, CopilotState>
     implements CopilotBloc {}

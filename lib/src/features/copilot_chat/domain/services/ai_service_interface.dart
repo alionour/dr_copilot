@@ -16,3 +16,4 @@ abstract class AIService {
     String? userId,
   });
 }
+

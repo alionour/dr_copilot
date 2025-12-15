@@ -17,3 +17,4 @@ class CopilotList extends StatelessWidget {
     );
   }
 }
+

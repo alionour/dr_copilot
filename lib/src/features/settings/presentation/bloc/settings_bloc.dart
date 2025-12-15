@@ -34,3 +34,4 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(SettingsLocale(event.localeCode));
   }
 }
+

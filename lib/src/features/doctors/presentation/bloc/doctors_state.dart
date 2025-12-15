@@ -29,3 +29,4 @@ class DoctorsError extends DoctorsState {
 class DoctorsSuccess extends DoctorsState {
   const DoctorsSuccess(super.doctors, {super.message});
 }
+

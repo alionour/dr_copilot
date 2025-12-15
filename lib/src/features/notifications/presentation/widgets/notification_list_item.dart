@@ -232,3 +232,4 @@ class NotificationListItem extends StatelessWidget {
     );
   }
 }
+

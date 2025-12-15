@@ -344,7 +344,7 @@ class _ScheduleBillSection extends StatelessWidget {
                                     DropdownButtonFormField<
                                       CurrencyProfileModel
                                     >(
-                                      value: state.currencyProfiles.isNotEmpty
+                                      initialValue: state.currencyProfiles.isNotEmpty
                                           ? state.currencyProfiles.firstWhere(
                                               (profile) =>
                                                   profile.id ==
@@ -417,7 +417,7 @@ class _ScheduleBillSection extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 12),
                                     DropdownButtonFormField<ScheduledBillType>(
-                                      value: type,
+                                      initialValue: type,
                                       decoration: InputDecoration(
                                         labelText: 'type'.tr(),
                                         border: OutlineInputBorder(),
@@ -443,7 +443,7 @@ class _ScheduleBillSection extends StatelessWidget {
                                     DropdownButtonFormField<
                                       ScheduledBillRecurrence
                                     >(
-                                      value: recurrence,
+                                      initialValue: recurrence,
                                       decoration: InputDecoration(
                                         labelText: 'recurrence'.tr(),
                                         border: OutlineInputBorder(),
@@ -660,3 +660,4 @@ class _ScheduledBillCard extends StatelessWidget {
     );
   }
 }
+

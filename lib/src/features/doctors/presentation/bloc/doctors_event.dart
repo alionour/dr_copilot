@@ -43,3 +43,4 @@ class DeleteDoctor extends DoctorsEvent {
   @override
   List<Object> get props => [doctorId];
 }
+

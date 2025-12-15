@@ -31,3 +31,4 @@ class InvitationUseCases {
     return await _repository.resendInvitation(invitationId);
   }
 }
+

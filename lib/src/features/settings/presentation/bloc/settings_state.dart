@@ -21,3 +21,4 @@ class SettingsLocale extends SettingsState {
   @override
   List<Object> get props => [localeCode];
 }
+

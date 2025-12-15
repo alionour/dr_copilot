@@ -91,3 +91,4 @@ class GetTransactionsCount extends TransactionsEvent {
   @override
   List<Object?> get props => [];
 }
+

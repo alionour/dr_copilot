@@ -189,3 +189,4 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     return super.close();
   }
 }
+

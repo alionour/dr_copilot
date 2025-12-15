@@ -20,3 +20,4 @@ void initStaffInjections() {
   // APIs
   sl.registerLazySingleton(() => StaffFirebaseApi());
 }
+

@@ -118,3 +118,4 @@ class NotificationsRepositoryImpl implements AbstractNotificationsRepository {
     }
   }
 }
+

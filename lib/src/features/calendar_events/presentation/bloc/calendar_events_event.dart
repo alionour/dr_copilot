@@ -84,3 +84,4 @@ class LoadEventById extends CalendarEventsEvent {
   @override
   List<Object?> get props => [id];
 }
+

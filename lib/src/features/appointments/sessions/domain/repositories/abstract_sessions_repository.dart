@@ -70,3 +70,4 @@ abstract class AbstractSessionsRepository {
   /// Sums the total price of all sessions for the authenticated user (all time).
   Future<Either<Failure, double>> sumAllSessionCostsForUser();
 }
+

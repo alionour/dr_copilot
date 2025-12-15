@@ -14,3 +14,4 @@ class ClinicalReportTemplate extends Equatable {
   @override
   List<Object?> get props => [id, name, content];
 }
+

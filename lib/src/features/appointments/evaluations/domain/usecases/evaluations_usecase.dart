@@ -94,3 +94,4 @@ class EvaluationsUseCase {
     return await repository.sumAllEvaluationCostsForUser();
   }
 }
+

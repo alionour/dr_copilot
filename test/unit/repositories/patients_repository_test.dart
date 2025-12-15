@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
-import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/patients/data/remote/patient_firebase_api.dart';
 import 'package:dr_copilot/src/features/patients/data/repositories/patients_repo_impl.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';

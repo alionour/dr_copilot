@@ -80,3 +80,4 @@ abstract class AbstractTransactionsRepository {
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
       String referenceId);
 }
+

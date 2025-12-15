@@ -177,3 +177,4 @@ class ConversationSidebar extends StatelessWidget {
     );
   }
 }
+

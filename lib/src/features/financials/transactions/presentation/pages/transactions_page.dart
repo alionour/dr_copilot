@@ -118,7 +118,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 color: Theme.of(context).scaffoldBackgroundColor,
                 // border: Border(
                 //   bottom: BorderSide(
-                //     color: Theme.of(context).dividerColor.withOpacity(0.1),
+                //     color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 //   ),
                 // ),
               ),
@@ -557,3 +557,4 @@ class _TransactionsPageState extends State<TransactionsPage> {
     ).format(parsedDate ?? DateTime.now());
   }
 }
+

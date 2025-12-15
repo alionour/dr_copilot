@@ -16,3 +16,4 @@ class CopilotCard extends StatelessWidget {
     );
   }
 }
+

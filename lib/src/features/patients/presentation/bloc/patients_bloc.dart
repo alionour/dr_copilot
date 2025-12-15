@@ -210,3 +210,4 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     }
   }
 }
+
