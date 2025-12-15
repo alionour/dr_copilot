@@ -42,11 +42,13 @@ jobs:
           # Extract version
           if ($content -match 'version:\s*([^\+]+)') {
             $base_version = $matches[1].Trim()
-            $new_version_line = "version: $base_version+$build_number"
+            # MSIX requires strictly 4 parts: Major.Minor.Build.Revision
+            # We use Major.Minor.Patch.BuildNumber
+            $new_version_line = "version: $base_version.$build_number"
             # Replace
             $content = $content -replace 'version:.*', $new_version_line
             Set-Content pubspec.yaml $content
-            Write-Host "Updated pubspec version to $base_version+$build_number"
+            Write-Host "Updated pubspec version to $base_version.$build_number"
           }
 
       - name: Create MSIX Config
