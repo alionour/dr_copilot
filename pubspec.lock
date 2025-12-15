@@ -1112,11 +1112,9 @@ packages:
   flutter_tts:
     dependency: "direct main"
     description:
-      path: "."
-      ref: fix-windows-build
-      resolved-ref: "7eac1f68b11b188a5cdf79eb5b2610dfe792af23"
-      url: "https://github.com/saif-ellafi/flutter_tts.git"
-    source: git
+      path: "packages/flutter_tts_fixed"
+      relative: true
+    source: path
     version: "4.2.3"
   flutter_web_plugins:
     dependency: transitive
