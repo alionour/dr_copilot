@@ -103,10 +103,7 @@ dependencies:
   collection: ^1.18.0
   web_socket_channel: ^3.0.0
   speech_to_text: ^7.3.0
-  flutter_tts:
-    git:
-      url: https://github.com/saif-ellafi/flutter_tts.git
-      ref: fix-windows-build
+  flutter_tts: ^4.0.2
 
   connectivity_plus: ^7.0.0
   html_editor_enhanced: ^2.6.0
