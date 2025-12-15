@@ -84,20 +84,24 @@ jobs:
       # The native msix:publish command confuses Store vs Web publishing.
       # We use a dedicated action for reliable Store submission.
       # Use the official Microsoft Store App Publisher action
+      # Use the official Microsoft Store CLI setup action
+      - name: Setup MSStore CLI
+        uses: microsoft/setup-msstore-cli@v1
+
+      - name: Authenticate with Microsoft Store
+        run: msstore reconfigure --tenantId ${{ secrets.MSSTORE_TENANT_ID }} --clientId ${{ secrets.MSSTORE_CLIENT_ID }} --clientSecret ${{ secrets.MSSTORE_CLIENT_SECRET }}
+
+      - name: Verify Build Output (Debug)
+        run: |
+          Get-ChildItem -Path build/ -Recurse -Filter *.msix
+          # Find the MSIX file dynamically
+          $msixPath = Get-ChildItem -Path build/ -Recurse -Filter *.msix | Select-Object -First 1 -ExpandProperty FullName
+          echo "MSIX_PATH=$msixPath" >> $env:GITHUB_ENV
+
       - name: Publish to Microsoft Store
-        uses: microsoft/microsoft-store-apppublisher@v1.1
-        with:
-          tenant-id: ${{ secrets.MSSTORE_TENANT_ID }}
-          client-id: ${{ secrets.MSSTORE_CLIENT_ID }}
-          client-secret: ${{ secrets.MSSTORE_CLIENT_SECRET }}
-          app-id: ${{ secrets.MSSTORE_APP_ID }}
-          # The action expects the package path. Note: it might search if directory?
-          # But let's be specific if possible or use the directory.
-          # The docs usually say 'path' or 'package-path'. I'll try 'package-path' as it's common.
-          # If this fails on 'unexpected input', I'll have to adjust.
-          # Checking common inputs for this action: 'file' or 'path'.
-          # I will guess 'path'.
-          path: build/windows/runner/Release/Dr. Copilot.msix
+        run: |
+          Write-Host "Publishing $env:MSIX_PATH..."
+          msstore publish --path "$env:MSIX_PATH" --appId ${{ secrets.MSSTORE_APP_ID }} --verbose
 
       - name: Create Windows ZIP Archive
         run: |
