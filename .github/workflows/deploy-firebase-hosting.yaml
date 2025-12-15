@@ -3,7 +3,8 @@ name: Deploy to Firebase Hosting
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'            # Triggers all workflows
+      - 'web-v*'        # Triggers only Web
   workflow_dispatch:
 
 permissions:

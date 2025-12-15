@@ -3,7 +3,8 @@ name: Deploy to Google Play
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'            # Triggers all workflows
+      - 'android-v*'    # Triggers only Android
   workflow_dispatch:
 
 permissions:
