@@ -1,4 +1,4 @@
-name: Build and Publish to Microsoft Store
+name: Deploy to Microsoft Store
 
 on:
   push:
