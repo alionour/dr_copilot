@@ -62,7 +62,7 @@ jobs:
         # If we need to sign with a certificate file, we would decode it from secrets here.
         # For Store, we can use the store submission API which handles signing or we self-sign for testing.
         # flutter pub run msix:create --store
-        run: flutter pub run msix:create
+        run: flutter pub run msix:create --store
 
       - name: Publish to Microsoft Store
         run: flutter pub run msix:publish
