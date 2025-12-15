@@ -107,7 +107,9 @@ void main() {
         return EvaluationsBloc(mockEvaluationsUseCase, mockFinancialsUseCase);
       },
       act: (bloc) => bloc.add(
-        AddEvaluation(tEvaluation, currencyProfileId: 'currency123'),
+        AddEvaluation(tEvaluation,
+            currencyProfileId: 'currency123',
+            invoiceStatus: InvoiceStatus.unpaid),
       ),
       expect: () => [
         const EvaluationsLoading([]),
