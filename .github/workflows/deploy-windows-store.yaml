@@ -121,8 +121,7 @@ jobs:
         uses: microsoft/setup-msstore-cli@v1
 
       - name: Authenticate with Microsoft Store
-        # Pipe 'y' to bypass "Are you sure?" prompt
-        run: echo "y" | msstore reconfigure --tenantId ${{ secrets.MSSTORE_TENANT_ID }} --clientId ${{ secrets.MSSTORE_CLIENT_ID }} --clientSecret ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId ${{ secrets.MSSTORE_TENANT_ID }} --sellerId ${{ secrets.MSSTORE_SELLER_ID }} --clientId ${{ secrets.MSSTORE_CLIENT_ID }} --clientSecret ${{ secrets.MSSTORE_CLIENT_SECRET }}
 
       - name: Publish to Microsoft Store
         run: |
