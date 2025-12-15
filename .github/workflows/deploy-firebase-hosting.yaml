@@ -29,9 +29,10 @@ jobs:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Build web
-        run: flutter build web --release
-        # Removed doppler wrapper as it might cause argument parsing issues (Exit 64)
-        # Removed renderer flag to use default 'auto'
+        run: |
+          doppler run --command "flutter build web --release --dart-define=GOOGLE_OAUTH_CLIENT_ID=\$GOOGLE_OAUTH_CLIENT_ID --dart-define=GOOGLE_OAUTH_CLIENT_SECRET=\$GOOGLE_OAUTH_CLIENT_SECRET --dart-define=GOOGLE_REFRESH_TOKEN=\$GOOGLE_REFRESH_TOKEN"
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
