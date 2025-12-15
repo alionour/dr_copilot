@@ -29,9 +29,9 @@ jobs:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Build web
-        run: doppler run -- flutter build web --release --web-renderer canvaskit
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: flutter build web --release
+        # Removed doppler wrapper as it might cause argument parsing issues (Exit 64)
+        # Removed renderer flag to use default 'auto'
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
