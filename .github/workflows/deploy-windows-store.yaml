@@ -72,17 +72,30 @@ jobs:
       - name: Build MSIX
         run: flutter pub run msix:create --store
 
+      - name: Locate Build Output
+        id: locate_build
+        run: |
+          if (Test-Path "build/windows/x64/runner/Release") {
+            echo "RELEASE_PATH=build/windows/x64/runner/Release" >> $env:GITHUB_ENV
+          } elseif (Test-Path "build/windows/runner/Release") {
+            echo "RELEASE_PATH=build/windows/runner/Release" >> $env:GITHUB_ENV
+          } else {
+            Write-Error "Could not find Release directory!"
+          }
+
       - name: Upload MSIX Artifact
         uses: actions/upload-artifact@v4
         with:
           name: msix-package
-          path: build/windows/runner/Release/*.msix
+          path: ${{ env.RELEASE_PATH }}/*.msix
           retention-days: 1
 
       - name: Create Windows ZIP Archive
         run: |
-          cd build/windows/runner/Release
-          powershell Compress-Archive -Path * -DestinationPath ../../../../dr_copilot-windows-${{ github.ref_name }}.zip
+          $releasePath = "${{ env.RELEASE_PATH }}"
+          Write-Host "Zipping from $releasePath"
+          cd $releasePath
+          powershell Compress-Archive -Path * -DestinationPath "../../../../dr_copilot-windows-${{ github.ref_name }}.zip" -Force
           cd ../../../..
 
       - name: Upload ZIP to Release
