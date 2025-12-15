@@ -3,7 +3,8 @@ name: Deploy Windows (Store & ZIP)
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'            # Triggers all workflows
+      - 'windows-v*'    # Triggers only Windows
   workflow_dispatch:
 
 permissions:
