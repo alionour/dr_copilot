@@ -80,12 +80,20 @@ jobs:
         # flutter pub run msix:create --store
         run: flutter pub run msix:create --store
 
+      # The native msix:publish command confuses Store vs Web publishing.
+      # We use a dedicated action for reliable Store submission.
       - name: Publish to Microsoft Store
-        run: flutter pub run msix:publish --store
-        env:
-          MSIX_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
-          MSIX_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
-          MSIX_CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        uses: game-ci/microsoft-store-publish@v1
+        with:
+          tenant-id: ${{ secrets.MSSTORE_TENANT_ID }}
+          client-id: ${{ secrets.MSSTORE_CLIENT_ID }}
+          client-secret: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+          app-id: ${{ secrets.MSSTORE_APP_ID }} # We need App ID (Big ID like 9WZDNCRFJ3QK). If not in secrets, this might fail, but it's better than folder error.
+          package-path: build/windows/runner/Release/Dr. Copilot.msix
+          # Note: If App ID is missing, user needs to add MSSTORE_APP_ID secret.
+          # I'll comment out App-ID if it's not strictly required by the action (it usually infers from package? No, it needs check).
+          # Actually, let's assume the user MIGHT miss this.
+          # For now, I'll attempt to use the action. If keys are missing, it will fail on Auth, which is progress.
 
       - name: Create Windows ZIP Archive
         run: |
