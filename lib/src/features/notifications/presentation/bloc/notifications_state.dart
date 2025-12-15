@@ -61,3 +61,4 @@ class NotificationSentSuccess extends NotificationsState {
   @override
   List<Object?> get props => [count];
 }
+

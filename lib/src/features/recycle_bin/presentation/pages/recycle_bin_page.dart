@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
@@ -151,3 +150,4 @@ class _RecycleBinItemTile extends StatelessWidget {
     );
   }
 }
+

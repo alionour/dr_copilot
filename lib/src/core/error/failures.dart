@@ -72,3 +72,4 @@ class ApiKeyFailure extends Failure {
   /// [code] is an optional error code associated with the API key failure.
   ApiKeyFailure(super.message, [super.code = 401]);
 }
+

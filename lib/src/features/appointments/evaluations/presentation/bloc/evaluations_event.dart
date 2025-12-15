@@ -115,3 +115,4 @@ class AddTransaction extends EvaluationsEvent {
   @override
   List<Object?> get props => [transaction];
 }
+

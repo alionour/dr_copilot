@@ -141,7 +141,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      value:
+                                      initialValue:
                                           _selectedClinicId ??
                                           ownerNotifier.clinicId,
                                       decoration: InputDecoration(
@@ -506,3 +506,4 @@ class _AddPatientPageState extends State<AddPatientPage> {
     super.dispose();
   }
 }
+

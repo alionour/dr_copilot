@@ -50,3 +50,4 @@ class RecycleBinError extends RecycleBinState {
   @override
   List<Object?> get props => [message];
 }
+

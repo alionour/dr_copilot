@@ -27,3 +27,4 @@ class CopilotRepositoryImpl implements CopilotRepository {
     return _remoteDataSource.deleteCopilot(id);
   }
 }
+

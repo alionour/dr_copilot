@@ -8,3 +8,4 @@ void initServicesInjections() {
   sl.registerLazySingleton(() => GoogleDriveService());
   sl.registerLazySingleton(() => FCMService());
 }
+

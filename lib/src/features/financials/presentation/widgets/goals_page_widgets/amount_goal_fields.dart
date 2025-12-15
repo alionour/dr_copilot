@@ -27,7 +27,7 @@ class AmountGoalFields extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: selectedYear,
+                initialValue: selectedYear,
                 decoration: InputDecoration(
                   labelText: 'yearOptional'.tr(),
                   border: const OutlineInputBorder(),
@@ -52,7 +52,7 @@ class AmountGoalFields extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: selectedMonth,
+                initialValue: selectedMonth,
                 decoration: InputDecoration(
                   labelText: 'monthOptional'.tr(),
                   border: const OutlineInputBorder(),
@@ -111,3 +111,4 @@ class AmountGoalFields extends StatelessWidget {
     );
   }
 }
+

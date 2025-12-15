@@ -22,3 +22,4 @@ void initInvitationsInjections() {
   // Data source
   sl.registerLazySingleton(() => InvitationFirebaseApi());
 }
+

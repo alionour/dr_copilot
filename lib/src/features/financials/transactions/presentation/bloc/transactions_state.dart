@@ -70,3 +70,4 @@ class TransactionsError extends TransactionsState {
   @override
   List<Object?> get props => [super.transactions, message];
 }
+

@@ -248,7 +248,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   DropdownButtonFormField<String>(
-                                    value: _selectedClinicId ??
+                                    initialValue: _selectedClinicId ??
                                         ownerNotifier.clinicId,
                                     decoration: InputDecoration(
                                       labelText: 'clinic'.tr(),
@@ -332,7 +332,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           const SizedBox(height: 16.0),
                           DropdownButtonFormField<TransactionSource>(
                             focusNode: _transactionTypeFocusNode,
-                            value: _transactionSource,
+                            initialValue: _transactionSource,
                             decoration: InputDecoration(
                               labelText: 'transactionSource'.tr(),
                               border: const OutlineInputBorder(),
@@ -386,7 +386,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           const SizedBox(height: 16.0),
                           DropdownButtonFormField<String>(
                             focusNode: _currencyProfileFocusNode,
-                            value: _selectedCurrencyProfile,
+                            initialValue: _selectedCurrencyProfile,
                             decoration: InputDecoration(
                               labelText: 'currencyProfile'.tr(),
                               border: const OutlineInputBorder(),
@@ -428,7 +428,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           const SizedBox(height: 16.0),
                           DropdownButtonFormField<TransactionStatus>(
                             focusNode: _statusFocusNode,
-                            value: _selectedStatus,
+                            initialValue: _selectedStatus,
                             decoration: InputDecoration(
                               labelText: 'status'.tr(),
                               border: const OutlineInputBorder(),
@@ -500,3 +500,4 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 }
+

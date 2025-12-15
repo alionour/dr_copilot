@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -354,7 +354,7 @@ class GoogleSignInHelper {
     if (account == null) {
       return null;
     }
-    final auth = await account.authentication;
+    final GoogleSignInAuthentication auth = await account.authentication;
     return auth.accessToken;
   }
 
@@ -452,7 +452,7 @@ class GoogleSignInHelper {
           return null;
         }
       }
-      final auth = await account.authentication;
+      final GoogleSignInAuthentication auth = await account.authentication;
       return auth.accessToken;
     } catch (error) {
       debugPrint('refreshAccessToken: Error refreshing access token: $error');

@@ -10,3 +10,4 @@ class HomePage extends StatelessWidget {
     return CopilotPage(title: 'appTitle'.tr());
   }
 }
+

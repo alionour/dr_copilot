@@ -75,3 +75,4 @@ class ClinicalReport extends Equatable {
     finalizedBy,
   ];
 }
+

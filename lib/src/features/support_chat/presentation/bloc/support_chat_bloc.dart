@@ -96,3 +96,4 @@ class _MessagesUpdated extends SupportChatEvent {
   @override
   List<Object?> get props => [conversationId, messages];
 }
+

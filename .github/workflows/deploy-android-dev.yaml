@@ -18,7 +18,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.0'
+          flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
 
@@ -27,7 +27,9 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-          cache: 'gradle'
+
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
 
       - name: Get build number from commit count
         id: build_number
@@ -46,26 +48,31 @@ jobs:
           cat pubspec.yaml | grep version
 
       - name: Install dependencies
-        run: flutter pub get
+        run: doppler run -- flutter pub get
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
-      - name: Run build_runner
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Decode keystore from GitHub Secrets
+      - name: Decode keystore from Doppler
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+          doppler secrets get ANDROID_KEYSTORE_BASE64 --plain | base64 --decode > android/app/keystore.jks
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
-      - name: Create key.properties from GitHub Secrets
+      - name: Create key.properties from Doppler
         run: |
           cat > android/key.properties << EOF
-          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
-          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storePassword=$(doppler secrets get ANDROID_KEYSTORE_PASSWORD --plain)
+          keyPassword=$(doppler secrets get ANDROID_KEY_PASSWORD --plain)
+          keyAlias=$(doppler secrets get ANDROID_KEY_ALIAS --plain)
           storeFile=keystore.jks
           EOF
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Build App Bundle
-        run: flutter build appbundle --release
+        run: doppler run -- flutter build appbundle --release
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: Upload to Google Play Internal Testing
         uses: r0adkll/upload-google-play@v1.1.3
@@ -101,4 +108,3 @@ jobs:
               commit_sha: context.sha,
               body: `✅ Successfully deployed build #${buildNumber} to Google Play Internal Testing!\n\n[View in Play Console](https://play.google.com/console/)`
             })
-

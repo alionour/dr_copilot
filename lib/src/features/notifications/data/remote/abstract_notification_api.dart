@@ -35,3 +35,4 @@ abstract class AbstractNotificationApi {
   /// Get target user IDs based on notification target
   Future<List<String>> getTargetUserIds(NotificationTarget target);
 }
+

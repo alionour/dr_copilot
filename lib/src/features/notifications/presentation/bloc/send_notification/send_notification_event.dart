@@ -15,3 +15,4 @@ class SendNotificationEvent extends SendNotificationEventBase {
   @override
   List<Object?> get props => [template];
 }
+

@@ -280,3 +280,4 @@ class _DeleteEvaluationDialogResult {
   final bool deleteEvaluationAndTransaction;
   _DeleteEvaluationDialogResult({required this.deleteEvaluationAndTransaction});
 }
+

@@ -158,3 +158,4 @@ class ClinicalReportService {
     debugPrint('Migration to HTML is complete or disabled.');
   }
 }
+

@@ -52,3 +52,4 @@ class ResendInvitation extends InvitationEvent {
   @override
   List<Object?> get props => [invitationId];
 }
+

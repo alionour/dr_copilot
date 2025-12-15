@@ -118,3 +118,4 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
     }
   }
 }
+

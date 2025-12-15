@@ -26,3 +26,4 @@ class AppLocalization extends StatelessWidget {
     );
   }
 }
+

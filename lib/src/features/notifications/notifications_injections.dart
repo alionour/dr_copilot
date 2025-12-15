@@ -40,3 +40,4 @@ void initNotificationsInjections() {
     () => NotificationFirebaseApi(),
   );
 }
+

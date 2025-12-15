@@ -52,3 +52,4 @@ class AddCalendarEvent extends CalendarEvent {
   @override
   List<Object> get props => [newEvent, calendarId];
 }
+

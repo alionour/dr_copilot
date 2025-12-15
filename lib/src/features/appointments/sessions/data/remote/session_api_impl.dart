@@ -46,3 +46,4 @@ class SessionApiImpl {
     return data.map((json) => SessionModel.fromJson(json)).toList();
   }
 }
+

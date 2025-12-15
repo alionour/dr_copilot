@@ -76,3 +76,4 @@ class PatientsUseCase {
     return await repository.getPatientsCount();
   }
 }
+

@@ -25,3 +25,4 @@ class ExportClinicalReportToGoogleDocs extends ClinicalReportDetailsEvent {
   @override
   List<Object> get props => [reportId, contentJson];
 }
+

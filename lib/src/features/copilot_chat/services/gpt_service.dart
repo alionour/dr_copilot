@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:flutter/foundation.dart';
@@ -8,7 +7,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
-import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 
 class GPTService implements AIService {
   final FlutterSecureStorage _secureStorage;
@@ -278,3 +276,4 @@ class GPTService implements AIService {
     throw Exception('All OpenAI keys failed.');
   }
 }
+

@@ -135,7 +135,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 //   color: Theme.of(context)
                 //       .colorScheme
                 //       .primary
-                //       .withOpacity(0.3), // Adjusted color to be less intense
+                //       .withValues(alpha: 0.3), // Adjusted color to be less intense
                 //   width: 0.3, // Made the border thinner
                 // ),
                 borderRadius: BorderRadius.circular(12.0),
@@ -436,3 +436,4 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
     }
   }
 }
+

@@ -702,3 +702,4 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     }
   }
 }
+

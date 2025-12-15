@@ -296,3 +296,4 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
     }
   }
 }
+

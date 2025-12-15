@@ -104,3 +104,4 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     );
   }
 }
+

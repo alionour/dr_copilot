@@ -110,3 +110,4 @@ class SupportChatRepository {
     return SupportConversationModel.fromFirestore(doc);
   }
 }
+

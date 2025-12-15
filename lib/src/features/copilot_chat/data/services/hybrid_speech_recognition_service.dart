@@ -220,3 +220,4 @@ class HybridSpeechRecognitionService
     return _activeService!.getRealtimeRecognitionStream();
   }
 }
+

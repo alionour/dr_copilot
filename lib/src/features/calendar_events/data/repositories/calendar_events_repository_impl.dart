@@ -75,3 +75,4 @@ class CalendarEventsRepositoryImpl extends AbstractCalendarEventsRepository {
     return firebaseApi.getEventByEvaluationId(evaluationId);
   }
 }
+

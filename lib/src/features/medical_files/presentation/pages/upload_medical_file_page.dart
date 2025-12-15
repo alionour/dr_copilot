@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/medical_files/domain/models/medical_file_model.dart';
 import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
@@ -153,7 +152,7 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(labelText: 'Type'),
                   items: ['X-Ray', 'Lab Report', 'MRI', 'Prescription', 'Other']
                       .map(
@@ -320,3 +319,4 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
     );
   }
 }
+

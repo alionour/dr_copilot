@@ -84,3 +84,13 @@ jobs:
             build/app/outputs/bundle/release/app-release.aab
           draft: false
           prerelease: false
+
+      - name: Publish to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.alionour.drcopilot
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: draft
+          # userFraction: 0.50 # Optional: Rollout percentage when checking status is 'inProgress'

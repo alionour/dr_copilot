@@ -80,7 +80,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
                               size: 64,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.3),
+                              ).colorScheme.onSurface.withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -89,7 +89,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withOpacity(0.5),
+                                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -99,7 +99,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withOpacity(0.5),
+                                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                                   ),
                             ),
                           ],
@@ -204,16 +204,16 @@ class _SupportChatPageState extends State<SupportChatPage> {
                                             ? Theme.of(context)
                                                   .colorScheme
                                                   .onPrimaryContainer
-                                                  .withOpacity(0.7)
+                                                  .withValues(alpha: 0.7)
                                             : isSupportTeam
                                             ? Theme.of(context)
                                                   .colorScheme
                                                   .onTertiaryContainer
-                                                  .withOpacity(0.7)
+                                                  .withValues(alpha: 0.7)
                                             : Theme.of(context)
                                                   .colorScheme
                                                   .onSurfaceVariant
-                                                  .withOpacity(0.7),
+                                                  .withValues(alpha: 0.7),
                                       ),
                                 ),
                               ],
@@ -241,7 +241,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
         color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -290,3 +290,4 @@ class _SupportChatPageState extends State<SupportChatPage> {
     }
   }
 }
+

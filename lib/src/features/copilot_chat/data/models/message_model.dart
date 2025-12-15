@@ -53,3 +53,4 @@ class MessageModel {
 
   bool get isUser => senderId == userId;
 }
+

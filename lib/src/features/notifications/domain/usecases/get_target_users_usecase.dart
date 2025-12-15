@@ -12,3 +12,4 @@ class GetTargetUsersUseCase {
     return await repository.getTargetUserIds(target);
   }
 }
+

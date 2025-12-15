@@ -1,5 +1,5 @@
-#ifndef FLUTTER_PLUGIN_SPEECH_TO_TEXT_WINDOWS_PLUGIN_H_
-#define FLUTTER_PLUGIN_SPEECH_TO_TEXT_WINDOWS_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_SPEECH_TO_TEXT_WINDOWS_PLUGIN_IMPL_H_
+#define FLUTTER_PLUGIN_SPEECH_TO_TEXT_WINDOWS_PLUGIN_IMPL_H_
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -58,4 +58,4 @@ class SpeechToTextWindowsPlugin : public flutter::Plugin {
 extern "C" __declspec(dllexport) void SpeechToTextWindowsPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
-#endif  // FLUTTER_PLUGIN_SPEECH_TO_TEXT_WINDOWS_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_SPEECH_TO_TEXT_WINDOWS_PLUGIN_IMPL_H_

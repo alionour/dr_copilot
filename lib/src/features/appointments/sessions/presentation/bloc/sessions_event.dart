@@ -142,3 +142,4 @@ class AddTransaction extends SessionsEvent {
   @override
   List<Object?> get props => [transaction];
 }
+

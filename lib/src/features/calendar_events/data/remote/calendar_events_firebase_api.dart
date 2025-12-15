@@ -509,3 +509,4 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
     }
   }
 }
+

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/features/financials/data/remote/financials_firebase_api.dart';
 import 'package:dr_copilot/src/features/financials/data/repositories/financials_repository_impl.dart';

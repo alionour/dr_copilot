@@ -174,7 +174,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         DropdownButtonFormField<String>(
-                          value: _selectedClinicId,
+                          initialValue: _selectedClinicId,
                           decoration: InputDecoration(
                             labelText: 'clinic'.tr(),
                             labelStyle: Theme.of(context)
@@ -218,7 +218,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                         ),
                         const SizedBox(height: 16.0),
                         DropdownButtonFormField<String>(
-                          value: _selectedSpecialty,
+                          initialValue: _selectedSpecialty,
                           decoration: InputDecoration(
                             labelText: 'specialty'.tr(),
                             border: const OutlineInputBorder(),
@@ -296,3 +296,4 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
     );
   }
 }
+

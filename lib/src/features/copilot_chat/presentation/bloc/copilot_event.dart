@@ -58,3 +58,4 @@ class CacheMessagesEvent extends CopilotEvent {
 class LoadCachedMessagesEvent extends CopilotEvent {}
 
 class StartNewChatEvent extends CopilotEvent {}
+

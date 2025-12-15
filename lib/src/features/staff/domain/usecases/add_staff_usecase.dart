@@ -25,3 +25,4 @@ class AddStaffUseCase implements UseCase<void, Staff> {
     return repository.addStaff(staffModel);
   }
 }
+

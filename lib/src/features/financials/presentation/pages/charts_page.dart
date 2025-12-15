@@ -531,3 +531,4 @@ class _ToggleableBarLineChartState extends State<_ToggleableBarLineChart> {
     );
   }
 }
+

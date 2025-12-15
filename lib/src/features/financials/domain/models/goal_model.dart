@@ -328,3 +328,4 @@ class CustomGoalModel extends GoalModelBase {
     );
   }
 }
+

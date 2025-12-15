@@ -461,7 +461,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             DropdownButtonFormField<String>(
-                              value: _selectedClinicId,
+                              initialValue: _selectedClinicId,
                               decoration: InputDecoration(
                                 labelText: 'clinic'.tr(),
                                 labelStyle: Theme.of(context)
@@ -493,7 +493,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             DropdownButtonFormField<DoctorModel>(
-                              value: _selectedDoctor,
+                              initialValue: _selectedDoctor,
                               decoration: InputDecoration(
                                 labelText: 'selectDoctor'.tr(),
                                 labelStyle: Theme.of(context)
@@ -792,7 +792,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             ),
                             const SizedBox(height: 8.0),
                             DropdownButtonFormField<String>(
-                              value: _selectedCalendar,
+                              initialValue: _selectedCalendar,
                               decoration: InputDecoration(
                                 labelText: 'calendar'.tr(),
                                 labelStyle: Theme.of(context)
@@ -855,7 +855,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                 DropdownButtonFormField<
                                                   CurrencyProfileModel
                                                 >(
-                                                  value:
+                                                  initialValue:
                                                       _selectedCurrencyProfile,
                                                   decoration: InputDecoration(
                                                     labelText: 'currencyProfile'
@@ -911,7 +911,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                 DropdownButtonFormField<
                                                   InvoiceStatus
                                                 >(
-                                                  value: _selectedInvoiceStatus,
+                                                  initialValue: _selectedInvoiceStatus,
                                                   decoration: InputDecoration(
                                                     labelText: 'invoiceStatus'
                                                         .tr(),
@@ -1009,3 +1009,4 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     );
   }
 }
+

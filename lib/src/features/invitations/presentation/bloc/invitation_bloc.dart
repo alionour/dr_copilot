@@ -75,3 +75,4 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     );
   }
 }
+

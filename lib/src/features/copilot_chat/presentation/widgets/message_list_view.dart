@@ -39,3 +39,4 @@ class MessageListView extends StatelessWidget {
     );
   }
 }
+

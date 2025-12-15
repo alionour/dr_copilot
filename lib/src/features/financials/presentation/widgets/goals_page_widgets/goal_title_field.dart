@@ -18,3 +18,4 @@ class GoalTitleField extends StatelessWidget {
     );
   }
 }
+

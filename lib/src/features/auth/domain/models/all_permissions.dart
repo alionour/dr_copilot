@@ -56,3 +56,4 @@ const List<String> allPermissions = [
   'can_view_help',
   'can_access_support',
 ];
+

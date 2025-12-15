@@ -90,3 +90,4 @@ class CustomTeamModel extends Equatable {
     createdAt,
   ];
 }
+

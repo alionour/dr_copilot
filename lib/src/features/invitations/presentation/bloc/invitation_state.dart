@@ -38,3 +38,4 @@ class InvitationError extends InvitationState {
   @override
   List<Object?> get props => [message];
 }
+

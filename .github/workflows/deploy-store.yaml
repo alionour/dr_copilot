@@ -1,0 +1,44 @@
+name: Build and Publish to Microsoft Store
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5' # consistent with deploy-windows.yaml
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create MSIX Config
+        # We can dynamically inject secrets into pubspec.yaml or use command line args for msix:create
+        # For now, we assume pubspec.yaml has the base config and we override/augment if needed.
+        # But msix package recommends having config in pubspec.yaml.
+        # If secrets are needed for signing, we handle them here.
+        run: echo "Configuring MSIX..."
+
+      - name: Build MSIX
+        # If we need to sign with a certificate file, we would decode it from secrets here.
+        # For Store, we can use the store submission API which handles signing or we self-sign for testing.
+        # flutter pub run msix:create --store
+        run: flutter pub run msix:create
+
+      - name: Publish to Microsoft Store
+        run: flutter pub run msix:publish
+        env:
+          MSIX_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          MSIX_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          MSIX_CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}

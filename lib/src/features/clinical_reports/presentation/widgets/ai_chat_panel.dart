@@ -663,3 +663,4 @@ class _AIChatPanelState extends State<AIChatPanel> {
     );
   }
 }
+

@@ -160,11 +160,11 @@ class _TeamChatPageState extends State<TeamChatPage> {
                                                 ? Theme.of(context)
                                                       .colorScheme
                                                       .onPrimaryContainer
-                                                      .withOpacity(0.7)
+                                                      .withValues(alpha: 0.7)
                                                 : Theme.of(context)
                                                       .colorScheme
                                                       .onSurfaceVariant
-                                                      .withOpacity(0.7),
+                                                      .withValues(alpha: 0.7),
                                           ),
                                     ),
                                   ],
@@ -259,3 +259,4 @@ class _TeamChatPageState extends State<TeamChatPage> {
     _textController.clear();
   }
 }
+

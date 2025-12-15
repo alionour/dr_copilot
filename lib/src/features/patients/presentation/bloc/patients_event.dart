@@ -91,3 +91,4 @@ class GetPatientsCount extends PatientsEvent {
   @override
   List<Object?> get props => [];
 }
+

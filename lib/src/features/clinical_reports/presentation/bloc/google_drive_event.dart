@@ -38,3 +38,4 @@ class GoToFolder extends GoogleDriveEvent {
 }
 
 class GoBack extends GoogleDriveEvent {}
+

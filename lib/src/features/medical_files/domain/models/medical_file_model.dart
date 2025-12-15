@@ -81,3 +81,4 @@ class MedicalFileModel extends Equatable {
     createdAt,
   ];
 }
+

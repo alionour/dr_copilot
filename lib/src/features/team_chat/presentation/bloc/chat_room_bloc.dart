@@ -116,3 +116,4 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     return super.close();
   }
 }
+

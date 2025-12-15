@@ -3,3 +3,4 @@ String getPlatformEnv(String key) {
   // They must be passed at compile time using --dart-define
   return '';
 }
+

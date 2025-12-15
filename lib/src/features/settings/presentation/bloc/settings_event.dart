@@ -19,3 +19,4 @@ class ChangeLocaleEvent extends SettingsEvent {
   @override
   List<Object> get props => [localeCode];
 }
+

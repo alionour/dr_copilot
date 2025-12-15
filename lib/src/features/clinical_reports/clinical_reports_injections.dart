@@ -34,3 +34,4 @@ void initClinicalReportsInjections() {
   );
   sl.registerLazySingleton(() => ClinicalReportService());
 }
+

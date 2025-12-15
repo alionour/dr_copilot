@@ -43,3 +43,4 @@ class DeleteStaff extends StaffEvent {
   @override
   List<Object> get props => [staffId];
 }
+

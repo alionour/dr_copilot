@@ -44,3 +44,4 @@ class ApiKeyHelper {
       ? const String.fromEnvironment('DEEPGRAM_KEY', defaultValue: '')
       : getPlatformEnv('DEEPGRAM_KEY');
 }
+

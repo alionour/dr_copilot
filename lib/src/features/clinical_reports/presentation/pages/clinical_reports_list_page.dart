@@ -245,3 +245,4 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
     );
   }
 }
+

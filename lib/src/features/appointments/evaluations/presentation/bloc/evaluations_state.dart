@@ -64,3 +64,4 @@ class EvaluationsCountLoaded extends EvaluationsState {
   @override
   List<Object?> get props => [count, evaluations];
 }
+

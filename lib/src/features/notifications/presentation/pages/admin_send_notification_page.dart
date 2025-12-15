@@ -291,7 +291,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
 
   Widget _buildTypeDropdown() {
     return DropdownButtonFormField<NotificationType>(
-      value: _selectedType,
+      initialValue: _selectedType,
       decoration: InputDecoration(
         labelText: 'notification_type'.tr(),
         border: const OutlineInputBorder(),
@@ -310,7 +310,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
 
   Widget _buildTargetDropdown() {
     return DropdownButtonFormField<NotificationTargetType>(
-      value: _selectedTarget,
+      initialValue: _selectedTarget,
       decoration: InputDecoration(
         labelText: 'target_audience'.tr(),
         border: const OutlineInputBorder(),
@@ -488,3 +488,4 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
     }
   }
 }
+

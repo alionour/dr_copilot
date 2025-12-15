@@ -148,3 +148,4 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
     });
   }
 }
+

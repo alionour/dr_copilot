@@ -64,3 +64,4 @@ class PatientsCountLoaded extends PatientsState {
   @override
   List<Object?> get props => [count, patients];
 }
+

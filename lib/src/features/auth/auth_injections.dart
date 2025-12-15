@@ -31,3 +31,4 @@ void initAuthInjections() {
     () => AuthFirebaseApi(FirebaseAuth.instance),
   );
 }
+

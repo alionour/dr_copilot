@@ -56,3 +56,4 @@ class PatientService {
     return _api.getPatientsCount();
   }
 }
+

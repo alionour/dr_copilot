@@ -141,3 +141,4 @@ class SessionsRepositoryImpl extends AbstractSessionsRepository {
     return firebaseApi.sumAllSessionCostsForUser();
   }
 }
+

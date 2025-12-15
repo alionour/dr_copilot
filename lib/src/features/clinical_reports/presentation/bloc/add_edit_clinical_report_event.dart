@@ -186,3 +186,4 @@ class FinalizeClinicalReport extends AddEditClinicalReportEvent {
   @override
   List<Object> get props => [reportId];
 }
+

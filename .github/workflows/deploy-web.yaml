@@ -39,7 +39,7 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: |
           FIREBASE_TOKEN=$(doppler secrets get FIREBASE_TOKEN --plain)
-          firebase deploy --only hosting --token "$FIREBASE_TOKEN" --non-interactive
+          firebase deploy --only hosting --project drcopilot-bfc9e --token "$FIREBASE_TOKEN" --non-interactive
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 

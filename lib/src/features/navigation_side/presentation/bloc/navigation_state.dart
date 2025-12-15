@@ -47,3 +47,4 @@ class NavigationState extends Equatable {
   }
 }
 
+

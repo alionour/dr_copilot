@@ -74,3 +74,4 @@ class StaffModel extends Staff {
     );
   }
 }
+

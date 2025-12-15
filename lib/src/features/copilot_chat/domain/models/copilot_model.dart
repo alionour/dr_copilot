@@ -23,3 +23,4 @@ class CopilotModel {
   /// A method to convert a Copilot instance to a JSON map.
   Map<String, dynamic> toJson() => _$CopilotModelToJson(this);
 }
+

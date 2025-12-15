@@ -197,3 +197,4 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     );
   }
 }
+

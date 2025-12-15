@@ -22,3 +22,4 @@ class CopilotUseCase {
     return _repository.deleteCopilot(id);
   }
 }
+

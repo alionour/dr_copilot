@@ -305,3 +305,4 @@ class PatientDetailsPage extends StatelessWidget {
     );
   }
 }
+

@@ -52,3 +52,4 @@ class UnarchiveTeamEvent extends TeamsEvent {
   @override
   List<Object?> get props => [teamId];
 }
+

@@ -238,7 +238,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                         const SizedBox(height: 16),
                         // Patient selection dropdown
                         DropdownButtonFormField<PatientModel>(
-                          value: _selectedPatient,
+                          initialValue: _selectedPatient,
                           decoration: InputDecoration(
                             labelText: 'selectPatient'.tr(),
                             border: const OutlineInputBorder(),
@@ -520,3 +520,4 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     );
   }
 }
+

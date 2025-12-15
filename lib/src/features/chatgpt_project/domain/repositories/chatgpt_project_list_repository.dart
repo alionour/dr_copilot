@@ -3,3 +3,4 @@ import 'package:dr_copilot/src/features/chatgpt_project/domain/entities/chatgpt_
 abstract class ChatGptProjectListRepository {
   Future<List<ChatGptProject>> getChatGptProjects();
 }
+

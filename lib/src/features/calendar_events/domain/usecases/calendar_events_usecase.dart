@@ -169,3 +169,4 @@ class CalendarEventsUseCase {
 class ValidationFailure extends Failure {
   ValidationFailure(String message) : super(message, 400);
 }
+

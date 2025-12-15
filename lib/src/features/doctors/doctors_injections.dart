@@ -18,3 +18,4 @@ void initDoctorsInjections() {
   // Data sources
   sl.registerLazySingleton(() => DoctorFirebaseApi());
 }
+

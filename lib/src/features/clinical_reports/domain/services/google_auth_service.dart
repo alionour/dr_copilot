@@ -49,3 +49,4 @@ class GoogleAuthService {
     _authenticatedClient = null;
   }
 }
+

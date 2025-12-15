@@ -38,3 +38,4 @@ class TeamOperationSuccess extends TeamsState {
   @override
   List<Object?> get props => [message];
 }
+

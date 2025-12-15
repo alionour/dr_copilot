@@ -34,3 +34,4 @@ class SessionsRevenueByMonthChart extends StatelessWidget {
     );
   }
 }
+

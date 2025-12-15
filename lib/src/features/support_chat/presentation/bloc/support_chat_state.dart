@@ -33,3 +33,4 @@ class SupportChatError extends SupportChatState {
   @override
   List<Object?> get props => [message];
 }
+

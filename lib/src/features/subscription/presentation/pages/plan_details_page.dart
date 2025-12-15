@@ -147,7 +147,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                     Text(
                       widget.description,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -166,7 +166,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                         Text(
                           period,
                           style: theme.textTheme.titleLarge?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -285,3 +285,4 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
     );
   }
 }
+

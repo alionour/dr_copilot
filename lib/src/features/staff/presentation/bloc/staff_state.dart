@@ -29,3 +29,4 @@ class StaffError extends StaffState {
 class StaffSuccess extends StaffState {
   const StaffSuccess(super.staff, {super.message});
 }
+

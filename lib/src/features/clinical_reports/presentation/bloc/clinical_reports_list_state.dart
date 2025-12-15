@@ -39,3 +39,4 @@ class ClinicalReportsListError extends ClinicalReportsListState {
   @override
   List<Object> get props => [message];
 }
+

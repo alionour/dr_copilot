@@ -47,3 +47,4 @@ class EvaluationApiImpl {
     return data.map((json) => EvaluationModel.fromJson(json)).toList();
   }
 }
+

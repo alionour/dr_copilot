@@ -10,3 +10,4 @@ abstract class DoctorRepository {
       String doctorId, DoctorModel doctor);
   Future<Either<Failure, void>> deleteDoctor(String doctorId);
 }
+

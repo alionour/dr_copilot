@@ -47,3 +47,4 @@ class AuthRepositoryImpl implements AbstractAuthRepository {
     return api.updateProfile(displayName: displayName, photoURL: photoURL);
   }
 }
+

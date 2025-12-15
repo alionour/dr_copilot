@@ -75,3 +75,4 @@ abstract class AbstractEvaluationsRepository {
   /// Sums the total price of all evaluations for the authenticated user (all time).
   Future<Either<Failure, double>> sumAllEvaluationCostsForUser();
 }
+

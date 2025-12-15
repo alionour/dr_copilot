@@ -28,3 +28,4 @@ class SendNotificationFailure extends SendNotificationState {
   @override
   List<Object?> get props => [message];
 }
+

@@ -550,7 +550,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             DropdownButtonFormField<String>(
-                              value: _selectedClinicId,
+                              initialValue: _selectedClinicId,
                               decoration: InputDecoration(
                                 labelText: 'clinic'.tr(),
                                 labelStyle: Theme.of(context)
@@ -584,7 +584,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                             ),
                             const SizedBox(height: 8.0),
                             DropdownButtonFormField<DoctorModel>(
-                              value: _selectedDoctor,
+                              initialValue: _selectedDoctor,
                               decoration: InputDecoration(
                                 labelText: 'selectDoctor'.tr(),
                                 labelStyle: Theme.of(context)
@@ -830,7 +830,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               ),
                             const SizedBox(height: 8.0),
                             DropdownButtonFormField<String>(
-                              value: _selectedSessionType,
+                              initialValue: _selectedSessionType,
                               decoration: InputDecoration(
                                 labelText: 'sessionType'.tr(),
                                 labelStyle: Theme.of(context)
@@ -912,7 +912,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                             ),
                             const SizedBox(height: 8.0),
                             DropdownButtonFormField<String>(
-                              value: _selectedCalendar,
+                              initialValue: _selectedCalendar,
                               decoration: InputDecoration(
                                 labelText: 'calendar'.tr(),
                                 labelStyle: Theme.of(context)
@@ -967,7 +967,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                 DropdownButtonFormField<
                                                   CurrencyProfileModel
                                                 >(
-                                                  value:
+                                                  initialValue:
                                                       _selectedCurrencyProfile,
                                                   decoration: InputDecoration(
                                                     labelText: 'currencyProfile'
@@ -1023,7 +1023,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                 DropdownButtonFormField<
                                                   InvoiceStatus
                                                 >(
-                                                  value: _selectedInvoiceStatus,
+                                                  initialValue: _selectedInvoiceStatus,
                                                   decoration: InputDecoration(
                                                     labelText: 'invoiceStatus'
                                                         .tr(),
@@ -1121,3 +1121,4 @@ class _AddSessionPageState extends State<AddSessionPage> {
     );
   }
 }
+

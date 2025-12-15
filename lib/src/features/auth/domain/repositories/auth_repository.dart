@@ -35,3 +35,4 @@ abstract class AbstractAuthRepository {
   /// Updates the current user's display name and/or photo URL.
   Future<void> updateProfile({String? displayName, String? photoURL});
 }
+

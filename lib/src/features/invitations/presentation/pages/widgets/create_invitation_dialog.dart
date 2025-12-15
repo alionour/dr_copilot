@@ -196,3 +196,4 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
     }
   }
 }
+

@@ -66,3 +66,4 @@ enum AppPermission {
   viewHelp,
   accessSupport,
 }
+

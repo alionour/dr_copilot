@@ -10,7 +10,7 @@ class GoalColorDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<Color>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: 'goalColor'.tr(),
         border: const OutlineInputBorder(),
@@ -71,3 +71,4 @@ class GoalColorDropdown extends StatelessWidget {
     );
   }
 }
+

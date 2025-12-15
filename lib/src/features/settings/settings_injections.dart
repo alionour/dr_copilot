@@ -12,3 +12,4 @@ void initSettingsInjections() {
   // BLoC
   sl.registerFactory(() => SettingsBloc());
 }
+

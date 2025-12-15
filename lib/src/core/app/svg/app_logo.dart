@@ -78,3 +78,4 @@ class DrCopilotLogo extends StatelessWidget {
     );
   }
 }
+

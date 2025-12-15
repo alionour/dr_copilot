@@ -22,3 +22,4 @@ class NetworkInfoImpl implements NetworkInfo {
   /// otherwise `false`, as determined by [connectionChecker].
   Future<bool> get isConnected => connectionChecker.hasInternetAccess;
 }
+

@@ -133,3 +133,4 @@ class EvaluationsRepositoryImpl extends AbstractEvaluationsRepository {
     return firebaseApi.sumAllEvaluationCostsForUser();
   }
 }
+

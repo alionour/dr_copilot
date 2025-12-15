@@ -126,3 +126,4 @@ abstract class AbstractFinancialsRepository {
 
   Future<Either<Failure, void>> deleteScheduledBill(String id);
 }
+

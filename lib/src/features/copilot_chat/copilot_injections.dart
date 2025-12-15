@@ -48,3 +48,4 @@ void initCopilotInjections() {
     () => ClaudeService(sl(), quotaService: sl(), subscriptionService: sl()),
   );
 }
+

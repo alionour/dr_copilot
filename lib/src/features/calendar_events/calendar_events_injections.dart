@@ -25,3 +25,4 @@ void initCalendarEventsInjections() {
   // Presentation Layer - BLoC
   sl.registerFactory<CalendarEventsBloc>(() => CalendarEventsBloc(sl()));
 }
+

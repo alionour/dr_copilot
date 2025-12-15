@@ -96,3 +96,4 @@ class MedicationListWidget extends StatelessWidget {
     );
   }
 }
+

@@ -13,3 +13,4 @@ class DeleteStaffUseCase implements UseCase<void, String> {
     return repository.deleteStaff(params);
   }
 }
+

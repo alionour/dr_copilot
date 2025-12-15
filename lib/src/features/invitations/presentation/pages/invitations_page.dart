@@ -142,3 +142,4 @@ class InvitationsPage extends StatelessWidget {
     );
   }
 }
+

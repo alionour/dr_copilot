@@ -21,3 +21,4 @@ class ScreenSizeHelper {
   static bool isLarge(BuildContext context) =>
       getScreenSize(context) == ScreenSize.large;
 }
+

@@ -18,3 +18,4 @@ class ChatGptProject extends Equatable {
   @override
   List<Object?> get props => [id, name, description, createdAt, updatedAt];
 }
+

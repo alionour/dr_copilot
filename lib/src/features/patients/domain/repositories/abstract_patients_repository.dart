@@ -43,3 +43,4 @@ abstract class AbstractPatientsRepository {
   /// Gets the total count of patients in Firestore.
   Future<Either<Failure, int>> getPatientsCount();
 }
+

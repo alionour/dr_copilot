@@ -168,3 +168,4 @@ class NotificationTarget {
 
   Map<String, dynamic> toJson() => _$NotificationTargetToJson(this);
 }
+

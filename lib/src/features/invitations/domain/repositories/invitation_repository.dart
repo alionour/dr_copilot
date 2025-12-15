@@ -11,3 +11,4 @@ abstract class InvitationRepository {
   Future<Either<Failure, void>> deleteInvitation(String invitationId);
   Future<Either<Failure, void>> resendInvitation(String invitationId);
 }
+

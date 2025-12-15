@@ -23,3 +23,4 @@ class PrivacyPage extends StatelessWidget {
     );
   }
 }
+
