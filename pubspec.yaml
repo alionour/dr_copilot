@@ -117,6 +117,8 @@ dependencies:
 dependency_overrides:
   speech_to_text_windows:
     path: ./packages/speech_to_text_windows
+  flutter_tts:
+    path: ./packages/flutter_tts_fixed
 
 dev_dependencies:
   l10n_mapper_generator: ^2.1.6

@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -30,6 +32,22 @@ jobs:
 
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
+
+      - name: Get build number from commit count
+        id: build_number
+        run: |
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "Build number: $BUILD_NUMBER"
+
+      - name: Update version in pubspec.yaml
+        run: |
+          BUILD_NUMBER=${{ steps.build_number.outputs.build_number }}
+          # Get current version (e.g., 1.0.0) from pubspec
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          # Update with new build number
+          sed -i "s/^version:.*/version: $CURRENT_VERSION+$BUILD_NUMBER/" pubspec.yaml
+          cat pubspec.yaml | grep version
 
       - name: Install dependencies
         run: doppler run -- flutter pub get
