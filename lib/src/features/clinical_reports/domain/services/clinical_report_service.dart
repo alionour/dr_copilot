@@ -14,7 +14,10 @@ import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_
 import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_report_instruction.dart';
 
 class ClinicalReportService {
-  final ClinicalReportFirebaseApi _api = ClinicalReportFirebaseApi();
+  final ClinicalReportFirebaseApi _api;
+
+  ClinicalReportService({ClinicalReportFirebaseApi? api})
+      : _api = api ?? ClinicalReportFirebaseApi();
 
   Future<Either<Failure, ClinicalReport>> createClinicalReport(
     ClinicalReport newReport, {
@@ -121,7 +124,7 @@ class ClinicalReportService {
   }
 
   Future<Either<Failure, List<ClinicalReportInstruction>>>
-  getInstructions() async {
+      getInstructions() async {
     debugPrint('Getting instructions');
     return _api.getInstructions();
   }
@@ -158,4 +161,3 @@ class ClinicalReportService {
     debugPrint('Migration to HTML is complete or disabled.');
   }
 }
-
