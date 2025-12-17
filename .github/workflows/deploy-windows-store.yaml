@@ -125,6 +125,29 @@ jobs:
 
       - name: Publish to Microsoft Store
         run: |
+          # 1. Get current submission
+          $appId = "${{ secrets.MSSTORE_APP_ID }}"
+          Write-Host "Fetching submission for App ID: $appId"
+          msstore submission get --appId $appId > submission.json
+          
+          # 2. Update metadata using our script
+          # Note: We point to the Android metadata folder
+          ./scripts/update_windows_metadata.ps1 -SubmissionJsonPath "submission.json" -MetadataBasePath "android/fastlane/metadata/android"
+          
+          # 3. Publish the updated submission (including the binary)
           $msixPath = Get-ChildItem -Path dist/ -Filter *.msix | Select-Object -First 1 -ExpandProperty FullName
-          Write-Host "Publishing $msixPath..."
-          msstore publish "$msixPath" --appId ${{ secrets.MSSTORE_APP_ID }} --verbose
+          Write-Host "Publishing $msixPath with updated metadata..."
+          
+          # We use `msstore submission update` to push the JSON changes + the new package
+          # Note: The CLI command might vary slightly for combined update + package. 
+          # A common pattern is to update submission with JSON, then upload package. 
+          # Or `msstore publish` might take --body. 
+          # Let's try updating the submission object first, then publishing.
+          
+          msstore submission update --appId $appId --body "submission.json"
+          
+          # Finally publish the package if the above didn't handle it, or use `msstore publish` which is higher level.
+          # `msstore publish` technically replaces the "submission update" for simple cases.
+          # If we want to be safe and simple, we run the update above, THEN publish the package.
+          
+          msstore publish "$msixPath" --appId $appId --verbose

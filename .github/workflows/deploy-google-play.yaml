@@ -127,4 +127,74 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
           status: draft
-          # userFraction: 0.50 # Optional: Rollout percentage when checking status is 'inProgress'
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Integration Tests (Screenshots) on Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            # Run the integration test using flutter drive to capture screenshots on host
+            mkdir -p build/screenshots
+            doppler run -- flutter drive \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/screenshot_generator_test.dart \
+              -d emulator-5554
+            
+            
+            # Move to Fastlane metadata structure
+            mkdir -p android/fastlane/metadata/android/en-US/images/phoneScreenshots/
+            cp build/screenshots/*.png android/fastlane/metadata/android/en-US/images/phoneScreenshots/ || true
+
+      - name: Upload Screenshots as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-screenshots
+          path: build/screenshots/
+
+      - name: Add Screenshots to Job Summary
+        if: always()
+        run: |
+          echo "## Generated Store Screenshots" >> $GITHUB_STEP_SUMMARY
+          echo "Screenshots captured during integration test:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if screenshots exist
+          if [ -d "build/screenshots" ]; then
+             echo "| Screenshot | Name |" >> $GITHUB_STEP_SUMMARY
+             echo "| :---: | --- |" >> $GITHUB_STEP_SUMMARY
+             
+             # Note: We cannot embed images directly from local path in Summary, 
+             # but we can list them. GitHub Actions Summary supports viewing uploaded artifacts 
+             # via the artifacts UI, not directly embedding them unless hosted externally.
+             # However, we can list filenames to confirm generation.
+             
+             for f in build/screenshots/*.png; do
+               filename=$(basename "$f")
+               echo "| 📷 | $filename |" >> $GITHUB_STEP_SUMMARY
+             done
+          else
+             echo "No screenshots found." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Setup Fastlane
+        if: success()
+        run: |
+          cd android
+          # Create service_account.json from secret
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" > fastlane/service_account.json
+          gem install fastlane
+      
+      - name: Upload Metadata & Screenshots to Google Play
+        if: success()
+        run: |
+          cd android
+          fastlane capture_screenshots

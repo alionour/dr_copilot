@@ -1,57 +1,136 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:dr_copilot/main.dart' as entry_point;
 import 'package:dr_copilot/src/core/router/routing_config.dart';
-import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
+import 'package:dr_copilot/src/core/app/app.dart';
+import 'package:dr_copilot/src/core/localization/app_localization.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockAuthRepository extends Mock implements AbstractAuthRepository {}
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('generate_store_screenshots', (tester) async {
-    // 1. Launch the app
-    entry_point.main();
-    await tester.pumpAndSettle();
+  // Mock Authentication Repository
+  final mockAuthRepository = MockAuthRepository();
+  when(() => mockAuthRepository.authStateChanges()).thenAnswer(
+    (_) => Stream.value(
+      UserModel(
+        uid: 'test-user-id',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        photoURL: null,
+      ),
+    ),
+  );
+  when(() => mockAuthRepository.getCurrentUser()).thenAnswer(
+    (_) => Future.value(
+      UserModel(
+        uid: 'test-user-id',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        photoURL: null,
+      ),
+    ),
+  );
 
-    // 2. Handling Login
-    // If we are on the login page, we need to wait for the user to sign in manually,
-    // because Google Sign-In usually requires native UI interaction.
-    if (find.byType(LoginPage).evaluate().isNotEmpty) {
-      debugPrint('--------------------------------------------------');
-      debugPrint('Please sign in manually on the device/emulator...');
-      debugPrint('Waiting for Home Page...');
-      debugPrint('--------------------------------------------------');
+  // Initialize dependencies but replace Auth Repository
+  await initInjections();
+  
+  // Unregister the real repository if it exists (it's lazy singleton)
+  if (sl.isRegistered<AbstractAuthRepository>()) {
+    sl.unregister<AbstractAuthRepository>();
+  }
+  // Register the mock
+  sl.registerLazySingleton<AbstractAuthRepository>(() => mockAuthRepository);
 
-      // Take a screenshot of the login page before we sign in
-      await binding.takeScreenshot('01_login_screen');
+  // Global Key for RepaintBoundary
+  final GlobalKey repaintBoundaryKey = GlobalKey();
 
-      // Poll until HomePage appears (max wait 5 minutes)
-      // We check every 2 seconds
-      bool isLoggedIn = false;
-      for (int i = 0; i < 150; i++) {
-        await Future.delayed(const Duration(seconds: 2));
-        await tester.pumpAndSettle();
-
-        if (find.byType(HomePage).evaluate().isNotEmpty) {
-          isLoggedIn = true;
-          break;
+  Future<void> takeScreenshot(String name) async {
+    if (Platform.isWindows) {
+      try {
+        debugPrint('Taking Windows screenshot for: $name');
+        // Find the render object
+        final boundary = repaintBoundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        
+        if (boundary == null) {
+          debugPrint('Error: Could not find RepaintBoundary for screenshot');
+          return;
         }
-      }
 
-      if (!isLoggedIn) {
-        fail('Timed out waiting for manual login.');
+        // Capture image
+        // ui.Image is required, imported from dart:ui
+        final image = await boundary.toImage(pixelRatio: 3.0); 
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        final pngBytes = byteData!.buffer.asUint8List();
+
+        // Write to file
+        final file = File('build/screenshots/$name.png');
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(pngBytes);
+        debugPrint('Saved Windows screenshot: ${file.path}');
+      } catch (e) {
+        debugPrint('Windows manual screenshot failed: $e');
       }
     } else {
-      // Already logged in
-      debugPrint('Already logged in, skipping login wait.');
+      // Android / iOS / Standard
+      try {
+        await binding.takeScreenshot(name);
+      } catch (e) {
+        debugPrint('Standard screenshot failed: $e');
+      }
+    }
+  }
+
+  testWidgets('generate_store_screenshots', (tester) async {
+    // 1. Launch the app with the Mock Injected
+    // We wrap the App in a RepaintBoundary to enable manual capture on Windows
+    await tester.pumpWidget(
+      AppLocalization(
+        child: RepaintBoundary(
+          key: repaintBoundaryKey,
+          child: App(
+            isDarkMode: false,
+            initialScheme: FlexScheme.tealM3,
+            initialFontSize: 'medium',
+          ),
+        ),
+      ),
+    );
+    
+    await tester.pumpAndSettle();
+
+    // 2. Handling Login (Mocked)
+    debugPrint('Waiting for Home Page (Mock Auth)...');
+    
+    bool isLoggedIn = false;
+    for (int i = 0; i < 20; i++) { // Wait max 40 seconds
+      await Future.delayed(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      if (find.byType(HomePage).evaluate().isNotEmpty) {
+        isLoggedIn = true;
+        break;
+      }
     }
 
-    // Short pause to ensure Home is fully loaded
-    await Future.delayed(const Duration(seconds: 3));
-    await tester.pumpAndSettle();
-    await binding.takeScreenshot('02_home_screen');
+    if (!isLoggedIn) {
+      fail('Timed out waiting for Home Page with Mock Auth.');
+    }
+    
+    // 3. Take screenshots    
+    await takeScreenshot('02_home_screen');
 
+    // Continue to other screens...
     // 3. Navigate to other pages and screenshot
     final routes = {
       '03_calendar_screen': '/calendar',
@@ -67,20 +146,12 @@ void main() {
       final route = entry.value;
 
       debugPrint('Navigating to $route...');
-
-      // Use the global router to navigate
-      // We run this inside runAsync to ensure safe execution if needed,
-      // though typically direct call works if on same isolate.
       RoutingConfig.router.go(route);
-
-      // Pump and settle to wait for navigation animation
       await tester.pumpAndSettle();
-
-      // Additional small delay for data loading/rendering
       await Future.delayed(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      await binding.takeScreenshot(name);
+      await takeScreenshot(name);
     }
 
     debugPrint('--------------------------------------------------');
