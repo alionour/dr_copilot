@@ -125,5 +125,6 @@ jobs:
 
       - name: Publish to Microsoft Store
         run: |
-          Write-Host "Publishing from dist directory..."
-          msstore publish --inputDirectory dist --appId ${{ secrets.MSSTORE_APP_ID }} --verbose
+          $msixPath = Get-ChildItem -Path dist/ -Filter *.msix | Select-Object -First 1 -ExpandProperty FullName
+          Write-Host "Publishing $msixPath..."
+          msstore publish "$msixPath" --appId ${{ secrets.MSSTORE_APP_ID }} --verbose
