@@ -10,7 +10,10 @@ import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dar
 import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/ai_router_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/utils/ai_context_provider.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
@@ -24,6 +27,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   final DeepSeekService deepSeekService;
   final QwenService qwenService;
   final ClaudeService claudeService;
+  final AIRouterService routerService;
   final FlutterSecureStorage secureStorage;
 
   CopilotBloc({
@@ -33,6 +37,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     required this.deepSeekService,
     required this.qwenService,
     required this.claudeService,
+    required this.routerService,
     required this.secureStorage,
   }) : super(CopilotInitial()) {
     on<GenerateResponseEvent>(_onGenerateResponse);
@@ -40,19 +45,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     on<CacheMessagesEvent>(_onCacheMessages);
     on<LoadCachedMessagesEvent>(_onLoadCachedMessages);
     on<StartNewChatEvent>(_onStartNewChat);
-  }
-
-  AIService _getService(String modelName) {
-    // Map internal storage keys to service names
-    switch (modelName.toLowerCase()) {
-      case 'openai':
-        return gptService;
-      case 'claude':
-        return claudeService;
-      case 'gemini':
-      default:
-        return geminiService;
-    }
+    on<UpdateCopilotSettingsEvent>(_onUpdateCopilotSettings);
   }
 
   Future<T> _retryStorage<T>(Future<T> Function() operation) async {
@@ -74,18 +67,21 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   ) async {
     emit(CopilotLoading());
     try {
-      // Read selected model from secure storage with retry
-      final selectedModel =
-          await _retryStorage(
-            () => secureStorage.read(key: 'selected_ai_model'),
-          ) ??
-          'gemini';
-      final service = _getService(selectedModel);
+      // Use AI Router to get the optimal service for this query
+      final service = await routerService.getServiceForQuery(
+        query: event.query,
+        clinicId: event.clinicId,
+        forcePremium: false, // TODO: Add user setting for this
+      );
+
+      // Append timestamp for temporal context (cost-effective: ~8 tokens, 0 permission overhead)
+      final queryWithContext =
+          '${event.query}\n\n${AIContextProvider.getTimestamp()}';
 
       // Special handling for Gemini to support function calling which returns a different type
       if (service is GeminiService) {
         final response = await service.getGeminiResponse(
-          event.query,
+          queryWithContext,
           messageHistory: event.messageHistory,
           clinicId: event.clinicId,
           userId: event.userId,
@@ -98,7 +94,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
         }
       } else {
         final response = await service.generateResponse(
-          event.query,
+          queryWithContext,
           messageHistory: event.messageHistory,
           clinicId: event.clinicId,
           userId: event.userId,
@@ -120,15 +116,19 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   ) async {
     emit(CopilotLoading());
     try {
-      // Read selected model from secure storage with retry
-      final selectedModel =
-          await _retryStorage(
-            () => secureStorage.read(key: 'selected_ai_model'),
-          ) ??
-          'gemini';
-      final service = _getService(selectedModel);
+      // Use AI Router to get the optimal service for image queries
+      final service = await routerService.getServiceForQuery(
+        query: event.text,
+        clinicId: event.clinicId,
+        forcePremium: false,
+      );
+
+      // Append timestamp for temporal context
+      final textWithContext =
+          '${event.text}\n\n${AIContextProvider.getTimestamp()}';
+
       final response = await service.generateResponseWithImage(
-        event.text,
+        textWithContext,
         event.imageBytes,
         clinicId: event.clinicId,
         userId: event.userId,
@@ -159,7 +159,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   ) async {
     final messagesJson =
         await _retryStorage(() => secureStorage.read(key: 'cachedMessages')) ??
-        '[]';
+            '[]';
     final List<dynamic> decodedMessages = jsonDecode(messagesJson);
     final messages = decodedMessages
         .map((message) => Map<String, dynamic>.from(message))
@@ -185,5 +185,18 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
         return const CopilotError('Unexpected Error');
     }
   }
-}
 
+  void _onUpdateCopilotSettings(
+    UpdateCopilotSettingsEvent event,
+    Emitter<CopilotState> emit,
+  ) {
+    debugPrint(
+        '[CopilotBloc] Updating required fields for all services: ${event.requiredFields}');
+    geminiService.updateModelConfig(event.requiredFields);
+    gptService.updateModelConfig(event.requiredFields);
+    claudeService.updateModelConfig(event.requiredFields);
+    vertexAIService.updateModelConfig(event.requiredFields);
+    deepSeekService.updateModelConfig(event.requiredFields);
+    qwenService.updateModelConfig(event.requiredFields);
+  }
+}

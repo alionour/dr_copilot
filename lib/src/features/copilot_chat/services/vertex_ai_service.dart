@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_
 import 'package:http/http.dart' as http;
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/utils/ai_context_provider.dart';
 
 class VertexAIService implements AIService {
   final String apiKey;
@@ -15,8 +16,8 @@ class VertexAIService implements AIService {
     this.apiKey, {
     required QuotaService quotaService,
     required SubscriptionService subscriptionService,
-  }) : _quotaService = quotaService,
-       _subscriptionService = subscriptionService;
+  })  : _quotaService = quotaService,
+        _subscriptionService = subscriptionService;
 
   Future<void> _checkTokenLimit(String clinicId) async {
     final tier = await _subscriptionService.getCurrentTier(clinicId);
@@ -71,6 +72,14 @@ class VertexAIService implements AIService {
     );
   }
 
+  // dynamic configuration
+  List<String> _currentRequiredFields = [];
+
+  @override
+  void updateModelConfig(List<String> requiredFields) {
+    _currentRequiredFields = requiredFields;
+  }
+
   Future<String> getMedPaLMResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
@@ -92,10 +101,13 @@ class VertexAIService implements AIService {
       }
     }
 
-    // Combine context with current query
+    // Combine context with current query and system instruction
+    final systemInstruction = AIContextProvider.getBaseSystemInstruction(
+        requiredFields: _currentRequiredFields);
+
     final fullPrompt = context.isNotEmpty
-        ? '$context\nUser: $query\nAssistant:'
-        : query;
+        ? '$systemInstruction\n\n$context\nUser: $query\nAssistant:'
+        : '$systemInstruction\n\nUser: $query\nAssistant:';
 
     final response = await http.post(
       url,
@@ -121,8 +133,7 @@ class VertexAIService implements AIService {
           estimatedTokens = data['metadata']['tokenCount'] as int;
         } else {
           // Rough estimation: 4 chars per token for input + output
-          estimatedTokens =
-              (fullPrompt.length +
+          estimatedTokens = (fullPrompt.length +
                   (data['predictions'][0]['content'] as String).length) ~/
               4;
         }
@@ -186,4 +197,3 @@ class VertexAIService implements AIService {
     }
   }
 }
-

@@ -1,12 +1,15 @@
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/widgets/calendar_view.dart'; // Import dumb view
 import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
 import 'package:dr_copilot/src/features/calendar_events/presentation/bloc/calendar_events_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart' as sf;
+import 'dart:ui';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -16,16 +19,69 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  List<DateTime> _visibleDates = [];
-  CalendarView _calendarView = CalendarView.month;
-  final CalendarController _calendarController = CalendarController();
-  String _headerDate = '';
+  // Page manages the state variables that drive the view
+  sf.CalendarView _currentView = sf.CalendarView.day;
+  final sf.CalendarController _calendarController = sf.CalendarController();
 
-  @override
-  void initState() {
-    super.initState();
-    // Initial load will happen in onViewChanged or we can trigger one here if needed
-    // But better to rely on onViewChanged which fires on processing
+  Widget _buildBeautifulLoadingIndicator() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // Backdrop blur
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: Colors.black.withOpacity(0.05), // Subtle dark tint
+              ),
+            ),
+          ),
+          // Loading Card
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 30,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      backgroundColor:
+                          Theme.of(context).primaryColor.withOpacity(0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'loading'.tr(),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).hintColor,
+                          letterSpacing: 0.5,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _navigateToAddEvent(BuildContext context) async {
@@ -49,209 +105,16 @@ class _CalendarPageState extends State<CalendarPage> {
     if (result != null && context.mounted) {
       if (result.id.isNotEmpty) {
         context.read<CalendarEventsBloc>().add(
-          UpdateCalendarEvent(result.id, result),
-        );
+              UpdateCalendarEvent(result.id, result),
+            );
       } else {
         context.read<CalendarEventsBloc>().add(AddCalendarEvent(result));
       }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final navMenuButton = NavMenuButtonProvider.of(context);
-
-    return BlocProvider<CalendarEventsBloc>(
-      create: (context) => sl<CalendarEventsBloc>(), // Use DI
-      child: Scaffold(
-        appBar: AppBar(
-          title: InkWell(
-            borderRadius: BorderRadius.circular(6),
-            onTap: () => _showCalendarViewSelection(context),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _headerDate.isEmpty ? 'calendarTitle'.tr() : _headerDate,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ],
-            ),
-          ),
-          leading: const Icon(Icons.calendar_month_outlined),
-          actions: [
-            if (navMenuButton != null) navMenuButton,
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _navigateToAddEvent(context),
-            ),
-          ],
-        ),
-        body: Builder(
-          builder: (context) {
-            return BlocConsumer<CalendarEventsBloc, CalendarEventsState>(
-              listener: (context, state) {
-                if (state is CalendarEventsError) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(state.message)));
-                }
-              },
-              builder: (context, state) {
-                List<CalendarEventModel> events = [];
-                bool isLoading = false;
-
-                if (state is CalendarEventsLoading) {
-                  isLoading = true;
-                } else if (state is CalendarEventsLoaded) {
-                  events = state.events;
-                }
-
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: DefaultTextStyle(
-                        style:
-                            Theme.of(context).textTheme.bodyMedium ??
-                            const TextStyle(),
-                        child: SelectionContainer.disabled(
-                          child: SfCalendar(
-                            key: ValueKey(_calendarView),
-                            controller: _calendarController,
-                            view: _calendarView,
-                            headerHeight:
-                                0, // Disable default header to prevent crash
-                            dataSource: InternalCalendarDataSource(events),
-                            onTap: (calendarTapDetails) {
-                              if (calendarTapDetails.targetElement ==
-                                  CalendarElement.header) {
-                                _showCalendarViewSelection(context);
-                              } else if (calendarTapDetails.targetElement ==
-                                  CalendarElement.appointment) {
-                                final appointment =
-                                    calendarTapDetails.appointments!.first;
-                                if (appointment is CalendarEventModel) {
-                                  // Show details
-                                  _showEventDetails(context, appointment);
-                                }
-                              }
-                            },
-                            allowAppointmentResize:
-                                false, // Read only for now unless logic added
-                            allowDragAndDrop: false,
-                            onViewChanged: (ViewChangedDetails details) {
-                              _visibleDates = details.visibleDates;
-                              if (_visibleDates.isNotEmpty) {
-                                final startDate = _visibleDates.first;
-                                final endDate = _visibleDates.last;
-                                final midDate =
-                                    _visibleDates[_visibleDates.length ~/ 2];
-
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  if (mounted) {
-                                    setState(() {
-                                      _headerDate = DateFormat(
-                                        'MMMM yyyy',
-                                      ).format(midDate);
-                                    });
-                                  }
-                                });
-
-                                context.read<CalendarEventsBloc>().add(
-                                  LoadEventsByDateRange(startDate, endDate),
-                                );
-                              }
-                            },
-                            monthViewSettings: const MonthViewSettings(
-                              appointmentDisplayMode:
-                                  MonthAppointmentDisplayMode.appointment,
-                              showAgenda: true,
-                            ),
-                            timeSlotViewSettings: const TimeSlotViewSettings(
-                              startHour: 7,
-                              endHour: 22,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isLoading)
-                      const Center(child: CircularProgressIndicator.adaptive()),
-                  ],
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showCalendarViewSelection(BuildContext context) async {
-    final selected = await showModalBottomSheet<CalendarView>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'calendarView.selectView'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              ...<CalendarView>[
-                CalendarView.day,
-                CalendarView.week,
-                CalendarView.workWeek,
-                CalendarView.month,
-                CalendarView.schedule,
-              ].map(
-                (view) => ListTile(
-                  leading: Icon(
-                    Icons.calendar_view_day, // Generic icon
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    view.toString().split('.').last, // Simple label for now
-                    style: TextStyle(
-                      fontWeight: _calendarView == view
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: _calendarView == view
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(context).pop(view);
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (selected != null && selected != _calendarView) {
-      setState(() {
-        _calendarView = selected;
-        _calendarController.view = selected;
-      });
-    }
+  void _deleteEvent(BuildContext context, CalendarEventModel event) {
+    context.read<CalendarEventsBloc>().add(DeleteCalendarEvent(event.id));
   }
 
   void _showEventDetails(BuildContext context, CalendarEventModel event) {
@@ -278,14 +141,12 @@ class _CalendarPageState extends State<CalendarPage> {
         actions: [
           TextButton(
             onPressed: () {
-              // Delete confirmation
+              // Verify Delete
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: Text('deleteEvent'.tr()),
-                  content: Text(
-                    'deleteReportConfirmation'.tr(),
-                  ), // Reuse or add generic confirm
+                  content: Text('deleteReportConfirmation'.tr()),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -293,16 +154,12 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                     TextButton(
                       onPressed: () {
-                        context.read<CalendarEventsBloc>().add(
-                          DeleteCalendarEvent(event.id),
-                        );
-                        Navigator.of(context).pop(); // Close confirm
-                        Navigator.of(context).pop(); // Close details
+                        _deleteEvent(context, event);
+                        Navigator.of(context).pop(); // dialog
+                        Navigator.of(context).pop(); // details
                       },
-                      child: Text(
-                        'delete'.tr(),
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                      child: Text('delete'.tr(),
+                          style: const TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),
@@ -324,70 +181,71 @@ class _CalendarPageState extends State<CalendarPage> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'close'.tr(),
-            ), // Assuming 'close' exists or use 'cancel'
+            ),
           ),
         ],
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
+
+    return BlocProvider<CalendarEventsBloc>(
+      create: (context) => sl<CalendarEventsBloc>(),
+      child: BlocConsumer<CalendarEventsBloc, CalendarEventsState>(
+        listener: (context, state) {
+          if (state is CalendarEventsError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
+        builder: (context, state) {
+          List<CalendarEventModel> events = [];
+          if (state is CalendarEventsLoaded) {
+            events = state.events;
+          }
+
+          return BlocBuilder<SettingsBloc, SettingsState>(
+            builder: (context, settingsState) {
+              // Calculate non working days
+              final allDays = [1, 2, 3, 4, 5, 6, 7];
+              final workingDays = settingsState.workingDays;
+              final nonWorkingDays =
+                  allDays.where((d) => !workingDays.contains(d)).toList();
+
+              return Stack(
+                children: [
+                  CalendarView(
+                    events: events,
+                    currentView: _currentView,
+                    controller: _calendarController,
+                    navMenuButton: navMenuButton,
+                    nonWorkingDays: nonWorkingDays,
+                    onViewChanged: (newView) {
+                      setState(() {
+                        _currentView = newView;
+                        _calendarController.view = newView;
+                      });
+                    },
+                    onDateRangeChanged: (start, end) {
+                      context.read<CalendarEventsBloc>().add(
+                            LoadEventsByDateRange(start, end),
+                          );
+                    },
+                    onEventTap: (event) => _showEventDetails(context, event),
+                    onAddEvent: () => _navigateToAddEvent(context),
+                  ),
+                  if (state is CalendarEventsLoading)
+                    _buildBeautifulLoadingIndicator(),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
 }
-
-class InternalCalendarDataSource extends CalendarDataSource {
-  InternalCalendarDataSource(List<CalendarEventModel> source) {
-    appointments = source;
-  }
-
-  @override
-  DateTime getStartTime(int index) {
-    return (appointments![index] as CalendarEventModel).startDateTime.toDate();
-  }
-
-  @override
-  DateTime getEndTime(int index) {
-    return (appointments![index] as CalendarEventModel).endDateTime.toDate();
-  }
-
-  @override
-  String getSubject(int index) {
-    return (appointments![index] as CalendarEventModel).title;
-  }
-
-  @override
-  Color getColor(int index) {
-    final event = appointments![index] as CalendarEventModel;
-    if (event.color != null) {
-      try {
-        return Color(int.parse(event.color!.replaceAll('#', '0xFF')));
-      } catch (_) {}
-    }
-
-    // Type-based colors
-    switch (event.type) {
-      case CalendarEventType.session:
-        return Colors.blue;
-      case CalendarEventType.evaluation:
-        return Colors.purple;
-      case CalendarEventType.appointment:
-        return Colors.green;
-      case CalendarEventType.holiday:
-        return Colors.red;
-      case CalendarEventType.vacation:
-        return Colors.orange;
-      case CalendarEventType.clinicClosure:
-        return Colors.red.shade900;
-      case CalendarEventType.unavailable:
-        return Colors.grey;
-      default:
-        return Colors.blueGrey;
-    }
-  }
-
-  @override
-  bool isAllDay(int index) {
-    // Can implement logic if needed, e.g. for holidays
-    final event = appointments![index] as CalendarEventModel;
-    return event.type == CalendarEventType.holiday ||
-        event.type == CalendarEventType.vacation;
-  }
-}
-

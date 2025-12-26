@@ -22,11 +22,11 @@ class GenerateResponseEvent extends CopilotEvent {
 
   @override
   List<Object> get props => [
-    query,
-    messageHistory,
-    clinicId ?? '',
-    userId ?? '',
-  ];
+        query,
+        messageHistory,
+        clinicId ?? '',
+        userId ?? '',
+      ];
 }
 
 class UploadImageEvent extends CopilotEvent {
@@ -59,3 +59,9 @@ class LoadCachedMessagesEvent extends CopilotEvent {}
 
 class StartNewChatEvent extends CopilotEvent {}
 
+class UpdateCopilotSettingsEvent extends CopilotEvent {
+  final List<String> requiredFields;
+  const UpdateCopilotSettingsEvent(this.requiredFields);
+  @override
+  List<Object> get props => [requiredFields];
+}

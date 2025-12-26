@@ -60,9 +60,9 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       child: Text(
         titleKey.tr(),
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }
@@ -80,7 +80,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 _buildSectionHeader('themeMode'),
                 BlocBuilder<SettingsBloc, SettingsState>(
                   builder: (context, state) {
-                    final isDarkMode = state is SettingsDarkMode;
+                    final isDarkMode = state.isDarkMode;
                     return SwitchListTile(
                       title: const Text('darkMode').tr(),
                       subtitle: Text(
@@ -127,12 +127,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     },
                     items: <String>['small', 'medium', 'large']
                         .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value).tr(),
-                          );
-                        })
-                        .toList(),
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value).tr(),
+                      );
+                    }).toList(),
                   ),
                 ),
               ],
@@ -197,4 +196,3 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     );
   }
 }
-

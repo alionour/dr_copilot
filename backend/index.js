@@ -48,12 +48,19 @@ app.get('/admin/notifications', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-notifications.html'));
 });
 
+// Serve error dashboard
+app.get('/admin/errors', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'error-dashboard.html'));
+});
+
 // API routes
 const invitationRouter = require('./routes/invitations');
 const notificationRouter = require('./routes/notifications');
+const errorRouter = require('./routes/errors');
 
 app.use('/invitations', invitationRouter);
 app.use('/notifications', notificationRouter);
+app.use('/errors', errorRouter);
 
 
 // --- Root Route for Health Check ---

@@ -15,5 +15,7 @@ abstract class AIService {
     String? clinicId,
     String? userId,
   });
-}
 
+  /// Updates the model configuration with user-defined preferences, e.g., required fields.
+  void updateModelConfig(List<String> requiredFields);
+}

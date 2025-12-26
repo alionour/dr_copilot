@@ -113,97 +113,66 @@ class _FinancialsPageState extends State<FinancialsPage> {
                     ),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    if (_isSidebarExpanded)
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
+                clipBehavior: Clip.hardEdge,
+                child: OverflowBox(
+                  alignment: Alignment.topLeft,
+                  minWidth: _isSidebarExpanded ? 240 : 72,
+                  maxWidth: _isSidebarExpanded ? 240 : 72,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Navigation Items
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           children: [
-                            Icon(
-                              Icons.account_balance_wallet,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 28,
+                            _buildNavItem(
+                              context,
+                              index: 0,
+                              icon: Icons.dashboard_outlined,
+                              selectedIcon: Icons.dashboard,
+                              label: 'dashboard'.tr(),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'financials'.tr(),
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                    ),
-                              ),
+                            _buildNavItem(
+                              context,
+                              index: 1,
+                              icon: Icons.swap_horiz,
+                              selectedIcon: Icons.swap_horiz,
+                              label: 'transactions'.tr(),
+                            ),
+                            _buildNavItem(
+                              context,
+                              index: 2,
+                              icon: Icons.pie_chart_outline,
+                              selectedIcon: Icons.pie_chart,
+                              label: 'charts'.tr(),
+                            ),
+                            _buildNavItem(
+                              context,
+                              index: 3,
+                              icon: Icons.receipt_long,
+                              selectedIcon: Icons.receipt_long,
+                              label: 'billsAndPayments'.tr(),
+                            ),
+                            _buildNavItem(
+                              context,
+                              index: 4,
+                              icon: Icons.insert_chart_outlined,
+                              selectedIcon: Icons.insert_chart,
+                              label: 'reports'.tr(),
+                            ),
+                            _buildNavItem(
+                              context,
+                              index: 5,
+                              icon: Icons.flag_outlined,
+                              selectedIcon: Icons.flag,
+                              label: 'goals'.tr(),
                             ),
                           ],
                         ),
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Icon(
-                          Icons.account_balance_wallet,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 28,
-                        ),
                       ),
-                    const Divider(height: 1),
-                    // Navigation Items
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        children: [
-                          _buildNavItem(
-                            context,
-                            index: 0,
-                            icon: Icons.dashboard_outlined,
-                            selectedIcon: Icons.dashboard,
-                            label: 'dashboard'.tr(),
-                          ),
-                          _buildNavItem(
-                            context,
-                            index: 1,
-                            icon: Icons.swap_horiz,
-                            selectedIcon: Icons.swap_horiz,
-                            label: 'transactions'.tr(),
-                          ),
-                          _buildNavItem(
-                            context,
-                            index: 2,
-                            icon: Icons.pie_chart_outline,
-                            selectedIcon: Icons.pie_chart,
-                            label: 'charts'.tr(),
-                          ),
-                          _buildNavItem(
-                            context,
-                            index: 3,
-                            icon: Icons.receipt_long,
-                            selectedIcon: Icons.receipt_long,
-                            label: 'billsAndPayments'.tr(),
-                          ),
-                          _buildNavItem(
-                            context,
-                            index: 4,
-                            icon: Icons.insert_chart_outlined,
-                            selectedIcon: Icons.insert_chart,
-                            label: 'reports'.tr(),
-                          ),
-                          _buildNavItem(
-                            context,
-                            index: 5,
-                            icon: Icons.flag_outlined,
-                            selectedIcon: Icons.flag,
-                            label: 'goals'.tr(),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -284,13 +253,12 @@ class _FinancialsPageState extends State<FinancialsPage> {
                   child: Text(
                     label,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurface,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurface,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
                   ),
                 ),
               ],
@@ -301,4 +269,3 @@ class _FinancialsPageState extends State<FinancialsPage> {
     );
   }
 }
-

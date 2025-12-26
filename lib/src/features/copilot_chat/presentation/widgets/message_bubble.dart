@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/audio_player_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -9,8 +8,16 @@ import 'package:google_fonts/google_fonts.dart';
 class MessageBubble extends StatefulWidget {
   final Map<String, dynamic> message;
   final Function(String) onEdit;
+  final String? currentUserPhotoUrl;
+  final String? currentUserDisplayName;
 
-  const MessageBubble({super.key, required this.message, required this.onEdit});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    required this.onEdit,
+    this.currentUserPhotoUrl,
+    this.currentUserDisplayName,
+  });
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -56,9 +63,8 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Align(
         alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: isUser
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             if (imageData != null)
               Padding(
@@ -161,21 +167,23 @@ class _MessageBubbleState extends State<MessageBubble> {
             },
           ),
           const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F0F0),
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: SelectableText(
-              messageText,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                foreground: Paint()
-                  ..shader = const LinearGradient(
-                    colors: <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
-                  ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F0F0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: SelectableText(
+                messageText,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  foreground: Paint()
+                    ..shader = const LinearGradient(
+                      colors: <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
+                    ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+                ),
               ),
             ),
           ),
@@ -184,13 +192,12 @@ class _MessageBubbleState extends State<MessageBubble> {
             padding: const EdgeInsets.only(right: 8.0),
             child: CircleAvatar(
               backgroundColor: Colors.blue,
-              backgroundImage:
-                  FirebaseAuth.instance.currentUser?.photoURL != null
-                  ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
+              backgroundImage: widget.currentUserPhotoUrl != null
+                  ? NetworkImage(widget.currentUserPhotoUrl!)
                   : null,
-              child: FirebaseAuth.instance.currentUser?.photoURL == null
+              child: widget.currentUserPhotoUrl == null
                   ? Text(
-                      FirebaseAuth.instance.currentUser?.displayName
+                      widget.currentUserDisplayName
                               ?.substring(0, 1)
                               .toUpperCase() ??
                           'U',
@@ -356,4 +363,3 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 }
-

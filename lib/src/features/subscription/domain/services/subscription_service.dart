@@ -10,8 +10,8 @@ class SubscriptionService {
   SubscriptionService({
     FirebaseFirestore? firestore,
     QuotaService? quotaService,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _quotaService = quotaService ?? QuotaService();
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _quotaService = quotaService ?? QuotaService();
 
   /// Fetches the current usage and checks against the limit.
   /// Returns [true] if the action is allowed.
@@ -44,15 +44,8 @@ class SubscriptionService {
 
   /// Checks if the user can chat with AI today.
   Future<bool> checkDailyChatLimit(String clinicId, String userId) async {
-    final tier = await getCurrentTier(clinicId);
-    if (tier.dailyChatLimit == -1) return true;
-
-    final currentUsage = await _quotaService.getUsage(
-      clinicId,
-      userId,
-      LimitType.aiChat,
-    );
-    return currentUsage < tier.dailyChatLimit;
+    // For now, removing daily limits - always allow chat
+    return true;
   }
 
   /// Get the current tier for a clinic.
@@ -170,4 +163,3 @@ enum SubscriptionFeature {
   inviteMembers,
   eliteAI,
 }
-

@@ -133,32 +133,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run Integration Tests (Screenshots) on Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          target: default
-          arch: x86_64
-          profile: Nexus 6
-          script: |
-            # Run the integration test using flutter drive to capture screenshots on host
-            mkdir -p build/screenshots
-            doppler run -- flutter drive \
-              --driver=test_driver/integration_test.dart \
-              --target=integration_test/screenshot_generator_test.dart \
-              -d emulator-5554
-            
-            
-            # Move to Fastlane metadata structure
-            mkdir -p android/fastlane/metadata/android/en-US/images/phoneScreenshots/
-            cp build/screenshots/*.png android/fastlane/metadata/android/en-US/images/phoneScreenshots/ || true
-
-      - name: Upload Screenshots as Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: store-screenshots
-          path: build/screenshots/
+      # Legacy screenshot step removed as integration_test/screenshot_generator_test.dart does not exist.
+      # Screenshot testing is currently validated on Windows runner.
 
       - name: Add Screenshots to Job Summary
         if: always()

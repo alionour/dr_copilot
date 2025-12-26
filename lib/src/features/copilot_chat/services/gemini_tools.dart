@@ -1,6 +1,99 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
-List<Tool> getGeminiTools() {
+List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
+  // Helper to check requirements with backward compatibility
+  bool isRequired(String entity, String field) {
+    return userRequiredFields.contains('$entity.$field') ||
+        (entity == 'patient' && userRequiredFields.contains(field));
+  }
+
+  // --- Patient Descriptions ---
+  String ageDesc = 'The age of the patient.';
+  if (isRequired('patient', 'age')) {
+    ageDesc += ' (STRICTLY REQUIRED by User Settings)';
+  } else {
+    ageDesc += ' (Highly Recommended)';
+  }
+
+  String genderDesc = 'The gender of the patient.';
+  if (isRequired('patient', 'gender')) {
+    genderDesc += ' (STRICTLY REQUIRED by User Settings)';
+  } else {
+    genderDesc += ' (Highly Recommended)';
+  }
+
+  String phoneDesc = 'The phone number.';
+  if (isRequired('patient', 'phone')) {
+    phoneDesc += ' (STRICTLY REQUIRED by User Settings)';
+  } else {
+    phoneDesc += ' (Highly Recommended)';
+  }
+
+  String addressDesc = 'The address of the patient.';
+  if (isRequired('patient', 'address')) {
+    addressDesc += ' (STRICTLY REQUIRED by User Settings)';
+  }
+
+  String altPhoneDesc = 'The alternative phone number of the patient.';
+  if (isRequired('patient', 'alt_phone')) {
+    altPhoneDesc += ' (STRICTLY REQUIRED by User Settings)';
+  }
+
+  String doctorDesc = 'The treating doctor.';
+  if (isRequired('patient', 'doctor')) {
+    doctorDesc += ' (STRICTLY REQUIRED by User Settings)';
+  }
+
+  String occupationDesc = 'The occupation of the patient.';
+  if (isRequired('patient', 'occupation')) {
+    occupationDesc += ' (STRICTLY REQUIRED by User Settings)';
+  }
+
+  // --- Session Descriptions ---
+  String sessionTypeDesc =
+      'The type of the session (e.g., \'pediatricIntensive\', \'adultIntensive\', \'standard\', \'traction\').';
+  if (isRequired('session', 'type')) {
+    sessionTypeDesc += ' (STRICTLY REQUIRED by User Settings)';
+  }
+
+  String sessionDoctorDesc =
+      'The ID of the doctor for the session. (STRICTLY REQUIRED)';
+
+  // --- Evaluation Descriptions ---
+  String evalDoctorDesc =
+      'The ID of the doctor for the evaluation. (STRICTLY REQUIRED)';
+
+  // Build required properties lists
+  final patientRequired = ['name'];
+  if (isRequired('patient', 'age')) patientRequired.add('age');
+  if (isRequired('patient', 'gender')) patientRequired.add('gender');
+  if (isRequired('patient', 'phone') || isRequired('patient', 'phoneNumber')) {
+    patientRequired.add('phoneNumber');
+  }
+  if (isRequired('patient', 'address')) patientRequired.add('address');
+  if (isRequired('patient', 'alt_phone'))
+    patientRequired.add('alternativePhoneNumber');
+  if (isRequired('patient', 'doctor')) patientRequired.add('treatingDoctor');
+  if (isRequired('patient', 'occupation')) patientRequired.add('occupation');
+
+  final sessionRequired = [
+    'patientId',
+    'price',
+    'startDateTime',
+    'endDateTime',
+    'doctorId'
+  ];
+  if (isRequired('session', 'type')) sessionRequired.add('sessionType');
+
+  final evalRequired = [
+    'patientId',
+    'patientName',
+    'price',
+    'startDateTime',
+    'endDateTime',
+    'doctorId'
+  ];
+
   return [
     Tool(
       functionDeclarations: [
@@ -11,23 +104,19 @@ List<Tool> getGeminiTools() {
             SchemaType.object,
             properties: {
               'name': Schema(SchemaType.string,
-                  description: 'The name of the patient.'),
-              'age': Schema(SchemaType.integer,
-                  description: 'The age of the patient.'),
-              'gender': Schema(SchemaType.string,
-                  description: 'The gender of the patient.'),
-              'address': Schema(SchemaType.string,
-                  description: 'The address of the patient.'),
-              'phoneNumber': Schema(SchemaType.string,
-                  description: 'The phone number of the patient.'),
-              'alternativePhoneNumber': Schema(SchemaType.string,
-                  description: 'The alternative phone number of the patient.'),
-              'treatingDoctor': Schema(SchemaType.string,
-                  description: 'The name of the treating doctor.'),
-              'occupation': Schema(SchemaType.string,
-                  description: 'The occupation of the patient.'),
+                  description: 'The full name of the patient.'),
+              'age': Schema(SchemaType.integer, description: ageDesc),
+              'gender': Schema(SchemaType.string, description: genderDesc),
+              'address': Schema(SchemaType.string, description: addressDesc),
+              'phoneNumber': Schema(SchemaType.string, description: phoneDesc),
+              'alternativePhoneNumber':
+                  Schema(SchemaType.string, description: altPhoneDesc),
+              'treatingDoctor':
+                  Schema(SchemaType.string, description: doctorDesc),
+              'occupation':
+                  Schema(SchemaType.string, description: occupationDesc),
             },
-            requiredProperties: ['name'],
+            requiredProperties: patientRequired,
           ),
         ),
         FunctionDeclaration(
@@ -90,20 +179,14 @@ List<Tool> getGeminiTools() {
                   format: 'date-time',
                   description:
                       'The end date and time of the session in ISO 8601 format.'),
-              'sessionType': Schema(SchemaType.string,
-                  description:
-                      'The type of the session (e.g., \'pediatricIntensive\', \'adultIntensive\', \'standard\', \'traction\').'),
+              'sessionType':
+                  Schema(SchemaType.string, description: sessionTypeDesc),
               'patientName': Schema(SchemaType.string,
                   description: 'The name of the patient.'),
-              'doctorId': Schema(SchemaType.string,
-                  description: 'The ID of the doctor for the session.')
+              'doctorId':
+                  Schema(SchemaType.string, description: sessionDoctorDesc)
             },
-            requiredProperties: [
-              'patientId',
-              'price',
-              'startDateTime',
-              'endDateTime'
-            ],
+            requiredProperties: sessionRequired,
           ),
         ),
         FunctionDeclaration(
@@ -174,16 +257,9 @@ List<Tool> getGeminiTools() {
                   format: 'date-time',
                   description:
                       'The end date and time of the evaluation in ISO 8601 format.'),
-              'doctorId': Schema(SchemaType.string,
-                  description: 'The ID of the doctor for the evaluation.')
+              'doctorId': Schema(SchemaType.string, description: evalDoctorDesc)
             },
-            requiredProperties: [
-              'patientId',
-              'patientName',
-              'price',
-              'startDateTime',
-              'endDateTime'
-            ],
+            requiredProperties: evalRequired,
           ),
         ),
         FunctionDeclaration(
@@ -314,4 +390,3 @@ List<Tool> getGeminiTools() {
     ),
   ];
 }
-

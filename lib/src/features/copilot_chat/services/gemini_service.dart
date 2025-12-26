@@ -1,71 +1,35 @@
-import 'dart:convert';
-
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_tools.dart';
+import 'package:dr_copilot/src/features/copilot_chat/utils/ai_context_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 
 class GeminiService implements AIService {
-  final FlutterSecureStorage _secureStorage;
+  final String apiKey;
   final QuotaService _quotaService;
   final SubscriptionService _subscriptionService;
 
   GeminiService(
-    this._secureStorage, {
+    this.apiKey, {
     required QuotaService quotaService,
     required SubscriptionService subscriptionService,
-  }) : _quotaService = quotaService,
-       _subscriptionService = subscriptionService;
-
-  Future<String?> _safeRead(String key) async {
-    int retries = 0;
-    while (true) {
-      try {
-        return await _secureStorage.read(key: key);
-      } catch (e) {
-        if (retries >= 3) rethrow;
-        retries++;
-        await Future.delayed(Duration(milliseconds: 200 * retries));
-      }
-    }
-  }
+  })  : _quotaService = quotaService,
+        _subscriptionService = subscriptionService;
 
   Future<List<String>> _getApiKeys() async {
-    List<String> keys = [];
+    if (apiKey.isNotEmpty) return [apiKey];
+    return [];
+  }
 
-    // 1. Try new list format
-    final jsonStr = await _safeRead('gemini_api_keys');
-    if (jsonStr != null && jsonStr.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(jsonStr);
-        if (decoded is List) keys = List<String>.from(decoded);
-      } catch (e) {
-        debugPrint('Error decoding gemini keys: $e');
-      }
-    }
+  // User preferences for tool validation
+  List<String> _currentRequiredFields = [];
 
-    // 2. Try single key
-    if (keys.isEmpty) {
-      String? key = await _safeRead('gemini_api_key');
-      if (key != null && key.isNotEmpty) keys.add(key);
-    }
-
-    // 3. Try legacy key
-    if (keys.isEmpty) {
-      String? key = await _safeRead('geminiApiKey');
-      if (key != null && key.isNotEmpty) keys.add(key);
-    }
-
-    // 4. Try env/helper key
-    if (keys.isEmpty) {
-      keys.add(ApiKeyHelper.geminiKey);
-    }
-
-    return keys.where((k) => k.isNotEmpty).toSet().toList();
+  @override
+  void updateModelConfig(List<String> requiredFields) {
+    _currentRequiredFields = requiredFields;
+    debugPrint('[GeminiService] Updated model config: $requiredFields');
   }
 
   GenerativeModel _getModel(String apiKey) {
@@ -74,12 +38,23 @@ class GeminiService implements AIService {
         'Gemini API Key not found. Please configure it in settings.',
       );
     }
+
     return GenerativeModel(
       model: 'gemini-2.5-flash-lite',
       apiKey: apiKey,
-      tools: getGeminiTools(),
+      tools: getGeminiTools(userRequiredFields: _currentRequiredFields),
+      safetySettings: [
+        SafetySetting(HarmCategory.harassment, HarmBlockThreshold.medium),
+        SafetySetting(HarmCategory.hateSpeech, HarmBlockThreshold.medium),
+        SafetySetting(HarmCategory.sexuallyExplicit, HarmBlockThreshold.medium),
+        SafetySetting(HarmCategory.dangerousContent, HarmBlockThreshold.medium),
+      ],
       systemInstruction: Content.text(
-        'You are Dr. Copilot, an advanced AI medical manager designed to assist healthcare professionals. Your core responsibilities include providing accurate medical information, efficiently managing patient records, and handling appointments and evaluations. You can execute specific functions within the application, such as adding, editing, or deleting patient profiles, scheduling and modifying sessions, and managing evaluations. When a user requests a function, you will proactively confirm the action and gather any necessary missing details through a conversational interface before proceeding. You are also capable of discussing patient-specific information and retrieving relevant data based on various criteria like name, ID, or date. Your goal is to streamline administrative tasks and enhance clinical decision-making.',
+        () {
+          final instruction = AIContextProvider.getBaseSystemInstruction();
+          debugPrint('[GeminiService] System Instruction: $instruction');
+          return instruction;
+        }(),
       ),
     );
   }
@@ -148,8 +123,12 @@ class GeminiService implements AIService {
       Content.multi([TextPart(query), DataPart('image/jpeg', imageBytes)]),
     ];
 
+    List<String> errors = [];
+
     for (int i = 0; i < keys.length; i++) {
       try {
+        debugPrint(
+            '[GeminiService] Attempting with Key ${i + 1} of ${keys.length}...');
         final model = _getVisionModel(keys[i]);
         final response = await model.generateContent(content);
 
@@ -168,11 +147,13 @@ class GeminiService implements AIService {
 
         return response.text ?? '';
       } catch (e) {
-        debugPrint('Gemini key $i failed (Vision): $e');
-        if (i == keys.length - 1) rethrow;
+        final errorMsg = 'Key ${i + 1} error: $e';
+        debugPrint('[GeminiService] $errorMsg');
+        errors.add(errorMsg);
       }
     }
-    throw Exception('All Gemini keys failed.');
+    throw Exception(
+        'All ${keys.length} Gemini keys failed. Details:\n${errors.join("\n")}');
   }
 
   Future<GenerateContentResponse> getGeminiResponse(
@@ -199,8 +180,12 @@ class GeminiService implements AIService {
     // Add current query
     contents.add(Content.text(query));
 
+    List<String> errors = [];
+
     for (int i = 0; i < keys.length; i++) {
       try {
+        debugPrint(
+            '[GeminiService] Attempting with Key ${i + 1} of ${keys.length}...');
         final model = _getModel(keys[i]);
         final response = await model.generateContent(contents);
 
@@ -219,11 +204,12 @@ class GeminiService implements AIService {
 
         return response;
       } catch (e) {
-        debugPrint('Gemini key $i failed: $e');
-        if (i == keys.length - 1) rethrow;
+        final errorMsg = 'Key ${i + 1} error: $e';
+        debugPrint('[GeminiService] $errorMsg');
+        errors.add(errorMsg);
       }
     }
-    throw Exception('All Gemini keys failed.');
+    throw Exception(
+        'All ${keys.length} Gemini keys failed. Details:\n${errors.join("\n")}');
   }
 }
-

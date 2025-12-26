@@ -121,8 +121,7 @@ class DashboardPage extends StatelessWidget {
                               child: _SummaryCard(
                                 color: Colors.teal,
                                 title: 'totalRevenue'.tr(),
-                                value:
-                                    state.revenuePerMonth[monthKey]
+                                value: state.revenuePerMonth[monthKey]
                                         ?.toStringAsFixed(2) ??
                                     '...',
                                 icon: Icons.trending_up,
@@ -134,8 +133,7 @@ class DashboardPage extends StatelessWidget {
                               child: _SummaryCard(
                                 color: Colors.redAccent,
                                 title: 'totalExpenses'.tr(),
-                                value:
-                                    state.expensesPerMonth[monthKey]
+                                value: state.expensesPerMonth[monthKey]
                                         ?.toStringAsFixed(2) ??
                                     '...',
                                 icon: Icons.trending_down,
@@ -147,7 +145,7 @@ class DashboardPage extends StatelessWidget {
                               width: 200,
                               child: _SummaryCard(
                                 color: Colors.blue,
-                                title: '${'sessionsCount'.tr()} (${now.year})',
+                                title: '${now.year} ${'sessions'.tr()}',
                                 value: sessionsYear.toString(),
                                 icon: Icons.event,
                               ),
@@ -159,7 +157,7 @@ class DashboardPage extends StatelessWidget {
                               child: _SummaryCard(
                                 color: Colors.blue.shade700,
                                 title:
-                                    '${'sessionsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                                    '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'sessions'.tr()}',
                                 value: sessionsMonth.toString(),
                                 icon: Icons.event_available,
                               ),
@@ -170,8 +168,7 @@ class DashboardPage extends StatelessWidget {
                               width: 200,
                               child: _SummaryCard(
                                 color: Colors.purple,
-                                title:
-                                    '${'evaluationsCount'.tr()} (${now.year})',
+                                title: '${now.year} ${'evaluations'.tr()}',
                                 value: evalsYear.toString(),
                                 icon: Icons.assignment,
                               ),
@@ -183,7 +180,7 @@ class DashboardPage extends StatelessWidget {
                               child: _SummaryCard(
                                 color: Colors.purple.shade700,
                                 title:
-                                    '${'evaluationsCount'.tr()} (${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)})',
+                                    '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'evaluations'.tr()}',
                                 value: evalsMonth.toString(),
                                 icon: Icons.assignment_turned_in,
                               ),
@@ -364,4 +361,3 @@ class _SummaryCardState extends State<_SummaryCard> {
     );
   }
 }
-

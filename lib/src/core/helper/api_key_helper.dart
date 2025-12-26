@@ -16,32 +16,31 @@ class ApiKeyHelper {
 
   /// Retrieves the GPT API key from the environment variables.
   static String get gptKey => kIsWeb
-      ? const String.fromEnvironment('GPT_KEY', defaultValue: '')
-      : getPlatformEnv('GPT_KEY');
+      ? const String.fromEnvironment('GPT_API_KEY', defaultValue: '')
+      : getPlatformEnv('GPT_API_KEY');
 
   /// Retrieves the Gemini API key from the environment variables.
   static String get geminiKey => kIsWeb
-      ? const String.fromEnvironment('GEMINI_KEY', defaultValue: '')
-      : getPlatformEnv('GEMINI_KEY');
+      ? const String.fromEnvironment('GEMINI_API_KEY', defaultValue: '')
+      : getPlatformEnv('GEMINI_API_KEY');
 
   /// Retrieves the DeepSeek API key from the environment variables.
   static String get deepSeekKey => kIsWeb
-      ? const String.fromEnvironment('DEEP_SEEK_KEY', defaultValue: '')
-      : getPlatformEnv('DEEP_SEEK_KEY');
+      ? const String.fromEnvironment('DEEPSEEK_API_KEY', defaultValue: '')
+      : getPlatformEnv('DEEPSEEK_API_KEY');
 
   /// Retrieves the Qwen API key from the environment variables.
   static String get qwenKey => kIsWeb
-      ? const String.fromEnvironment('QWEN_KEY', defaultValue: '')
-      : getPlatformEnv('QWEN_KEY');
+      ? const String.fromEnvironment('QWEN_API_KEY', defaultValue: '')
+      : getPlatformEnv('QWEN_API_KEY');
 
   /// Retrieves the Claude API key from the environment variables.
   static String get claudeKey => kIsWeb
-      ? const String.fromEnvironment('CLAUDE_KEY', defaultValue: '')
-      : getPlatformEnv('CLAUDE_KEY');
+      ? const String.fromEnvironment('CLAUDE_API_KEY', defaultValue: '')
+      : getPlatformEnv('CLAUDE_API_KEY');
 
   /// Retrieves the Deepgram API key from the environment variables.
   static String get deepgramKey => kIsWeb
-      ? const String.fromEnvironment('DEEPGRAM_KEY', defaultValue: '')
-      : getPlatformEnv('DEEPGRAM_KEY');
+      ? const String.fromEnvironment('DEEPGRAM_API_KEY', defaultValue: '')
+      : getPlatformEnv('DEEPGRAM_API_KEY');
 }
-

@@ -98,18 +98,18 @@ class FCMService {
         .where('createdAt', isGreaterThan: now)
         .snapshots()
         .listen(
-          (snapshot) {
-            for (var change in snapshot.docChanges) {
-              if (change.type == DocumentChangeType.added) {
-                final data = change.doc.data() as Map<String, dynamic>;
-                _showLocalNotificationFromFirestore(data, change.doc.id);
-              }
-            }
-          },
-          onError: (error) {
-            debugPrint('[FCM] Firestore notification listener error: $error');
-          },
-        );
+      (snapshot) {
+        for (var change in snapshot.docChanges) {
+          if (change.type == DocumentChangeType.added) {
+            final data = change.doc.data() as Map<String, dynamic>;
+            _showLocalNotificationFromFirestore(data, change.doc.id);
+          }
+        }
+      },
+      onError: (error) {
+        debugPrint('[FCM] Firestore notification listener error: $error');
+      },
+    );
 
     debugPrint(
       '[FCM] Firestore notification listener started for user: $userId',
@@ -126,12 +126,15 @@ class FCMService {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    // Linux/Windows settings if needed explicitly, but usually default is fine or handled via specific plugins if additional packages are used.
-    // basic flutter_local_notifications setup works for basic usage.
+    // Linux settings
+    const linuxSettings = LinuxInitializationSettings(
+      defaultActionName: 'Open notification',
+    );
 
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
+      linux: linuxSettings,
     );
 
     await _localNotifications.initialize(
@@ -151,8 +154,7 @@ class FCMService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
   }
 
@@ -200,9 +202,8 @@ class FCMService {
   ) async {
     // Check if push notifications are enabled in settings
     final pushEnabledStr = await _secureStorage.read(key: 'pushNotifications');
-    final pushEnabled = pushEnabledStr == null
-        ? true
-        : pushEnabledStr == 'true';
+    final pushEnabled =
+        pushEnabledStr == null ? true : pushEnabledStr == 'true';
 
     if (!pushEnabled) {
       return;
@@ -277,9 +278,8 @@ class FCMService {
     // Check if push notifications are enabled in settings
     final pushEnabledStr = await _secureStorage.read(key: 'pushNotifications');
     // Default to true if not set
-    final pushEnabled = pushEnabledStr == null
-        ? true
-        : pushEnabledStr == 'true';
+    final pushEnabled =
+        pushEnabledStr == null ? true : pushEnabledStr == 'true';
 
     if (!pushEnabled) {
       debugPrint('[FCM] Push notifications disabled in settings. Suppressing.');
@@ -468,4 +468,3 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('[FCM] Body: ${message.notification?.body}');
   debugPrint('[FCM] Data: ${message.data}');
 }
-

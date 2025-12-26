@@ -5,6 +5,7 @@ import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_
 import 'package:http/http.dart' as http;
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/utils/ai_context_provider.dart';
 
 class DeepSeekService implements AIService {
   final String apiKey;
@@ -15,8 +16,8 @@ class DeepSeekService implements AIService {
     this.apiKey, {
     required QuotaService quotaService,
     required SubscriptionService subscriptionService,
-  }) : _quotaService = quotaService,
-       _subscriptionService = subscriptionService;
+  })  : _quotaService = quotaService,
+        _subscriptionService = subscriptionService;
 
   Future<void> _checkTokenLimit(String clinicId) async {
     final tier = await _subscriptionService.getCurrentTier(clinicId);
@@ -72,6 +73,14 @@ class DeepSeekService implements AIService {
     );
   }
 
+  // dynamic configuration
+  List<String> _currentRequiredFields = [];
+
+  @override
+  void updateModelConfig(List<String> requiredFields) {
+    _currentRequiredFields = requiredFields;
+  }
+
   Future<String> getDeepSeekResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
@@ -83,11 +92,11 @@ class DeepSeekService implements AIService {
     // Build messages array with history
     final List<Map<String, dynamic>> messages = [];
 
-    // Add system message
+    // Add dynamic system message
     messages.add({
       'role': 'system',
-      'content':
-          'You are Dr. Copilot, an advanced AI medical manager designed to assist healthcare professionals.',
+      'content': AIContextProvider.getBaseSystemInstruction(
+          requiredFields: _currentRequiredFields),
     });
 
     // Add message history
@@ -168,4 +177,3 @@ class DeepSeekService implements AIService {
     }
   }
 }
-

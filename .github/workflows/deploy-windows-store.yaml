@@ -45,6 +45,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Run Screenshot Tests (Validation)
+        run: |
+          flutter test integration_test/dashboard_screenshot_test.dart -d windows
+          flutter test integration_test/team_chat_screenshot_test.dart -d windows
+          flutter test integration_test/copilot_screenshot_test.dart -d windows
+          flutter test integration_test/calendar_screenshot_test.dart -d windows
+          flutter test integration_test/patients_screenshot_test.dart -d windows
+
       - name: Get build number from commit count
         id: build_number
         run: |

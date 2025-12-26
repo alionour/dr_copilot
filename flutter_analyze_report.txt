@@ -1,0 +1,102 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing dr_copilot...                                         
+
+   info - The type parameter name 'Type' matches a visible type name - lib\src\core\usecase\usecase.dart:6:24 - avoid_types_as_parameter_names
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:285:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:314:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:318:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\sessions\presentation\pages\add_session_page.dart:350:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\sessions\presentation\pages\add_session_page.dart:383:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\sessions\presentation\pages\add_session_page.dart:386:9 - use_build_context_synchronously
+   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - lib\src\features\calendar\presentation\pages\add_calendar_event_page.dart:165:32 - deprecated_member_use
+   info - The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/foundation.dart' - lib\src\features\copilot_chat\presentation\bloc\copilot_bloc.dart:2:8 - unnecessary_import
+   info - The private field _selectedModel could be 'final' - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:73:10 - prefer_final_fields
+warning - The value of the field '_selectedModel' isn't used - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:73:10 - unused_field
+warning - The value of the field '_isModelChoiceEnabled' isn't used - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:74:14 - unused_field
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\widgets\empty_chat_placeholder.dart:84:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\widgets\empty_chat_placeholder.dart:86:7 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\copilot_chat\presentation\widgets\empty_chat_placeholder.dart:104:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\copilot_chat\presentation\widgets\empty_chat_placeholder.dart:110:24 - deprecated_member_use
+   info - The member 'updateModelConfig' overrides an inherited member but isn't annotated with '@override' - lib\src\features\copilot_chat\services\gemini_service.dart:75:8 - annotate_overrides
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\copilot_chat\services\gemini_tools.dart:1:1 - expected_executable
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\copilot_chat\services\gemini_tools.dart:1:2 - expected_executable
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\copilot_chat\services\gemini_tools.dart:1:3 - expected_executable
+   info - Use interpolation to compose strings and values - lib\src\features\copilot_chat\utils\ai_context_provider.dart:41:108 - prefer_interpolation_to_compose_strings
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\financials\presentation\pages\dashboard_page.dart:292:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\financials\presentation\widgets\dashboard_view.dart:182:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\financials\presentation\widgets\dashboard_view.dart:184:41 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:623:13 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:624:13 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\notifications\presentation\pages\notifications_page.dart:258:19 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\patients\presentation\pages\add_patient_page.dart:443:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\patients\presentation\pages\add_patient_page.dart:450:41 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\patients\presentation\widgets\patient_list_item.dart:35:39 - deprecated_member_use
+   info - The import of 'package:flutter/rendering.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\src\features\patients\presentation\widgets\patients_view.dart:6:8 - unnecessary_import
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\src\features\patients\presentation\widgets\patients_view.dart:7:8 - unnecessary_import
+   info - The private field _selectedIndex could be 'final' - lib\src\features\patients\presentation\widgets\patients_view.dart:55:7 - prefer_final_fields
+warning - The value of the field '_selectedIndex' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:55:7 - unused_field
+warning - The value of the field '_selectedDate' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:59:13 - unused_field
+warning - The value of the field '_selectedGender' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:60:11 - unused_field
+warning - The value of the field '_minAge' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:61:8 - unused_field
+warning - The value of the field '_maxAge' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:62:8 - unused_field
+warning - The value of the field '_selectedAddress' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:63:11 - unused_field
+  error - The name 'SettingsDarkMode' isn't defined, so it can't be used in an 'is' expression - lib\src\features\settings\presentation\pages\appearance_settings_page.dart:83:49 - type_test_with_undefined_name
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\src\features\settings\presentation\pages\export_data_page.dart:518:15 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\src\features\settings\presentation\pages\export_data_page.dart:518:21 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\model_selection_page.dart:400:13 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\model_selection_page.dart:401:13 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:47:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:55:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:60:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:70:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:71:28 - use_build_context_synchronously
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:334:40 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:83:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:88:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:99:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:104:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:118:5 - avoid_print
+   info - The imported package 'flutter_tts' isn't a dependency of the importing package - packages\flutter_tts_fixed\example\lib\main.dart:6:8 - depend_on_referenced_packages
+   info - Invalid use of a private type in a public API - packages\flutter_tts_fixed\example\lib\main.dart:12:3 - library_private_types_in_public_api
+   info - Statements in an if should be enclosed in a block - packages\flutter_tts_fixed\example\lib\main.dart:246:11 - curly_braces_in_flow_control_structures
+   info - 'partialResults' is deprecated and shouldn't be used. Use SpeechListenOptions.partialResults instead - packages\speech_to_text_windows\example\lib\main.dart:103:9 - deprecated_member_use
+   info - The constant name 'TESTER_UID' isn't a lowerCamelCase identifier - scripts\setup_firestore_tester.dart:5:7 - constant_identifier_names
+   info - The constant name 'CLINIC_ID' isn't a lowerCamelCase identifier - scripts\setup_firestore_tester.dart:6:7 - constant_identifier_names
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:9:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:15:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:19:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:28:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:47:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:50:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:69:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:72:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:79:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:82:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:85:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:87:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:88:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:90:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:214:3 - avoid_print
+warning - Unused import: 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart' - test\screenshot\patients_view_screenshot_test.dart:8:8 - unused_import
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:50:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:64:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:101:5 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - test\screenshot\screenshot_test_harness.dart:10:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:51:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:72:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:74:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:76:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:78:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:206:5 - avoid_print
+warning - Unused import: 'package:easy_localization/easy_localization.dart' - test\unit\blocs\evaluations_bloc_test.dart:12:8 - unused_import
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\blocs\patients_bloc_test.dart:20:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\repositories\patients_repository_test.dart:13:1 - subtype_of_sealed_class
+warning - Unused import: 'package:dr_copilot/src/core/error/failures.dart' - test\unit\services\clinical_report_service_test.dart:2:8 - unused_import
+warning - The class 'Query' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:12:1 - subtype_of_sealed_class
+warning - The class 'DocumentReference' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:15:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:18:1 - subtype_of_sealed_class
+warning - The value of the local variable 'mockCopilotBloc' isn't used - test\widget\screens\home_page_test.dart:24:24 - unused_local_variable
+

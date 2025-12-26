@@ -60,8 +60,8 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
     super.initState();
     // Load reports from Firestore by default
     context.read<ClinicalReportsListBloc>().add(LoadClinicalReportsList());
-    // Optionally check Google Drive auth status without blocking
-    context.read<GoogleDriveBloc>().add(AuthenticateGoogleDrive());
+    // Optionally check Google Drive auth status silently
+    context.read<GoogleDriveBloc>().add(CheckAuthStatus());
   }
 
   @override
@@ -94,8 +94,8 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                     TextButton(
                       onPressed: () {
                         context.read<GoogleDriveBloc>().add(
-                          AuthenticateGoogleDrive(),
-                        );
+                              AuthenticateGoogleDrive(),
+                            );
                       },
                       child: Text('connect'.tr()),
                     ),
@@ -245,4 +245,3 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
     );
   }
 }
-

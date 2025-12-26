@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/app/providers/providers.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
@@ -117,57 +118,69 @@ class App extends StatelessWidget {
                     /// - Sets the locale, supported locales, and localization delegates from the current context.
                     /// - Uses a custom `builder` to print the current locale for debugging and wraps the child widget in a `Stack`.
                     providers: appBlocProviders,
-                    child: MaterialApp.router(
-                      scaffoldMessengerKey: RoutingConfig.scaffoldMessengerKey,
-
-                      /// Sets the application's router configuration using the predefined
-                      /// `router` from the `RoutingConfig` class. This determines how
-                      /// navigation and route management are handled within the app.
-                      routerConfig: RoutingConfig.router,
-
-                      /// The title of the application displayed in the app bar or window.
-                      ///
-                      /// In this case, it is set to 'Dr Copilot'.
-                      title: 'Dr Copilot',
-
-                      /// Applies the current theme from the [themeNotifier] and allows for further customization
-                      /// by creating a copy of the theme with additional modifications.
-                      ///
-                      /// This is typically used to dynamically update the app's theme based on user preferences
-                      /// or system settings.
-                      theme: themeNotifier.currentTheme.copyWith(
-                        scrollbarTheme: ScrollbarThemeData(
-                          thumbVisibility: WidgetStateProperty.all(true),
-                          thickness: WidgetStateProperty.all(12.0),
-                        ),
-                        textTheme: context.locale.languageCode == 'ar'
-                            ? GoogleFonts.tajawalTextTheme()
-                            : GoogleFonts.robotoTextTheme(),
-                      ),
-                      debugShowCheckedModeBanner: false,
-                      locale: context.locale,
-                      supportedLocales: context.supportedLocales,
-                      localizationsDelegates: [
-                        ...context.localizationDelegates,
-                      ],
-                      builder: (context, child) {
-                        debugPrint(
-                          '2 Current Locale: ${Localizations.localeOf(context).languageCode}',
-                        );
-
-                        return MediaQuery(
-                          data: MediaQuery.of(context).copyWith(
-                            textScaler: TextScaler.linear(
-                              themeNotifier.textScaleFactor,
-                            ),
-                          ),
-                          child: BiometricGuard(
-                            child: NoInternetBanner(
-                              child: Stack(children: [child!]),
-                            ),
-                          ),
-                        );
+                    child: BlocListener<AuthBloc, AuthState>(
+                      listener: (context, state) {
+                        if (state is AuthSignedIn) {
+                          context
+                              .read<OwnerNotifier>()
+                              .loadOwnerIdAndClinicId();
+                        } else if (state is AuthSignedOut) {
+                          context.read<OwnerNotifier>().clear();
+                        }
                       },
+                      child: MaterialApp.router(
+                        scaffoldMessengerKey:
+                            RoutingConfig.scaffoldMessengerKey,
+
+                        /// Sets the application's router configuration using the predefined
+                        /// `router` from the `RoutingConfig` class. This determines how
+                        /// navigation and route management are handled within the app.
+                        routerConfig: RoutingConfig.router,
+
+                        /// The title of the application displayed in the app bar or window.
+                        ///
+                        /// In this case, it is set to 'Dr Copilot'.
+                        title: 'Dr Copilot',
+
+                        /// Applies the current theme from the [themeNotifier] and allows for further customization
+                        /// by creating a copy of the theme with additional modifications.
+                        ///
+                        /// This is typically used to dynamically update the app's theme based on user preferences
+                        /// or system settings.
+                        theme: themeNotifier.currentTheme.copyWith(
+                          scrollbarTheme: ScrollbarThemeData(
+                            thumbVisibility: WidgetStateProperty.all(true),
+                            thickness: WidgetStateProperty.all(12.0),
+                          ),
+                          textTheme: context.locale.languageCode == 'ar'
+                              ? GoogleFonts.tajawalTextTheme()
+                              : GoogleFonts.robotoTextTheme(),
+                        ),
+                        debugShowCheckedModeBanner: false,
+                        locale: context.locale,
+                        supportedLocales: context.supportedLocales,
+                        localizationsDelegates: [
+                          ...context.localizationDelegates,
+                        ],
+                        builder: (context, child) {
+                          debugPrint(
+                            '2 Current Locale: ${Localizations.localeOf(context).languageCode}',
+                          );
+
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(
+                              textScaler: TextScaler.linear(
+                                themeNotifier.textScaleFactor,
+                              ),
+                            ),
+                            child: BiometricGuard(
+                              child: NoInternetBanner(
+                                child: Stack(children: [child!]),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
@@ -179,4 +192,3 @@ class App extends StatelessWidget {
     );
   }
 }
-

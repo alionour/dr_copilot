@@ -54,7 +54,6 @@ class _PatientsPageState extends State<PatientsPage> {
 
   @override
   void dispose() {
-    context.read<OwnerNotifier>().removeListener(_onOwnerNotifierChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _listFocusNode.dispose();
@@ -79,8 +78,9 @@ class _PatientsPageState extends State<PatientsPage> {
         if (_canLoadMore) {
           _canLoadMore = false;
           context.read<PatientsBloc>().add(
-            LoadMorePatients(lastDocumentId: state.patients.last.id, limit: 20),
-          );
+                LoadMorePatients(
+                    lastDocumentId: state.patients.last.id, limit: 20),
+              );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -126,8 +126,8 @@ class _PatientsPageState extends State<PatientsPage> {
                         _selectedIndex = 0;
                       });
                       context.read<PatientsBloc>().add(
-                        SearchPatients(name: query),
-                      );
+                            SearchPatients(name: query),
+                          );
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -164,8 +164,8 @@ class _PatientsPageState extends State<PatientsPage> {
                         _selectedIndex = 0;
                       });
                       context.read<PatientsBloc>().add(
-                        SearchPatients(name: query),
-                      );
+                            SearchPatients(name: query),
+                          );
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -201,9 +201,9 @@ class _PatientsPageState extends State<PatientsPage> {
                                 label: Text(
                                   _selectedDate != null
                                       ? _selectedDate!
-                                            .toLocal()
-                                            .toString()
-                                            .split(' ')[0]
+                                          .toLocal()
+                                          .toString()
+                                          .split(' ')[0]
                                       : 'filterByDate'.tr(),
                                 ),
                                 onPressed: () async {
@@ -225,11 +225,11 @@ class _PatientsPageState extends State<PatientsPage> {
                                     });
                                     if (!context.mounted) return;
                                     context.read<PatientsBloc>().add(
-                                      GetPatientsByDate(
-                                        year: selectedDate.year,
-                                        month: selectedDate.month,
-                                      ),
-                                    );
+                                          GetPatientsByDate(
+                                            year: selectedDate.year,
+                                            month: selectedDate.month,
+                                          ),
+                                        );
                                   }
                                 },
                               ),
@@ -251,8 +251,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                     _selectedAddress = null;
                                   });
                                   context.read<PatientsBloc>().add(
-                                    SearchPatients(gender: 'Male'),
-                                  );
+                                        SearchPatients(gender: 'Male'),
+                                      );
                                 },
                               ),
                               ActionChip(
@@ -273,8 +273,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                     _selectedAddress = null;
                                   });
                                   context.read<PatientsBloc>().add(
-                                    SearchPatients(gender: 'Female'),
-                                  );
+                                        SearchPatients(gender: 'Female'),
+                                      );
                                 },
                               ),
                               ActionChip(
@@ -307,7 +307,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                               inputFormatters: [
                                                 FilteringTextInputFormatter
                                                     .digitsOnly,
-                                                FilteringTextInputFormatter.allow(
+                                                FilteringTextInputFormatter
+                                                    .allow(
                                                   RegExp(
                                                     r'^(?:1[0-2][0-9]|1[0-2][0]|[1-9]?[0-9]|130)',
                                                   ),
@@ -324,7 +325,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                               inputFormatters: [
                                                 FilteringTextInputFormatter
                                                     .digitsOnly,
-                                                FilteringTextInputFormatter.allow(
+                                                FilteringTextInputFormatter
+                                                    .allow(
                                                   RegExp(
                                                     r'^(?:1[0-2][0-9]|1[0-2][0]|[1-9]?[0-9]|130)',
                                                   ),
@@ -502,8 +504,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                 if (_selectedDate != null)
                                   Text(
                                     _selectedDate!.toLocal().toString().split(
-                                      ' ',
-                                    )[0],
+                                          ' ',
+                                        )[0],
                                     style: const TextStyle(fontSize: 12),
                                   ),
                               ],
@@ -527,11 +529,11 @@ class _PatientsPageState extends State<PatientsPage> {
                                 });
                                 if (!context.mounted) return;
                                 context.read<PatientsBloc>().add(
-                                  GetPatientsByDate(
-                                    year: selectedDate.year,
-                                    month: selectedDate.month,
-                                  ),
-                                );
+                                      GetPatientsByDate(
+                                        year: selectedDate.year,
+                                        month: selectedDate.month,
+                                      ),
+                                    );
                               }
                             },
                           ),
@@ -556,8 +558,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                 _selectedAddress = null;
                               });
                               context.read<PatientsBloc>().add(
-                                SearchPatients(gender: 'Male'),
-                              );
+                                    SearchPatients(gender: 'Male'),
+                                  );
                             },
                           ),
                           IconButton(
@@ -581,8 +583,8 @@ class _PatientsPageState extends State<PatientsPage> {
                                 _selectedAddress = null;
                               });
                               context.read<PatientsBloc>().add(
-                                SearchPatients(gender: 'Female'),
-                              );
+                                    SearchPatients(gender: 'Female'),
+                                  );
                             },
                           ),
                           IconButton(
@@ -667,11 +669,11 @@ class _PatientsPageState extends State<PatientsPage> {
                                               _selectedAddress = null;
                                             });
                                             context.read<PatientsBloc>().add(
-                                              SearchPatients(
-                                                minAge: minAge,
-                                                maxAge: maxAge,
-                                              ),
-                                            );
+                                                  SearchPatients(
+                                                    minAge: minAge,
+                                                    maxAge: maxAge,
+                                                  ),
+                                                );
                                           }
                                           Navigator.of(context).pop();
                                         },
@@ -727,8 +729,9 @@ class _PatientsPageState extends State<PatientsPage> {
                                               _maxAge = null;
                                             });
                                             context.read<PatientsBloc>().add(
-                                              SearchPatients(address: address),
-                                            );
+                                                  SearchPatients(
+                                                      address: address),
+                                                );
                                           }
                                           Navigator.of(context).pop();
                                         },
@@ -810,8 +813,8 @@ class _PatientsPageState extends State<PatientsPage> {
                         final patients = (state is PatientsLoaded)
                             ? state.patients
                             : (state is PatientsLoadingMore)
-                            ? state.patients
-                            : (state as PatientsCountLoaded).patients;
+                                ? state.patients
+                                : (state as PatientsCountLoaded).patients;
 
                         if (patients.isEmpty) {
                           return EmptyStateWidget(
@@ -836,9 +839,9 @@ class _PatientsPageState extends State<PatientsPage> {
                           }
                         }
 
-                        final sortedGroupedPatients =
-                            groupedPatients.entries.toList()
-                              ..sort((a, b) => b.key.compareTo(a.key));
+                        final sortedGroupedPatients = groupedPatients.entries
+                            .toList()
+                          ..sort((a, b) => b.key.compareTo(a.key));
 
                         return Column(
                           children: [
@@ -858,7 +861,9 @@ class _PatientsPageState extends State<PatientsPage> {
                                   const SizedBox(width: 4),
                                   Text(
                                     '${patients.length} ',
-                                    style: Theme.of(context).textTheme.bodyLarge
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
                                         ?.copyWith(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.blue,
@@ -926,14 +931,14 @@ class _PatientsPageState extends State<PatientsPage> {
                                       ),
                                       ...patientsForDate.map((patient) {
                                         return Container(
-                                          color:
-                                              !navState.isNavigationFocused &&
+                                          color: !navState
+                                                      .isNavigationFocused &&
                                                   _selectedIndex ==
                                                       patients.indexOf(patient)
                                               ? Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withValues(alpha: 0.2)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.2)
                                               : Colors.transparent,
                                           child: _buildPatientListItem(patient),
                                         );
@@ -1016,11 +1021,11 @@ class _PatientsPageState extends State<PatientsPage> {
       onTap: () {
         setState(() {
           _selectedIndex =
-              (context.read<PatientsBloc>().state as PatientsLoaded).patients
+              (context.read<PatientsBloc>().state as PatientsLoaded)
+                  .patients
                   .indexOf(patient);
         });
       },
     );
   }
 }
-

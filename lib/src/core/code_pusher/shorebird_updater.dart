@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shorebird_code_push/shorebird_code_push.dart';
@@ -23,26 +25,35 @@ class ShorebirdCodePushHandler {
   /// await checkAndApplyUpdate();
   /// ```
   static Future<void> checkAndApplyUpdate() async {
-    /// Creates an instance of [ShorebirdUpdater] to manage application updates.
-    final updater = ShorebirdUpdater();
+    // Shorebird currently supports Android and iOS.
+    // We guard against other platforms to prevent runtime errors.
+    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+      debugPrint('Shorebird update check skipped: Platform not supported.');
+      return;
+    }
 
-    /// Checks for available updates using the updater and stores the result in [updateStatus].
-    ///
-    /// This call is asynchronous and awaits the result of [updater.checkForUpdate()],
-    /// which typically returns information about whether an update is available,
-    /// the current version, and other relevant update metadata.
-    final updateStatus = await updater.checkForUpdate();
+    try {
+      /// Creates an instance of [ShorebirdUpdater] to manage application updates.
+      final updater = ShorebirdUpdater();
 
-    /// Checks if the current update status indicates that the application is outdated.
-    /// If `updateStatus` equals `UpdateStatus.outdated`, it means a newer version of the app is available.
-    if (updateStatus == UpdateStatus.outdated) {
-      try {
+      /// Checks for available updates using the updater and stores the result in [updateStatus].
+      ///
+      /// This call is asynchronous and awaits the result of [updater.checkForUpdate()],
+      /// which typically returns information about whether an update is available,
+      /// the current version, and other relevant update metadata.
+      final updateStatus = await updater.checkForUpdate();
+
+      /// Checks if the current update status indicates that the application is outdated.
+      /// If `updateStatus` equals `UpdateStatus.outdated`, it means a newer version of the app is available.
+      if (updateStatus == UpdateStatus.outdated) {
+        debugPrint('Shorebird update found. Downloading...');
         await updater.update(); // Restarts the app if an update is applied
-      } catch (e) {
-        // Optionally log or handle update errors
-        debugPrint('Error applying update: $e');
+      } else {
+        debugPrint('Shorebird: No updates available.');
       }
+    } catch (e) {
+      // Optionally log or handle update errors
+      debugPrint('Error applying Shorebird update: $e');
     }
   }
 }
-

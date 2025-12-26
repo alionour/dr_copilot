@@ -159,7 +159,16 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(message)));
-            context.pop();
+            if (isEditing) {
+              if (context.mounted) context.pop();
+            } else {
+              _nameController.clear();
+              _emailController.clear();
+              _phoneNumberController.clear();
+              setState(() {
+                _selectedRole = null;
+              });
+            }
           } else if (state is StaffError) {
             final message = state.message ?? 'Error'.tr();
             debugPrint('SnackBar Error: $message');
@@ -189,7 +198,9 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                           initialValue: _selectedClinicId,
                           decoration: InputDecoration(
                             labelText: 'clinic'.tr(),
-                            labelStyle: Theme.of(context).textTheme.bodyMedium
+                            labelStyle: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           items: context.watch<OwnerNotifier>().clinics.map((
@@ -291,9 +302,18 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                         const SizedBox(height: 16.0),
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _saveStaff,
-                            child: Text('saveStaff'.tr()),
+                          child: BlocBuilder<StaffBloc, StaffState>(
+                            builder: (context, state) {
+                              if (state is StaffLoading) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+                              return ElevatedButton(
+                                onPressed: _saveStaff,
+                                child: Text('saveStaff'.tr()),
+                              );
+                            },
                           ),
                         ),
                       ],

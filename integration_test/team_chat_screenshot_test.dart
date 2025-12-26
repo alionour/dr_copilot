@@ -1,0 +1,73 @@
+import 'package:dr_copilot/src/features/team_chat/presentation/widgets/team_chat_list_view.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../test/screenshot/mock_data/team_chat_mock_data.dart';
+import '../test/screenshot/screenshot_test_harness.dart';
+export 'package:dr_copilot/src/features/team_chat/presentation/widgets/team_chat_list_view.dart'
+    show TeamChatConversation;
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    GoogleFonts.config.allowRuntimeFetching = true;
+    SharedPreferences.setMockInitialValues({});
+    await EasyLocalization.ensureInitialized();
+  });
+
+  testWidgets('Generate Team Chat Screenshots', (WidgetTester tester) async {
+    final harness = ScreenshotTestHarness(tester);
+    final now = DateTime.now();
+    final dateStr = now.toIso8601String().split('T')[0];
+
+    final mockConversations = TeamChatMockData.generateMockConversations();
+
+    final teamChatWidget = TeamChatListView(
+      conversations: mockConversations,
+      onConversationTap: (_) {},
+    );
+
+    final devices = {
+      'desktop': {
+        '1920x1080': const Size(1920, 1080),
+      },
+      'mobile': {
+        'iPhone14': const Size(390, 844),
+      },
+      'tablet': {
+        'iPadPro': const Size(1024, 1366),
+      },
+    };
+
+    for (final categoryEntry in devices.entries) {
+      final categoryName = categoryEntry.key;
+      final sizes = categoryEntry.value;
+
+      for (final sizeEntry in sizes.entries) {
+        final deviceName = sizeEntry.key;
+        final size = sizeEntry.value;
+
+        debugPrint('Capturing TeamChat for $categoryName - $deviceName...');
+        final filename =
+            '$categoryName/team_chat_screen/01_team_chat_screen_${dateStr}_$deviceName.png';
+
+        try {
+          await harness.captureWidgetScreenshot(
+            widget: teamChatWidget,
+            filename: filename,
+            windowSize: size,
+          );
+        } catch (e) {
+          debugPrint('Error capturing $filename: $e');
+        }
+      }
+    }
+
+    debugPrint('=== Team Chat Screenshots Generated Successfully ===');
+  });
+}

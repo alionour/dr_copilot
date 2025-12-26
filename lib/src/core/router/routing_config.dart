@@ -29,19 +29,28 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/notification
 import 'package:dr_copilot/src/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/data_storage_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/appearance_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/copilot_preferences_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/export_data_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/model_selection_page.dart';
 import 'package:dr_copilot/src/features/subscription/presentation/pages/subscription_pricing_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/calendar_settings_page.dart';
 
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/pages/add_edit_doctor_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
 import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/pages/invitations_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/pages/create_invitation_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/pages/accept_invitation_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/user_selection_page.dart';
+import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard_page.dart';
+import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
+import 'package:dr_copilot/src/features/recycle_bin/presentation/pages/recycle_bin_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/shared/presentation/widgets/webview_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -65,7 +74,7 @@ class RoutingConfig {
       ),
       ShellRoute(
         builder: (context, state, child) {
-          return SelectionArea(child: NavigationSide(child: child));
+          return NavigationSide(child: child);
         },
         routes: [
           GoRoute(
@@ -104,6 +113,16 @@ class RoutingConfig {
             builder: (context, state) => const AppearanceSettingsPage(),
           ),
           GoRoute(
+            path: '/settings/copilot_preferences',
+            name: 'copilot_preferences',
+            builder: (context, state) => const CopilotPreferencesPage(),
+          ),
+          GoRoute(
+            path: '/settings/calendar_settings',
+            name: 'calendar_settings',
+            builder: (context, state) => const CalendarSettingsPage(),
+          ),
+          GoRoute(
             path: '/notifications',
             name: 'notifications',
             builder: (context, state) => const NotificationsPage(),
@@ -112,6 +131,42 @@ class RoutingConfig {
             path: '/chat',
             name: 'chat',
             builder: (context, state) => const CopilotPage(title: 'Chat'),
+          ),
+          GoRoute(
+            path: '/team_chat',
+            name: 'team_chat',
+            builder: (context, state) => const TeamChatListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'start_team_chat',
+                builder: (context, state) => const UserSelectionPage(),
+              ),
+              GoRoute(
+                path: ':conversationId',
+                name: 'team_chat_room',
+                builder: (context, state) {
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
+                  return TeamChatPage(conversationId: conversationId);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/teams',
+            name: 'teams',
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<TeamsBloc>(),
+                child: const TeamsDashboardPage(),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/recycle_bin',
+            name: 'recycle_bin',
+            builder: (context, state) => const RecycleBinPage(),
           ),
           GoRoute(
             path: '/patients',
@@ -251,6 +306,21 @@ class RoutingConfig {
             path: '/doctors',
             name: 'doctors',
             builder: (context, state) => const DoctorsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_doctor',
+                builder: (context, state) => const AddEditDoctorPage(),
+              ),
+              GoRoute(
+                path: ':doctorId',
+                name: 'edit_doctor',
+                builder: (context, state) {
+                  final doctorId = state.pathParameters['doctorId'];
+                  return AddEditDoctorPage(doctorId: doctorId);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/staff',
