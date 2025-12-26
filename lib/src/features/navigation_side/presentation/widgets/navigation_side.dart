@@ -195,10 +195,9 @@ class _NavigationSideState extends State<NavigationSide> {
                     Positioned.fill(
                       child: Container(
                         color: Colors.transparent,
-                        child: widget.child,
+                        child: SelectionArea(child: widget.child),
                       ),
                     ),
-
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 250),
                       left: _showMobileNav ? 0 : -240,
@@ -219,7 +218,6 @@ class _NavigationSideState extends State<NavigationSide> {
                         ),
                       ),
                     ),
-
                     if (_showMobileNav)
                       Positioned(
                         left: 240,
@@ -233,8 +231,9 @@ class _NavigationSideState extends State<NavigationSide> {
                           ),
                         ),
                       ),
-
-                    if (_showSwipeHint && !_showMobileNav)
+                    if (_showSwipeHint &&
+                        !_showMobileNav &&
+                        !const bool.fromEnvironment('SCREENSHOT_MODE'))
                       Positioned(
                         bottom: 100,
                         left: 20,
@@ -260,7 +259,9 @@ class _NavigationSideState extends State<NavigationSide> {
                                 const SizedBox(width: 8),
                                 Text(
                                   'Swipe right to navigate',
-                                  style: Theme.of(context).textTheme.bodyMedium
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
                                       ?.copyWith(color: Colors.white),
                                 ),
                                 const SizedBox(width: 8),
@@ -286,7 +287,7 @@ class _NavigationSideState extends State<NavigationSide> {
               body: Row(
                 children: [
                   _buildSideMenu(context, bloc),
-                  Expanded(child: widget.child),
+                  Expanded(child: SelectionArea(child: widget.child)),
                 ],
               ),
             );
@@ -397,7 +398,7 @@ class _NavigationSideState extends State<NavigationSide> {
                               final category = entry.key;
                               final destinations = entry.value;
                               return [
-                                if (data.isOpen)
+                                if (data.isOpen && category != 'business')
                                   SideMenuItemDataTitle(
                                     title: category.tr(),
                                     titleStyle: Theme.of(context)
@@ -411,9 +412,9 @@ class _NavigationSideState extends State<NavigationSide> {
                                         ),
                                     padding:
                                         const EdgeInsetsDirectional.symmetric(
-                                          horizontal: 16.0,
-                                          vertical: 8.0,
-                                        ),
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
                                   ),
                                 ...destinations.map(
                                   (e) => SideMenuItemDataTile(
@@ -466,31 +467,29 @@ class _NavigationSideState extends State<NavigationSide> {
                                                       height: 40,
                                                       decoration:
                                                           const BoxDecoration(
-                                                            shape:
-                                                                BoxShape.circle,
-                                                          ),
+                                                        shape: BoxShape.circle,
+                                                      ),
                                                       child: ClipOval(
-                                                        child: CachedNetworkImage(
+                                                        child:
+                                                            CachedNetworkImage(
                                                           imageUrl:
                                                               profileImageUrl,
                                                           cacheKey:
                                                               state.user?.uid,
-                                                          placeholder:
-                                                              (
-                                                                ctx,
-                                                                url,
-                                                              ) => const Icon(
-                                                                Icons
-                                                                    .person_pin,
-                                                              ),
-                                                          errorWidget:
-                                                              (
-                                                                context,
-                                                                url,
-                                                                error,
-                                                              ) {
-                                                                return const SizedBox();
-                                                              },
+                                                          placeholder: (
+                                                            ctx,
+                                                            url,
+                                                          ) =>
+                                                              const Icon(
+                                                            Icons.person_pin,
+                                                          ),
+                                                          errorWidget: (
+                                                            context,
+                                                            url,
+                                                            error,
+                                                          ) {
+                                                            return const SizedBox();
+                                                          },
                                                         ),
                                                       ),
                                                     ),
@@ -540,4 +539,3 @@ class _NavigationSideState extends State<NavigationSide> {
     );
   }
 }
-

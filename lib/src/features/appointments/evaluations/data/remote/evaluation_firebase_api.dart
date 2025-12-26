@@ -7,15 +7,16 @@ import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart'
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/repositories/abstract_evaluations_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:dr_copilot/src/core/services/error_reporting_service.dart';
 
 class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
-  final CollectionReference _evaluationsCollection = FirebaseFirestore.instance
-      .collection('evaluations');
+  final CollectionReference _evaluationsCollection =
+      FirebaseFirestore.instance.collection('evaluations');
 
   /// Reference to the Firestore collection for patients.
   /// This is used to fetch patient data.
-  final CollectionReference _patientsCollection = FirebaseFirestore.instance
-      .collection('patients');
+  final CollectionReference _patientsCollection =
+      FirebaseFirestore.instance.collection('patients');
 
   String? get clinicId => OwnerNotifier().clinicId;
 
@@ -45,9 +46,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         queryRef = queryRef.where('deletedAt', isNull: true);
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot = await _evaluationsCollection
-              .doc(lastDocumentID)
-              .get();
+          final lastDocumentSnapshot =
+              await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef
                 .orderBy('startDateTime', descending: true)
@@ -57,9 +57,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         } else {
-          queryRef = queryRef
-              .orderBy('startDateTime', descending: true)
-              .limit(limit);
+          queryRef =
+              queryRef.orderBy('startDateTime', descending: true).limit(limit);
         }
 
         final snapshot = await queryRef.get();
@@ -88,7 +87,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         return Right(evaluations);
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReportingService.reportError(e, stack);
       return Left(ServerFailure(e.toString(), 404));
     }
   }
@@ -126,8 +126,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         return Right(createdEvaluation);
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error adding evaluation: $e');
+      ErrorReportingService.reportError(e, stack);
       return Left(ServerFailure(e.toString(), 404));
     }
   }
@@ -188,8 +189,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         }
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error updating evaluation: $e');
+      ErrorReportingService.reportError(e, stack);
       return Left(ServerFailure(e.toString(), 404));
     }
   }
@@ -234,8 +236,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         }
       }
       return Left(ServerFailure('User not authenticated', 401));
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error deleting evaluation: $e');
+      ErrorReportingService.reportError(e, stack);
       return Left(ServerFailure(e.toString(), 404));
     }
   }
@@ -364,9 +367,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot = await _evaluationsCollection
-              .doc(lastDocumentID)
-              .get();
+          final lastDocumentSnapshot =
+              await _evaluationsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
@@ -543,9 +545,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         // Filter out deleted evaluations
         queryRef = queryRef.where('deletedAt', isNull: true);
 
-        final snapshot = await queryRef
-            .orderBy('startDateTime', descending: true)
-            .get();
+        final snapshot =
+            await queryRef.orderBy('startDateTime', descending: true).get();
 
         List<EvaluationModel> evaluations = await Future.wait(
           snapshot.docs.map((doc) async {
@@ -761,9 +762,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
               isGreaterThanOrEqualTo: Timestamp.fromDate(start),
             )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
-        final aggregateQuerySnapshot = await query
-            .aggregate(sum('price'))
-            .get();
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
           endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
@@ -809,9 +809,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
               isGreaterThanOrEqualTo: Timestamp.fromDate(start),
             )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
-        final aggregateQuerySnapshot = await query
-            .aggregate(sum('price'))
-            .get();
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
           endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
@@ -847,9 +846,8 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         // Filter out deleted evaluations
         query = query.where('deletedAt', isNull: true);
 
-        final aggregateQuerySnapshot = await query
-            .aggregate(sum('price'))
-            .get();
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
           endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
@@ -862,4 +860,3 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
   }
 }
-

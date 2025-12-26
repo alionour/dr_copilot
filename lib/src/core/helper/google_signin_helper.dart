@@ -78,9 +78,25 @@ class AuthClient extends BaseClient {
       cloned.persistentConnection = request.persistentConnection;
       return cloned;
     } else {
-      throw UnsupportedError(
-        'Request type not supported for retry: \\${request.runtimeType}',
+      // Fallback for internal implementations like RequestImpl or generic BaseRequests
+      // We assume it's a standard request. For GET/HEAD/DELETE, body is typically empty.
+      // If it has a body and we can't read it (BaseRequest doesn't expose it), we might lose it,
+      // but retrying with partial data is better than crashing.
+      debugPrint(
+        '[AuthClient] _cloneRequest handling generic/unknown request type: ${request.runtimeType}',
       );
+      final cloned = Request(request.method, request.url);
+      cloned.headers.addAll(request.headers);
+      cloned.followRedirects = request.followRedirects;
+      cloned.maxRedirects = request.maxRedirects;
+      cloned.persistentConnection = request.persistentConnection;
+
+      // Try to cast to Request to get bodyBytes if it matches the interface
+      if (request is Request) {
+        cloned.bodyBytes = request.bodyBytes;
+      }
+
+      return cloned;
     }
   }
 }
@@ -190,13 +206,66 @@ class GoogleSignInHelper {
     }
 
     try {
-      final clientId = io.Platform.environment['WEB_CLIENT_ID'];
-      final clientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
-      final redirectPortStr = io.Platform.environment['WEB_REDIRECT_PORT'];
+      String? clientId;
+      String? clientSecret;
+      String? redirectPortStr;
+
+      // 1. Try loading from assets (Production/bundled)
+      try {
+        final jsonString =
+            await rootBundle.loadString('assets/google_credentials.json');
+        final jsonMap = jsonDecode(jsonString);
+        if (jsonMap is Map<String, dynamic>) {
+          clientId = jsonMap['WEB_CLIENT_ID'] as String?;
+          clientSecret = jsonMap['WEB_CLIENT_SECRET'] as String?;
+          redirectPortStr = jsonMap['WEB_REDIRECT_PORT'] as String?;
+          debugPrint(
+            'Loaded credentials from assets/google_credentials.json: ID=${clientId != null}, Secret=${clientSecret != null}',
+          );
+        }
+      } catch (e) {
+        debugPrint(
+          'Could not load or parse assets/google_credentials.json: $e',
+        );
+        // Show dialog for asset loading failure if in release mode (or helpful debug)
+        debugPrint(
+          'Could not load or parse assets/google_credentials.json: $e',
+        );
+      }
+
+      // 2. Fallback to compile-time variables (Build args)
+      if (clientId == null || clientSecret == null || redirectPortStr == null) {
+        const envClientId = String.fromEnvironment('WEB_CLIENT_ID');
+        const envClientSecret = String.fromEnvironment('WEB_CLIENT_SECRET');
+        const envRedirectPort = String.fromEnvironment('WEB_REDIRECT_PORT');
+
+        if (envClientId.isNotEmpty) clientId = envClientId;
+        if (envClientSecret.isNotEmpty) clientSecret = envClientSecret;
+        if (envRedirectPort.isNotEmpty) redirectPortStr = envRedirectPort;
+
+        if (envClientId.isNotEmpty) {
+          debugPrint('Loaded credentials from String.fromEnvironment');
+        }
+      }
+
+      // 3. Fallback to runtime environment (Dev/Doppler)
+      if (clientId == null || clientSecret == null || redirectPortStr == null) {
+        final envClientId = io.Platform.environment['WEB_CLIENT_ID'];
+        final envClientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
+        final envRedirectPort = io.Platform.environment['WEB_REDIRECT_PORT'];
+
+        if (envClientId != null) clientId = envClientId;
+        if (envClientSecret != null) clientSecret = envClientSecret;
+        if (envRedirectPort != null) redirectPortStr = envRedirectPort;
+
+        if (envClientId != null) {
+          debugPrint('Loaded credentials from io.Platform.environment');
+        }
+      }
 
       if (clientId == null || clientSecret == null || redirectPortStr == null) {
         debugPrint(
-          'Error: WEB_CLIENT_ID, WEB_CLIENT_SECRET, or WEB_REDIRECT_PORT not found in environment.',
+          'Error: WEB_CLIENT_ID, WEB_CLIENT_SECRET, or WEB_REDIRECT_PORT not found in assets, build args, or environment.',
         );
         return null;
       }
@@ -458,6 +527,47 @@ class GoogleSignInHelper {
       debugPrint('refreshAccessToken: Error refreshing access token: $error');
       return null;
     }
+  }
+
+  /// Restores the client from storage (Desktop only) without user interaction.
+  Future<Client?> restoreClientFromStorage() async {
+    if (!io.Platform.isWindows && !io.Platform.isLinux) {
+      return null;
+    }
+
+    try {
+      final accessToken = await secureStorage.read(
+        key: 'desktop_auth_access_token',
+      );
+      final refreshToken = await secureStorage.read(
+        key: 'desktop_auth_refresh_token',
+      );
+
+      if (accessToken != null && refreshToken != null) {
+        debugPrint(
+          '[Desktop] Restoring client from storage with existing tokens.',
+        );
+        _client = AuthClient(
+          accessToken,
+          refreshTokenCallback: () async {
+            debugPrint('[Desktop] Token expired, refreshing...');
+            final token = await refreshAccessToken();
+            if (token != null) {
+              debugPrint('[Desktop] Token refreshed successfully');
+            } else {
+              debugPrint('[Desktop] Token refresh failed');
+            }
+            return token;
+          },
+        );
+        return _client;
+      } else {
+        debugPrint('[Desktop] No tokens found in storage to restore.');
+      }
+    } catch (e) {
+      debugPrint('[Desktop] Error restoring client from storage: $e');
+    }
+    return null;
   }
 }
 

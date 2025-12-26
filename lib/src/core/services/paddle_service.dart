@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:dr_copilot/src/core/services/backend_service.dart';
+import 'package:dr_copilot/src/core/services/error_reporting_service.dart';
 
 class PaddleService {
   // Use the same base URL as the rest of the app, or a local override
@@ -47,13 +48,16 @@ class PaddleService {
         final data = json.decode(response.body);
         return data['url'] as String?;
       } else {
-        log('Failed to create session: ${response.body}');
+        final errorMsg = 'Failed to create session: ${response.body}';
+        log(errorMsg);
+        ErrorReportingService.reportError(
+            Exception(errorMsg), StackTrace.current);
         return null;
       }
-    } catch (e) {
+    } catch (e, stack) {
       log('Exception creating session: $e');
+      ErrorReportingService.reportError(e, stack);
       return null;
     }
   }
 }
-

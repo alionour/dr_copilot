@@ -15,7 +15,7 @@ class QuotaService {
   final FirebaseFirestore _firestore;
 
   QuotaService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   String _getMonthKey() => DateFormat('yyyy_MM').format(DateTime.now());
   String _getDayKey() => DateFormat('yyyy_MM_dd').format(DateTime.now());
@@ -58,7 +58,8 @@ class QuotaService {
       }
 
       // Monthly limits (Sessions, Evaluations, Image Analysis, AI Tokens)
-      final doc = await _getClinicQuotaDoc(clinicId).get();
+      final doc = await _getClinicQuotaDoc(clinicId)
+          .get(const GetOptions(source: Source.server));
       final data = doc.data() as Map<String, dynamic>?;
 
       if (data == null) return 0;
@@ -134,4 +135,3 @@ class QuotaService {
     }
   }
 }
-

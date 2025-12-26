@@ -149,7 +149,16 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message ?? 'Success'.tr())),
             );
-            context.pop();
+            if (isEditing) {
+              if (context.mounted) context.pop();
+            } else {
+              _nameController.clear();
+              _emailController.clear();
+              _phoneNumberController.clear();
+              setState(() {
+                _selectedSpecialty = null;
+              });
+            }
           } else if (state is DoctorsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message ?? 'Error'.tr())),
@@ -279,9 +288,18 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                         const SizedBox(height: 16.0),
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _saveDoctor,
-                            child: Text('saveDoctor'.tr()),
+                          child: BlocBuilder<DoctorsBloc, DoctorsState>(
+                            builder: (context, state) {
+                              if (state is DoctorsLoading) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+                              return ElevatedButton(
+                                onPressed: _saveDoctor,
+                                child: Text('saveDoctor'.tr()),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -296,4 +314,3 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
     );
   }
 }
-

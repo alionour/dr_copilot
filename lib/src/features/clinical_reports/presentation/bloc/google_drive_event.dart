@@ -9,6 +9,8 @@ abstract class GoogleDriveEvent extends Equatable {
 
 class AuthenticateGoogleDrive extends GoogleDriveEvent {}
 
+class CheckAuthStatus extends GoogleDriveEvent {}
+
 class SearchGoogleDrive extends GoogleDriveEvent {
   final String query;
   final String? parentFolderId;
@@ -38,4 +40,3 @@ class GoToFolder extends GoogleDriveEvent {
 }
 
 class GoBack extends GoogleDriveEvent {}
-

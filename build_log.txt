@@ -1,0 +1,1066 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+[ +192 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[        ] executing: [F:\Ali\flutter\flutter_windows_stable\flutter/] git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso
+[  +83 ms] Exit code 0 from: git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso
+[        ] 2025-12-11 11:50:07 -0500
+[  +13 ms] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[   +2 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[  +45 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[        ] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[  +33 ms] Skipping pub get: version match.
+[ +161 ms] Found plugin integration_test at F:\Ali\flutter\flutter_windows_stable\flutter\packages\integration_test\
+[  +53 ms] Found plugin firebase_core at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-4.3.0\
+[   +2 ms] Found plugin firebase_core_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-3.3.1\
+[   +9 ms] Found plugin firebase_auth at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-6.1.2\
+[   +1 ms] Found plugin firebase_auth_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-6.1.0\
+[  +18 ms] Found plugin cloud_firestore at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-6.1.0\
+[   +1 ms] Found plugin cloud_firestore_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-5.1.0\
+[  +18 ms] Found plugin webview_flutter_wkwebview at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter_wkwebview-3.23.5\
+[   +4 ms] Found plugin webview_flutter_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter_android-4.10.11\
+[   +1 ms] Found plugin webview_flutter at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter-4.13.0\
+[   +3 ms] Found plugin wakelock_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\wakelock_plus-1.4.0\
+[   +6 ms] Found plugin package_info_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\package_info_plus-9.0.0\
+[   +3 ms] Found plugin url_launcher at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher-6.3.2\
+[   +1 ms] Found plugin url_launcher_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_windows-3.1.5\
+[   +3 ms] Found plugin url_launcher_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_web-2.4.1\
+[   +3 ms] Found plugin url_launcher_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_macos-3.2.5\
+[   +2 ms] Found plugin url_launcher_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_linux-3.2.2\
+[   +2 ms] Found plugin url_launcher_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_ios-6.3.6\
+[   +2 ms] Found plugin url_launcher_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_android-6.3.28\
+[  +10 ms] Found plugin speech_to_text at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\speech_to_text-7.3.0\
+[   +1 ms] Found plugin speech_to_text_windows at F:\Ali\Projects\alionour33\dr_copilot\packages\speech_to_text_windows\
+[   +3 ms] Found plugin shared_preferences at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences-2.5.4\
+[        ] Found plugin shared_preferences_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_windows-2.4.1\
+[   +1 ms] Found plugin path_provider_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_windows-2.3.0\
+[   +1 ms] Found plugin shared_preferences_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_web-2.4.3\
+[        ] Found plugin shared_preferences_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_linux-2.4.1\
+[        ] Found plugin path_provider_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_linux-2.2.1\
+[   +1 ms] Found plugin shared_preferences_foundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_foundation-2.5.6\
+[        ] Found plugin shared_preferences_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_android-2.4.18\
+[   +3 ms] Found plugin share_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\share_plus-12.0.1\
+[   +2 ms] Found plugin path_provider at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider-2.1.5\
+[        ] Found plugin path_provider_foundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_foundation-2.5.1\
+[   +1 ms] Found plugin path_provider_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_android-2.2.22\
+[   +1 ms] Found plugin record at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record-6.1.2\
+[        ] Found plugin record_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_windows-1.0.7\
+[   +1 ms] Found plugin record_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_web-1.2.2\
+[        ] Found plugin record_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_macos-1.1.2\
+[        ] Found plugin record_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_linux-1.2.1\
+[        ] Found plugin record_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_ios-1.1.5\
+[        ] Found plugin record_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_android-1.4.5\
+[   +2 ms] Found plugin permission_handler at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler-12.0.1\
+[   +1 ms] Found plugin permission_handler_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_windows-0.2.1\
+[   +4 ms] Found plugin permission_handler_html at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_html-0.1.3+5\
+[        ] Found plugin permission_handler_apple at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_apple-9.4.7\
+[        ] Found plugin permission_handler_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_android-13.0.1\
+[   +2 ms] Found plugin local_auth at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth-3.0.0\
+[   +1 ms] Found plugin local_auth_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_windows-2.0.1\
+[   +1 ms] Found plugin local_auth_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_darwin-2.0.1\
+[        ] Found plugin local_auth_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_android-2.0.4\
+[        ] Found plugin flutter_plugin_android_lifecycle at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_plugin_android_lifecycle-2.0.33\
+[   +1 ms] Found plugin connectivity_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\connectivity_plus-7.0.0\
+[   +4 ms] Found plugin in_app_purchase at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase-3.2.3\
+[   +1 ms] Found plugin in_app_purchase_storekit at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase_storekit-0.4.7\
+[   +1 ms] Found plugin in_app_purchase_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase_android-0.4.0+8\
+[   +1 ms] Found plugin pointer_interceptor at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor-0.10.1+2\
+[        ] Found plugin pointer_interceptor_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor_web-0.10.3\
+[   +1 ms] Found plugin pointer_interceptor_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor_ios-0.10.1+1\
+[   +1 ms] Found plugin flutter_keyboard_visibility at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility-6.0.0\
+[        ] Found plugin flutter_keyboard_visibility_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_windows-1.0.0\
+[   +1 ms] Found plugin flutter_keyboard_visibility_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_web-2.0.0\
+[        ] Found plugin flutter_keyboard_visibility_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_macos-1.0.0\
+[        ] Found plugin flutter_keyboard_visibility_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_linux-1.0.0\
+[   +1 ms] Found plugin flutter_inappwebview at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview-6.1.5\
+[   +3 ms] Found plugin flutter_inappwebview_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_windows-0.6.0\
+[   +2 ms] Found plugin flutter_inappwebview_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_web-1.1.2\
+[        ] Found plugin flutter_inappwebview_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_macos-1.1.2\
+[        ] Found plugin flutter_inappwebview_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_ios-1.1.2\
+[        ] Found plugin flutter_inappwebview_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_android-1.1.3\
+[   +2 ms] Found plugin file_picker at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\file_picker-10.3.7\
+[   +2 ms] Found plugin google_sign_in at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in-6.3.0\
+[        ] Found plugin google_sign_in_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_web-0.12.4+4\
+[   +1 ms] Found plugin google_sign_in_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_ios-5.9.0\
+[        ] Found plugin google_sign_in_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_android-6.2.1\
+[  +14 ms] Found plugin just_audio at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\just_audio-0.10.5\
+[        ] Found plugin just_audio_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\just_audio_web-0.4.16\
+[   +1 ms] Found plugin audio_session at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audio_session-0.2.2\
+[   +1 ms] Found plugin video_player at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player-2.10.1\
+[   +3 ms] Found plugin video_player_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_web-2.4.0\
+[   +1 ms] Found plugin video_player_avfoundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_avfoundation-2.8.8\
+[        ] Found plugin video_player_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_android-2.8.22\
+[   +3 ms] Found plugin sqflite at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite-2.4.2\
+[   +2 ms] Found plugin sqflite_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite_darwin-2.4.2\
+[        ] Found plugin sqflite_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite_android-2.4.2+2\
+[   +4 ms] Found plugin flutter_tts at F:\Ali\Projects\alionour33\dr_copilot\packages\flutter_tts_fixed\
+[   +5 ms] Found plugin flutter_secure_storage at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage-10.0.0\
+[        ] Found plugin flutter_secure_storage_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_windows-4.1.0\
+[   +1 ms] Found plugin flutter_secure_storage_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_web-2.1.0\
+[        ] Found plugin flutter_secure_storage_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_linux-3.0.0\
+[        ] Found plugin flutter_secure_storage_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_darwin-0.2.0\
+[   +1 ms] Found plugin flutter_local_notifications at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-19.5.0\
+[        ] Found plugin flutter_local_notifications_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications_windows-1.0.3\
+[   +1 ms] Found plugin flutter_local_notifications_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications_linux-6.0.0\
+[   +6 ms] Found plugin firebase_storage at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_storage-13.0.4\
+[   +1 ms] Found plugin firebase_storage_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_storage_web-3.11.0\
+[   +1 ms] Found plugin firebase_messaging at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-16.0.4\
+[        ] Found plugin firebase_messaging_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging_web-4.1.0\
+[   +1 ms] Found plugin firebase_app_installations at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_app_installations-0.4.0+4\
+[        ] Found plugin firebase_app_installations_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_app_installations_web-0.1.7\
+[   +6 ms] Found plugin audioplayers at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers-6.5.1\
+[        ] Found plugin audioplayers_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_windows-4.2.1\
+[   +1 ms] Found plugin audioplayers_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_web-5.1.1\
+[   +1 ms] Found plugin audioplayers_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_linux-4.2.1\
+[   +2 ms] Found plugin audioplayers_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_darwin-6.3.0\
+[   +1 ms] Found plugin audioplayers_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_android-5.2.1\
+[  +74 ms] Found plugin integration_test at F:\Ali\flutter\flutter_windows_stable\flutter\packages\integration_test\
+[  +21 ms] Found plugin firebase_core at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-4.3.0\
+[   +2 ms] Found plugin firebase_core_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-3.3.1\
+[   +3 ms] Found plugin firebase_auth at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-6.1.2\
+[        ] Found plugin firebase_auth_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-6.1.0\
+[   +6 ms] Found plugin cloud_firestore at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-6.1.0\
+[        ] Found plugin cloud_firestore_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-5.1.0\
+[   +9 ms] Found plugin webview_flutter_wkwebview at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter_wkwebview-3.23.5\
+[   +1 ms] Found plugin webview_flutter_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter_android-4.10.11\
+[        ] Found plugin webview_flutter at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter-4.13.0\
+[        ] Found plugin wakelock_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\wakelock_plus-1.4.0\
+[   +2 ms] Found plugin package_info_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\package_info_plus-9.0.0\
+[   +1 ms] Found plugin url_launcher at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher-6.3.2\
+[        ] Found plugin url_launcher_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_windows-3.1.5\
+[   +1 ms] Found plugin url_launcher_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_web-2.4.1\
+[        ] Found plugin url_launcher_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_macos-3.2.5\
+[        ] Found plugin url_launcher_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_linux-3.2.2\
+[   +1 ms] Found plugin url_launcher_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_ios-6.3.6\
+[   +1 ms] Found plugin url_launcher_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_android-6.3.28\
+[   +5 ms] Found plugin speech_to_text at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\speech_to_text-7.3.0\
+[        ] Found plugin speech_to_text_windows at F:\Ali\Projects\alionour33\dr_copilot\packages\speech_to_text_windows\
+[   +2 ms] Found plugin shared_preferences at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences-2.5.4\
+[   +1 ms] Found plugin shared_preferences_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_windows-2.4.1\
+[   +1 ms] Found plugin path_provider_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_windows-2.3.0\
+[   +1 ms] Found plugin shared_preferences_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_web-2.4.3\
+[        ] Found plugin shared_preferences_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_linux-2.4.1\
+[   +1 ms] Found plugin path_provider_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_linux-2.2.1\
+[   +2 ms] Found plugin shared_preferences_foundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_foundation-2.5.6\
+[   +1 ms] Found plugin shared_preferences_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_android-2.4.18\
+[        ] Found plugin share_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\share_plus-12.0.1\
+[   +1 ms] Found plugin path_provider at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider-2.1.5\
+[        ] Found plugin path_provider_foundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_foundation-2.5.1\
+[        ] Found plugin path_provider_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_android-2.2.22\
+[   +1 ms] Found plugin record at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record-6.1.2\
+[        ] Found plugin record_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_windows-1.0.7\
+[   +1 ms] Found plugin record_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_web-1.2.2\
+[        ] Found plugin record_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_macos-1.1.2\
+[   +1 ms] Found plugin record_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_linux-1.2.1\
+[   +1 ms] Found plugin record_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_ios-1.1.5\
+[   +1 ms] Found plugin record_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_android-1.4.5\
+[   +4 ms] Found plugin permission_handler at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler-12.0.1\
+[   +1 ms] Found plugin permission_handler_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_windows-0.2.1\
+[   +1 ms] Found plugin permission_handler_html at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_html-0.1.3+5\
+[        ] Found plugin permission_handler_apple at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_apple-9.4.7\
+[        ] Found plugin permission_handler_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_android-13.0.1\
+[   +1 ms] Found plugin local_auth at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth-3.0.0\
+[        ] Found plugin local_auth_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_windows-2.0.1\
+[   +1 ms] Found plugin local_auth_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_darwin-2.0.1\
+[        ] Found plugin local_auth_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_android-2.0.4\
+[        ] Found plugin flutter_plugin_android_lifecycle at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_plugin_android_lifecycle-2.0.33\
+[   +1 ms] Found plugin connectivity_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\connectivity_plus-7.0.0\
+[   +1 ms] Found plugin in_app_purchase at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase-3.2.3\
+[        ] Found plugin in_app_purchase_storekit at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase_storekit-0.4.7\
+[   +3 ms] Found plugin in_app_purchase_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase_android-0.4.0+8\
+[   +3 ms] Found plugin pointer_interceptor at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor-0.10.1+2\
+[        ] Found plugin pointer_interceptor_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor_web-0.10.3\
+[   +3 ms] Found plugin pointer_interceptor_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor_ios-0.10.1+1\
+[   +2 ms] Found plugin flutter_keyboard_visibility at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility-6.0.0\
+[        ] Found plugin flutter_keyboard_visibility_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_windows-1.0.0\
+[        ] Found plugin flutter_keyboard_visibility_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_web-2.0.0\
+[        ] Found plugin flutter_keyboard_visibility_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_macos-1.0.0\
+[        ] Found plugin flutter_keyboard_visibility_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_linux-1.0.0\
+[   +1 ms] Found plugin flutter_inappwebview at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview-6.1.5\
+[   +2 ms] Found plugin flutter_inappwebview_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_windows-0.6.0\
+[   +3 ms] Found plugin flutter_inappwebview_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_web-1.1.2\
+[        ] Found plugin flutter_inappwebview_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_macos-1.1.2\
+[        ] Found plugin flutter_inappwebview_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_ios-1.1.2\
+[        ] Found plugin flutter_inappwebview_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_android-1.1.3\
+[   +2 ms] Found plugin file_picker at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\file_picker-10.3.7\
+[   +2 ms] Found plugin google_sign_in at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in-6.3.0\
+[        ] Found plugin google_sign_in_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_web-0.12.4+4\
+[   +1 ms] Found plugin google_sign_in_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_ios-5.9.0\
+[        ] Found plugin google_sign_in_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_android-6.2.1\
+[  +10 ms] Found plugin just_audio at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\just_audio-0.10.5\
+[        ] Found plugin just_audio_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\just_audio_web-0.4.16\
+[   +1 ms] Found plugin audio_session at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audio_session-0.2.2\
+[   +1 ms] Found plugin video_player at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player-2.10.1\
+[        ] Found plugin video_player_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_web-2.4.0\
+[   +1 ms] Found plugin video_player_avfoundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_avfoundation-2.8.8\
+[        ] Found plugin video_player_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_android-2.8.22\
+[   +3 ms] Found plugin sqflite at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite-2.4.2\
+[   +2 ms] Found plugin sqflite_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite_darwin-2.4.2\
+[        ] Found plugin sqflite_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite_android-2.4.2+2\
+[   +2 ms] Found plugin flutter_tts at F:\Ali\Projects\alionour33\dr_copilot\packages\flutter_tts_fixed\
+[   +1 ms] Found plugin flutter_secure_storage at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage-10.0.0\
+[        ] Found plugin flutter_secure_storage_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_windows-4.1.0\
+[        ] Found plugin flutter_secure_storage_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_web-2.1.0\
+[        ] Found plugin flutter_secure_storage_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_linux-3.0.0\
+[        ] Found plugin flutter_secure_storage_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_darwin-0.2.0\
+[        ] Found plugin flutter_local_notifications at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-19.5.0\
+[        ] Found plugin flutter_local_notifications_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications_windows-1.0.3\
+[        ] Found plugin flutter_local_notifications_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications_linux-6.0.0\
+[   +7 ms] Found plugin firebase_storage at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_storage-13.0.4\
+[        ] Found plugin firebase_storage_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_storage_web-3.11.0\
+[   +1 ms] Found plugin firebase_messaging at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-16.0.4\
+[        ] Found plugin firebase_messaging_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging_web-4.1.0\
+[   +1 ms] Found plugin firebase_app_installations at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_app_installations-0.4.0+4\
+[        ] Found plugin firebase_app_installations_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_app_installations_web-0.1.7\
+[   +5 ms] Found plugin audioplayers at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers-6.5.1\
+[        ] Found plugin audioplayers_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_windows-4.2.1\
+[   +1 ms] Found plugin audioplayers_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_web-5.1.1\
+[   +1 ms] Found plugin audioplayers_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_linux-4.2.1\
+[   +1 ms] Found plugin audioplayers_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_darwin-6.3.0\
+[   +1 ms] Found plugin audioplayers_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_android-5.2.1\
+[   +8 ms] Skipping generating web_plugin_registrant.dart because it is up-to-date.
+[  +52 ms] Found plugin integration_test at F:\Ali\flutter\flutter_windows_stable\flutter\packages\integration_test\
+[  +21 ms] Found plugin firebase_core at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-4.3.0\
+[        ] Found plugin firebase_core_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-3.3.1\
+[   +2 ms] Found plugin firebase_auth at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-6.1.2\
+[        ] Found plugin firebase_auth_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-6.1.0\
+[   +5 ms] Found plugin cloud_firestore at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-6.1.0\
+[        ] Found plugin cloud_firestore_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-5.1.0\
+[   +9 ms] Found plugin webview_flutter_wkwebview at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter_wkwebview-3.23.5\
+[   +1 ms] Found plugin webview_flutter_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter_android-4.10.11\
+[        ] Found plugin webview_flutter at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\webview_flutter-4.13.0\
+[        ] Found plugin wakelock_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\wakelock_plus-1.4.0\
+[   +1 ms] Found plugin package_info_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\package_info_plus-9.0.0\
+[   +1 ms] Found plugin url_launcher at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher-6.3.2\
+[        ] Found plugin url_launcher_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_windows-3.1.5\
+[        ] Found plugin url_launcher_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_web-2.4.1\
+[        ] Found plugin url_launcher_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_macos-3.2.5\
+[        ] Found plugin url_launcher_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_linux-3.2.2\
+[        ] Found plugin url_launcher_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_ios-6.3.6\
+[        ] Found plugin url_launcher_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_android-6.3.28\
+[   +6 ms] Found plugin speech_to_text at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\speech_to_text-7.3.0\
+[        ] Found plugin speech_to_text_windows at F:\Ali\Projects\alionour33\dr_copilot\packages\speech_to_text_windows\
+[   +2 ms] Found plugin shared_preferences at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences-2.5.4\
+[        ] Found plugin shared_preferences_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_windows-2.4.1\
+[   +1 ms] Found plugin path_provider_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_windows-2.3.0\
+[   +1 ms] Found plugin shared_preferences_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_web-2.4.3\
+[        ] Found plugin shared_preferences_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_linux-2.4.1\
+[        ] Found plugin path_provider_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_linux-2.2.1\
+[   +1 ms] Found plugin shared_preferences_foundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_foundation-2.5.6\
+[        ] Found plugin shared_preferences_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_android-2.4.18\
+[        ] Found plugin share_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\share_plus-12.0.1\
+[        ] Found plugin path_provider at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider-2.1.5\
+[        ] Found plugin path_provider_foundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_foundation-2.5.1\
+[        ] Found plugin path_provider_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_android-2.2.22\
+[   +3 ms] Found plugin record at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record-6.1.2\
+[   +1 ms] Found plugin record_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_windows-1.0.7\
+[   +1 ms] Found plugin record_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_web-1.2.2\
+[        ] Found plugin record_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_macos-1.1.2\
+[        ] Found plugin record_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_linux-1.2.1\
+[        ] Found plugin record_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_ios-1.1.5\
+[        ] Found plugin record_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\record_android-1.4.5\
+[   +2 ms] Found plugin permission_handler at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler-12.0.1\
+[   +1 ms] Found plugin permission_handler_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_windows-0.2.1\
+[   +1 ms] Found plugin permission_handler_html at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_html-0.1.3+5\
+[        ] Found plugin permission_handler_apple at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_apple-9.4.7\
+[        ] Found plugin permission_handler_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_android-13.0.1\
+[   +4 ms] Found plugin local_auth at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth-3.0.0\
+[   +1 ms] Found plugin local_auth_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_windows-2.0.1\
+[   +1 ms] Found plugin local_auth_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_darwin-2.0.1\
+[        ] Found plugin local_auth_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\local_auth_android-2.0.4\
+[        ] Found plugin flutter_plugin_android_lifecycle at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_plugin_android_lifecycle-2.0.33\
+[   +1 ms] Found plugin connectivity_plus at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\connectivity_plus-7.0.0\
+[   +2 ms] Found plugin in_app_purchase at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase-3.2.3\
+[        ] Found plugin in_app_purchase_storekit at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase_storekit-0.4.7\
+[   +1 ms] Found plugin in_app_purchase_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\in_app_purchase_android-0.4.0+8\
+[   +1 ms] Found plugin pointer_interceptor at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor-0.10.1+2\
+[        ] Found plugin pointer_interceptor_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor_web-0.10.3\
+[   +1 ms] Found plugin pointer_interceptor_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\pointer_interceptor_ios-0.10.1+1\
+[   +3 ms] Found plugin flutter_keyboard_visibility at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility-6.0.0\
+[        ] Found plugin flutter_keyboard_visibility_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_windows-1.0.0\
+[        ] Found plugin flutter_keyboard_visibility_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_web-2.0.0\
+[        ] Found plugin flutter_keyboard_visibility_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_macos-1.0.0\
+[        ] Found plugin flutter_keyboard_visibility_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_keyboard_visibility_linux-1.0.0\
+[        ] Found plugin flutter_inappwebview at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview-6.1.5\
+[        ] Found plugin flutter_inappwebview_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_windows-0.6.0\
+[   +1 ms] Found plugin flutter_inappwebview_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_web-1.1.2\
+[        ] Found plugin flutter_inappwebview_macos at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_macos-1.1.2\
+[        ] Found plugin flutter_inappwebview_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_ios-1.1.2\
+[        ] Found plugin flutter_inappwebview_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_inappwebview_android-1.1.3\
+[   +1 ms] Found plugin file_picker at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\file_picker-10.3.7\
+[   +1 ms] Found plugin google_sign_in at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in-6.3.0\
+[        ] Found plugin google_sign_in_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_web-0.12.4+4\
+[   +2 ms] Found plugin google_sign_in_ios at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_ios-5.9.0\
+[   +1 ms] Found plugin google_sign_in_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\google_sign_in_android-6.2.1\
+[   +7 ms] Found plugin just_audio at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\just_audio-0.10.5\
+[        ] Found plugin just_audio_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\just_audio_web-0.4.16\
+[   +1 ms] Found plugin audio_session at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audio_session-0.2.2\
+[        ] Found plugin video_player at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player-2.10.1\
+[        ] Found plugin video_player_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_web-2.4.0\
+[        ] Found plugin video_player_avfoundation at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_avfoundation-2.8.8\
+[        ] Found plugin video_player_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_android-2.8.22\
+[   +3 ms] Found plugin sqflite at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite-2.4.2\
+[   +2 ms] Found plugin sqflite_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite_darwin-2.4.2\
+[        ] Found plugin sqflite_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\sqflite_android-2.4.2+2\
+[   +2 ms] Found plugin flutter_tts at F:\Ali\Projects\alionour33\dr_copilot\packages\flutter_tts_fixed\
+[   +1 ms] Found plugin flutter_secure_storage at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage-10.0.0\
+[        ] Found plugin flutter_secure_storage_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_windows-4.1.0\
+[        ] Found plugin flutter_secure_storage_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_web-2.1.0\
+[        ] Found plugin flutter_secure_storage_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_linux-3.0.0\
+[        ] Found plugin flutter_secure_storage_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage_darwin-0.2.0\
+[        ] Found plugin flutter_local_notifications at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-19.5.0\
+[        ] Found plugin flutter_local_notifications_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications_windows-1.0.3\
+[        ] Found plugin flutter_local_notifications_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications_linux-6.0.0\
+[   +5 ms] Found plugin firebase_storage at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_storage-13.0.4\
+[        ] Found plugin firebase_storage_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_storage_web-3.11.0\
+[   +1 ms] Found plugin firebase_messaging at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-16.0.4\
+[        ] Found plugin firebase_messaging_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging_web-4.1.0\
+[        ] Found plugin firebase_app_installations at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_app_installations-0.4.0+4\
+[        ] Found plugin firebase_app_installations_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_app_installations_web-0.1.7\
+[   +4 ms] Found plugin audioplayers at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers-6.5.1\
+[        ] Found plugin audioplayers_windows at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_windows-4.2.1\
+[        ] Found plugin audioplayers_web at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_web-5.1.1\
+[        ] Found plugin audioplayers_linux at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_linux-4.2.1\
+[        ] Found plugin audioplayers_darwin at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_darwin-6.3.0\
+[        ] Found plugin audioplayers_android at C:\Users\Ali Nour\AppData\Local\Pub\Cache\hosted\pub.dev\audioplayers_android-5.2.1\
+[  +11 ms] Generating F:\Ali\Projects\alionour33\dr_copilot\android\app\src\main\java\io\flutter\plugins\GeneratedPluginRegistrant.java
+[   +1 ms] Skipping generating GeneratedPluginRegistrant.java because it is up-to-date.
+[   +3 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[        ] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[   +1 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[   +3 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[        ] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[        ] Skipping generating generated_plugins.cmake because it is up-to-date.
+[   +1 ms] Skipping generating GeneratedPluginRegistrant.h because it is up-to-date.
+[   +1 ms] Skipping generating GeneratedPluginRegistrant.m because it is up-to-date.
+[        ] Skipping generating GeneratedPluginRegistrant.swift because it is up-to-date.
+[ +108 ms] executing: C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe -format json -products * -utf8 -latest -version 16 -requires Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project
+[  +61 ms] Exit code 0 from: C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe -format json -products * -utf8 -latest -version 16 -requires Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project
+[        ] []
+[        ] executing: C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe -format json -products * -utf8 -latest -version 16 -requires Microsoft.VisualStudio.Workload.VCTools Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project
+[  +61 ms] Exit code 0 from: C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe -format json -products * -utf8 -latest -version 16 -requires Microsoft.VisualStudio.Workload.VCTools Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project
+[        ] [
+             {
+               "instanceId": "625dbeaa",
+               "installDate": "2023-02-16T20:11:54Z",
+               "installationName": "VisualStudio/17.13.6+35931.197",
+               "installationPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools",
+               "installationVersion": "17.13.35931.197",
+               "productId": "Microsoft.VisualStudio.Product.BuildTools",
+               "productPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\Tools\\LaunchDevCmd.bat",
+               "state": 4294967295,
+               "isComplete": true,
+               "isLaunchable": true,
+               "isPrerelease": false,
+               "isRebootRequired": false,
+               "displayName": "Visual Studio Build Tools 2022",
+               "description": "The Visual Studio Build Tools allows you to build native and managed MSBuild-based applications without requiring the Visual Studio IDE. There are options to install the Visual C++ compilers and libraries, MFC, ATL, and C++/CLI support.",
+               "channelId": "VisualStudio.17.Release",
+               "channelUri": "https://aka.ms/vs/17/release/channel",
+               "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+               "installedChannelId": "VisualStudio.17.Release",
+               "installedChannelUri": "https://aka.ms/vs/17/release/channel",
+               "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.13#17.13.6",
+               "resolvedInstallationPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools",
+               "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661288",
+               "updateDate": "2025-05-01T18:21:23.217246Z",
+               "catalog": {
+                 "buildBranch": "d17.13",
+                 "buildVersion": "17.13.35931.197",
+                 "id": "VisualStudio/17.13.6+35931.197",
+                 "localBuild": "build-lab",
+                 "manifestName": "VisualStudio",
+                 "manifestType": "installer",
+                 "productDisplayVersion": "17.13.6",
+                 "productLine": "Dev17",
+                 "productLineVersion": "2022",
+                 "productMilestone": "RTW",
+                 "productMilestoneIsPreRelease": "False",
+                 "productName": "Visual Studio",
+                 "productPatchVersion": "6",
+                 "productPreReleaseMilestoneSuffix": "1.0",
+                 "productSemanticVersion": "17.13.6+35931.197",
+                 "requiredEngineVersion": "3.13.2069.59209"
+               },
+               "properties": {
+                 "campaignId": "",
+                 "canceled": "0",
+                 "channelManifestId": "VisualStudio.17.Release/17.13.6+35931.197",
+                 "nickname": "",
+                 "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+               }
+             }
+           ]
+[   +2 ms] Building Windows application...
+[   +4 ms] executing: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe -S F:\Ali\Projects\alionour33\dr_copilot\windows -B F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64 -G Visual Studio 17 2022 -A x64 -DFLUTTER_TARGET_PLATFORM=windows-x64
+[  +82 ms] -- Selecting Windows SDK version 10.0.22621.0 to target Windows 10.0.22631.
+[ +482 ms] Feeds used:
+[        ]   C:\Users\Ali Nour\.nuget\packages\
+[        ]   https://api.nuget.org/v3/index.json
+[  +67 ms] Package "Microsoft.Windows.ImplementationLibrary.1.0.210803.1" is already installed.
+[  +28 ms] -- Using cached Firebase SDK zip file
+[        ] -- Using cached extracted Firebase SDK
+[   +5 ms] CMake Deprecation Warning at F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/extracted/firebase_cpp_sdk_windows/CMakeLists.txt:17 (cmake_minimum_required):
+[   +2 ms]   Compatibility with CMake < 3.5 will be removed from a future version of
+[        ]   CMake.
+[        ]   Update the VERSION argument <min> value or use a ...<max> suffix to tell
+[        ]   CMake that the project does not need compatibility with older versions.
+[  +35 ms] -- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE) 
+[   +7 ms] -- Building with D3D texture support.
+[ +451 ms] Feeds used:
+[        ]   C:\Users\Ali Nour\.nuget\packages\
+[        ]   https://api.nuget.org/v3/index.json
+[  +68 ms] Package "Microsoft.Windows.CppWinRT.2.0.210503.1" is already installed.
+[ +401 ms] Feeds used:
+[        ]   C:\Users\Ali Nour\.nuget\packages\
+[        ]   https://api.nuget.org/v3/index.json
+[  +72 ms] Package "Microsoft.Windows.ImplementationLibrary.1.0.220201.1" is already installed.
+[ +460 ms] Feeds used:
+[        ]   C:\Users\Ali Nour\.nuget\packages\
+[        ]   https://api.nuget.org/v3/index.json
+[ +109 ms] Package "Microsoft.Windows.CppWinRT.2.0.220418.1" is already installed.
+[+3785 ms] Feeds used:
+[        ]   C:\Users\Ali Nour\.nuget\packages\
+[        ]   https://api.nuget.org/v3/index.json
+[ +130 ms] Package "Microsoft.Windows.CppWinRT.2.0.210806.1" is already installed.
+[+2179 ms] -- Configuring done (8.3s)
+[+1273 ms] -- Generating done (1.3s)
+[   +6 ms] -- Build files have been written to: F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64
+[  +88 ms] executing: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --build F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64 --config Release --target INSTALL --verbose
+[ +315 ms] Change Dir: 'F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64'
+[        ] Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" INSTALL.vcxproj /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+[ +307 ms] MSBuild version 17.13.19+0d9f5a35a for .NET Framework
+[ +174 ms] Build started 26/12/2025 05:01:24 ي┐╜.
+[ +525 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj" on node 1 (default targets).
+[        ] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj" (1) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ZERO_CHECK.vcxproj" (2) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +6 ms] InitializeBuildStatus:
+[        ]   Creating "x64\Release\ZERO_CHECK\ZERO_CHECK.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "x64\Release\ZERO_CHECK\ZERO_CHECK.tlog\unsuccessfulbuild".
+[  +21 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +38 ms] FinalizeBuildStatus:
+[        ]   Deleting file "x64\Release\ZERO_CHECK\ZERO_CHECK.tlog\unsuccessfulbuild".
+[        ]   Touching "x64\Release\ZERO_CHECK\ZERO_CHECK.tlog\ZERO_CHECK.lastbuildstate".
+[   +1 ms] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ZERO_CHECK.vcxproj" (default targets).
+[  +65 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj" (1) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) on node 1 (default targets).
+[        ] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_inappwebview_windows\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD.vcxproj" (4) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[        ]   Creating "x64\Release\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD\flutter_.BC855049.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "x64\Release\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD\flutter_.BC855049.tlog\unsuccessfulbuild".
+[  +62 ms] PreBuildEvent:
+[        ]   setlocal
+[        ]   C:\src\tools\nuget.exe install Microsoft.Windows.ImplementationLibrary -Version 1.0.231216.1 -ExcludeVersion -OutputDirectory F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/packages
+[        ]   if %errorlevel% neq 0 goto :cmEnd
+[        ]   C:\src\tools\nuget.exe install Microsoft.Web.WebView2 -Version 1.0.2792.45 -ExcludeVersion -OutputDirectory F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/packages
+[        ]   if %errorlevel% neq 0 goto :cmEnd
+[        ]   C:\src\tools\nuget.exe install nlohmann.json -Version 3.11.2 -ExcludeVersion -OutputDirectory F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/packages
+[        ]   if %errorlevel% neq 0 goto :cmEnd
+[        ]   :cmEnd
+[        ]   endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+[        ]   :cmErrorLevel
+[        ]   exit /b %1
+[        ]   :cmDone
+[        ]   if %errorlevel% neq 0 goto :VCEnd
+[        ]   :VCEnd
+[ +792 ms]   Feeds used:
+[        ]     C:\Users\Ali Nour\.nuget\packages\
+[        ]     https://api.nuget.org/v3/index.json
+[ +103 ms]   Package "Microsoft.Windows.ImplementationLibrary.1.0.231216.1" is already installed.
+[ +471 ms]   Feeds used:
+[        ]     C:\Users\Ali Nour\.nuget\packages\
+[        ]     https://api.nuget.org/v3/index.json
+[  +69 ms]   Package "Microsoft.Web.WebView2.1.0.2792.45" is already installed.
+[ +429 ms]   Feeds used:
+[        ]     C:\Users\Ali Nour\.nuget\packages\
+[        ]     https://api.nuget.org/v3/index.json
+[  +68 ms]   Package "nlohmann.json.3.11.2" is already installed.
+[  +21 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +33 ms] FinalizeBuildStatus:
+[        ]   Deleting file "x64\Release\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD\flutter_.BC855049.tlog\unsuccessfulbuild".
+[        ]   Touching "x64\Release\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD\flutter_.BC855049.tlog\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_inappwebview_windows\flutter_inappwebview_windows_DEPENDENCIES_DOWNLOAD.vcxproj" (default targets).
+[  +59 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\audioplayers_windows\audioplayers_windows_plugin.vcxproj" (5) on node 1 (default targets).
+[        ] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\audioplayers_windows\audioplayers_windows_plugin.vcxproj" (5) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\flutter_assemble.vcxproj" (6) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +1 ms] InitializeBuildStatus:
+[        ]   Creating "x64\Release\flutter_assemble\flutter_assemble.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "x64\Release\flutter_assemble\flutter_assemble.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   "The build of 'F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\CMakeFiles\3e88c6000b3491c3b1d0538a7da6dd13\flutter_assemble.rule' depends on 'F:\ALI\PROJECTS\ALIONOUR33\DR_COPILOT\WINDOWS\FLUTTER\EPHEMERAL\FLUTTER_WINDOWS.DLL' which is produced by the build of 'F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\CMakeFiles\f227c81c0de1835f20ec9fccd0842dda\flutter_windows.dll.rule'. The items cannot be built in parallel."
+[ +112 ms]   Generating F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/flutter_windows.dll, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/flutter_export.h, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/flutter_windows.h, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/flutter_messenger.h, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/flutter_plugin_registrar.h, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/flutter_texture_registrar.h, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/cpp_client_wrapper/core_implementations.cc, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/cpp_client_wrapper/standard_codec.cc, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/cpp_client_wrapper/plugin_registrar.cc, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/cpp_client_wrapper/flutter_engine.cc, F:/Ali/Projects/alionour33/dr_copilot/windows/flutter/ephemeral/cpp_client_wrapper/flutter_view_controller.cc, _phony_
+[ +594 ms]   Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+[        ]   Dart SDK found. Running Flutter...
+[ +384 ms]   [ +196 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[        ]   [   +1 ms] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[   +9 ms]   [   +9 ms] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[   +1 ms]   [   +1 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[  +57 ms]   [  +57 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[   +1 ms]   [   +2 ms] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ]   [        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[  +44 ms]   [  +45 ms] Initializing file store
+[  +35 ms]   [  +34 ms] Done initializing file store
+[ +157 ms]   [ +158 ms] Skipping target: dart_build
+[   +1 ms]   [   +2 ms] Skipping target: gen_dart_plugin_registrant
+[+3292 ms]   [+3292 ms] Skipping target: unpack_windows
+[        ]   [        ] Skipping target: install_code_assets
+[        ]   [        ] Skipping target: gen_localizations
+[+1727 ms]   [+1727 ms] Skipping target: kernel_snapshot_program
+[ +107 ms]   [ +107 ms] Skipping target: aot_elf_release
+[  +90 ms]   [  +90 ms] Skipping target: windows_aot_bundle
+[  +17 ms]   [  +17 ms] invalidated build due to missing files: F:\Ali\Projects\alionour33\dr_copilot\DOES_NOT_EXIST_RERUN_FOR_WILDCARD191812197
+[ +119 ms]   [ +119 ms] release_bundle_windows-x64_assets: Starting due to {InvalidatedReasonKind.inputMissing: The following inputs were missing: F:\Ali\Projects\alionour33\dr_copilot\DOES_NOT_EXIST_RERUN_FOR_WILDCARD191812197}
+[ +552 ms]   [ +552 ms] Manifest contained wildcard assets. Inserting missing file into build graph to force rerun. for more information see #56466.
+[  +35 ms]   [  +34 ms] shaderc command: [F:\Ali\flutter\flutter_windows_stable\flutter\bin\cache\artifacts\engine\windows-x64\impellerc.exe, --sksl, --runtime-stage-gles, --runtime-stage-gles3, --runtime-stage-vulkan, --iplr, --sl=F:\Ali\Projects\alionour33\dr_copilot\build\flutter_assets\shaders/ink_sparkle.frag, --spirv=F:\Ali\Projects\alionour33\dr_copilot\build\flutter_assets\shaders/ink_sparkle.frag.spirv, --input=F:\Ali\flutter\flutter_windows_stable\flutter\packages\flutter\lib\src\material\shaders\ink_sparkle.frag, --input-type=frag, --include=F:\Ali\flutter\flutter_windows_stable\flutter\packages\flutter\lib\src\material\shaders, --include=F:\Ali\flutter\flutter_windows_stable\flutter\bin\cache\artifacts\engine\windows-x64\shader_lib]
+[   +8 ms]   [   +8 ms] shaderc command: [F:\Ali\flutter\flutter_windows_stable\flutter\bin\cache\artifacts\engine\windows-x64\impellerc.exe, --sksl, --runtime-stage-gles, --runtime-stage-gles3, --runtime-stage-vulkan, --iplr, --sl=F:\Ali\Projects\alionour33\dr_copilot\build\flutter_assets\shaders/stretch_effect.frag, --spirv=F:\Ali\Projects\alionour33\dr_copilot\build\flutter_assets\shaders/stretch_effect.frag.spirv, --input=F:\Ali\flutter\flutter_windows_stable\flutter\packages\flutter\lib\src\material\shaders\stretch_effect.frag, --input-type=frag, --include=F:\Ali\flutter\flutter_windows_stable\flutter\packages\flutter\lib\src\material\shaders, --include=F:\Ali\flutter\flutter_windows_stable\flutter\bin\cache\artifacts\engine\windows-x64\shader_lib]
+[+1665 ms]   [+1666 ms] release_bundle_windows-x64_assets: Complete
+[ +222 ms]   [ +223 ms] Persisting file store
+[  +33 ms]   [  +33 ms] Done persisting file store
+[  +60 ms]   [  +60 ms] build succeeded.
+[   +8 ms]   [        ] "flutter assemble" took ┘ذ┘ش┘ت┘ج┘رms.
+[ +133 ms]   [ +141 ms] Running 1 shutdown hook
+[   +1 ms]   [   +1 ms] Shutdown hooks complete
+[ +260 ms]   [ +260 ms] exiting with code 0
+[  +95 ms] FinalizeBuildStatus:
+[        ]   Deleting file "x64\Release\flutter_assemble\flutter_assemble.tlog\unsuccessfulbuild".
+[        ]   Touching "x64\Release\flutter_assemble\flutter_assemble.tlog\flutter_assemble.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\flutter_assemble.vcxproj" (default targets).
+[  +31 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\audioplayers_windows\audioplayers_windows_plugin.vcxproj" (5) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\flutter_wrapper_plugin.vcxproj" (7) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "flutter_wrapper_plugin.dir\Release\flutter_.2744430E.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "flutter_wrapper_plugin.dir\Release\flutter_.2744430E.tlog\unsuccessfulbuild".
+[   +2 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +47 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[  +22 ms] Lib:
+[        ]   All outputs are up-to-date.
+[   +1 ms]   flutter_wrapper_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\Release\flutter_wrapper_plugin.lib
+[  +22 ms] FinalizeBuildStatus:
+[        ]   Deleting file "flutter_wrapper_plugin.dir\Release\flutter_.2744430E.tlog\unsuccessfulbuild".
+[        ]   Touching "flutter_wrapper_plugin.dir\Release\flutter_.2744430E.tlog\flutter_wrapper_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\flutter_wrapper_plugin.vcxproj" (default targets).
+[   +7 ms] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "audioplayers_windows_plugin.dir\Release\audiopla.D2FAFC40.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "audioplayers_windows_plugin.dir\Release\audiopla.D2FAFC40.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +16 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[  +36 ms] Link:
+[        ]   All outputs are up-to-date.
+[   +2 ms]   audioplayers_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\audioplayers_windows\Release\audioplayers_windows_plugin.dll
+[  +11 ms] FinalizeBuildStatus:
+[        ]   Deleting file "audioplayers_windows_plugin.dir\Release\audiopla.D2FAFC40.tlog\unsuccessfulbuild".
+[        ]   Touching "audioplayers_windows_plugin.dir\Release\audiopla.D2FAFC40.tlog\audioplayers_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\audioplayers_windows\audioplayers_windows_plugin.vcxproj" (default targets).
+[  +54 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\cloud_firestore\cloud_firestore_plugin.vcxproj" (8) on node 1 (default targets).
+[        ] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\cloud_firestore\cloud_firestore_plugin.vcxproj" (8) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_core\firebase_core_plugin.vcxproj" (9) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "firebase_core_plugin.dir\Release\firebase.DDA663AC.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "firebase_core_plugin.dir\Release\firebase.DDA663AC.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +11 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +8 ms] Lib:
+[        ]   All outputs are up-to-date.
+[        ]   firebase_core_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_core\Release\firebase_core_plugin.lib
+[  +11 ms] FinalizeBuildStatus:
+[        ]   Deleting file "firebase_core_plugin.dir\Release\firebase.DDA663AC.tlog\unsuccessfulbuild".
+[        ]   Touching "firebase_core_plugin.dir\Release\firebase.DDA663AC.tlog\firebase_core_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_core\firebase_core_plugin.vcxproj" (default targets).
+[   +9 ms] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[        ]   Creating "cloud_firestore_plugin.dir\Release\cloud_fi.B31332CE.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "cloud_firestore_plugin.dir\Release\cloud_fi.B31332CE.tlog\unsuccessfulbuild".
+[   +3 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +18 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +3 ms] Lib:
+[        ]   All outputs are up-to-date.
+[        ]   cloud_firestore_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\cloud_firestore\Release\cloud_firestore_plugin.lib
+[  +12 ms] FinalizeBuildStatus:
+[        ]   Deleting file "cloud_firestore_plugin.dir\Release\cloud_fi.B31332CE.tlog\unsuccessfulbuild".
+[        ]   Touching "cloud_firestore_plugin.dir\Release\cloud_fi.B31332CE.tlog\cloud_firestore_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\cloud_firestore\cloud_firestore_plugin.vcxproj" (default targets).
+[  +32 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\connectivity_plus\connectivity_plus_plugin.vcxproj" (10) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "connectivity_plus_plugin.dir\Release\connecti.E5A3B212.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "connectivity_plus_plugin.dir\Release\connecti.E5A3B212.tlog\unsuccessfulbuild".
+[   +2 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +11 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +6 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   connectivity_plus_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\connectivity_plus\Release\connectivity_plus_plugin.dll
+[  +10 ms] FinalizeBuildStatus:
+[        ]   Deleting file "connectivity_plus_plugin.dir\Release\connecti.E5A3B212.tlog\unsuccessfulbuild".
+[        ]   Touching "connectivity_plus_plugin.dir\Release\connecti.E5A3B212.tlog\connectivity_plus_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\connectivity_plus\connectivity_plus_plugin.vcxproj" (default targets).
+[  +73 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) on node 1 (default targets).
+[        ] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_auth\firebase_auth_plugin.vcxproj" (12) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[        ]   Creating "firebase_auth_plugin.dir\Release\firebase.960409D1.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "firebase_auth_plugin.dir\Release\firebase.960409D1.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +12 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +3 ms] Lib:
+[        ]   All outputs are up-to-date.
+[        ]   firebase_auth_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_auth\Release\firebase_auth_plugin.lib
+[  +12 ms] FinalizeBuildStatus:
+[        ]   Deleting file "firebase_auth_plugin.dir\Release\firebase.960409D1.tlog\unsuccessfulbuild".
+[        ]   Touching "firebase_auth_plugin.dir\Release\firebase.960409D1.tlog\firebase_auth_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_auth\firebase_auth_plugin.vcxproj" (default targets).
+[  +43 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_storage\firebase_storage_plugin.vcxproj" (13) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "firebase_storage_plugin.dir\Release\firebase.7DFE1947.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "firebase_storage_plugin.dir\Release\firebase.7DFE1947.tlog\unsuccessfulbuild".
+[   +3 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +10 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +7 ms] Lib:
+[        ]   All outputs are up-to-date.
+[        ]   firebase_storage_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_storage\Release\firebase_storage_plugin.lib
+[  +11 ms] FinalizeBuildStatus:
+[        ]   Deleting file "firebase_storage_plugin.dir\Release\firebase.7DFE1947.tlog\unsuccessfulbuild".
+[        ]   Touching "firebase_storage_plugin.dir\Release\firebase.7DFE1947.tlog\firebase_storage_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\firebase_storage\firebase_storage_plugin.vcxproj" (default targets).
+[  +38 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_inappwebview_windows\flutter_inappwebview_windows_plugin.vcxproj" (14) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "flutter_inappwebview_windows_plugin.dir\Release\flutter_.B73063DF.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "flutter_inappwebview_windows_plugin.dir\Release\flutter_.B73063DF.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +87 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[  +18 ms] Link:
+[        ]   All outputs are up-to-date.
+[   +2 ms]   flutter_inappwebview_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_inappwebview_windows\Release\flutter_inappwebview_windows_plugin.dll
+[  +12 ms] _CopyOutOfDateSourceItemsToOutputDirectoryAlways:
+[        ]   Copying file from "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\packages\Microsoft.Web.WebView2\build\native\x64\WebView2Loader.dll" to "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_inappwebview_windows\Release\WebView2Loader.dll".
+[   +9 ms] FinalizeBuildStatus:
+[        ]   Deleting file "flutter_inappwebview_windows_plugin.dir\Release\flutter_.B73063DF.tlog\unsuccessfulbuild".
+[        ]   Touching "flutter_inappwebview_windows_plugin.dir\Release\flutter_.B73063DF.tlog\flutter_inappwebview_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_inappwebview_windows\flutter_inappwebview_windows_plugin.vcxproj" (default targets).
+[  +33 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_secure_storage_windows\flutter_secure_storage_windows_plugin.vcxproj" (15) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "flutter_secure_storage_windows_plugin.dir\Release\flutter_.9B31B5EC.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "flutter_secure_storage_windows_plugin.dir\Release\flutter_.9B31B5EC.tlog\unsuccessfulbuild".
+[   +2 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +23 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[        ] Link:
+[        ]   All outputs are up-to-date.
+[   +7 ms]   flutter_secure_storage_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_secure_storage_windows\Release\flutter_secure_storage_windows_plugin.dll
+[  +20 ms] FinalizeBuildStatus:
+[        ]   Deleting file "flutter_secure_storage_windows_plugin.dir\Release\flutter_.9B31B5EC.tlog\unsuccessfulbuild".
+[        ]   Touching "flutter_secure_storage_windows_plugin.dir\Release\flutter_.9B31B5EC.tlog\flutter_secure_storage_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_secure_storage_windows\flutter_secure_storage_windows_plugin.vcxproj" (default targets).
+[  +38 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_tts\flutter_tts_plugin.vcxproj" (16) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "flutter_tts_plugin.dir\Release\flutter_.2E17F34C.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "flutter_tts_plugin.dir\Release\flutter_.2E17F34C.tlog\unsuccessfulbuild".
+[   +2 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +15 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[  +20 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   flutter_tts_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_tts\Release\flutter_tts_plugin.dll
+[  +12 ms] FinalizeBuildStatus:
+[        ]   Deleting file "flutter_tts_plugin.dir\Release\flutter_.2E17F34C.tlog\unsuccessfulbuild".
+[        ]   Touching "flutter_tts_plugin.dir\Release\flutter_.2E17F34C.tlog\flutter_tts_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_tts\flutter_tts_plugin.vcxproj" (default targets).
+[  +30 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\flutter_wrapper_app.vcxproj" (17) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +6 ms] InitializeBuildStatus:
+[        ]   Creating "flutter_wrapper_app.dir\Release\flutter_.663EEC2D.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "flutter_wrapper_app.dir\Release\flutter_.663EEC2D.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +10 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +4 ms] Lib:
+[        ]   All outputs are up-to-date.
+[        ]   flutter_wrapper_app.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\Release\flutter_wrapper_app.lib
+[  +10 ms] FinalizeBuildStatus:
+[        ]   Deleting file "flutter_wrapper_app.dir\Release\flutter_.663EEC2D.tlog\unsuccessfulbuild".
+[        ]   Touching "flutter_wrapper_app.dir\Release\flutter_.663EEC2D.tlog\flutter_wrapper_app.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\flutter\flutter_wrapper_app.vcxproj" (default targets).
+[  +33 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\local_auth_windows\local_auth_windows_plugin.vcxproj" (18) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +4 ms] InitializeBuildStatus:
+[        ]   Creating "local_auth_windows_plugin.dir\Release\local_au.C5521498.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "local_auth_windows_plugin.dir\Release\local_au.C5521498.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +84 ms] ClCompile:
+[        ]   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64\CL.exe /c /IF:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\..\..\include\ /IF:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral /IF:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\cpp_client_wrapper\include /nologo /W4 /WX /diagnostics:column /O2 /Ob2 /D _WINDLL /D _UNICODE /D UNICODE /D WIN32 /D _WINDOWS /D NDEBUG /D _HAS_EXCEPTIONS=0 /D FLUTTER_PLUGIN_IMPL /D UNICODE /D _UNICODE /D "CMAKE_INTDIR=\"Release\"" /D local_auth_windows_plugin_EXPORTS /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++20 /Fo"local_auth_windows_plugin.dir\Release\\" /Fd"local_auth_windows_plugin.dir\Release\vc143.pdb" /external:W0 /Gd /TP /wd4100 /errorReport:queue  /external:I "F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/include" /await F:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\.plugin_symlinks\local_auth_windows\windows\local_auth_plugin.cpp F:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\.plugin_symlinks\local_auth_windows\windows\local_auth_windows.cpp
+[ +158 ms]   local_auth_plugin.cpp
+[+5847 ms]   local_auth_windows.cpp
+[+4547 ms]   Generating Code...
+[+1633 ms] Link:
+[        ]   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64\link.exe /ERRORREPORT:QUEUE /OUT:"F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\local_auth_windows\Release\local_auth_windows_plugin.dll" /INCREMENTAL:NO /NOLOGO ..\..\flutter\Release\flutter_wrapper_plugin.lib windowsapp.lib F:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\flutter_windows.dll.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:"F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/local_auth_windows/Release/local_auth_windows_plugin.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/local_auth_windows/Release/local_auth_windows_plugin.lib" /MACHINE:X64  /machine:x64 /DLL local_auth_windows_plugin.dir\Release\local_auth_windows.obj
+[        ]   local_auth_windows_plugin.dir\Release\local_auth_plugin.obj
+[        ]   local_auth_windows_plugin.dir\Release\messages.g.obj
+[ +145 ms]      Creating library F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/local_auth_windows/Release/local_auth_windows_plugin.lib and object F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/local_auth_windows/Release/local_auth_windows_plugin.exp
+[ +221 ms]   local_auth_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\local_auth_windows\Release\local_auth_windows_plugin.dll
+[  +28 ms] FinalizeBuildStatus:
+[        ]   Deleting file "local_auth_windows_plugin.dir\Release\local_au.C5521498.tlog\unsuccessfulbuild".
+[        ]   Touching "local_auth_windows_plugin.dir\Release\local_au.C5521498.tlog\local_auth_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\local_auth_windows\local_auth_windows_plugin.vcxproj" (default targets).
+[  +70 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\permission_handler_windows\permission_handler_windows_plugin.vcxproj" (19) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[   +1 ms]   Creating "permission_handler_windows_plugin.dir\Release\permissi.B0FC70B2.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[   +1 ms]   Touching "permission_handler_windows_plugin.dir\Release\permissi.B0FC70B2.tlog\unsuccessfulbuild".
+[   +6 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +45 ms] ClCompile:
+[   +1 ms]   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64\CL.exe /c /IF:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral /IF:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\cpp_client_wrapper\include /nologo /W4 /WX /diagnostics:column /O2 /Ob2 /D _WINDLL /D _UNICODE /D UNICODE /D WIN32 /D _WINDOWS /D NDEBUG /D _HAS_EXCEPTIONS=0 /D FLUTTER_PLUGIN_IMPL /D UNICODE /D _UNICODE /D "CMAKE_INTDIR=\"Release\"" /D permission_handler_windows_plugin_EXPORTS /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++20 /Fo"permission_handler_windows_plugin.dir\Release\\" /Fd"permission_handler_windows_plugin.dir\Release\vc143.pdb" /external:W0 /Gd /TP /wd4100 /errorReport:queue  /external:I "F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/include" /await F:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\.plugin_symlinks\permission_handler_windows\windows\permission_handler_windows_plugin.cpp
+[ +168 ms]   permission_handler_windows_plugin.cpp
+[+7677 ms] Link:
+[        ]   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64\link.exe /ERRORREPORT:QUEUE /OUT:"F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\permission_handler_windows\Release\permission_handler_windows_plugin.dll" /INCREMENTAL:NO /NOLOGO ..\..\flutter\Release\flutter_wrapper_plugin.lib F:\Ali\Projects\alionour33\dr_copilot\windows\flutter\ephemeral\flutter_windows.dll.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:"F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/permission_handler_windows/Release/permission_handler_windows_plugin.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/permission_handler_windows/Release/permission_handler_windows_plugin.lib" /MACHINE:X64  /machine:x64 /DLL permission_handler_windows_plugin.dir\Release\permission_handler_windows_plugin.obj
+[ +137 ms]      Creating library F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/permission_handler_windows/Release/permission_handler_windows_plugin.lib and object F:/Ali/Projects/alionour33/dr_copilot/build/windows/x64/plugins/permission_handler_windows/Release/permission_handler_windows_plugin.exp
+[ +191 ms]   permission_handler_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\permission_handler_windows\Release\permission_handler_windows_plugin.dll
+[  +20 ms] FinalizeBuildStatus:
+[        ]   Deleting file "permission_handler_windows_plugin.dir\Release\permissi.B0FC70B2.tlog\unsuccessfulbuild".
+[   +1 ms]   Touching "permission_handler_windows_plugin.dir\Release\permissi.B0FC70B2.tlog\permission_handler_windows_plugin.lastbuildstate".
+[   +1 ms] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\permission_handler_windows\permission_handler_windows_plugin.vcxproj" (default targets).
+[  +74 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\record_windows\record_windows_plugin.vcxproj" (20) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +4 ms] InitializeBuildStatus:
+[        ]   Creating "record_windows_plugin.dir\Release\record_w.7466261E.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "record_windows_plugin.dir\Release\record_w.7466261E.tlog\unsuccessfulbuild".
+[   +7 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +25 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[  +15 ms] Link:
+[        ]   All outputs are up-to-date.
+[   +6 ms]   record_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\record_windows\Release\record_windows_plugin.dll
+[  +19 ms] FinalizeBuildStatus:
+[        ]   Deleting file "record_windows_plugin.dir\Release\record_w.7466261E.tlog\unsuccessfulbuild".
+[        ]   Touching "record_windows_plugin.dir\Release\record_w.7466261E.tlog\record_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\record_windows\record_windows_plugin.vcxproj" (default targets).
+[  +54 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\share_plus\share_plus_plugin.vcxproj" (21) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[        ]   Creating "share_plus_plugin.dir\Release\share_pl.FD0B1A50.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[   +3 ms]   Touching "share_plus_plugin.dir\Release\share_pl.FD0B1A50.tlog\unsuccessfulbuild".
+[   +4 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +28 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[  +11 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   share_plus_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\share_plus\Release\share_plus_plugin.dll
+[  +16 ms] FinalizeBuildStatus:
+[        ]   Deleting file "share_plus_plugin.dir\Release\share_pl.FD0B1A50.tlog\unsuccessfulbuild".
+[        ]   Touching "share_plus_plugin.dir\Release\share_pl.FD0B1A50.tlog\share_plus_plugin.lastbuildstate".
+[   +1 ms] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\share_plus\share_plus_plugin.vcxproj" (default targets).
+[  +46 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\speech_to_text_windows\speech_to_text_windows_plugin.vcxproj" (22) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +4 ms] InitializeBuildStatus:
+[        ]   Creating "speech_to_text_windows_plugin.dir\Release\speech_t.1D8A50A9.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "speech_to_text_windows_plugin.dir\Release\speech_t.1D8A50A9.tlog\unsuccessfulbuild".
+[   +3 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +12 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +8 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   speech_to_text_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\speech_to_text_windows\Release\speech_to_text_windows_plugin.dll
+[  +15 ms] FinalizeBuildStatus:
+[        ]   Deleting file "speech_to_text_windows_plugin.dir\Release\speech_t.1D8A50A9.tlog\unsuccessfulbuild".
+[        ]   Touching "speech_to_text_windows_plugin.dir\Release\speech_t.1D8A50A9.tlog\speech_to_text_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\speech_to_text_windows\speech_to_text_windows_plugin.vcxproj" (default targets).
+[  +38 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (11) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\url_launcher_windows\url_launcher_windows_plugin.vcxproj" (23) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[        ]   Creating "url_launcher_windows_plugin.dir\Release\url_laun.085F7BDE.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "url_launcher_windows_plugin.dir\Release\url_laun.085F7BDE.tlog\unsuccessfulbuild".
+[   +3 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +21 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +8 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   url_launcher_windows_plugin.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\url_launcher_windows\Release\url_launcher_windows_plugin.dll
+[  +12 ms] FinalizeBuildStatus:
+[        ]   Deleting file "url_launcher_windows_plugin.dir\Release\url_laun.085F7BDE.tlog\unsuccessfulbuild".
+[        ]   Touching "url_launcher_windows_plugin.dir\Release\url_laun.085F7BDE.tlog\url_launcher_windows_plugin.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\url_launcher_windows\url_launcher_windows_plugin.vcxproj" (default targets).
+[  +39 ms] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +3 ms] InitializeBuildStatus:
+[        ]   Creating "dr_copilot.dir\Release\dr_copilot.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[   +1 ms]   Touching "dr_copilot.dir\Release\dr_copilot.tlog\unsuccessfulbuild".
+[   +3 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +39 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +8 ms] ResourceCompile:
+[        ]   All outputs are up-to-date.
+[  +11 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   dr_copilot.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\Release\dr_copilot.exe
+[  +19 ms] _CopyOutOfDateSourceItemsToOutputDirectoryAlways:
+[        ]   Copying file from "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\packages\Microsoft.Web.WebView2\build\native\x64\WebView2Loader.dll" to "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\Release\WebView2Loader.dll".
+[   +6 ms] FinalizeBuildStatus:
+[        ]   Deleting file "dr_copilot.dir\Release\dr_copilot.tlog\unsuccessfulbuild".
+[        ]   Touching "dr_copilot.dir\Release\dr_copilot.tlog\dr_copilot.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\runner\dr_copilot.vcxproj" (default targets).
+[  +30 ms] Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (3) is building "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_local_notifications_windows\shared\flutter_local_notifications_windows.vcxproj" (24) on node 1 (default targets).
+[        ] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "flutter_local_notifications_windows.dir\Release\flutter_.C0ED426C.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "flutter_local_notifications_windows.dir\Release\flutter_.C0ED426C.tlog\unsuccessfulbuild".
+[   +6 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +20 ms] ClCompile:
+[        ]   All outputs are up-to-date.
+[   +7 ms] Link:
+[        ]   All outputs are up-to-date.
+[        ]   flutter_local_notifications_windows.vcxproj -> F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_local_notifications_windows\shared\Release\flutter_local_notifications_windows.dll
+[  +13 ms] FinalizeBuildStatus:
+[        ]   Deleting file "flutter_local_notifications_windows.dir\Release\flutter_.C0ED426C.tlog\unsuccessfulbuild".
+[        ]   Touching "flutter_local_notifications_windows.dir\Release\flutter_.C0ED426C.tlog\flutter_local_notifications_windows.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\plugins\flutter_local_notifications_windows\shared\flutter_local_notifications_windows.vcxproj" (default targets).
+[  +16 ms] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Creating "x64\Release\ALL_BUILD\ALL_BUILD.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+[        ]   Touching "x64\Release\ALL_BUILD\ALL_BUILD.tlog\unsuccessfulbuild".
+[   +9 ms] CustomBuild:
+[        ]   All outputs are up-to-date.
+[  +24 ms] FinalizeBuildStatus:
+[   +1 ms]   Deleting file "x64\Release\ALL_BUILD\ALL_BUILD.tlog\unsuccessfulbuild".
+[        ]   Touching "x64\Release\ALL_BUILD\ALL_BUILD.tlog\ALL_BUILD.lastbuildstate".
+[        ] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\ALL_BUILD.vcxproj" (default targets).
+[   +6 ms] PrepareForBuild:
+[        ]   Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+[   +2 ms] InitializeBuildStatus:
+[        ]   Touching "x64\Release\INSTALL\INSTALL.tlog\unsuccessfulbuild".
+[ +124 ms] CustomBuild:
+[        ]   1>
+[  +45 ms] PostBuildEvent:
+[   +1 ms]   setlocal
+[        ]   "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DBUILD_TYPE=Release -P cmake_install.cmake
+[        ]   if %errorlevel% neq 0 goto :cmEnd
+[        ]   :cmEnd
+[        ]   endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+[        ]   :cmErrorLevel
+[        ]   exit /b %1
+[        ]   :cmDone
+[        ]   if %errorlevel% neq 0 goto :VCEnd
+[        ]   :VCEnd
+[ +160 ms]   -- Install configuration: "Release"
+[   +9 ms]   CMake Error at cmake_install.cmake:155 (file):
+[        ]     file cannot create directory: C:/Program Files/dr_copilot.  Maybe need
+[        ]     administrative privileges.
+[  +17 ms] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: The command "setlocal [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DBUILD_TYPE=Release -P cmake_install.cmake [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: if %errorlevel% neq 0 goto :cmEnd [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :cmEnd [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :cmErrorLevel [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: exit /b %1 [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :cmDone [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: if %errorlevel% neq 0 goto :VCEnd [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :VCEnd" exited with code 1. [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[   +9 ms] Done Building Project "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj" (default targets) -- FAILED.
+[   +3 ms] Build FAILED.
+[   +3 ms] "F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj" (default target) (1) ->
+[        ] (PostBuildEvent target) -> 
+[        ]   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: The command "setlocal [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DBUILD_TYPE=Release -P cmake_install.cmake [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: if %errorlevel% neq 0 goto :cmEnd [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :cmEnd [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :cmErrorLevel [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: exit /b %1 [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :cmDone [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: if %errorlevel% neq 0 goto :VCEnd [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ] C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :VCEnd" exited with code 1. [F:\Ali\Projects\alionour33\dr_copilot\build\windows\x64\INSTALL.vcxproj]
+[        ]     0 Warning(s)
+[        ]     1 Error(s)
+[        ] Time Elapsed 00:00:35.91
+[  +31 ms] Building Windows application... (completed in ┘ج┘خ┘س┘حs)
+[   +1 ms] "flutter windows" took ┘ج┘د┘ش┘ذ┘ب┘تms.
+[ +153 ms] Build process failed.
+[        ] 
+           #0      throwToolExit (package:flutter_tools/src/base/common.dart:34:3)
+           #1      _runBuild (package:flutter_tools/src/windows/build_windows.dart:262:5)
+           <asynchronous suspension>
+           #2      buildWindows (package:flutter_tools/src/windows/build_windows.dart:118:5)
+           <asynchronous suspension>
+           #3      BuildWindowsCommand.runCommand (package:flutter_tools/src/commands/build_windows.dart:72:5)
+           <asynchronous suspension>
+           #4      FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1559:27)
+           <asynchronous suspension>
+           #5      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #6      CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+           <asynchronous suspension>
+           #7      FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:487:9)
+           <asynchronous suspension>
+           #8      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #9      FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:422:5)
+           <asynchronous suspension>
+           #10     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:104:11)
+           <asynchronous suspension>
+           #11     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #12     main (package:flutter_tools/executable.dart:103:3)
+           <asynchronous suspension>
+
+
+[        ] Running 1 shutdown hook
+[   +4 ms] Shutdown hooks complete
+[ +256 ms] exiting with code 1

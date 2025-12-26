@@ -32,7 +32,7 @@ class _PatientListItemState extends State<PatientListItem> {
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       elevation: 2,
-      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
+      shadowColor: colorScheme.shadow.withOpacity(0.1),
       child: Column(
         children: [
           InkWell(
@@ -172,8 +172,8 @@ class _PatientListItemState extends State<PatientListItem> {
                       OutlinedButton.icon(
                         onPressed: () {
                           context.read<PatientsBloc>().add(
-                            DeletePatient(widget.patientModel.id),
-                          );
+                                DeletePatient(widget.patientModel.id),
+                              );
                         },
                         icon: const Icon(Icons.delete_outline, size: 18),
                         label: Text('delete'.tr()),
@@ -235,4 +235,3 @@ class _PatientListItemState extends State<PatientListItem> {
     );
   }
 }
-

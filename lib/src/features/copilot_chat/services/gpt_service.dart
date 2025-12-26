@@ -3,68 +3,26 @@ import 'dart:convert';
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/utils/ai_context_provider.dart';
 
 class GPTService implements AIService {
-  final FlutterSecureStorage _secureStorage;
   final QuotaService _quotaService;
   final SubscriptionService _subscriptionService;
 
-  GPTService(
-    this._secureStorage, {
+  GPTService({
     required QuotaService quotaService,
     required SubscriptionService subscriptionService,
-  }) : _quotaService = quotaService,
-       _subscriptionService = subscriptionService;
-
-  Future<String?> _safeRead(String key) async {
-    int retries = 0;
-    while (true) {
-      try {
-        return await _secureStorage.read(key: key);
-      } catch (e) {
-        if (retries >= 3) rethrow;
-        retries++;
-        await Future.delayed(Duration(milliseconds: 200 * retries));
-      }
-    }
-  }
+  })  : _quotaService = quotaService,
+        _subscriptionService = subscriptionService;
 
   Future<List<String>> _getApiKeys() async {
-    List<String> keys = [];
-
-    // 1. Try new list format
-    final jsonStr = await _safeRead('openai_api_keys');
-    if (jsonStr != null && jsonStr.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(jsonStr);
-        if (decoded is List) keys = List<String>.from(decoded);
-      } catch (e) {
-        debugPrint('Error decoding openai keys: $e');
-      }
-    }
-
-    // 2. Try single key
-    if (keys.isEmpty) {
-      String? key = await _safeRead('openai_api_key');
-      if (key != null && key.isNotEmpty) keys.add(key);
-    }
-
-    // 3. Try legacy key
-    if (keys.isEmpty) {
-      String? key = await _safeRead('chatGptApiKey');
-      if (key != null && key.isNotEmpty) keys.add(key);
-    }
-
-    // 4. Try env/helper key
-    if (keys.isEmpty) {
-      keys.add(ApiKeyHelper.gptKey);
-    }
-
-    return keys.where((k) => k.isNotEmpty).toSet().toList();
+    final key = ApiKeyHelper.gptKey;
+    if (key.isNotEmpty) return [key];
+    return [];
   }
 
   Future<void> _checkTokenLimit(String clinicId) async {
@@ -189,6 +147,14 @@ class GPTService implements AIService {
     throw Exception('All OpenAI keys failed.');
   }
 
+  // dynamic configuration
+  List<String> _currentRequiredFields = [];
+
+  @override
+  void updateModelConfig(List<String> requiredFields) {
+    _currentRequiredFields = requiredFields;
+  }
+
   Future<String> getGPTResponse(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
@@ -207,11 +173,11 @@ class GPTService implements AIService {
     // Build messages array with history
     final List<Map<String, dynamic>> messages = [];
 
-    // Add system message
+    // Add dynamic system message (includes required fields instructions)
     messages.add({
       'role': 'system',
-      'content':
-          'You are Dr. Copilot, an advanced AI medical manager designed to assist healthcare professionals.',
+      'content': AIContextProvider.getBaseSystemInstruction(
+          requiredFields: _currentRequiredFields),
     });
 
     // Add message history
@@ -276,4 +242,3 @@ class GPTService implements AIService {
     throw Exception('All OpenAI keys failed.');
   }
 }
-

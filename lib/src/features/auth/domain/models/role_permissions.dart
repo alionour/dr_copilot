@@ -84,7 +84,7 @@ const Map<String, List<String>> rolePermissions = {
     'can_view_notifications',
     'can_send_notification_appointment',
     'can_send_notification_reminder',
-    'can_view_help',
+    'can_use_copilot',
     'can_view_help',
   ],
 
@@ -110,4 +110,3 @@ const Map<String, List<String>> rolePermissions = {
     'can_view_help',
   ],
 };
-

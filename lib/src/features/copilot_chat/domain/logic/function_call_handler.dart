@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
+import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,12 +17,14 @@ class FunctionCallHandler {
   final SessionsUseCase sessionsUseCase;
   final EvaluationsUseCase evaluationsUseCase;
   final OwnerNotifier ownerNotifier;
+  final PermissionService permissionService;
 
   FunctionCallHandler({
     required this.patientsUseCase,
     required this.sessionsUseCase,
     required this.evaluationsUseCase,
     required this.ownerNotifier,
+    required this.permissionService,
   });
 
   Future<Map<String, dynamic>> handleFunctionCall(FunctionCall call) async {
@@ -64,9 +68,40 @@ class FunctionCallHandler {
     }
   }
 
+  /// Helper method to check if user has permission.
+  /// Returns error map if permission denied, null if granted.
+  Future<Map<String, dynamic>?> _checkPermission(String permission) async {
+    debugPrint('[FunctionCallHandler] Checking permission: $permission');
+    final hasPermission = await permissionService.hasPermission(
+      permission,
+      clinicId: ownerNotifier.clinicId,
+    );
+    debugPrint(
+        '[FunctionCallHandler] Permission "$permission" granted: $hasPermission');
+
+    if (!hasPermission) {
+      return {
+        'error':
+            'Permission denied: You do not have permission to perform this action. '
+                'Contact your clinic administrator if you need access.'
+      };
+    }
+
+    return null; // Permission granted
+  }
+
   Future<Map<String, dynamic>> _addPatient(Map<String, dynamic> args) async {
+    debugPrint('[FunctionCallHandler] _addPatient called with args: $args');
+    // Check permission
+    final permError = await _checkPermission('can_add_patient');
+    if (permError != null) {
+      debugPrint('[FunctionCallHandler] Permission error: $permError');
+      return permError;
+    }
+
     final ownerId = ownerNotifier.ownerId;
     final clinicId = ownerNotifier.clinicId;
+    debugPrint('[FunctionCallHandler] ownerId: $ownerId, clinicId: $clinicId');
 
     if (ownerId == null || clinicId == null) {
       return {'error': 'Owner ID or Clinic ID not available.'};
@@ -100,6 +135,10 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _editPatient(Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_edit_patient');
+    if (permError != null) return permError;
+
     final ownerId = ownerNotifier.ownerId;
     final clinicId = ownerNotifier.clinicId;
 
@@ -133,6 +172,10 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _deletePatient(Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_delete_patient');
+    if (permError != null) return permError;
+
     final result = await patientsUseCase.deletePatient(args['id']);
     return result.fold(
       (failure) => {'error': failure.message},
@@ -183,6 +226,10 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _addSession(Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_add_session');
+    if (permError != null) return permError;
+
     final ownerId = ownerNotifier.ownerId;
     final clinicId = ownerNotifier.clinicId;
     final createdBy = FirebaseAuth.instance.currentUser?.uid;
@@ -220,6 +267,10 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _editSession(Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_edit_session');
+    if (permError != null) return permError;
+
     final ownerId = ownerNotifier.ownerId;
     final clinicId = ownerNotifier.clinicId;
     final updatedBy = FirebaseAuth.instance.currentUser?.uid;
@@ -265,6 +316,10 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _deleteSession(Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_delete_session');
+    if (permError != null) return permError;
+
     final result = await sessionsUseCase.deleteSession(args['id']);
     return result.fold(
       (failure) => {'error': failure.message},
@@ -301,6 +356,10 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _addEvaluation(Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_add_evaluation');
+    if (permError != null) return permError;
+
     final ownerId = ownerNotifier.ownerId;
     final clinicId = ownerNotifier.clinicId;
     final createdBy = FirebaseAuth.instance.currentUser?.uid;
@@ -337,6 +396,10 @@ class FunctionCallHandler {
 
   Future<Map<String, dynamic>> _editEvaluation(
       Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_edit_evaluation');
+    if (permError != null) return permError;
+
     final ownerId = ownerNotifier.ownerId;
     final clinicId = ownerNotifier.clinicId;
     final updatedBy = FirebaseAuth.instance.currentUser?.uid;
@@ -379,6 +442,10 @@ class FunctionCallHandler {
 
   Future<Map<String, dynamic>> _deleteEvaluation(
       Map<String, dynamic> args) async {
+    // Check permission
+    final permError = await _checkPermission('can_delete_evaluation');
+    if (permError != null) return permError;
+
     final result = await evaluationsUseCase.deleteEvaluation(args['id']);
     return result.fold(
       (failure) => {'error': failure.message},
@@ -415,4 +482,3 @@ class FunctionCallHandler {
     );
   }
 }
-

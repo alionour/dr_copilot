@@ -46,3 +46,12 @@ app.*.map.json
 *.jks
 keystore_base64.txt
 release-keystore.jks
+
+# OAuth Credentials (should be populated locally, not committed)
+assets/google_credentials.json
+
+# Scripts and temporary files
+scripts/node_modules/
+token.txt
+install_log.txt
+localization_audit_report.txt

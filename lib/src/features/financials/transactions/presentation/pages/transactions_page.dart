@@ -63,9 +63,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
       );
       if (state is TransactionsLoaded || state is TransactionsCountLoaded) {
         // Only TransactionsLoaded has isLoadingMore
-        final isLoadingMore = state is TransactionsLoaded
-            ? state.isLoadingMore
-            : false;
+        final isLoadingMore =
+            state is TransactionsLoaded ? state.isLoadingMore : false;
         debugPrint(
           'TransactionsPage: State is ${state.runtimeType}, isLoadingMore: $isLoadingMore',
         );
@@ -80,11 +79,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
               'TransactionsPage: Dispatching LoadMoreTransactions event',
             );
             context.read<TransactionsBloc>().add(
-              LoadMoreTransactions(
-                lastDocumentId: transactions.last.id,
-                limit: 20,
-              ),
-            );
+                  LoadMoreTransactions(
+                    lastDocumentId: transactions.last.id,
+                    limit: 20,
+                  ),
+                );
             Future.delayed(const Duration(seconds: 1), () {
               _canLoadMore = true;
             });
@@ -167,8 +166,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   0; // Reset selection on new query
                             });
                             context.read<TransactionsBloc>().add(
-                              SearchTransactions(query),
-                            );
+                                  SearchTransactions(query),
+                                );
                           },
                           onSubmitted: (_) {
                             _listFocusNode.requestFocus();
@@ -234,8 +233,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           _selectedDate = null;
                         });
                         context.read<TransactionsBloc>().add(
-                          const GetTransactions(),
-                        );
+                              const GetTransactions(),
+                            );
                       },
                     ),
                   ),
@@ -256,8 +255,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                             label: Text(
                               _selectedDate != null
                                   ? _selectedDate!.toLocal().toString().split(
-                                      ' ',
-                                    )[0]
+                                        ' ',
+                                      )[0]
                                   : 'filterByDate'.tr(),
                             ),
                             onPressed: () async {
@@ -273,8 +272,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                 });
                                 if (!context.mounted) return;
                                 context.read<TransactionsBloc>().add(
-                                  GetTransactionsByDate(date: selectedDate),
-                                );
+                                      GetTransactionsByDate(date: selectedDate),
+                                    );
                               }
                             },
                           ),
@@ -286,8 +285,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   _selectedDate = null;
                                 });
                                 context.read<TransactionsBloc>().add(
-                                  const GetTransactions(),
-                                );
+                                      const GetTransactions(),
+                                    );
                               },
                               icon: const Icon(Icons.close, size: 18),
                             ),
@@ -347,8 +346,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       final transactions = (state is TransactionsLoaded)
                           ? state.transactions
                           : (state is TransactionsLoadingMore)
-                          ? state.transactions
-                          : (state as TransactionsCountLoaded).transactions;
+                              ? state.transactions
+                              : (state as TransactionsCountLoaded).transactions;
 
                       if (transactions.isEmpty) {
                         return Center(
@@ -363,7 +362,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               const SizedBox(height: 16),
                               Text(
                                 'noTransactionsMatch'.tr(),
-                                style: Theme.of(context).textTheme.titleMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
                                     ?.copyWith(
                                       color: Theme.of(context).disabledColor,
                                     ),
@@ -402,7 +403,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               children: [
                                 Text(
                                   '${transactions.length} ${'loaded'.tr()}',
-                                  style: Theme.of(context).textTheme.labelMedium
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium
                                       ?.copyWith(color: Colors.grey),
                                 ),
                                 if (_firestoreTransactionsCount != null)
@@ -471,11 +474,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                                 .indexOf(transaction);
                                           });
                                           // TODO: Add proper deletion confirmation or edit
-                                          context.read<TransactionsBloc>().add(
-                                            DeleteTransactionEvent(
-                                              transaction.id,
-                                            ),
-                                          );
+                                          // context.read<TransactionsBloc>().add(
+                                          //   DeleteTransactionEvent(
+                                          //     transaction.id,
+                                          //   ),
+                                          // );
                                         },
                                       );
                                     }),
@@ -557,4 +560,3 @@ class _TransactionsPageState extends State<TransactionsPage> {
     ).format(parsedDate ?? DateTime.now());
   }
 }
-

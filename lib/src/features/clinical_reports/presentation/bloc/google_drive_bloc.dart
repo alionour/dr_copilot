@@ -15,7 +15,82 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
   final OwnerNotifier _ownerNotifier;
 
   GoogleDriveBloc(this._googleDriveService, this._ownerNotifier)
-    : super(GoogleDriveInitial()) {
+      : super(GoogleDriveInitial()) {
+    on<CheckAuthStatus>((event, emit) async {
+      debugPrint('CheckAuthStatus event received.');
+      emit(GoogleDriveLoading());
+      try {
+        // First, try to get existing authenticated client
+        Client? client = await _googleSignInHelper.client;
+
+        if (client == null) {
+          // No existing client, try to initialize one silently
+          debugPrint(
+              'No existing client found. Attempting to initialize silently...');
+          client = await _googleSignInHelper.ensureClientInitialized();
+
+          // If still null, try to restore from storage on Desktop
+          if (client == null &&
+              (io.Platform.isWindows || io.Platform.isLinux)) {
+            debugPrint(
+                'Desktop platform detected. Attempting to restore client from storage...');
+            client = await _googleSignInHelper.restoreClientFromStorage();
+          }
+        }
+
+        if (client == null) {
+          debugPrint(
+            'Silent authentication failed. Emitting GoogleDriveAuthenticationRequired.',
+          );
+          emit(const GoogleDriveAuthenticationRequired());
+        } else {
+          // Proceed to load content (same as AuthenticateGoogleDrive)
+          final clinicId = _ownerNotifier.clinicId;
+          if (clinicId == null) {
+            emit(
+              const GoogleDriveError(
+                'Clinic ID not found. Cannot search for clinic folder.',
+              ),
+            );
+            return;
+          }
+          final clinic = _ownerNotifier.clinics.firstWhereOrNull(
+            (c) => c.id == clinicId,
+          );
+          final clinicName = clinic?.name;
+          if (clinicName == null) {
+            emit(
+              const GoogleDriveError(
+                'Clinic name not found for the current clinic ID. Cannot search for clinic folder.',
+              ),
+            );
+            return;
+          }
+
+          final clinicFolders = await _googleDriveService.searchFiles(
+            query: clinicName,
+            mimeType: 'application/vnd.google-apps.folder',
+          );
+
+          String? clinicFolderId;
+          if (clinicFolders.isNotEmpty) {
+            clinicFolderId = clinicFolders.first.id;
+          }
+
+          add(
+            SearchGoogleDrive(
+              query: '',
+              parentFolderId: clinicFolderId,
+              clinicFolderId: clinicFolderId,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error during CheckAuthStatus: $e');
+        emit(GoogleDriveError(e.toString()));
+      }
+    });
+
     on<AuthenticateGoogleDrive>((event, emit) async {
       debugPrint('AuthenticateGoogleDrive event received.');
       emit(GoogleDriveLoading());
@@ -160,9 +235,8 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
           final previousFolderId = newFolderStack.removeLast();
           add(
             SearchGoogleDrive(
-              parentFolderId: previousFolderId.isEmpty
-                  ? null
-                  : previousFolderId,
+              parentFolderId:
+                  previousFolderId.isEmpty ? null : previousFolderId,
               query: '',
               clinicFolderId: currentState.clinicFolderId,
               folderStack: newFolderStack,
@@ -183,4 +257,3 @@ class GoogleDriveBloc extends Bloc<GoogleDriveEvent, GoogleDriveState> {
     });
   }
 }
-

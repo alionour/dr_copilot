@@ -102,7 +102,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             setState(() {
               _selectedGender = 'Male';
             });
-            context.pop();
+            if (context.mounted) context.pop();
           } else if (state is PatientsError) {
             debugPrint('SnackBar Error: ${state.message}');
             ScaffoldMessenger.of(
@@ -141,8 +141,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      initialValue:
-                                          _selectedClinicId ??
+                                      initialValue: _selectedClinicId ??
                                           ownerNotifier.clinicId,
                                       decoration: InputDecoration(
                                         labelText: 'clinic'.tr(),
@@ -326,9 +325,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 ],
                                 onPressed: (index) {
                                   setState(() {
-                                    _selectedGender = index == 0
-                                        ? 'Male'
-                                        : 'Female';
+                                    _selectedGender =
+                                        index == 0 ? 'Male' : 'Female';
                                   });
                                 },
                                 borderRadius: BorderRadius.circular(8.0),
@@ -430,8 +428,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
               : null,
           alternativePhoneNumber:
               _alternativePhoneNumberController.text.isNotEmpty
-              ? _alternativePhoneNumberController.text
-              : null,
+                  ? _alternativePhoneNumberController.text
+                  : null,
           treatingDoctor: _treatingDoctorController.text.isNotEmpty
               ? _treatingDoctorController.text
               : null,
@@ -506,4 +504,3 @@ class _AddPatientPageState extends State<AddPatientPage> {
     super.dispose();
   }
 }
-
