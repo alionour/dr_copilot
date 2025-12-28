@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart' as io;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/services/error_reporting_service.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
 
 class AuthFirebaseApi extends AbstractAuthRepository {
   /// An instance of [FirebaseAuth] used to handle authentication operations
@@ -129,6 +131,21 @@ class AuthFirebaseApi extends AbstractAuthRepository {
     String email,
     String password,
   ) async {
+    // Check beta status and user count
+    final remoteConfig = sl<RemoteConfigService>();
+    if (!remoteConfig.isSignupEnabled) {
+      throw Exception(
+          'Beta access is currently full. Please join the waitlist.');
+    }
+
+    // Check dynamic user count limit
+    final userCountQuery = await _usersCollection.count().get();
+    final currentCount = userCountQuery.count ?? 0;
+    if (currentCount >= remoteConfig.maxAllowedUsers) {
+      throw Exception(
+          'Beta user limit (${remoteConfig.maxAllowedUsers}) reached. Please join the waitlist.');
+    }
+
     try {
       final UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -197,6 +214,27 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       ///
       /// Throws an exception if saving the tokens fails.
       await _saveGoogleTokens(user, googleAuth);
+
+      // Check if user is old or new
+      final userDoc = await _usersCollection.doc(user.uid).get();
+      if (!userDoc.exists) {
+        // New User - Check if signups enabled
+        final remoteConfig = sl<RemoteConfigService>();
+        if (!remoteConfig.isSignupEnabled) {
+          await user.delete(); // Clean up the auth record
+          throw Exception(
+              'Beta access is currently full. Please join the waitlist.');
+        }
+
+        // Check dynamic user count limit
+        final userCountQuery = await _usersCollection.count().get();
+        final currentCount = userCountQuery.count ?? 0;
+        if (currentCount >= remoteConfig.maxAllowedUsers) {
+          await user.delete();
+          throw Exception(
+              'Beta user limit (${remoteConfig.maxAllowedUsers}) reached. Please join the waitlist.');
+        }
+      }
 
       /// Handles the onboarding process for users associated with multiple clinics.
       ///

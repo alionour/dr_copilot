@@ -62,6 +62,83 @@ app.use('/invitations', invitationRouter);
 app.use('/notifications', notificationRouter);
 app.use('/errors', errorRouter);
 
+// --- Billing Kill Switch Webhook ---
+// Receives Pub/Sub push messages from Google Cloud Budget Alerts
+const { GoogleAuth } = require('google-auth-library');
+const { google } = require('googleapis');
+
+app.post('/webhooks/billing-alert', async (req, res) => {
+    try {
+        if (!req.body || !req.body.message || !req.body.message.data) {
+            console.warn('Invalid Pub/Sub message format');
+            return res.status(400).send('Bad Request: Invalid Pub/Sub message format');
+        }
+
+        const dataString = Buffer.from(req.body.message.data, 'base64').toString();
+        const data = JSON.parse(dataString);
+
+        const costAmount = data.costAmount;
+        const budgetAmount = data.budgetAmount;
+        const PROJECT_ID = 'drcopilot-bfc9e'; // Hardcoded for this specific project env
+
+        // Retrieve Admin Key from Environment Variable
+        // Must be a Service Account with "Billing Account Administrator" role
+        // We fallback to FIREBASE_SERVICE_ACCOUNT if specific billing key isn't set,
+        // assuming the user granted the Billing Role to the default Firebase SA.
+        const BILLING_ADMIN_KEY_JSON = process.env.BILLING_ADMIN_KEY_JSON || process.env.FIREBASE_SERVICE_ACCOUNT;
+
+        console.log(`[Billing Alert] Current cost: ${costAmount}, Budget: ${budgetAmount}`);
+
+        if (costAmount <= budgetAmount) {
+            console.log('[Billing Alert] Budget not exceeded. No action.');
+            return res.status(200).send('Budget safe');
+        }
+
+        if (!BILLING_ADMIN_KEY_JSON) {
+            // Try to use Google Application Default Credentials if running in a compliant environment
+            console.warn('[Billing Alert] No specific key found. Trying Default Credentials...');
+        } else {
+            console.warn('[Billing Alert] Budget EXCEEDED. Initiating KILL SWITCH...');
+        }
+
+        // Authenticate with Google
+        let authClient;
+        if (BILLING_ADMIN_KEY_JSON) {
+            const credentials = JSON.parse(BILLING_ADMIN_KEY_JSON);
+            const auth = new GoogleAuth({
+                credentials,
+                scopes: ['https://www.googleapis.com/auth/cloud-billing'],
+            });
+            authClient = await auth.getClient();
+        } else {
+            // Fallback to ADC (Application Default Credentials)
+            const auth = new GoogleAuth({
+                scopes: ['https://www.googleapis.com/auth/cloud-billing'],
+            });
+            authClient = await auth.getClient();
+        }
+
+        google.options({ auth: authClient });
+        const cloudbilling = google.cloudbilling('v1');
+
+        // Disable Billing
+        const name = `projects/${PROJECT_ID}/billingInfo`;
+        await cloudbilling.projects.updateBillingInfo({
+            name: name,
+            requestBody: {
+                billingAccountName: '', // Remove billing account
+            },
+        });
+
+        console.warn(`[Billing Alert] SUCCESS: Billing disabled for project ${PROJECT_ID}`);
+        res.status(200).send('Billing Disabled Successfully');
+
+    } catch (error) {
+        console.error('[Billing Alert] Error processing webhook:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 // --- Root Route for Health Check ---
 app.get('/', (req, res) => {

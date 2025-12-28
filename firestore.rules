@@ -1,9 +1,82 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Open rules for emulator testing
+    
+    // --- Helper Functions ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Check if the request data size is structurally valid (basic check)
+    // Note: Firestore rules cannot easily count documents in a collection for rate limiting.
+    // For strict doc count limits (e.g. max 50 patients), use Cloud Functions triggers 
+    // or atomic increment counters in a user_stats document.
+    
+    // --- Collection Rules ---
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      // Only allow users to write their own data
+      allow write: if isOwner(userId);
+      
+      // Subcollections (e.g., clinics list)
+      match /clinics/{clinicId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Clinics Collection
+    match /clinics/{clinicId} {
+      // Clinic members can read
+      allow read: if isSignedIn() && 
+        exists(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid));
+        
+      // Only admins/owners can write (update this based on strict role logic if needed)
+      allow write: if isSignedIn() && 
+        get(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid)).data.role == 'admin';
+        
+      // Members Subcollection
+      match /members/{memberId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && 
+          get(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid)).data.role == 'admin';
+      }
+      
+      // Patients
+      match /patients/{patientId} {
+        allow read: if isSignedIn() && 
+          exists(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid));
+        allow write: if isSignedIn() && 
+          exists(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid));
+          
+        // Limit data size for patient notes (example)
+        // allow update: if request.resource.data.notes.size() < 10000; 
+      }
+      
+      // Appointments, etc. follows similar pattern
+      match /{document=**} {
+         allow read, write: if isSignedIn() && 
+           exists(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid));
+      }
+    }
+    
+    // Invitations
+    match /user_invitations/{inviteId} {
+      // Users can look up invitations sent to their email
+      allow read: if isSignedIn() && resource.data.email == request.auth.token.email;
+      // Only system or admins can create (backend usually handles creation)
+      allow write: if false; // Managed by backend/Cloud Functions ideally
+    }
+
+    // Standard default block (deny all else)
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

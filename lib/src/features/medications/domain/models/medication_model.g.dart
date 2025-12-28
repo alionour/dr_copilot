@@ -37,4 +37,3 @@ Map<String, dynamic> _$MedicationModelToJson(MedicationModel instance) =>
       'fileUrl': instance.fileUrl,
       'createdAt': instance.createdAt.toIso8601String(),
     };
-

@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patients_view.dart';
 import 'screenshot_test_harness.dart';
-import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
 import 'mock_data/patient_mock_data.dart';
 
 import 'dart:io';

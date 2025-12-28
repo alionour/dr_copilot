@@ -11,6 +11,7 @@ import 'package:easy_localization/easy_localization.dart' as localization;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
 import 'src/core/injections.dart';
 import 'src/core/services/fcm_service.dart';
 import 'firebase_options.dart';
@@ -43,6 +44,14 @@ void main() async {
     // Initialize dependency injections for the app
     // This is where you set up your service locator (GetIt) and register all the necessary services.
     await initInjections();
+
+    // Initialize Remote Config (Feature Flags)
+    try {
+      await sl<RemoteConfigService>().initialize();
+    } catch (e) {
+      debugPrint('Warning: Remote Config initialization failed: $e');
+    }
+
     // await OwnerNotifier().loadOwnerIdAndClinicId(); // Removed: Handled by App BlocListener
     final secureStorage = FlutterSecureStorage();
 

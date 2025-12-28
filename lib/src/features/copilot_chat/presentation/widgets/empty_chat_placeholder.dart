@@ -80,10 +80,12 @@ class EmptyChatPlaceholder extends StatelessWidget {
     if (canManagePatients) capabilities.add('Manage Patients 👥');
     if (canManageSessions) capabilities.add('Schedule Sessions 📅');
     if (canManageEvals) capabilities.add('Track Evaluations 📊');
-    if (permissions.contains('can_view_analytics'))
+    if (permissions.contains('can_view_analytics')) {
       capabilities.add('Analyze Clinic Data 📈');
-    if (permissions.contains('can_view_financials'))
+    }
+    if (permissions.contains('can_view_financials')) {
       capabilities.add('Check Financials 💰');
+    }
 
     if (capabilities.isEmpty) return const SizedBox.shrink();
 

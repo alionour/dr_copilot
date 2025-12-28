@@ -1,0 +1,18 @@
+{
+    "parameters": {
+        "signup_enabled": {
+            "defaultValue": {
+                "value": "true"
+            },
+            "description": "Allow or block new user signups",
+            "valueType": "BOOLEAN"
+        },
+        "max_allowed_users": {
+            "defaultValue": {
+                "value": "100"
+            },
+            "description": "Maximum number of users allowed",
+            "valueType": "NUMBER"
+        }
+    }
+}

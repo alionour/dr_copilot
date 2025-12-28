@@ -31,29 +31,30 @@ CalendarEventModel _$CalendarEventModelFromJson(Map<String, dynamic> json) =>
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
     );
 
-Map<String, dynamic> _$CalendarEventModelToJson(
-  CalendarEventModel instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'startDateTime': const TimestampConverter().toJson(instance.startDateTime),
-  'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
-  'eventType': instance.eventType,
-  'clinicId': instance.clinicId,
-  'createdBy': instance.createdBy,
-  'createdAt': const TimestampConverter().toJson(instance.createdAt),
-  'doctorId': instance.doctorId,
-  'patientId': instance.patientId,
-  'sessionId': instance.sessionId,
-  'evaluationId': instance.evaluationId,
-  'description': instance.description,
-  'location': instance.location,
-  'color': instance.color,
-  'isClinicWide': instance.isClinicWide,
-  'recurrence': instance.recurrence,
-  'updatedBy': instance.updatedBy,
-  'updatedAt': const NullableTimestampConverter().toJson(instance.updatedAt),
-  'deletedBy': instance.deletedBy,
-  'deletedAt': const NullableTimestampConverter().toJson(instance.deletedAt),
-};
-
+Map<String, dynamic> _$CalendarEventModelToJson(CalendarEventModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'startDateTime':
+          const TimestampConverter().toJson(instance.startDateTime),
+      'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
+      'eventType': instance.eventType,
+      'clinicId': instance.clinicId,
+      'createdBy': instance.createdBy,
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'doctorId': instance.doctorId,
+      'patientId': instance.patientId,
+      'sessionId': instance.sessionId,
+      'evaluationId': instance.evaluationId,
+      'description': instance.description,
+      'location': instance.location,
+      'color': instance.color,
+      'isClinicWide': instance.isClinicWide,
+      'recurrence': instance.recurrence,
+      'updatedBy': instance.updatedBy,
+      'updatedAt':
+          const NullableTimestampConverter().toJson(instance.updatedAt),
+      'deletedBy': instance.deletedBy,
+      'deletedAt':
+          const NullableTimestampConverter().toJson(instance.deletedAt),
+    };

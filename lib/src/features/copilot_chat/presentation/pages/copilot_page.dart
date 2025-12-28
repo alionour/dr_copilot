@@ -70,8 +70,7 @@ class _CopilotPageState extends State<CopilotPage> {
   String? _currentConversationId;
   bool _isSidebarVisible = false; // Sidebar hidden by default
 
-  String _selectedModel = 'Gemini';
-  final bool _isModelChoiceEnabled = true;
+
   Uint8List? _pickedImage;
 
   final List<String> _availableModels = [];
