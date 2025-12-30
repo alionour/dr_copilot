@@ -43,7 +43,7 @@ class CalendarSettingsPage extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      const Icon(Icons.lock, color: Colors.orange),
+                      const Icon(Icons.lock_outline, color: Colors.orange),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(

@@ -37,7 +37,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
     super.initState();
     // Security Check: Only Admins can access this page
     final role = context.read<OwnerNotifier>().role;
-    if (role != AppRole.admin && role != AppRole.superAdmin) {
+    if (role != AppRole.admin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('access_denied_admins_only'.tr())),
@@ -137,8 +137,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         targetRoles: _selectedTarget == NotificationTargetType.specificRoles
             ? _selectedRoles
             : null,
-        ownerId:
-            _selectedTarget == NotificationTargetType.ownerClinics ||
+        ownerId: _selectedTarget == NotificationTargetType.ownerClinics ||
                 _selectedTarget == NotificationTargetType.specificClinic
             ? _currentUser!.uid
             : null,
@@ -162,9 +161,9 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
               SnackBar(
                 content: Text(
                   'notification_sent_to_users'.tr().replaceAll(
-                    '{count}',
-                    state.recipientCount.toString(),
-                  ),
+                        '{count}',
+                        state.recipientCount.toString(),
+                      ),
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -316,17 +315,16 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.people),
       ),
-      items:
-          [
-            NotificationTargetType.ownerClinics,
-            NotificationTargetType.specificClinic,
-            NotificationTargetType.specificRoles,
-          ].map((type) {
-            return DropdownMenuItem(
-              value: type,
-              child: Text(_getTargetLabel(type)),
-            );
-          }).toList(),
+      items: [
+        NotificationTargetType.ownerClinics,
+        NotificationTargetType.specificClinic,
+        NotificationTargetType.specificRoles,
+      ].map((type) {
+        return DropdownMenuItem(
+          value: type,
+          child: Text(_getTargetLabel(type)),
+        );
+      }).toList(),
       onChanged: (value) {
         if (value != null) {
           setState(() {
@@ -396,9 +394,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
             ..._userClinics.map((clinic) {
               return CheckboxListTile(
                 title: Text(clinic.name),
-                subtitle: clinic.location != null
-                    ? Text(clinic.location!)
-                    : null,
+                subtitle:
+                    clinic.location != null ? Text(clinic.location!) : null,
                 value: _selectedClinicIds.contains(clinic.id),
                 onChanged: (bool? value) {
                   setState(() {
@@ -473,8 +470,6 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
 
   String _getRoleLabel(AppRole role) {
     switch (role) {
-      case AppRole.superAdmin:
-        return 'super_admin'.tr();
       case AppRole.admin:
         return 'admin'.tr();
       case AppRole.doctor:
@@ -488,4 +483,3 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
     }
   }
 }
-

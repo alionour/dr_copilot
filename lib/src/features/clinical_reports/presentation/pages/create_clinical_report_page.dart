@@ -17,9 +17,8 @@ class CreateClinicalReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          getIt<AddEditClinicalReportBloc>()
-            ..add(const LoadAddEditClinicalReport(null)),
+      create: (context) => getIt<AddEditClinicalReportBloc>()
+        ..add(const LoadAddEditClinicalReport(null)),
       child: const CreateClinicalReportView(),
     );
   }
@@ -77,8 +76,8 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
       );
 
       context.read<AddEditClinicalReportBloc>().add(
-        SaveClinicalReport(newReport),
-      );
+            SaveClinicalReport(newReport),
+          );
     }
   }
 
@@ -106,50 +105,47 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
                         ),
                         onChanged: (value) {
                           context.read<AddEditClinicalReportBloc>().add(
-                            SearchPatients(value),
-                          );
+                                SearchPatients(value),
+                              );
                         },
                       ),
                       const SizedBox(height: 16),
                       Expanded(
-                        child:
-                            BlocBuilder<
-                              AddEditClinicalReportBloc,
-                              AddEditClinicalReportState
-                            >(
-                              builder: (context, state) {
-                                if (state is AddEditClinicalReportLoaded) {
-                                  if (state.patients.isEmpty) {
-                                    return Center(
-                                      child: Text('noPatientsFound'.tr()),
-                                    );
-                                  }
-                                  return ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: state.patients.length,
-                                    itemBuilder: (context, index) {
-                                      final patient = state.patients[index];
-                                      return ListTile(
-                                        title: Text(patient.name),
-                                        subtitle: Text(
-                                          patient.phoneNumber ??
-                                              'noPhoneNumber'.tr(),
-                                        ),
-                                        onTap: () {
-                                          this.setState(() {
-                                            _selectedPatient = patient;
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                      );
+                        child: BlocBuilder<AddEditClinicalReportBloc,
+                            AddEditClinicalReportState>(
+                          builder: (context, state) {
+                            if (state is AddEditClinicalReportLoaded) {
+                              if (state.patients.isEmpty) {
+                                return Center(
+                                  child: Text('noPatientsFound'.tr()),
+                                );
+                              }
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: state.patients.length,
+                                itemBuilder: (context, index) {
+                                  final patient = state.patients[index];
+                                  return ListTile(
+                                    title: Text(patient.name),
+                                    subtitle: Text(
+                                      patient.phoneNumber ??
+                                          'noPhoneNumber'.tr(),
+                                    ),
+                                    onTap: () {
+                                      this.setState(() {
+                                        _selectedPatient = patient;
+                                      });
+                                      Navigator.of(context).pop();
                                     },
                                   );
-                                }
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              },
-                            ),
+                                },
+                              );
+                            }
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -192,147 +188,146 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
         appBar: AppBar(title: Text('createClinicalReport'.tr())),
         body:
             BlocBuilder<AddEditClinicalReportBloc, AddEditClinicalReportState>(
-              builder: (context, state) {
-                if (state is AddEditClinicalReportLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          builder: (context, state) {
+            if (state is AddEditClinicalReportLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                if (state is AddEditClinicalReportLoaded) {
-                  return Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'patient'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium,
+            if (state is AddEditClinicalReportLoaded) {
+              return Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'patient'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _showPatientSelectionDialog(context),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
                           ),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () => _showPatientSelectionDialog(context),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade400),
                             borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.person_outline,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Text(
-                                      _selectedPatient?.name ??
-                                          'selectPatient'.tr(),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: _selectedPatient == null
-                                            ? Colors.grey.shade600
-                                            : Theme.of(
-                                                context,
-                                              ).colorScheme.onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_drop_down),
-                                ],
-                              ),
-                            ),
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'clinicalReportTitle'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _titleController,
-                            decoration: InputDecoration(
-                              hintText: 'clinicalReportTitle'.tr(),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.person_outline,
+                                color: Colors.grey.shade600,
                               ),
-                              prefixIcon: const Icon(Icons.title),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'clinicalReportDate'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  color: Colors.grey.shade600,
-                                ),
-                                const SizedBox(width: 16),
-                                Text(
-                                  DateFormat.yMMMd().add_jm().format(
-                                    _selectedDate,
-                                  ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  _selectedPatient?.name ??
+                                      'selectPatient'.tr(),
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.grey.shade700,
+                                    color: _selectedPatient == null
+                                        ? Colors.grey.shade600
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                   ),
                                 ),
-                                const Spacer(),
-                                const Icon(
-                                  Icons.lock_outline,
-                                  size: 16,
-                                  color: Colors.grey,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: _createClinicalReport,
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
                               ),
-                              child: Text(
-                                'createReport'.tr(),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
+                              const Icon(Icons.arrow_drop_down),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                }
+                      const SizedBox(height: 24),
+                      Text(
+                        'clinicalReportTitle'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: InputDecoration(
+                          hintText: 'clinicalReportTitle'.tr(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefixIcon: const Icon(Icons.title),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'clinicalReportDate'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              DateFormat.yMMMd().add_jm().format(
+                                    _selectedDate,
+                                  ),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(
+                              Icons.lock_outline,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _createClinicalReport,
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'createReport'.tr(),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
-                return Center(child: Text('somethingWentWrong'.tr()));
-              },
-            ),
+            return Center(child: Text('somethingWentWrong'.tr()));
+          },
+        ),
       ),
     );
   }
 }
-

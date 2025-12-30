@@ -219,23 +219,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     add(GetEvaluationsCountForYear(year));
     add(GetEvaluationsCountForMonth(year, month));
 
-    /// Iterates through the next 12 months starting from the current month,
-    /// calculates the corresponding month and year for each iteration,
-    /// and dispatches two events for each month:
-    /// - `GetSessionsCountForMonth` to retrieve the session count for the month.
-    /// - `GetEvaluationsCountForMonth` to retrieve the evaluation count for the month.
-    ///
-    /// The calculation for the month uses modulo 12 to ensure it wraps around
-    /// correctly after December, and the year is adjusted accordingly based on
-    /// the overflow from the month calculation.
-    // Always fetch data for all months in the current year (January to December)
-    // Fetch data for all months in the current year and two years before
-    for (int y = year - 2; y <= year; y++) {
-      for (int m = 1; m <= 12; m++) {
-        add(GetTotalRevenueForMonth(y, m));
-        add(GetTotalExpensesForMonth(y, m));
-      }
-    }
+    // Initial transaction data fetching has been removed as it requires clinicId.
+    // The UI should trigger these events with the correct clinicId on load.
   }
 
   /// Emits a [FinancialsSuccess] state with the provided [message].
@@ -658,6 +643,15 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     required DateTime to,
     required Set<String> existingBillsDueDates,
   }) {
+    final ownerId = OwnerNotifier().ownerId;
+    final clinicId = OwnerNotifier().clinicId;
+
+    // Return empty list if user doesn't have clinic/owner ID
+    if (ownerId == null || clinicId == null) {
+      debugPrint('Cannot generate bills: ownerId or clinicId is null');
+      return [];
+    }
+
     final dueDates = getDueDates(scheduledBill, from: from, to: to);
     final uuid = Uuid();
     return dueDates
@@ -674,10 +668,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
               status: BillStatus.unpaid,
               createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
               createdBy: scheduledBill.createdBy,
-              ownerId:
-                  OwnerNotifier().ownerId!, //will be added at repository layer
-              clinicId:
-                  OwnerNotifier().clinicId!, //will be added at repository layer
+              ownerId: ownerId,
+              clinicId: clinicId,
             ))
         .toList();
   }
@@ -797,13 +789,14 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onFetchTotalRevenueForYear(
       FetchTotalRevenueForYear event, Emitter<FinancialsState> emit) async {
-    final result = await transactionsUseCase.getTotalRevenueForYear(event.year);
+    final result = await transactionsUseCase.getTotalRevenueForYear(
+        event.clinicId, event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
-      (totalRevenue) {
-        final updatedRevenuePerYear =
-            Map<String, double>.from(state.revenuePerYear);
-        updatedRevenuePerYear[event.year.toString()] = totalRevenue;
+      (acc) {
+        final key = event.year.toString().padLeft(4, '0');
+        final updatedMap = Map<String, double>.from(state.revenuePerYear);
+        updatedMap[key] = acc;
         emit(FinancialsLoaded(
           scheduledBills: state.scheduledBills,
           goals: state.goals,
@@ -811,9 +804,9 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
           bills: state.bills,
           sessionsCountPerMonth: state.sessionsCountPerMonth,
           evaluationsCountPerMonth: state.evaluationsCountPerMonth,
-          revenuePerMonth: state.revenuePerMonth,
           expensesPerMonth: state.expensesPerMonth,
-          revenuePerYear: updatedRevenuePerYear,
+          revenuePerMonth: state.revenuePerMonth,
+          revenuePerYear: updatedMap,
           expensesPerYear: state.expensesPerYear,
         ));
       },
@@ -822,8 +815,8 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
 
   Future<void> _onFetchTotalExpensesForYear(
       FetchTotalExpensesForYear event, Emitter<FinancialsState> emit) async {
-    final result =
-        await transactionsUseCase.getTotalExpensesForYear(event.year);
+    final result = await transactionsUseCase.getTotalExpensesForYear(
+        event.clinicId, event.year);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (totalExpenses) {
@@ -853,7 +846,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     );
     // Fetch the total revenue for the specified month and year
     final result = await transactionsUseCase.getTotalRevenueForMonth(
-        event.year, event.month);
+        event.clinicId, event.year, event.month);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (total) {
@@ -884,7 +877,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   Future<void> _onFetchTotalExpensesForMonth(
       GetTotalExpensesForMonth event, Emitter<FinancialsState> emit) async {
     final result = await transactionsUseCase.getTotalExpensesForMonth(
-        event.year, event.month);
+        event.clinicId, event.year, event.month);
     result.fold(
       (failure) => emit(errorState(message: _mapFailureToMessage(failure))),
       (total) {
@@ -916,6 +909,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
       FetchTotalByDirectionAndSource event,
       Emitter<FinancialsState> emit) async {
     final result = await transactionsUseCase.getTotalByDirectionAndSource(
+      clinicId: event.clinicId,
       direction: event.direction,
       source: event.source,
       year: event.year,
@@ -996,4 +990,3 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     emit(successState(message: 'billHasPaid'.tr(args: [bill.title])));
   }
 }
-

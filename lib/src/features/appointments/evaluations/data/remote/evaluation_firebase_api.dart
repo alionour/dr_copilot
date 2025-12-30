@@ -32,6 +32,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _evaluationsCollection.where(
           'clinicId',
@@ -99,6 +102,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   ) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final data = evaluationModel.toJson();
 
@@ -115,6 +121,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           ...data,
           'createdBy': user.uid,
           'doctorId': user.uid, // Ensure doctorId is set
+          'clinicId': clinicId, // Ensure clinicId is set
         });
         final createdEvaluation = evaluationModel.copyWith(
           id: docRef.id, // Assign the generated document ID
@@ -247,6 +254,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   Future<Either<Failure, List<EvaluationModel>>> getDeletedEvaluations() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _evaluationsCollection.where(
           'clinicId',
@@ -330,6 +340,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         List<String> patientIds = [];
         if (name != null && name.isNotEmpty) {
@@ -430,6 +443,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         debugPrint(
           'Filtering evaluations for user: ${user.uid} on date: $date',
@@ -531,6 +547,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   Future<Either<Failure, List<EvaluationModel>>> getAllEvaluations() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _evaluationsCollection.where(
           'clinicId',
@@ -614,6 +633,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   Future<Either<Failure, int>> getEvaluationsCount() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query query = _evaluationsCollection.where(
           'clinicId',
@@ -649,6 +671,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final start = DateTime(year, month, 1);
         final end = (month < 12)
@@ -694,6 +719,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);
@@ -738,6 +766,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final start = DateTime(year, month, 1);
         final end = (month < 12)
@@ -787,6 +818,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final start = DateTime(year, 1, 1);
         final end = DateTime(year + 1, 1, 1);

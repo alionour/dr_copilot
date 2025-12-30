@@ -1,11 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/error/exceptions.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/staff/domain/models/staff_model.dart';
 
 class StaffFirebaseApi {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> addStaff(StaffModel staff) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageStaff)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore.collection('staff').doc(staff.id).set(staff.toJson());
     } catch (e) {
@@ -14,6 +19,9 @@ class StaffFirebaseApi {
   }
 
   Future<StaffModel> getStaff(String staffId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageStaff)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       final doc = await _firestore.collection('staff').doc(staffId).get();
       if (!doc.exists) {
@@ -26,6 +34,9 @@ class StaffFirebaseApi {
   }
 
   Future<List<StaffModel>> getAllStaff({required String clinicId}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageStaff)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       final snapshot = await _firestore
           .collection('staff')
@@ -38,6 +49,9 @@ class StaffFirebaseApi {
   }
 
   Future<void> updateStaff(String staffId, StaffModel staff) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageStaff)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore.collection('staff').doc(staffId).update(staff.toJson());
     } catch (e) {
@@ -46,6 +60,9 @@ class StaffFirebaseApi {
   }
 
   Future<void> deleteStaff(String staffId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageStaff)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore.collection('staff').doc(staffId).delete();
     } catch (e) {
@@ -53,4 +70,3 @@ class StaffFirebaseApi {
     }
   }
 }
-

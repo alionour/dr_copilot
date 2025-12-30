@@ -3,15 +3,16 @@ import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/role_defaults.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
-import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/helper/google_signin_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart' as io;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/services/error_reporting_service.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
 
-class AuthFirebaseApi extends AbstractAuthRepository {
+class AuthFirebaseApi {
   /// An instance of [FirebaseAuth] used to handle authentication operations
   /// such as sign-in, sign-up, and sign-out with Firebase in the application.
   final FirebaseAuth _firebaseAuth;
@@ -99,7 +100,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Returns a [UserModel] representing the authenticated user upon successful login.
   ///
   /// Throws an exception if authentication fails.
-  @override
   Future<UserModel?> signInWithEmailAndPassword(
     String email,
     String password,
@@ -124,11 +124,25 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Returns a [UserModel] if the sign-up is successful, or `null` if it fails.
   ///
   /// Throws an exception if an error occurs during the sign-up process.
-  @override
   Future<UserModel?> signUpWithEmailAndPassword(
     String email,
     String password,
   ) async {
+    // Check beta status and user count
+    final remoteConfig = sl<RemoteConfigService>();
+    if (!remoteConfig.isSignupEnabled) {
+      throw Exception(
+          'Beta access is currently full. Please join the waitlist.');
+    }
+
+    // Check dynamic user count limit
+    final userCountQuery = await _usersCollection.count().get();
+    final currentCount = userCountQuery.count ?? 0;
+    if (currentCount >= remoteConfig.maxAllowedUsers) {
+      throw Exception(
+          'Beta user limit (${remoteConfig.maxAllowedUsers}) reached. Please join the waitlist.');
+    }
+
     try {
       final UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -149,7 +163,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// Returns a [UserModel] if the sign-in is successful, or `null` if it fails.
   ///
   /// Throws an exception if an error occurs during the sign-in process.
-  @override
   Future<UserModel?> signInWithGoogle() async {
     try {
       final GoogleSignInResult? googleResult = await _getGoogleSignInResult();
@@ -197,6 +210,27 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       ///
       /// Throws an exception if saving the tokens fails.
       await _saveGoogleTokens(user, googleAuth);
+
+      // Check if user is old or new
+      final userDoc = await _usersCollection.doc(user.uid).get();
+      if (!userDoc.exists) {
+        // New User - Check if signups enabled
+        final remoteConfig = sl<RemoteConfigService>();
+        if (!remoteConfig.isSignupEnabled) {
+          await user.delete(); // Clean up the auth record
+          throw Exception(
+              'Beta access is currently full. Please join the waitlist.');
+        }
+
+        // Check dynamic user count limit
+        final userCountQuery = await _usersCollection.count().get();
+        final currentCount = userCountQuery.count ?? 0;
+        if (currentCount >= remoteConfig.maxAllowedUsers) {
+          await user.delete();
+          throw Exception(
+              'Beta user limit (${remoteConfig.maxAllowedUsers}) reached. Please join the waitlist.');
+        }
+      }
 
       /// Handles the onboarding process for users associated with multiple clinics.
       ///
@@ -392,16 +426,15 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       });
     }
 
-    final clinicIds = allClinicIds.toList();
     final primaryClinicId = firstClinicId;
 
     // Write minimal user data - backend will handle the rest via invitation acceptance
+    // Note: Removed clinicIds field - using only clinics array with map structure
     await docRef.set({
       'email': user.email,
       'displayName': user.displayName,
       'photoURL': user.photoURL,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      'clinicIds': clinicIds,
       'primaryClinicId': primaryClinicId,
     });
   }
@@ -422,19 +455,15 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       'adminEmail': user.email,
     });
 
-    final clinicIds = [newClinicRef.id];
     final primaryClinicId = newClinicRef.id;
 
     // Create user document with clinic membership
-    // Note: 'clinics' array is kept for legacy compatibility but role is removed/simplified in new arch
-    // Ideally we'd remove 'role': 'Admin' from here if we strictly follow the new path,
-    // but keeping it harmlessly for now avoids breaking other legacy readers if any exist.
+    // Note: Removed clinicIds field - using only clinics array with map structure
     await docRef.set({
       'email': user.email,
       'displayName': user.displayName,
       'photoURL': user.photoURL,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      'clinicIds': clinicIds,
       'primaryClinicId': primaryClinicId,
       'clinics': [
         {
@@ -468,7 +497,7 @@ class AuthFirebaseApi extends AbstractAuthRepository {
       // We might want to rethrow or handle this more gracefully
     }
 
-    return {'clinicIds': clinicIds, 'primaryClinicId': primaryClinicId};
+    return {'primaryClinicId': primaryClinicId};
   }
 
   /// Saves authentication tokens (accessToken, idToken) to local storage.
@@ -491,7 +520,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   /// authentication state associated with the current session.
   ///
   /// Throws an [Exception] if the sign-out process fails.
-  @override
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
 
@@ -516,7 +544,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   }
 
   /// Deletes the currently authenticated user.
-  @override
   Future<void> deleteCurrentUser() async {
     final user = _firebaseAuth.currentUser;
     if (user != null) {
@@ -527,7 +554,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   }
 
   /// Returns the current authenticated user as a Firebase [User], or null if not signed in.
-  @override
   Future<UserModel?> getCurrentUser() async {
     final user = _firebaseAuth.currentUser;
     if (user == null) return null;
@@ -601,7 +627,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   }
 
   /// Updates the current user's display name and/or photo URL.
-  @override
   Future<void> updateProfile({String? displayName, String? photoURL}) async {
     final user = _firebaseAuth.currentUser;
     if (user != null) {
@@ -630,7 +655,6 @@ class AuthFirebaseApi extends AbstractAuthRepository {
   ///   }
   /// });
   /// ```
-  @override
   Stream<UserModel?> authStateChanges() {
     return _firebaseAuth.authStateChanges().asyncMap((user) async {
       if (user == null) return null;

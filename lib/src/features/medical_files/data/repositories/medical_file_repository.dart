@@ -6,6 +6,8 @@ import 'package:dr_copilot/src/features/medical_files/domain/models/medical_file
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:universal_io/io.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class MedicalFileRepository {
   final FirebaseFirestore _firestore;
@@ -14,13 +16,16 @@ class MedicalFileRepository {
   MedicalFileRepository({
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _storage = storage ?? FirebaseStorage.instance;
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
   Future<Either<Failure, String>> uploadFile({
     required File file,
     required String patientId,
   }) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       // 1. Validation
       final length = await file.length();
@@ -53,6 +58,9 @@ class MedicalFileRepository {
   Future<Either<Failure, MedicalFileModel>> addMedicalFile(
     MedicalFileModel medicalFile,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       await _firestore
           .collection('medical_files')
@@ -67,6 +75,9 @@ class MedicalFileRepository {
   Future<Either<Failure, List<MedicalFileModel>>> getMedicalFilesForPatient(
     String patientId,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewMedicalFiles)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final snapshot = await _firestore
           .collection('medical_files')
@@ -89,6 +100,9 @@ class MedicalFileRepository {
   Future<Either<Failure, void>> deleteMedicalFile(
     MedicalFileModel medicalFile,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteMedicalFile)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       // 1. Delete from Firestore
       await _firestore.collection('medical_files').doc(medicalFile.id).delete();
@@ -109,4 +123,3 @@ class MedicalFileRepository {
     }
   }
 }
-

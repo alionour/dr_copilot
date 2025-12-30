@@ -147,7 +147,7 @@ class DashboardPage extends StatelessWidget {
                                 color: Colors.blue,
                                 title: '${now.year} ${'sessions'.tr()}',
                                 value: sessionsYear.toString(),
-                                icon: Icons.event,
+                                icon: Icons.event_outlined,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -159,7 +159,7 @@ class DashboardPage extends StatelessWidget {
                                 title:
                                     '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'sessions'.tr()}',
                                 value: sessionsMonth.toString(),
-                                icon: Icons.event_available,
+                                icon: Icons.event_available_outlined,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -170,7 +170,7 @@ class DashboardPage extends StatelessWidget {
                                 color: Colors.purple,
                                 title: '${now.year} ${'evaluations'.tr()}',
                                 value: evalsYear.toString(),
-                                icon: Icons.assignment,
+                                icon: Icons.assignment_outlined,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -182,7 +182,7 @@ class DashboardPage extends StatelessWidget {
                                 title:
                                     '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'evaluations'.tr()}',
                                 value: evalsMonth.toString(),
-                                icon: Icons.assignment_turned_in,
+                                icon: Icons.assignment_turned_in_outlined,
                               ),
                             ),
                           ],
@@ -221,7 +221,8 @@ class DashboardPage extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inbox, size: 48, color: Colors.grey[400]),
+                        Icon(Icons.inbox_outlined,
+                            size: 48, color: Colors.grey[400]),
                         const SizedBox(height: 12),
                         Text(
                           'noTransactions'.tr(),

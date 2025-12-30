@@ -29,7 +29,7 @@ class DashboardView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Financial Dashboard'),
-        leading: const Icon(Icons.dashboard),
+        leading: const Icon(Icons.dashboard_outlined),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -52,14 +52,14 @@ class DashboardView extends StatelessWidget {
                   title: 'Sessions',
                   monthValue: sessionsThisMonth,
                   yearValue: sessionsThisYear,
-                  icon: Icons.event_note,
+                  icon: Icons.event_note_outlined,
                   color: Colors.blue,
                 ),
                 _SummaryCard(
                   title: 'Evaluations',
                   monthValue: evaluationsThisMonth,
                   yearValue: evaluationsThisYear,
-                  icon: Icons.assessment,
+                  icon: Icons.assessment_outlined,
                   color: Colors.purple,
                 ),
                 _SummaryCard(
@@ -74,7 +74,7 @@ class DashboardView extends StatelessWidget {
                   title: 'Expenses',
                   monthValue: totalExpensesThisMonth.toInt(),
                   yearValue: null,
-                  icon: Icons.money_off,
+                  icon: Icons.money_off_outlined,
                   color: Colors.red,
                   isCurrency: true,
                 ),

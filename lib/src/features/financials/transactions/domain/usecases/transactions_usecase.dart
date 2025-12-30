@@ -13,10 +13,12 @@ class TransactionsUseCase {
 
   /// Fetches all transactions.
   Future<Either<Failure, List<TransactionModel>>> getTransactions({
+    required String clinicId, // Added clinicId
     String? lastDocumentId, // Corrected parameter name
     int? limit = 20,
   }) {
     return repository.getTransactions(
+      clinicId: clinicId, // Pass clinicId
       lastDocumentId: lastDocumentId,
       limit: limit ?? 20,
     );
@@ -40,54 +42,58 @@ class TransactionsUseCase {
 
   /// Searches transactions based on criteria.
   Future<Either<Failure, List<TransactionModel>>> searchTransactions(
-      {String? description}) async {
-    return await repository.searchTransactions(description: description);
+      {required String clinicId, String? description}) async {
+    return await repository.searchTransactions(
+        clinicId: clinicId, description: description);
   }
 
   /// Gets transactions by a specific date.
   Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
-      DateTime date,
-      {String? lastDocumentID,
-      int limit = 20}) async {
-    return await repository.getTransactionsByDate(date,
+      String clinicId, DateTime date,
+      {String? lastDocumentID, int limit = 20}) async {
+    return await repository.getTransactionsByDate(clinicId, date,
         lastDocumentID: lastDocumentID, limit: limit);
   }
 
   /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
-  Future<Either<Failure, int>> getTransactionsCount() async {
-    return await repository.getTransactionsCount();
+  Future<Either<Failure, int>> getTransactionsCount(String clinicId) async {
+    return await repository.getTransactionsCount(clinicId);
   }
 
   /// Returns the total revenue (inwards) for a given year.
-  Future<Either<Failure, double>> getTotalRevenueForYear(int year) async {
-    return await repository.getTotalRevenueForYear(year);
+  Future<Either<Failure, double>> getTotalRevenueForYear(
+      String clinicId, int year) async {
+    return await repository.getTotalRevenueForYear(clinicId, year);
   }
 
   /// Returns the total expenses (outwards) for a given year.
-  Future<Either<Failure, double>> getTotalExpensesForYear(int year) async {
-    return await repository.getTotalExpensesForYear(year);
+  Future<Either<Failure, double>> getTotalExpensesForYear(
+      String clinicId, int year) async {
+    return await repository.getTotalExpensesForYear(clinicId, year);
   }
 
   /// Returns the total revenue (inwards) for a given month and year.
   Future<Either<Failure, double>> getTotalRevenueForMonth(
-      int year, int month) async {
-    return await repository.getTotalRevenueForMonth(year, month);
+      String clinicId, int year, int month) async {
+    return await repository.getTotalRevenueForMonth(clinicId, year, month);
   }
 
   /// Returns the total expenses (outwards) for a given month and year.
   Future<Either<Failure, double>> getTotalExpensesForMonth(
-      int year, int month) async {
-    return await repository.getTotalExpensesForMonth(year, month);
+      String clinicId, int year, int month) async {
+    return await repository.getTotalExpensesForMonth(clinicId, year, month);
   }
 
   /// Returns the total for a given direction (inwards/outwards) and optional source.
   Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required String clinicId, // Added clinicId
     required TransactionDirection direction,
     TransactionSource? source,
     int? year,
     int? month,
   }) async {
     return await repository.getTotalByDirectionAndSource(
+      clinicId: clinicId, // Pass clinicId
       direction: direction,
       source: source,
       year: year,
@@ -122,8 +128,8 @@ class TransactionsUseCase {
 
   /// Deletes a transaction by its reference ID.
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
-      String referenceId) async {
-    return await repository.deleteTransactionByReferenceId(referenceId);
+      String clinicId, String referenceId) async {
+    return await repository.deleteTransactionByReferenceId(
+        clinicId, referenceId);
   }
 }
-

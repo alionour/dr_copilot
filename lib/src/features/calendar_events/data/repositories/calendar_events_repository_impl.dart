@@ -74,5 +74,19 @@ class CalendarEventsRepositoryImpl extends AbstractCalendarEventsRepository {
   ) {
     return firebaseApi.getEventByEvaluationId(evaluationId);
   }
-}
 
+  @override
+  Future<Either<Failure, List<CalendarEventModel>>> getDeletedEvents() {
+    return firebaseApi.getDeletedEvents();
+  }
+
+  @override
+  Future<Either<Failure, void>> restoreEvent(String id) {
+    return firebaseApi.restoreEvent(id);
+  }
+
+  @override
+  Future<Either<Failure, void>> permanentlyDeleteEvent(String id) {
+    return firebaseApi.permanentlyDeleteEvent(id);
+  }
+}

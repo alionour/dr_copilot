@@ -68,5 +68,18 @@ abstract class AbstractCalendarEventsRepository {
   Future<Either<Failure, CalendarEventModel?>> getEventByEvaluationId(
     String evaluationId,
   );
-}
 
+  /// Get all deleted events
+  /// Returns list of deleted calendar events or failure
+  Future<Either<Failure, List<CalendarEventModel>>> getDeletedEvents();
+
+  /// Restore a deleted event
+  /// [id] The event ID to restore
+  /// Returns void or failure
+  Future<Either<Failure, void>> restoreEvent(String id);
+
+  /// Permanently delete an event
+  /// [id] The event ID to delete permanently
+  /// Returns void or failure
+  Future<Either<Failure, void>> permanentlyDeleteEvent(String id);
+}

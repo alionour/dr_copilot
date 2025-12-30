@@ -47,14 +47,14 @@ class _DataStorageSettingsPageState extends State<DataStorageSettingsPage> {
         children: [
           ListTile(
             title: const Text('clearAppCache').tr(),
-            leading: const Icon(Icons.cleaning_services),
+            leading: const Icon(Icons.cleaning_services_outlined),
             onTap: _clearAppCache,
           ),
           const Divider(),
           ListTile(
             title: const Text('exportMyData').tr(),
             subtitle: const Text('exportMyDataDescription').tr(),
-            leading: const Icon(Icons.download),
+            leading: const Icon(Icons.download_outlined),
             onTap: () => context.push('/settings/export_data'),
           ),
         ],
@@ -62,4 +62,3 @@ class _DataStorageSettingsPageState extends State<DataStorageSettingsPage> {
     );
   }
 }
-

@@ -71,8 +71,9 @@ List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
     patientRequired.add('phoneNumber');
   }
   if (isRequired('patient', 'address')) patientRequired.add('address');
-  if (isRequired('patient', 'alt_phone'))
+  if (isRequired('patient', 'alt_phone')) {
     patientRequired.add('alternativePhoneNumber');
+  }
   if (isRequired('patient', 'doctor')) patientRequired.add('treatingDoctor');
   if (isRequired('patient', 'occupation')) patientRequired.add('occupation');
 

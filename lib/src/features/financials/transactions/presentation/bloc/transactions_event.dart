@@ -9,21 +9,24 @@ abstract class TransactionsEvent extends Equatable {
 
 /// Event to fetch all financial transactions.
 class GetTransactions extends TransactionsEvent {
+  final String clinicId;
   final String? lastDocumentID;
   final int limit;
 
-  const GetTransactions({this.lastDocumentID, this.limit = 20});
+  const GetTransactions(
+      {required this.clinicId, this.lastDocumentID, this.limit = 20});
 
   @override
-  List<Object?> get props => [lastDocumentID, limit];
+  List<Object?> get props => [clinicId, lastDocumentID, limit];
 }
 
 /// Event to fetch all financial transactions.
 class SearchTransactions extends TransactionsEvent {
+  final String clinicId;
   final String description;
-  const SearchTransactions(this.description);
+  const SearchTransactions({required this.clinicId, required this.description});
   @override
-  List<Object?> get props => [description];
+  List<Object?> get props => [clinicId, description];
 }
 
 /// Event to add a new financial transaction.
@@ -47,24 +50,28 @@ class DeleteTransactionEvent extends TransactionsEvent {
 }
 
 class GetTransactionsByDate extends TransactionsEvent {
+  final String clinicId;
   final DateTime date;
 
   const GetTransactionsByDate({
+    required this.clinicId,
     required this.date,
   });
 
   @override
-  List<Object?> get props => [date];
+  List<Object?> get props => [clinicId, date];
 }
 
 class LoadMoreTransactions extends TransactionsEvent {
+  final String clinicId;
   final int? limit;
   final String? lastDocumentId;
 
-  const LoadMoreTransactions({this.lastDocumentId, this.limit});
+  const LoadMoreTransactions(
+      {required this.clinicId, this.lastDocumentId, this.limit});
 
   @override
-  List<Object?> get props => [lastDocumentId, limit];
+  List<Object?> get props => [clinicId, lastDocumentId, limit];
 }
 
 class UpdateTransactionEvent extends TransactionsEvent {
@@ -82,13 +89,13 @@ class UpdateTransactionEvent extends TransactionsEvent {
 /// This event can be dispatched to the [TransactionsBloc] to request
 /// the current number of transactions available.
 class GetTransactionsCount extends TransactionsEvent {
-  const GetTransactionsCount();
+  final String clinicId;
+  const GetTransactionsCount(this.clinicId);
 
   /// Returns a list of properties that will be used to determine whether two instances are equal.
   ///
   /// This override currently returns an empty list, meaning all instances will be considered equal
   /// unless this list is populated with relevant properties.
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [clinicId];
 }
-

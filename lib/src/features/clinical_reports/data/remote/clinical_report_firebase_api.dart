@@ -7,6 +7,7 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/entities/clinical_report.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_report_chat_message.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/models/clinical_report_instruction.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -14,8 +15,8 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 class ClinicalReportFirebaseApi {
-  final CollectionReference _reportsCollection = FirebaseFirestore.instance
-      .collection('clinical_reports');
+  final CollectionReference _reportsCollection =
+      FirebaseFirestore.instance.collection('clinical_reports');
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   String? get clinicId => OwnerNotifier().clinicId;
@@ -33,6 +34,21 @@ class ClinicalReportFirebaseApi {
       if (user == null) {
         debugPrint('[saveReport] User not authenticated');
         return Left(ServerFailure('User not authenticated', 401));
+      }
+
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
+
+      // Check permissions
+      if (report.id == 'new_report_id') {
+        if (!OwnerNotifier().hasPermission(AppPermission.addClinicalReport)) {
+          return Left(ServerFailure('Permission denied', 403));
+        }
+      } else {
+        if (!OwnerNotifier().hasPermission(AppPermission.editClinicalReport)) {
+          return Left(ServerFailure('Permission denied', 403));
+        }
       }
 
       var reportToSave = report;
@@ -111,6 +127,12 @@ class ClinicalReportFirebaseApi {
     String patientId,
   ) async {
     try {
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
+      if (!OwnerNotifier().hasPermission(AppPermission.viewClinicalReports)) {
+        return Left(ServerFailure('Permission denied', 403));
+      }
       final querySnapshot = await _reportsCollection
           .where('clinicId', isEqualTo: clinicId)
           .where('patientId', isEqualTo: patientId)
@@ -130,6 +152,9 @@ class ClinicalReportFirebaseApi {
   }
 
   Future<Either<Failure, ClinicalReport>> getReportById(String reportId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewClinicalReports)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final doc = await _reportsCollection.doc(reportId).get();
       if (doc.exists) {
@@ -143,6 +168,12 @@ class ClinicalReportFirebaseApi {
 
   Future<Either<Failure, List<ClinicalReport>>> getAllReports() async {
     try {
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
+      if (!OwnerNotifier().hasPermission(AppPermission.viewClinicalReports)) {
+        return Left(ServerFailure('Permission denied', 403));
+      }
       final querySnapshot = await _reportsCollection
           .where('clinicId', isEqualTo: clinicId)
           .orderBy('date', descending: true)
@@ -192,6 +223,9 @@ class ClinicalReportFirebaseApi {
   }
 
   Future<Either<Failure, void>> deleteReport(String reportId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteClinicalReport)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       await _reportsCollection.doc(reportId).delete();
 
@@ -297,7 +331,7 @@ class ClinicalReportFirebaseApi {
   }
 
   Future<Either<Failure, List<ClinicalReportInstruction>>>
-  getInstructions() async {
+      getInstructions() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -403,4 +437,3 @@ class ClinicalReportFirebaseApi {
     }
   }
 }
-
