@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/router/routing_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -199,6 +201,81 @@ class GoogleSignInHelper {
     }
   }
 
+  Future<void> _showDebugDialog(String title, String content) async {
+    try {
+      final context =
+          RoutingConfig.router.routerDelegate.navigatorKey.currentContext;
+      if (context != null) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(child: Text(content)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        debugPrint(
+            '[_showDebugDialog] No context found for dialog: $title - $content');
+      }
+    } catch (e) {
+      debugPrint('[_showDebugDialog] Error showing dialog: $e');
+    }
+  }
+
+  Future<Map<String, String>> _loadCredentials() async {
+    String? clientId;
+    String? clientSecret;
+    String? redirectPortStr;
+
+    // 1. Try loading from assets (Production/bundled)
+    try {
+      final jsonString =
+          await rootBundle.loadString('assets/google_credentials.json');
+      final jsonMap = jsonDecode(jsonString);
+      if (jsonMap is Map<String, dynamic>) {
+        clientId = jsonMap['WEB_CLIENT_ID'] as String?;
+        clientSecret = jsonMap['WEB_CLIENT_SECRET'] as String?;
+        redirectPortStr = jsonMap['WEB_REDIRECT_PORT'] as String?;
+      }
+    } catch (e) {
+      debugPrint('Could not load assets/google_credentials.json: $e');
+    }
+
+    // 2. Fallback to compile-time variables (Build args)
+    if (clientId == null || clientSecret == null || redirectPortStr == null) {
+      const envClientId = String.fromEnvironment('WEB_CLIENT_ID');
+      const envClientSecret = String.fromEnvironment('WEB_CLIENT_SECRET');
+      const envRedirectPort = String.fromEnvironment('WEB_REDIRECT_PORT');
+
+      if (envClientId.isNotEmpty) clientId = envClientId;
+      if (envClientSecret.isNotEmpty) clientSecret = envClientSecret;
+      if (envRedirectPort.isNotEmpty) redirectPortStr = envRedirectPort;
+    }
+
+    // 3. Fallback to runtime environment (Dev/Doppler)
+    if (clientId == null || clientSecret == null || redirectPortStr == null) {
+      final envClientId = io.Platform.environment['WEB_CLIENT_ID'];
+      final envClientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
+      final envRedirectPort = io.Platform.environment['WEB_REDIRECT_PORT'];
+
+      if (envClientId != null) clientId = envClientId;
+      if (envClientSecret != null) clientSecret = envClientSecret;
+      if (envRedirectPort != null) redirectPortStr = envRedirectPort;
+    }
+
+    return {
+      if (clientId != null) 'WEB_CLIENT_ID': clientId,
+      if (clientSecret != null) 'WEB_CLIENT_SECRET': clientSecret,
+      if (redirectPortStr != null) 'WEB_REDIRECT_PORT': redirectPortStr,
+    };
+  }
+
   /// Signs in the user using a custom loopback flow for Desktop.
   Future<DesktopAuthResult?> signInAllPlatforms() async {
     if (!io.Platform.isWindows && !io.Platform.isLinux) {
@@ -206,77 +283,43 @@ class GoogleSignInHelper {
     }
 
     try {
-      String? clientId;
-      String? clientSecret;
-      String? redirectPortStr;
-
-      // 1. Try loading from assets (Production/bundled)
-      try {
-        final jsonString =
-            await rootBundle.loadString('assets/google_credentials.json');
-        final jsonMap = jsonDecode(jsonString);
-        if (jsonMap is Map<String, dynamic>) {
-          clientId = jsonMap['WEB_CLIENT_ID'] as String?;
-          clientSecret = jsonMap['WEB_CLIENT_SECRET'] as String?;
-          redirectPortStr = jsonMap['WEB_REDIRECT_PORT'] as String?;
-          debugPrint(
-            'Loaded credentials from assets/google_credentials.json: ID=${clientId != null}, Secret=${clientSecret != null}',
-          );
-        }
-      } catch (e) {
-        debugPrint(
-          'Could not load or parse assets/google_credentials.json: $e',
-        );
-        // Show dialog for asset loading failure if in release mode (or helpful debug)
-        debugPrint(
-          'Could not load or parse assets/google_credentials.json: $e',
-        );
-      }
-
-      // 2. Fallback to compile-time variables (Build args)
-      if (clientId == null || clientSecret == null || redirectPortStr == null) {
-        const envClientId = String.fromEnvironment('WEB_CLIENT_ID');
-        const envClientSecret = String.fromEnvironment('WEB_CLIENT_SECRET');
-        const envRedirectPort = String.fromEnvironment('WEB_REDIRECT_PORT');
-
-        if (envClientId.isNotEmpty) clientId = envClientId;
-        if (envClientSecret.isNotEmpty) clientSecret = envClientSecret;
-        if (envRedirectPort.isNotEmpty) redirectPortStr = envRedirectPort;
-
-        if (envClientId.isNotEmpty) {
-          debugPrint('Loaded credentials from String.fromEnvironment');
-        }
-      }
-
-      // 3. Fallback to runtime environment (Dev/Doppler)
-      if (clientId == null || clientSecret == null || redirectPortStr == null) {
-        final envClientId = io.Platform.environment['WEB_CLIENT_ID'];
-        final envClientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
-        final envRedirectPort = io.Platform.environment['WEB_REDIRECT_PORT'];
-
-        if (envClientId != null) clientId = envClientId;
-        if (envClientSecret != null) clientSecret = envClientSecret;
-        if (envRedirectPort != null) redirectPortStr = envRedirectPort;
-
-        if (envClientId != null) {
-          debugPrint('Loaded credentials from io.Platform.environment');
-        }
-      }
+      final creds = await _loadCredentials();
+      final clientId = creds['WEB_CLIENT_ID'];
+      final clientSecret = creds['WEB_CLIENT_SECRET'];
+      final redirectPortStr = creds['WEB_REDIRECT_PORT'];
 
       if (clientId == null || clientSecret == null || redirectPortStr == null) {
-        debugPrint(
-          'Error: WEB_CLIENT_ID, WEB_CLIENT_SECRET, or WEB_REDIRECT_PORT not found in assets, build args, or environment.',
-        );
+        final errorMsg = 'Missing Credentials:\n'
+            'C-ID: ${clientId ?? "NULL"}\n'
+            'C-Secret: ${clientSecret ?? "NULL"}\n'
+            'Port: ${redirectPortStr ?? "NULL"}';
+        debugPrint(errorMsg);
+        await _showDebugDialog('Credential Error', errorMsg);
         return null;
       }
 
-      final redirectPort = int.parse(redirectPortStr);
+      int redirectPort;
+      try {
+        redirectPort = int.parse(redirectPortStr);
+      } catch (e) {
+        await _showDebugDialog(
+            'Port Error', 'Invalid port string: $redirectPortStr');
+        return null;
+      }
 
       // 1. Create a local server
-      final server = await io.HttpServer.bind(
-        io.InternetAddress.loopbackIPv4,
-        redirectPort,
-      );
+      io.HttpServer server;
+      try {
+        server = await io.HttpServer.bind(
+          io.InternetAddress.loopbackIPv4,
+          redirectPort,
+        );
+      } catch (e) {
+        await _showDebugDialog(
+            'Network Error', 'Could not bind to port $redirectPort: $e');
+        return null;
+      }
+
       final redirectUri = 'http://localhost:${server.port}';
       debugPrint('Listening on $redirectUri');
 
@@ -292,11 +335,16 @@ class GoogleSignInHelper {
       });
 
       // 3. Launch the URL
-      if (await canLaunchUrl(authUrl)) {
-        await launchUrl(authUrl);
-      } else {
-        debugPrint('Could not launch $authUrl');
+      try {
+        if (await canLaunchUrl(authUrl)) {
+          await launchUrl(authUrl);
+        } else {
+          throw 'Could not launch URL';
+        }
+      } catch (e) {
         await server.close();
+        await _showDebugDialog(
+            'Browser Error', 'Failed to launch auth URL: $e');
         return null;
       }
 
@@ -399,6 +447,8 @@ class GoogleSignInHelper {
       }
     } catch (error) {
       debugPrint('Desktop sign in error: $error');
+      await _showDebugDialog(
+          'Sign-In Error', 'An unexpected error occurred: $error');
       return null;
     }
   }
@@ -442,11 +492,12 @@ class GoogleSignInHelper {
           return null;
         }
 
-        final clientId = io.Platform.environment['WEB_CLIENT_ID'];
-        final clientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
+        final creds = await _loadCredentials();
+        final clientId = creds['WEB_CLIENT_ID'];
+        final clientSecret = creds['WEB_CLIENT_SECRET'];
 
         if (clientId == null || clientSecret == null) {
-          debugPrint('[Desktop] OAuth credentials not found in environment.');
+          debugPrint('[Desktop] OAuth credentials not found.');
           return null;
         }
 

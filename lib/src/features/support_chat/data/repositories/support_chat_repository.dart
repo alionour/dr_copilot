@@ -6,7 +6,7 @@ class SupportChatRepository {
   final FirebaseFirestore _firestore;
 
   SupportChatRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Get or create a support conversation for a user
   Future<String> getOrCreateConversation(String userId) async {
@@ -23,9 +23,8 @@ class SupportChatRepository {
 
     // Create new conversation
     final now = DateTime.now();
-    final newConversationRef = _firestore
-        .collection('support_conversations')
-        .doc();
+    final newConversationRef =
+        _firestore.collection('support_conversations').doc();
 
     final newConversation = SupportConversationModel(
       id: newConversationRef.id,
@@ -40,18 +39,20 @@ class SupportChatRepository {
   }
 
   /// Get messages for a support conversation
-  Stream<List<SupportMessageModel>> getMessages(String conversationId) {
+  Stream<List<SupportMessageModel>> getMessages(String conversationId,
+      {int limit = 50}) {
     return _firestore
         .collection('support_conversations')
         .doc(conversationId)
         .collection('messages')
         .orderBy('timestamp', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => SupportMessageModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => SupportMessageModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   /// Send a message in support conversation
@@ -84,9 +85,8 @@ class SupportChatRepository {
     batch.set(messageRef, message.toFirestore());
 
     // 2. Update conversation last message details
-    final conversationRef = _firestore
-        .collection('support_conversations')
-        .doc(conversationId);
+    final conversationRef =
+        _firestore.collection('support_conversations').doc(conversationId);
 
     batch.update(conversationRef, {
       'lastMessage': type == SupportMessageType.text ? content : '[Image]',
@@ -110,4 +110,3 @@ class SupportChatRepository {
     return SupportConversationModel.fromFirestore(doc);
   }
 }
-

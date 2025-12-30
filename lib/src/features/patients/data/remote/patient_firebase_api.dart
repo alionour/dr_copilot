@@ -216,6 +216,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
         debugPrint('Executing query: $queryRef');
 
+        // Add safety limit
+        queryRef = queryRef.limit(100);
+
         final snapshot = await queryRef.get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
@@ -340,8 +343,10 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
         }
 
-        final snapshot =
-            await queryRef.orderBy('createdAt', descending: true).get();
+        final snapshot = await queryRef
+            .orderBy('createdAt', descending: true)
+            .limit(100)
+            .get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>?;
@@ -415,8 +420,10 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
         }
 
-        final snapshot =
-            await queryRef.orderBy('deletedAt', descending: true).get();
+        final snapshot = await queryRef
+            .orderBy('deletedAt', descending: true)
+            .limit(50)
+            .get();
 
         List<PatientModel> patients = snapshot.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>?;
