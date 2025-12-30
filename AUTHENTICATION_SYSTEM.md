@@ -700,36 +700,47 @@ superAdmin (System-wide admin)
 ### Permission System
 
 ```dart
+
+```dart
 enum AppPermission {
-  // User Management
-  createUser,
-  editUser,
-  deleteUser,
-  viewUser,
-  
-  // Patient Management
-  createPatient,
-  editPatient,
-  deletePatient,
-  viewPatient,
-  
-  // Appointment Management
-  createAppointment,
-  editAppointment,
-  deleteAppointment,
-  viewAppointment,
-  
-  // Financial
-  viewBilling,
-  editBilling,
-  processPayment,
-  viewReports,
-  
-  // Settings
-  editClinicSettings,
-  manageRoles,
-  inviteUsers,
+  // --- PATIENTS ---
+  viewAllPatients, viewOwnPatients, createPatient, updatePatient, deletePatient,
+
+  // --- SESSIONS & EVALUATIONS ---
+  viewAllSessions, viewOwnSessions, createSession, updateSession, deleteSession,
+  viewAllEvaluations, viewOwnEvaluations, createEvaluation, updateEvaluation, deleteEvaluation,
+
+  // --- FINANCIALS ---
+  viewFinancials, viewReports, viewCharts,
+  addFinancialEntry, editFinancialEntry, deleteFinancialEntry,
+
+  // --- CALENDAR ---
+  viewCalendar, addCalendarEvent, editCalendarEvent, deleteCalendarEvent,
+
+  // --- MEDICAL RECORDS ---
+  viewMedicalFiles, addMedicalFile, editMedicalFile, deleteMedicalFile,
+  viewMedications, addMedication, editMedication, deleteMedication,
+
+  // --- CLINIC MANAGEMENT ---
+  manageStaff, manageUsers, assignRoles, assignPermissions, manageSettings,
+  manageTeams, createTeam, archiveTeam,
+
+  // --- DOCTORS & INVITATIONS ---
+  viewDoctors, manageDoctors,
+  viewInvitations, sendInvitation, revokeInvitation,
+
+  // --- SUBSCRIPTION & SETTINGS ---
+  viewSubscription, manageSubscription,
+  viewSettings, editSettings,
+
+  // --- TOOLS ---
+  useCopilot, viewRecycleBin, restoreRecycleBinItem, permanentDeleteRecycleBinItem,
+  viewNotifications, manageNotifications, sendNotificationMessage,
+
+  // --- SUPPORT ---
+  viewHelp, accessSupport
 }
+```
 ```
 
 ### Checking Permissions

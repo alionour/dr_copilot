@@ -70,7 +70,6 @@ class _CopilotPageState extends State<CopilotPage> {
   String? _currentConversationId;
   bool _isSidebarVisible = false; // Sidebar hidden by default
 
-
   Uint8List? _pickedImage;
 
   final List<String> _availableModels = [];
@@ -105,7 +104,8 @@ class _CopilotPageState extends State<CopilotPage> {
     try {
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
       String? clinicId = ownerNotifier.clinicId;
-      final user = await sl<AbstractAuthRepository>().getCurrentUser();
+      final userResult = await sl<AbstractAuthRepository>().getCurrentUser();
+      final user = userResult.fold((l) => null, (r) => r);
 
       if (clinicId == null && user != null) {
         final userDoc = await FirebaseFirestore.instance
@@ -144,7 +144,8 @@ class _CopilotPageState extends State<CopilotPage> {
     try {
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
       final clinicId = ownerNotifier.clinicId;
-      final user = await sl<AbstractAuthRepository>().getCurrentUser();
+      final userResult = await sl<AbstractAuthRepository>().getCurrentUser();
+      final user = userResult.fold((l) => null, (r) => r);
 
       debugPrint(
           '[CopilotPage] Loading permissions - clinicId: $clinicId, userId: ${user?.uid}');

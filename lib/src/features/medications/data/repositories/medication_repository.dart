@@ -7,19 +7,24 @@ import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/medications/domain/models/medication_model.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class MedicationRepository {
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
 
   MedicationRepository({FirebaseFirestore? firestore, FirebaseStorage? storage})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _storage = storage ?? FirebaseStorage.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
   Future<Either<Failure, String>> uploadPrescription({
     required File file,
     required String patientId,
   }) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addMedication)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final length = await file.length();
       if (length > 20 * 1024 * 1024) {
@@ -49,6 +54,9 @@ class MedicationRepository {
   Future<Either<Failure, MedicationModel>> addMedication(
     MedicationModel medication,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addMedication)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       await _firestore
           .collection('medications')
@@ -63,6 +71,9 @@ class MedicationRepository {
   Future<Either<Failure, List<MedicationModel>>> getMedicationsForPatient(
     String patientId,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewMedications)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final snapshot = await _firestore
           .collection('medications')
@@ -85,6 +96,9 @@ class MedicationRepository {
   Future<Either<Failure, void>> deleteMedication(
     MedicationModel medication,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteMedication)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       await _firestore.collection('medications').doc(medication.id).delete();
 
@@ -100,4 +114,3 @@ class MedicationRepository {
     }
   }
 }
-

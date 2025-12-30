@@ -512,7 +512,8 @@ class _NavigationSideState extends State<NavigationSide> {
                                                             url,
                                                           ) =>
                                                               const Icon(
-                                                            Icons.person_pin,
+                                                            Icons
+                                                                .account_circle_outlined,
                                                           ),
                                                           errorWidget: (
                                                             context,

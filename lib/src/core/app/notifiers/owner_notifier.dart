@@ -50,7 +50,18 @@ class OwnerNotifier with ChangeNotifier {
     notifyListeners();
 
     try {
-      final user = await GetIt.I<AbstractAuthRepository>().getCurrentUser();
+      final userResult =
+          await GetIt.I<AbstractAuthRepository>().getCurrentUser();
+
+      final user = userResult.fold(
+        (failure) {
+          debugPrint(
+              '[OwnerNotifier] ❌ Error getting current user: ${failure.message}');
+          return null;
+        },
+        (user) => user,
+      );
+
       debugPrint('[OwnerNotifier] Current user: ${user?.uid}');
       if (user == null) {
         debugPrint('[OwnerNotifier] ❌ No user logged in.');
@@ -211,29 +222,9 @@ class OwnerNotifier with ChangeNotifier {
         }
       }
 
-      // 4. Fetch by ownerId (fallback/legacy)
-      if (_ownerId != null) {
-        debugPrint('[OwnerNotifier] Querying clinics for ownerId: $_ownerId');
-        try {
-          final clinicsSnap = await FirebaseFirestore.instance
-              .collection('clinics')
-              .where('ownerId', isEqualTo: _ownerId)
-              .get();
-
-          debugPrint(
-            '[OwnerNotifier] Found ${clinicsSnap.docs.length} clinics by ownerId',
-          );
-          for (var doc in clinicsSnap.docs) {
-            final clinicData = doc.data();
-            debugPrint(
-              '[OwnerNotifier]   - Clinic: ${doc.id} -> ${clinicData['name']}',
-            );
-            allClinics.add(ClinicModel.fromJson({'id': doc.id, ...clinicData}));
-          }
-        } catch (e) {
-          debugPrint('[OwnerNotifier] ❌ Error fetching clinics by ownerId: $e');
-        }
-      }
+      // NOTE: Removed ownerId query - security rules don't allow querying clinics by ownerId
+      // Clinics are already loaded from clinicIds/userClinics array above
+      // If we need owner-specific clinics, they should be in the user's clinicIds field
 
       // Deduplicate by ID
       final Map<String, ClinicModel> uniqueClinics = {

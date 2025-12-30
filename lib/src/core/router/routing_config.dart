@@ -59,6 +59,8 @@ import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 
 class RoutingConfig {
   static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -344,7 +346,7 @@ class RoutingConfig {
             path: '/invitations',
             name: 'invitations',
             builder: (context, state) {
-              return FutureBuilder<UserModel?>(
+              return FutureBuilder<Either<Failure, UserModel?>>(
                 future: sl<AuthUseCase>().getCurrentUser(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -352,7 +354,40 @@ class RoutingConfig {
                       body: Center(child: CircularProgressIndicator()),
                     );
                   }
-                  final clinicId = snapshot.data?.primaryClinicId ?? '';
+
+                  final user =
+                      snapshot.data?.fold((failure) => null, (user) => user);
+
+                  final clinicId = user?.primaryClinicId;
+                  if (clinicId == null || clinicId.isEmpty) {
+                    return Scaffold(
+                      appBar: AppBar(title: Text('invitations'.tr())),
+                      body: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.warning_amber_rounded,
+                                  size: 80, color: Colors.orange),
+                              const SizedBox(height: 24),
+                              Text(
+                                'No clinic assigned',
+                                style: Theme.of(context).textTheme.titleLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'You need to be assigned to a clinic to view invitations. Please contact your administrator.',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                   return InvitationsPage(clinicId: clinicId);
                 },
               );

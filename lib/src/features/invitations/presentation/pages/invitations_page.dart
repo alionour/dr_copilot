@@ -23,10 +23,11 @@ class InvitationsPage extends StatelessWidget {
       create: (context) => sl<InvitationBloc>()..add(LoadInvitations(clinicId)),
       child: FutureBuilder<({UserModel? user, bool isAdmin})>(
         future: () async {
-          final user = await sl<AuthUseCase>().getCurrentUser();
-          final isAdmin = user != null
-              ? await user.isAdminInClinic(clinicId)
-              : false;
+          final userResult = await sl<AuthUseCase>().getCurrentUser();
+          final user = userResult.fold((l) => null, (r) => r);
+
+          final isAdmin =
+              user != null ? await user.isAdminInClinic(clinicId) : false;
 
           // Debug logging
           if (user != null) {
@@ -91,8 +92,8 @@ class InvitationsPage extends StatelessWidget {
                   return RefreshIndicator(
                     onRefresh: () async {
                       context.read<InvitationBloc>().add(
-                        LoadInvitations(clinicId),
-                      );
+                            LoadInvitations(clinicId),
+                          );
                     },
                     child: ListView.builder(
                       itemCount: state.invitations.length,
@@ -104,8 +105,8 @@ class InvitationsPage extends StatelessWidget {
                             // Only admins can delete
                             if (isAdmin) {
                               context.read<InvitationBloc>().add(
-                                DeleteInvitation(invitation.id),
-                              );
+                                    DeleteInvitation(invitation.id),
+                                  );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -118,8 +119,8 @@ class InvitationsPage extends StatelessWidget {
                             // Only admins can resend
                             if (isAdmin) {
                               context.read<InvitationBloc>().add(
-                                ResendInvitation(invitation.id),
-                              );
+                                    ResendInvitation(invitation.id),
+                                  );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -142,4 +143,3 @@ class InvitationsPage extends StatelessWidget {
     );
   }
 }
-

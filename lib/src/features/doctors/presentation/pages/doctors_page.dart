@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/bloc/doctors_bloc.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/widgets/doctor_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -14,10 +15,35 @@ class DoctorsPage extends StatefulWidget {
 }
 
 class _DoctorsPageState extends State<DoctorsPage> {
+  String? _currentClinicId;
+  late final OwnerNotifier _ownerNotifier;
+
   @override
   void initState() {
     super.initState();
-    context.read<DoctorsBloc>().add(const GetDoctors());
+    _ownerNotifier = context.read<OwnerNotifier>();
+    final clinicId = _ownerNotifier.clinicId;
+    if (clinicId != null) {
+      _currentClinicId = clinicId;
+      context.read<DoctorsBloc>().add(GetDoctors(clinicId: clinicId));
+    }
+    _ownerNotifier.addListener(_onClinicChanged);
+  }
+
+  void _onClinicChanged() {
+    final clinicId = _ownerNotifier.clinicId;
+    if (clinicId != null && clinicId != _currentClinicId) {
+      setState(() {
+        _currentClinicId = clinicId;
+      });
+      context.read<DoctorsBloc>().add(GetDoctors(clinicId: clinicId));
+    }
+  }
+
+  @override
+  void dispose() {
+    _ownerNotifier.removeListener(_onClinicChanged);
+    super.dispose();
   }
 
   @override
@@ -75,4 +101,3 @@ class _DoctorsPageState extends State<DoctorsPage> {
     );
   }
 }
-

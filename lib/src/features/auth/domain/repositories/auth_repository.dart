@@ -1,5 +1,6 @@
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 /// An abstract repository that defines authentication-related operations.
 ///
@@ -8,31 +9,31 @@ import 'package:firebase_auth/firebase_auth.dart';
 abstract class AbstractAuthRepository {
   /// Authenticates a user with the provided [email] and [password].
   ///
-  /// Returns a [User] object if authentication is successful.
-  ///
-  /// Throws an [AuthException] if the login fails due to invalid credentials
-  /// or other authentication errors.
-  Future<UserModel?> signInWithEmailAndPassword(String email, String password);
+  /// Returns a [Right(User)] object if authentication is successful.
+  /// Returns a [Left(Failure)] if the login fails.
+  Future<Either<Failure, UserModel?>> signInWithEmailAndPassword(
+      String email, String password);
 
   /// Signs out the currently authenticated user.
-  Future<void> signOut();
+  Future<Either<Failure, void>> signOut();
 
   /// Returns the current authenticated user, or null if not signed in.
-  Future<UserModel?> getCurrentUser();
+  Future<Either<Failure, UserModel?>> getCurrentUser();
 
   /// Returns a stream of authentication state changes as UserModel.
   Stream<UserModel?> authStateChanges();
 
   /// Signs in the user using Google authentication.
-  Future<UserModel?> signInWithGoogle();
+  Future<Either<Failure, UserModel?>> signInWithGoogle();
 
   /// Registers a new user with email and password.
-  Future<UserModel?> signUpWithEmailAndPassword(String email, String password);
+  Future<Either<Failure, UserModel?>> signUpWithEmailAndPassword(
+      String email, String password);
 
   /// Deletes the currently authenticated user.
-  Future<void> deleteCurrentUser();
+  Future<Either<Failure, void>> deleteCurrentUser();
 
   /// Updates the current user's display name and/or photo URL.
-  Future<void> updateProfile({String? displayName, String? photoURL});
+  Future<Either<Failure, void>> updateProfile(
+      {String? displayName, String? photoURL});
 }
-

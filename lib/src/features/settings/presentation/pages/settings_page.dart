@@ -40,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('settings'.tr()),
-        leading: const Icon(Icons.settings),
+        leading: const Icon(Icons.settings_outlined),
         actions: [navMenuButton ?? const SizedBox()],
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0.5,
@@ -51,7 +51,7 @@ class _SettingsPageState extends State<SettingsPage> {
             children: <Widget>[
               _buildSectionHeader('general'),
               ListTile(
-                leading: const Icon(Icons.language),
+                leading: const Icon(Icons.language_outlined),
                 title: Text('language'.tr()),
                 trailing: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -69,7 +69,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         value: 'en',
                         child: Row(
                           children: [
-                            Icon(Icons.language, color: Colors.blue),
+                            Icon(Icons.language_outlined, color: Colors.blue),
                             SizedBox(width: 8),
                             Text('language_en'.tr()),
                           ],
@@ -79,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         value: 'ar',
                         child: Row(
                           children: [
-                            Icon(Icons.language, color: Colors.green),
+                            Icon(Icons.language_outlined, color: Colors.green),
                             SizedBox(width: 8),
                             Text('language_ar'.tr()),
                           ],
@@ -109,13 +109,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.palette),
+                leading: const Icon(Icons.palette_outlined),
                 title: Text('appearance'.tr()),
                 onTap: () => context.push('/settings/appearance'),
               ),
               _buildSectionHeader('Copilot Intelligence'),
               ListTile(
-                leading: const Icon(Icons.psychology),
+                leading: const Icon(Icons.psychology_outlined),
                 title: const Text('Copilot Preferences'),
                 subtitle: const Text(
                     'Configure required fields for AI (Patients, Sessions, Evaluations)'),
@@ -124,12 +124,12 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               _buildSectionHeader('appSettings'),
               ListTile(
-                leading: const Icon(Icons.notifications),
+                leading: const Icon(Icons.notifications_outlined),
                 title: Text('notifications'.tr()),
                 onTap: () => context.push('/settings/notifications'),
               ),
               ListTile(
-                leading: const Icon(Icons.date_range),
+                leading: const Icon(Icons.date_range_outlined),
                 title: Text('Calendar Settings'),
                 onTap: () => context.push('/settings/calendar_settings'),
               ),
@@ -140,33 +140,33 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               _buildSectionHeader('accountAndSecurity'),
               ListTile(
-                leading: const Icon(Icons.card_membership),
+                leading: const Icon(Icons.card_membership_outlined),
                 title: Text('subscriptionAndBilling'.tr()),
                 onTap: () => context.push('/settings/subscription'),
               ),
               ListTile(
-                leading: const Icon(Icons.security),
+                leading: const Icon(Icons.security_outlined),
                 title: Text('security'.tr()),
                 onTap: () => context.push('/settings/security'),
               ),
               ListTile(
-                leading: const Icon(Icons.model_training),
+                leading: const Icon(Icons.model_training_outlined),
                 title: Text('aiModel'.tr()),
                 onTap: () => context.push('/settings/model_selection'),
               ),
               ListTile(
-                leading: const Icon(Icons.lock),
+                leading: const Icon(Icons.lock_outline),
                 title: Text('privacy'.tr()),
                 onTap: () => context.push('/privacy'),
               ),
               _buildSectionHeader('support'),
               ListTile(
-                leading: const Icon(Icons.help),
+                leading: const Icon(Icons.help_outline),
                 title: Text('helpSupport'.tr()),
                 onTap: () => context.push('/help_support'),
               ),
               ListTile(
-                leading: const Icon(Icons.info),
+                leading: const Icon(Icons.info_outline),
                 title: Text('about'.tr()),
                 onTap: () => context.push('/about'),
               ),

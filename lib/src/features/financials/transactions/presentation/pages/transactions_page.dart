@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
@@ -29,7 +30,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
   int? _firestoreTransactionsCount;
 
   void _dispatchGetTransactionsCount() {
-    context.read<TransactionsBloc>().add(const GetTransactionsCount());
+    final clinicId = OwnerNotifier().clinicId;
+    if (clinicId != null) {
+      context.read<TransactionsBloc>().add(GetTransactionsCount(clinicId));
+    }
   }
 
   @override
@@ -38,7 +42,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
     debugPrint('TransactionsPage: initState called');
     _scrollController.addListener(_onScroll);
     debugPrint('TransactionsPage: Scroll listener added');
-    context.read<TransactionsBloc>().add(const GetTransactions());
+    final clinicId = OwnerNotifier().clinicId;
+    if (clinicId != null) {
+      context.read<TransactionsBloc>().add(GetTransactions(clinicId: clinicId));
+    }
     _dispatchGetTransactionsCount();
   }
 
@@ -78,12 +85,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
             debugPrint(
               'TransactionsPage: Dispatching LoadMoreTransactions event',
             );
-            context.read<TransactionsBloc>().add(
-                  LoadMoreTransactions(
-                    lastDocumentId: transactions.last.id,
-                    limit: 20,
-                  ),
-                );
+            final clinicId = OwnerNotifier().clinicId;
+            if (clinicId != null) {
+              context.read<TransactionsBloc>().add(
+                    LoadMoreTransactions(
+                      clinicId: clinicId,
+                      lastDocumentId: transactions.last.id,
+                      limit: 20,
+                    ),
+                  );
+            }
             Future.delayed(const Duration(seconds: 1), () {
               _canLoadMore = true;
             });
@@ -165,9 +176,13 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               _selectedIndex =
                                   0; // Reset selection on new query
                             });
-                            context.read<TransactionsBloc>().add(
-                                  SearchTransactions(query),
-                                );
+                            final clinicId = OwnerNotifier().clinicId;
+                            if (clinicId != null) {
+                              context.read<TransactionsBloc>().add(
+                                    SearchTransactions(
+                                        description: query, clinicId: clinicId),
+                                  );
+                            }
                           },
                           onSubmitted: (_) {
                             _listFocusNode.requestFocus();
@@ -232,9 +247,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           query = '';
                           _selectedDate = null;
                         });
-                        context.read<TransactionsBloc>().add(
-                              const GetTransactions(),
-                            );
+                        final clinicId = OwnerNotifier().clinicId;
+                        if (clinicId != null) {
+                          context.read<TransactionsBloc>().add(
+                                GetTransactions(clinicId: clinicId),
+                              );
+                        }
                       },
                     ),
                   ),
@@ -271,9 +289,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   _selectedDate = selectedDate;
                                 });
                                 if (!context.mounted) return;
-                                context.read<TransactionsBloc>().add(
-                                      GetTransactionsByDate(date: selectedDate),
-                                    );
+                                final clinicId = OwnerNotifier().clinicId;
+                                if (clinicId != null) {
+                                  context.read<TransactionsBloc>().add(
+                                        GetTransactionsByDate(
+                                            date: selectedDate,
+                                            clinicId: clinicId),
+                                      );
+                                }
                               }
                             },
                           ),
@@ -284,9 +307,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                 setState(() {
                                   _selectedDate = null;
                                 });
-                                context.read<TransactionsBloc>().add(
-                                      const GetTransactions(),
-                                    );
+                                final clinicId = OwnerNotifier().clinicId;
+                                if (clinicId != null) {
+                                  context.read<TransactionsBloc>().add(
+                                        GetTransactions(clinicId: clinicId),
+                                      );
+                                }
                               },
                               icon: const Icon(Icons.close, size: 18),
                             ),

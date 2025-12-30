@@ -138,7 +138,7 @@ class SubscriptionService {
 
       // Also count pending invitations?
       final pendingInvites = await _firestore
-          .collection('invitations')
+          .collection('user_invitations')
           .where('clinicId', isEqualTo: clinicId)
           .where('status', isEqualTo: 'pending')
           .where('roles', arrayContains: role)

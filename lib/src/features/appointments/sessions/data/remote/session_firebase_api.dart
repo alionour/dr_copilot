@@ -16,12 +16,12 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   String? get clinicId => OwnerNotifier().clinicId;
 
   /// Reference to the Firestore collection for sessions.
-  final CollectionReference _sessionsCollection = FirebaseFirestore.instance
-      .collection('sessions');
+  final CollectionReference _sessionsCollection =
+      FirebaseFirestore.instance.collection('sessions');
 
   /// Reference to the Firestore collection for patients.
-  final CollectionReference _patientsCollection = FirebaseFirestore.instance
-      .collection('patients');
+  final CollectionReference _patientsCollection =
+      FirebaseFirestore.instance.collection('patients');
 
   /// Firebase Authentication instance for user authentication.
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,6 +47,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _sessionsCollection.where(
           'clinicId',
@@ -62,9 +65,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         queryRef = queryRef.where('deletedAt', isNull: true);
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot = await _sessionsCollection
-              .doc(lastDocumentID)
-              .get();
+          final lastDocumentSnapshot =
+              await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef
                 .orderBy('startDateTime', descending: true)
@@ -74,9 +76,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         } else {
-          queryRef = queryRef
-              .orderBy('startDateTime', descending: true)
-              .limit(limit);
+          queryRef =
+              queryRef.orderBy('startDateTime', descending: true).limit(limit);
         }
 
         final snapshot = await queryRef.get();
@@ -129,6 +130,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
+        if (clinicId == null) {
+          return Left(ServerFailure('No clinic ID found', 403));
+        }
         // Prepare the session data for Firestore
         final data = sessionModel.toJson();
 
@@ -146,6 +150,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           ...data,
           'createdBy': user.uid,
           'doctorId': user.uid, // Ensure doctorId is set
+          'clinicId': clinicId,
         });
 
         // Create a new SessionModel with the generated document ID and patientName
@@ -301,6 +306,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   Future<Either<Failure, List<SessionModel>>> getDeletedSessions() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _sessionsCollection.where(
           'clinicId',
@@ -391,6 +399,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         List<String> patientIds = [];
         if (name != null && name.isNotEmpty) {
@@ -428,9 +439,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         }
 
         if (lastDocumentID != null) {
-          final lastDocumentSnapshot = await _sessionsCollection
-              .doc(lastDocumentID)
-              .get();
+          final lastDocumentSnapshot =
+              await _sessionsCollection.doc(lastDocumentID).get();
           if (lastDocumentSnapshot.exists) {
             queryRef = queryRef.startAfterDocument(lastDocumentSnapshot);
           } else {
@@ -499,6 +509,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         debugPrint('Filtering sessions for user: ${user.uid} on date: $date');
         Query queryRef = _sessionsCollection.where(
@@ -589,9 +602,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           debugPrint('Error: Document data is null');
           return Left(ServerFailure('Document data is null', 400));
         }
-        final sessionTypeString =
-            data['sessionType']
-                as String?; // Changed from 'type' to 'sessionType' based on model
+        final sessionTypeString = data['sessionType']
+            as String?; // Changed from 'type' to 'sessionType' based on model
 
         if (sessionTypeString != null) {
           return Right(sessionTypeString);
@@ -679,6 +691,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   Future<Either<Failure, List<SessionModel>>> getAllSessions() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _sessionsCollection.where(
           'clinicId',
@@ -693,9 +708,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         // Filter out deleted sessions
         queryRef = queryRef.where('deletedAt', isNull: true);
 
-        final snapshot = await queryRef
-            .orderBy('startDateTime', descending: true)
-            .get();
+        final snapshot =
+            await queryRef.orderBy('startDateTime', descending: true).get();
 
         List<SessionModel> sessions = await Future.wait(
           snapshot.docs.map((doc) async {
@@ -734,6 +748,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query query = _sessionsCollection.where(
           'clinicId',
@@ -770,6 +787,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final start = DateTime(year, month, 1);
         final end = (month < 12)
@@ -887,9 +907,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
               isGreaterThanOrEqualTo: Timestamp.fromDate(start),
             )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
-        final aggregateQuerySnapshot = await query
-            .aggregate(sum('price'))
-            .get();
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
           endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
@@ -938,9 +957,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
               isGreaterThanOrEqualTo: Timestamp.fromDate(start),
             )
             .where('startDateTime', isLessThan: Timestamp.fromDate(end));
-        final aggregateQuerySnapshot = await query
-            .aggregate(sum('price'))
-            .get();
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
           endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
@@ -977,9 +995,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
 
-        final aggregateQuerySnapshot = await query
-            .aggregate(sum('price'))
-            .get();
+        final aggregateQuerySnapshot =
+            await query.aggregate(sum('price')).get();
         final endSum = aggregateQuerySnapshot.getSum('price') ?? 0;
         return Right(
           endSum is int ? endSum.toDouble() : (endSum as double? ?? 0.0),
@@ -992,4 +1009,3 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     }
   }
 }
-

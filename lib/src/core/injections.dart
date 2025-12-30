@@ -176,6 +176,11 @@ Future<void> initInjections() async {
 
   // Recycle Bin
   sl.registerFactory(
-    () => RecycleBinBloc(evaluationsRepository: sl(), sessionsRepository: sl()),
+    () => RecycleBinBloc(
+      evaluationsRepository: sl(),
+      sessionsRepository: sl(),
+      patientsRepository: sl(),
+      calendarEventsRepository: sl(),
+    ),
   );
 }

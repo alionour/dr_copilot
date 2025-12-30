@@ -1,6 +1,6 @@
 {
-    "name": "dr_copilot",
-    "short_name": "dr_copilot",
+    "name": "Dr. Copilot",
+    "short_name": "Dr. Copilot",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0072FF",

@@ -6,6 +6,8 @@ import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 
 class MockAuthUseCase extends Mock implements AuthUseCase {}
 
@@ -47,7 +49,7 @@ void main() {
       build: () {
         when(
           () => mockAuthUseCase.signInWithEmailAndPassword(any(), any()),
-        ).thenAnswer((_) async => tUser);
+        ).thenAnswer((_) async => Right(tUser));
         when(
           () => mockFCMService.initialize(any()),
         ).thenAnswer((_) async => {});
@@ -70,7 +72,7 @@ void main() {
       build: () {
         when(
           () => mockAuthUseCase.signInWithEmailAndPassword(any(), any()),
-        ).thenThrow(Exception('Login failed'));
+        ).thenAnswer((_) async => Left(AuthFailure('Login failed')));
         return AuthBloc(mockAuthUseCase);
       },
       act: (bloc) => bloc.add(
@@ -81,7 +83,7 @@ void main() {
       ),
       expect: () => [
         const AuthLoading(),
-        const AuthError(message: 'Exception: Login failed'),
+        const AuthError(message: 'Login failed'),
       ],
     );
 
