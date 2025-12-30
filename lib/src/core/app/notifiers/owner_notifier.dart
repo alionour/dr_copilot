@@ -135,10 +135,11 @@ class OwnerNotifier with ChangeNotifier {
               debugPrint('[OwnerNotifier] Loaded role: $_role');
             }
 
-            // Trigger PermissionService to cache permissions
+            // Start real-time permission listener
             debugPrint(
-                '[OwnerNotifier] Priming PermissionService permission cache');
-            await GetIt.I<PermissionService>().getUserPermissions(
+                '[OwnerNotifier] Initializing PermissionService listener');
+            await GetIt.I<PermissionService>().initialize(
+              user.uid,
               clinicId: _clinicId,
             );
           } else {

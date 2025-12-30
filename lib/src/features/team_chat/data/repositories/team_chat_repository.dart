@@ -9,11 +9,13 @@ class TeamChatRepository {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Get all active conversations for a specific user
-  Stream<List<TeamConversationModel>> getConversations(String userId) {
+  Stream<List<TeamConversationModel>> getConversations(String userId,
+      {int limit = 50}) {
     return _firestore
         .collection('team_conversations')
         .where('participantIds', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
@@ -23,12 +25,14 @@ class TeamChatRepository {
   }
 
   /// Get messages for a specific conversation
-  Stream<List<TeamMessageModel>> getMessages(String conversationId) {
+  Stream<List<TeamMessageModel>> getMessages(String conversationId,
+      {int limit = 50}) {
     return _firestore
         .collection('team_conversations')
         .doc(conversationId)
         .collection('messages')
         .orderBy('timestamp', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs

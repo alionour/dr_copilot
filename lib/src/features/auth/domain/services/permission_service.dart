@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -8,191 +9,117 @@ import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart'
 /// This service integrates with Firebase Auth and Firestore to determine
 /// if a user has specific permissions within a clinic context.
 class PermissionService {
-  final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
-  // Permission cache: clinicId -> list of permission names
+  // Real-time permission state
   final Map<String, List<String>> _permissionCache = {};
-  DateTime? _cacheExpiry;
-  static const _cacheDuration = Duration(minutes: 5);
+  StreamSubscription<DocumentSnapshot>? _permissionSubscription;
 
   PermissionService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
-  })  : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// Synchronous permission check using cached permissions.
-  ///
-  /// This is the preferred method for UI permission checks.
-  /// Returns false if permissions are not cached yet.
-  ///
-  /// [permission] - The AppPermission enum to check
-  /// [clinicId] - Optional clinic ID, falls back to user's primary clinic
+  /// Alias for dispose/clearing cache
+  Future<void> clearCache() => dispose();
+
+  /// Synchronous permission check using the latest streamed data.
   bool hasPermissionSync(AppPermission permission, {String? clinicId}) {
-    final cached = _getCachedPermissions(clinicId);
-    final hasIt = cached?.contains(permission.name) ?? false;
+    final key = clinicId ?? 'default';
+    final permissions = _permissionCache[key];
 
-    if (!hasIt && cached != null) {
-      debugPrint(
-          '[PermissionService] Permission check FAILED: ${permission.name} not in cached permissions');
-      debugPrint('[PermissionService] User has: $cached');
+    // If we have no data yet, return false (fail closed)
+    if (permissions == null) {
+      debugPrint('[PermissionService] Check failed: No data for clinic $key');
+      return false;
     }
 
-    return hasIt;
+    return permissions.contains(permission.name);
   }
 
-  /// Get cached permissions for a clinic.
-  List<String>? _getCachedPermissions(String? clinicId) {
-    // Check if cache is expired
-    if (_cacheExpiry != null && DateTime.now().isAfter(_cacheExpiry!)) {
-      debugPrint('[PermissionService] Cache expired, clearing...');
-      _permissionCache.clear();
-      _cacheExpiry = null;
-      return null;
+  /// Initialize real-time listener for permissions.
+  /// Call this on login or app start.
+  Future<void> initialize(String userId, {String? clinicId}) async {
+    // Cancel existing subscription if any
+    await dispose();
+
+    String? targetClinicId = clinicId;
+
+    // If no clinicId provided, try to get from user's primary clinic
+    if (targetClinicId == null) {
+      try {
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+        targetClinicId = userDoc.data()?['primaryClinicId'];
+      } catch (e) {
+        debugPrint('[PermissionService] Failed to fetch primaryClinicId: $e');
+      }
     }
 
-    final key = clinicId ?? 'default';
-    return _permissionCache[key];
-  }
+    if (targetClinicId == null) {
+      debugPrint('[PermissionService] No clinicId found. Cannot subscribe.');
+      return;
+    }
 
-  /// Set cached permissions for a clinic.
-  void _setCachedPermissions(String? clinicId, List<String> permissions) {
-    final key = clinicId ?? 'default';
-    _permissionCache[key] = permissions;
-    _cacheExpiry = DateTime.now().add(_cacheDuration);
     debugPrint(
-        '[PermissionService] Cached ${permissions.length} permissions for clinic $key');
+        '[PermissionService] Subscribing to permissions for user $userId in clinic $targetClinicId');
+
+    _permissionSubscription = _firestore
+        .collection('clinics')
+        .doc(targetClinicId)
+        .collection('members')
+        .doc(userId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null && data['permissions'] is List) {
+          final permissions = List<String>.from(data['permissions']);
+          _permissionCache[targetClinicId!] = permissions;
+          _permissionCache['default'] = permissions; // Set default alias
+
+          debugPrint(
+              '[PermissionService] Updated permissions (Count: ${permissions.length})');
+        } else {
+          debugPrint(
+              '[PermissionService] Document valid but no permissions list found.');
+          _permissionCache.clear();
+        }
+      } else {
+        debugPrint(
+            '[PermissionService] Member document does not exist (removed given permissions?)');
+        _permissionCache.clear();
+      }
+    }, onError: (error) {
+      debugPrint('[PermissionService] Stream error: $error');
+    });
   }
 
-  /// Clear the permission cache.
-  /// Call this on logout or when permissions change.
-  void clearCache() {
-    debugPrint('[PermissionService] Clearing permission cache');
+  /// Stop listening directly.
+  Future<void> dispose() async {
+    await _permissionSubscription?.cancel();
+    _permissionSubscription = null;
     _permissionCache.clear();
-    _cacheExpiry = null;
+    debugPrint('[PermissionService] Disposed listener.');
   }
 
-  /// Checks if the current user has a specific permission (async).
-  ///
-  /// [permission] - The permission string to check (e.g., 'viewAllPatients')
-  /// [clinicId] - Optional clinic ID to check clinic-specific roles
-  ///
-  /// Returns true if user has the permission, false otherwise.
-  /// Fails closed (returns false) on errors.
+  // Legacy async method support (optional, can just wrap sync)
   Future<bool> hasPermission(String permission, {String? clinicId}) async {
-    final permissions = await getUserPermissions(clinicId: clinicId);
-    return permissions?.contains(permission) ?? false;
-  }
-
-  /// Checks if user has ALL of the specified permissions.
-  ///
-  /// [permissions] - List of permission strings to check
-  /// [clinicId] - Optional clinic ID for context
-  ///
-  /// Returns true only if user has ALL permissions.
-  Future<bool> hasAllPermissions(List<String> permissions,
-      {String? clinicId}) async {
-    final userPerms = await getUserPermissions(clinicId: clinicId);
-    if (userPerms == null) return false;
-
-    for (final permission in permissions) {
-      if (!userPerms.contains(permission)) {
-        return false;
-      }
+    // If subscription is active, use sync check
+    if (_permissionSubscription != null) {
+      // We need to map string to enum if we want to use hasPermissionSync properly,
+      // OR just check the string list directly.
+      final key = clinicId ?? 'default';
+      return _permissionCache[key]?.contains(permission) ?? false;
     }
-    return true;
-  }
 
-  /// Checks if user has ANY of the specified permissions.
-  ///
-  /// [permissions] - List of permission strings to check
-  /// [clinicId] - Optional clinic ID for context
-  ///
-  /// Returns true if user has at least one permission.
-  Future<bool> hasAnyPermission(List<String> permissions,
-      {String? clinicId}) async {
-    final userPerms = await getUserPermissions(clinicId: clinicId);
-    if (userPerms == null) return false;
-
-    for (final permission in permissions) {
-      if (userPerms.contains(permission)) {
-        return true;
-      }
-    }
+    // Fallback for one-off checks if not initialized (though initialize is preferred)
+    // For now, we assume initialized.
     return false;
   }
 
-  /// Gets all permissions for the current user.
-  ///
-  /// [clinicId] - Optional clinic ID for context
-  ///
-  /// Returns a list of all permission strings the user has.
-  /// Returns null on error.
-  /// Automatically caches results for better performance.
   Future<List<String>?> getUserPermissions({String? clinicId}) async {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) return null;
-
-    try {
-      // Check cache first
-      final cached = _getCachedPermissions(clinicId);
-      if (cached != null) {
-        debugPrint(
-            '[PermissionService] Returning ${cached.length} cached permissions');
-        return cached;
-      }
-
-      // If no clinicId provided, try to get from user's primary clinic
-      String? targetClinicId = clinicId;
-      if (targetClinicId == null) {
-        final userDoc = await _firestore.collection('users').doc(userId).get();
-        targetClinicId = userDoc.data()?['primaryClinicId'];
-      }
-
-      if (targetClinicId == null) {
-        debugPrint(
-            '[PermissionService] No clinicId available - cannot load permissions');
-        return null;
-      }
-
-      debugPrint(
-          '[PermissionService] Loading permissions from Firestore for userId: $userId, clinicId: $targetClinicId');
-
-      // Get permissions directly from clinic members subcollection
-      final memberDoc = await _firestore
-          .collection('clinics')
-          .doc(targetClinicId)
-          .collection('members')
-          .doc(userId)
-          .get();
-
-      if (memberDoc.exists) {
-        final memberData = memberDoc.data();
-        debugPrint('[PermissionService] Found member doc');
-
-        if (memberData != null && memberData['permissions'] != null) {
-          if (memberData['permissions'] is List) {
-            final permissions = List<String>.from(memberData['permissions']);
-            debugPrint(
-                '[PermissionService] Loaded ${permissions.length} permissions from Firestore');
-
-            // Cache the permissions
-            _setCachedPermissions(targetClinicId, permissions);
-
-            return permissions;
-          }
-        } else {
-          debugPrint('[PermissionService] No permissions field in member doc');
-        }
-      } else {
-        debugPrint('[PermissionService] Member doc not found');
-      }
-
-      return [];
-    } catch (e) {
-      debugPrint('[PermissionService] Error getting user permissions: $e');
-      return null;
-    }
+    // Return current cached state
+    final key = clinicId ?? 'default';
+    return _permissionCache[key];
   }
 }

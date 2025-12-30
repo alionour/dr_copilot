@@ -1,48 +1,43 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
-import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
-import 'package:dr_copilot/src/features/copilot_chat/domain/logic/function_call_handler.dart';
-import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
-import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
-
-import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/conversation_sidebar.dart';
-import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
-import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/copilot_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:record/record.dart';
-import 'package:get_it/get_it.dart';
-import 'package:dr_copilot/src/features/copilot_chat/data/services/abstract_speech_recognition_service.dart';
-import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
 import 'package:flutter/services.dart';
-
-import 'package:google_generative_ai/google_generative_ai.dart';
-
-import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
-import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-
-import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
-
-import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-
-import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dr_copilot/src/core/injections.dart';
-import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
-import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
-import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:record/record.dart';
+
+import '../../../../core/app/notifiers/owner_notifier.dart';
+import '../../../../features/auth/domain/repositories/auth_repository.dart';
+import '../../../../features/auth/domain/services/permission_service.dart';
+import '../../../../features/navigation_side/presentation/widgets/nav_menu_button.dart';
+import '../../../../features/settings/presentation/bloc/settings_bloc.dart';
+import '../../../../features/settings/presentation/bloc/settings_state.dart';
+import '../../data/services/abstract_speech_recognition_service.dart';
+import '../../data/services/hybrid_speech_recognition_service.dart';
+import '../../../subscription/domain/enums/subscription_tier.dart';
+import '../../../subscription/domain/services/quota_service.dart';
+import '../../../subscription/domain/services/subscription_service.dart';
+import '../../data/repositories/conversation_repository.dart';
+import '../../domain/logic/function_call_handler.dart';
+import '../../../patients/domain/usecases/patients_usecase.dart';
+import '../../../appointments/sessions/domain/usecases/sessions_usecase.dart';
+import '../../../appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import '../bloc/copilot_bloc.dart';
+import '../bloc/copilot_event.dart';
+import '../bloc/copilot_state.dart';
+import '../widgets/conversation_sidebar.dart';
+import '../widgets/copilot_view.dart';
+import '../../../../core/helper/api_key_helper.dart';
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -60,7 +55,10 @@ class _CopilotPageState extends State<CopilotPage> {
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier(false);
   final ValueNotifier<bool> _isRecording = ValueNotifier(false);
   final ValueNotifier<bool> _isListeningSpeech = ValueNotifier(false);
+
+  // Local messages list (sync with stream)
   final List<Map<String, dynamic>> _messages = [];
+
   Map<String, dynamic> _functionCallArgs = {};
   String? _currentParameterBeingAsked;
   final _audioRecorder = AudioRecorder();
@@ -78,6 +76,11 @@ class _CopilotPageState extends State<CopilotPage> {
   int _tokenLimit = 0;
   SubscriptionTier _currentTier = SubscriptionTier.free;
   List<String> _userPermissions = [];
+
+  // Stream Support
+  StreamSubscription? _messagesSubscription;
+  Map<String, dynamic>? _pendingAIMessage;
+  Future<String>? _conversationCreationFuture;
 
   @override
   void initState() {
@@ -100,11 +103,38 @@ class _CopilotPageState extends State<CopilotPage> {
     _loadSubscriptionInfo();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initSpeechRecognitionService();
+    // Only initialize once to prevent LateInitializationError
+    _functionCallHandler ??= FunctionCallHandler(
+      patientsUseCase: GetIt.instance<PatientsUseCase>(),
+      sessionsUseCase: GetIt.instance<SessionsUseCase>(),
+      evaluationsUseCase: GetIt.instance<EvaluationsUseCase>(),
+      ownerNotifier: Provider.of<OwnerNotifier>(context, listen: false),
+      permissionService: GetIt.instance<PermissionService>(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    _scrollController.dispose();
+    _isButtonEnabled.dispose();
+    _isListeningSpeech.dispose();
+    _audioRecorder.dispose();
+    _messagesSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _loadSubscriptionInfo() async {
     try {
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
       String? clinicId = ownerNotifier.clinicId;
-      final userResult = await sl<AbstractAuthRepository>().getCurrentUser();
+      final userResult =
+          await GetIt.instance<AbstractAuthRepository>().getCurrentUser();
       final user = userResult.fold((l) => null, (r) => r);
 
       if (clinicId == null && user != null) {
@@ -116,8 +146,9 @@ class _CopilotPageState extends State<CopilotPage> {
       }
 
       if (clinicId != null && user != null) {
-        final tier = await sl<SubscriptionService>().getCurrentTier(clinicId);
-        final tokenUsage = await sl<QuotaService>().getUsage(
+        final tier = await GetIt.instance<SubscriptionService>()
+            .getCurrentTier(clinicId);
+        final tokenUsage = await GetIt.instance<QuotaService>().getUsage(
           clinicId,
           null,
           LimitType.aiTokens,
@@ -144,14 +175,16 @@ class _CopilotPageState extends State<CopilotPage> {
     try {
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
       final clinicId = ownerNotifier.clinicId;
-      final userResult = await sl<AbstractAuthRepository>().getCurrentUser();
+      final userResult =
+          await GetIt.instance<AbstractAuthRepository>().getCurrentUser();
       final user = userResult.fold((l) => null, (r) => r);
 
       debugPrint(
           '[CopilotPage] Loading permissions - clinicId: $clinicId, userId: ${user?.uid}');
 
       if (user != null) {
-        final hasPermission = await sl<PermissionService>().getUserPermissions(
+        final hasPermission =
+            await GetIt.instance<PermissionService>().getUserPermissions(
           clinicId: clinicId,
         );
 
@@ -167,20 +200,6 @@ class _CopilotPageState extends State<CopilotPage> {
     } catch (e) {
       debugPrint('[CopilotPage] Error loading user permissions: $e');
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initSpeechRecognitionService();
-    // Only initialize once to prevent LateInitializationError
-    _functionCallHandler ??= FunctionCallHandler(
-      patientsUseCase: GetIt.instance<PatientsUseCase>(),
-      sessionsUseCase: GetIt.instance<SessionsUseCase>(),
-      evaluationsUseCase: GetIt.instance<EvaluationsUseCase>(),
-      ownerNotifier: Provider.of<OwnerNotifier>(context, listen: false),
-      permissionService: GetIt.instance<PermissionService>(),
-    );
   }
 
   Future<void> _initSpeechRecognitionService() async {
@@ -247,31 +266,6 @@ class _CopilotPageState extends State<CopilotPage> {
     if (ApiKeyHelper.claudeKey.isNotEmpty) _availableModels.add('Claude');
   }
 
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    _scrollController.dispose();
-    _isButtonEnabled.dispose();
-    _isListeningSpeech.dispose();
-    _audioRecorder.dispose();
-    // Don't dispose the speech recognition service here as it's a singleton
-    // It will be disposed when the app closes
-    super.dispose();
-  }
-
   void _pickImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
@@ -296,8 +290,6 @@ class _CopilotPageState extends State<CopilotPage> {
     });
   }
 
-  Future<String>? _conversationCreationFuture;
-
   void _sendMessage() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
@@ -305,23 +297,18 @@ class _CopilotPageState extends State<CopilotPage> {
     final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
     final clinicId = ownerNotifier.clinicId;
 
-    // Only token limits apply - no message count restrictions
-
     if (_functionCallArgs.isNotEmpty && _currentParameterBeingAsked != null) {
       // User is providing an answer to a pending function call parameter.
       final message = _controller.text;
       _controller.clear();
-      _messages.add({"isUser": true, "message": message});
+      // _messages.add({"isUser": true, "message": message}); // STREAM HANDLING
 
       // Ensure conversation exists before saving answer
       String? convId = _currentConversationId;
       if (convId == null) {
-        // This case shouldn't technically happen if flow is correct, but safety net:
         if (_conversationCreationFuture != null) {
           convId = await _conversationCreationFuture;
         } else {
-          // Fallback creation if somehow we are in a function loop without an ID
-          // (Unlikely unless state was lost)
           _conversationCreationFuture = _conversationRepo.createConversation(
             title: message.length > 50
                 ? '${message.substring(0, 50)}...'
@@ -352,20 +339,14 @@ class _CopilotPageState extends State<CopilotPage> {
 
       _handleFunctionCall(); // Continue processing the function call
       _scrollToBottom();
-      if (!mounted) return;
-      context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
       return;
     }
 
     if (_pickedImage != null && _controller.text.isNotEmpty) {
       final text = _controller.text;
+      final imageBytes = _pickedImage; // Capture reference
       setState(() {
-        _messages.add({
-          "isUser": true,
-          "message": text,
-          "image": base64Encode(_pickedImage!),
-        });
-        _pickedImage = null; // Clear immediately to update UI
+        _pickedImage = null;
       });
 
       // Create or add to conversation with locking
@@ -373,7 +354,7 @@ class _CopilotPageState extends State<CopilotPage> {
         if (_conversationCreationFuture == null) {
           _conversationCreationFuture = _conversationRepo.createConversation(
             title: text.length > 50 ? '${text.substring(0, 50)}...' : text,
-            initialMessageText: text,
+            initialMessageText: text.isNotEmpty ? text : 'New Chat',
           );
 
           try {
@@ -383,20 +364,22 @@ class _CopilotPageState extends State<CopilotPage> {
                 _currentConversationId = newId;
                 _conversationCreationFuture = null;
               });
+              // Initialize stream for new conversation
+              _loadConversation(newId);
             }
           } catch (e) {
-            // Handle error, maybe reset future
             _conversationCreationFuture = null;
             return;
           }
         } else {
-          // Wait for existing creation
-          await _conversationCreationFuture;
+          try {
+            await _conversationCreationFuture;
+          } catch (e) {
+            return;
+          }
         }
       }
 
-      // At this point _currentConversationId should be set (or we waited for it)
-      // Double check because of async gap
       if (_currentConversationId != null && mounted) {
         await _conversationRepo.addMessage(
           conversationId: _currentConversationId!,
@@ -408,31 +391,15 @@ class _CopilotPageState extends State<CopilotPage> {
       if (!mounted) return;
       context.read<CopilotBloc>().add(
             UploadImageEvent(
-              imageBytes:
-                  _pickedImage!, // Wait, I cleared it above. Need local ref.
-              // Logic error in my head -> I need to keep reference before clearing.
-              // But I can't undo the clear above for UI.
-              // Wait, I didn't capture local var for bytes.
-              // Let's refactor this block slightly.
+              imageBytes: imageBytes!,
               text: text,
               clinicId: clinicId,
               userId: userId,
             ),
           );
-      // Logic for UploadImageEvent above checks _pickedImage in original code?
-      // No, original code passed _pickedImage!.
-      // I cleared it. I must capture it.
-      // Re-writing this block carefully.
+      _controller.clear();
     } else if (_controller.text.isNotEmpty) {
       final text = _controller.text;
-      final messageId = const Uuid().v4();
-      setState(() {
-        _messages.add({
-          "id": messageId,
-          "isUser": true,
-          "message": text,
-        });
-      });
       _controller.clear(); // Clear immediately for UX
 
       // Create or add to conversation with locking
@@ -440,7 +407,7 @@ class _CopilotPageState extends State<CopilotPage> {
         if (_conversationCreationFuture == null) {
           _conversationCreationFuture = _conversationRepo.createConversation(
             title: text.length > 50 ? '${text.substring(0, 50)}...' : text,
-            initialMessageText: text,
+            initialMessageText: text.isNotEmpty ? text : 'New Chat',
           );
 
           try {
@@ -450,6 +417,8 @@ class _CopilotPageState extends State<CopilotPage> {
                 _currentConversationId = newId;
                 _conversationCreationFuture = null;
               });
+              // Initialize stream
+              _loadConversation(newId);
             }
           } catch (e) {
             _conversationCreationFuture = null;
@@ -457,11 +426,15 @@ class _CopilotPageState extends State<CopilotPage> {
           }
         } else {
           // Already creating, wait for it
-          await _conversationCreationFuture;
+          try {
+            await _conversationCreationFuture;
+          } catch (e) {
+            return;
+          }
         }
-      }
-
-      if (_currentConversationId != null && mounted) {
+      } else {
+        // Existing conversation: manually add user message to repo
+        // (For new conversations, createConversation adds it automatically)
         await _conversationRepo.addMessage(
           conversationId: _currentConversationId!,
           text: text,
@@ -484,248 +457,34 @@ class _CopilotPageState extends State<CopilotPage> {
           );
     }
     _scrollToBottom();
-    if (!mounted) return;
-    context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final navMenuButton = NavMenuButtonProvider.of(context);
-
-    // Create callbacks once or use direct method references
-
-    return BlocListener<SettingsBloc, SettingsState>(
-        listener: (context, state) {
-          context.read<CopilotBloc>().add(
-                UpdateCopilotSettingsEvent(state.copilotRequiredFields),
-              );
-        },
-        child: BlocListener<CopilotBloc, CopilotState>(
-          listener: (context, state) {
-            if (state is CopilotResponseGenerated) {
-              _showTypingEffect(state.response);
-              _loadSubscriptionInfo();
-            } else if (state is CopilotFunctionCall) {
-              _handleFunctionCall(state.functionCall);
-            } else if (state is CopilotError) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('AI Error: ${state.error}'),
-                    backgroundColor: Colors.red,
-                    duration: const Duration(seconds: 10),
-                    action: SnackBarAction(
-                      label: 'Change Model',
-                      textColor: Colors.white,
-                      onPressed: () {
-                        context.push('/settings/model_selection');
-                      },
-                    ),
-                  ),
-                );
-              }
-            } else if (state is CachedMessagesLoaded) {
-              setState(() {
-                _messages.addAll(state.messages);
-              });
-              _scrollToBottom();
-            } else if (state is NewChatStarted) {
-              setState(() {
-                _messages.clear();
-              });
-            }
-          },
-          child: BlocBuilder<CopilotBloc, CopilotState>(
-            builder: (context, state) {
-              // We need to listen to the ValueNotifiers to trigger rebuilds of the View
-              // Since CopilotView takes raw values, we wrap it in ValueListenableBuilder or AnimatedBuilder
-              // A MultiValueListenableBuilder would be nice, but nesting is fine for now.
-
-              return ValueListenableBuilder<bool>(
-                  valueListenable: _isButtonEnabled,
-                  builder: (context, isButtonEnabled, _) {
-                    return ValueListenableBuilder<bool>(
-                        valueListenable: _isRecording,
-                        builder: (context, isRecording, _) {
-                          return ValueListenableBuilder<bool>(
-                              valueListenable: _isListeningSpeech,
-                              builder: (context, isListeningSpeech, _) {
-                                return CopilotView(
-                                  messages: _messages,
-                                  textController: _controller,
-                                  scrollController: _scrollController,
-                                  isButtonEnabled: isButtonEnabled,
-                                  isRecording: isRecording,
-                                  isListeningSpeech: isListeningSpeech,
-                                  isLoading: state is CopilotLoading,
-                                  currentTier: _currentTier,
-                                  tokenUsage: _tokenUsage,
-                                  tokenLimit: _tokenLimit,
-                                  userPermissions: _userPermissions,
-                                  onSendMessage: _sendMessage,
-                                  onPickImage: _pickImage,
-                                  onCancelImage: _cancelImage,
-                                  conversationSidebar: ConversationSidebar(
-                                    repository: _conversationRepo,
-                                    currentConversationId:
-                                        _currentConversationId,
-                                    onConversationSelected: _loadConversation,
-                                    onNewChat: _startNewConversation,
-                                    onDeleteConversation:
-                                        _showDeleteConfirmation,
-                                    onRenameConversation: _showRenameDialog,
-                                  ),
-                                  isSidebarVisible: _isSidebarVisible,
-                                  onToggleHistory: () {
-                                    setState(() {
-                                      _isSidebarVisible = !_isSidebarVisible;
-                                    });
-                                  },
-                                  onHistoryToggle: (val) {},
-                                  onEditMessage: _handleEditMessage,
-                                  // For speech start/stop, passing the async logic wrappers
-                                  onSpeechStart: () async {
-                                    _isListeningSpeech.value = true;
-                                    final speechRecognitionService =
-                                        GetIt.instance<
-                                            AbstractSpeechRecognitionService>();
-                                    final currentLocale = context.locale;
-                                    if (speechRecognitionService
-                                        is HybridSpeechRecognitionService) {
-                                      speechRecognitionService.setLanguage(
-                                          currentLocale.languageCode);
-                                    }
-                                    final startResult =
-                                        await speechRecognitionService
-                                            .startListening();
-                                    startResult.fold((failure) {
-                                      _isListeningSpeech.value = false;
-                                      _showTypingEffect(
-                                          'Error starting speech recognition: ${failure.message}');
-                                    }, (_) {});
-                                  },
-                                  onSpeechStop: () async {
-                                    final speechRecognitionService =
-                                        GetIt.instance<
-                                            AbstractSpeechRecognitionService>();
-                                    final stopResult =
-                                        await speechRecognitionService
-                                            .stopListening();
-                                    _isListeningSpeech.value = false;
-                                    stopResult.fold(
-                                      (failure) => _showTypingEffect(
-                                          'Error stopping: ${failure.message}'),
-                                      (transcript) {
-                                        if (transcript.isNotEmpty) {
-                                          _controller.text = _controller
-                                                  .text.isNotEmpty
-                                              ? '${_controller.text} $transcript'
-                                              : transcript;
-                                        }
-                                      },
-                                    );
-                                  },
-                                  pickedImage: _pickedImage,
-                                  navMenuButton: navMenuButton,
-                                  currentUserPhotoUrl: FirebaseAuth
-                                      .instance.currentUser?.photoURL,
-                                  currentUserDisplayName: FirebaseAuth
-                                      .instance.currentUser?.displayName,
-                                );
-                              });
-                        });
-                  });
-            },
-          ),
-        ));
-  }
-
-  void _handleEditMessage(String messageId, String newText) {
-    if (_currentConversationId != null) {
-      _conversationRepo.updateMessage(
-        conversationId: _currentConversationId!,
-        messageId: messageId,
-        newText: newText,
-      );
-      final index = _messages.indexWhere((msg) => msg['id'] == messageId);
-      if (index != -1) {
-        setState(() {
-          _messages[index]['message'] = newText;
-        });
-      }
-    }
-  }
-
-  void _showTypingEffect(String message) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-
-    setState(() {
-      _messages.add({"isUser": false, "message": ""});
-    });
-    int index = _messages.length - 1;
-    int charIndex = 0;
-    Timer.periodic(const Duration(milliseconds: 20), (timer) {
-      if (charIndex < message.length) {
-        setState(() {
-          _messages[index]["message"] += message[charIndex];
-        });
-        charIndex++;
-        _scrollToBottom();
-      } else {
-        timer.cancel();
-        // Format the message as markdown
-        setState(() {
-          _messages[index]["message"] = _formatMarkdown(
-            _messages[index]["message"],
-          );
-        });
-        context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
-
-        // Save AI response to Firebase
-        if (_currentConversationId != null && userId != null) {
-          _conversationRepo.addMessage(
-            conversationId: _currentConversationId!,
-            text: message,
-            senderId: 'ai',
-          );
-        }
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
 
-  String _formatMarkdown(String message) {
-    // Return markdown as-is, no HTML conversion needed
-    return message;
-  }
-
-  void _askForParameter(String parameterName, String question) {
-    _currentParameterBeingAsked = parameterName;
-    _showTypingEffect(question);
-  }
-
-  void _startNewConversation() {
-    setState(() {
-      _currentConversationId = null;
-      _messages.clear();
-      _isSidebarVisible = false; // Close sidebar after action
-    });
-    context.read<CopilotBloc>().add(StartNewChatEvent());
-  }
-
-  void _loadConversation(String conversationId) async {
+  void _loadConversation(String conversationId) {
     setState(() {
       _currentConversationId = conversationId;
       _messages.clear();
       _isSidebarVisible = false; // Close sidebar after action
     });
 
-    // Load messages from Firebase
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final messages = await _conversationRepo
-          .getMessages(conversationId: conversationId)
-          .first;
-
+    _messagesSubscription?.cancel();
+    _messagesSubscription = _conversationRepo
+        .getMessages(conversationId: conversationId)
+        .listen((messages) {
+      if (!mounted) return;
       setState(() {
+        _messages.clear();
         for (var msg in messages) {
           _messages.add({
             "id": msg.id,
@@ -739,6 +498,16 @@ class _CopilotPageState extends State<CopilotPage> {
       });
       _scrollToBottom();
     });
+  }
+
+  void _startNewConversation() {
+    setState(() {
+      _currentConversationId = null;
+      _messages.clear();
+      _messagesSubscription?.cancel();
+      _isSidebarVisible = false;
+    });
+    context.read<CopilotBloc>().add(StartNewChatEvent());
   }
 
   void _showDeleteConfirmation(String conversationId) {
@@ -773,6 +542,99 @@ class _CopilotPageState extends State<CopilotPage> {
     );
   }
 
+  void _showRenameDialog(String conversationId, String currentTitle) {
+    final controller = TextEditingController(text: currentTitle);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rename Chat'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Enter new title'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              if (controller.text.isNotEmpty) {
+                await _conversationRepo.renameConversation(
+                  conversationId: conversationId,
+                  newTitle: controller.text,
+                );
+                if (mounted) {
+                  navigator.pop();
+                }
+              }
+            },
+            child: const Text('Rename'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _askForParameter(String parameterName, String question) {
+    _currentParameterBeingAsked = parameterName;
+    _showTypingEffect(question);
+  }
+
+  void _showTypingEffect(String message) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    setState(() {
+      _pendingAIMessage = {"isUser": false, "message": ""};
+    });
+
+    int charIndex = 0;
+    Timer.periodic(const Duration(milliseconds: 20), (timer) {
+      if (charIndex < message.length) {
+        setState(() {
+          if (_pendingAIMessage != null) {
+            _pendingAIMessage!["message"] += message[charIndex];
+          }
+        });
+        charIndex++;
+        _scrollToBottom();
+      } else {
+        timer.cancel();
+        // Save AI response to Firebase
+        if (_currentConversationId != null && userId != null) {
+          // Send message to Repo
+          _conversationRepo
+              .addMessage(
+            conversationId: _currentConversationId!,
+            text: message, // Use full message
+            senderId: 'ai',
+          )
+              .then((_) {
+            // Check if mounted to prevent setState after dispose
+            if (mounted) {
+              setState(() {
+                _pendingAIMessage = null;
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  void _handleEditMessage(String messageId, String newText) {
+    if (_currentConversationId != null) {
+      _conversationRepo.updateMessage(
+        conversationId: _currentConversationId!,
+        messageId: messageId,
+        newText: newText,
+      );
+      // Stream will handle the UI update
+    }
+  }
+
   void _handleFunctionCall([FunctionCall? initialFunctionCall]) async {
     if (initialFunctionCall != null) {
       _functionCallArgs = {
@@ -802,12 +664,8 @@ class _CopilotPageState extends State<CopilotPage> {
     if (functionName == 'add_patient') {
       if (!checkAndAsk('name', 'What is the name of the patient?')) return;
 
-      // Check for user-configured required fields
       final requiredFields =
           context.read<SettingsBloc>().state.copilotRequiredFields;
-
-      debugPrint(
-          '[CopilotPage] Add Patient - Required Fields Config: $requiredFields');
 
       if (requiredFields.contains('patient.age') ||
           requiredFields.contains('age')) {
@@ -853,7 +711,6 @@ class _CopilotPageState extends State<CopilotPage> {
       )) {
         return;
       }
-      // Check if at least one optional param is present
       bool hasOptional = [
         'name',
         'age',
@@ -1043,13 +900,9 @@ class _CopilotPageState extends State<CopilotPage> {
   }
 
   void _executeFunction(String functionName) async {
-    // Function execution happens silently - no "Executing..." message shown
-    // Results or errors will be displayed after execution completes
-
     final Map<String, dynamic> cleanArgs = Map.from(_functionCallArgs);
     cleanArgs.remove('functionName');
 
-    // Basic type conversion for common fields
     if (cleanArgs.containsKey('age') && cleanArgs['age'] is String) {
       cleanArgs['age'] = int.tryParse(cleanArgs['age']);
     }
@@ -1057,7 +910,6 @@ class _CopilotPageState extends State<CopilotPage> {
       cleanArgs['price'] = double.tryParse(cleanArgs['price']);
     }
 
-    // Null safety check for _functionCallHandler
     if (_functionCallHandler == null) {
       _showTypingEffect('Error: Function handler not initialized.');
       return;
@@ -1107,19 +959,16 @@ class _CopilotPageState extends State<CopilotPage> {
         _showTypingEffect(response);
       }
     } else {
-      // Handle single object returns (get_patient, get_session, etc)
       if (functionName == 'get_patient') {
         _showTypingEffect(
           'Patient found: ${result['name']}, Age: ${result['age']}, Gender: ${result['gender']}, Phone: ${result['phoneNumber']}',
         );
       } else if (functionName == 'get_session') {
         _showTypingEffect(
-          'Session found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}',
-        );
+            'Session found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}');
       } else if (functionName == 'get_evaluation') {
         _showTypingEffect(
-          'Evaluation found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}',
-        );
+            'Evaluation found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}');
       } else {
         _showTypingEffect('Function executed successfully: $result');
       }
@@ -1128,39 +977,151 @@ class _CopilotPageState extends State<CopilotPage> {
     _functionCallArgs.clear();
   }
 
-  void _showRenameDialog(String conversationId, String currentTitle) {
-    final controller = TextEditingController(text: currentTitle);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename Chat'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Enter new title'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              if (controller.text.isNotEmpty) {
-                await _conversationRepo.renameConversation(
-                  conversationId: conversationId,
-                  newTitle: controller.text,
+  @override
+  Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
+
+    // Combine stream messages with pending AI message
+    final displayMessages = [
+      ..._messages,
+      if (_pendingAIMessage != null) _pendingAIMessage!,
+    ];
+
+    return BlocListener<SettingsBloc, SettingsState>(
+        listener: (context, state) {
+          context.read<CopilotBloc>().add(
+                UpdateCopilotSettingsEvent(state.copilotRequiredFields),
+              );
+        },
+        child: BlocListener<CopilotBloc, CopilotState>(
+          listener: (context, state) {
+            if (state is CopilotResponseGenerated) {
+              _showTypingEffect(state.response);
+              _loadSubscriptionInfo();
+            } else if (state is CopilotFunctionCall) {
+              _handleFunctionCall(state.functionCall);
+            } else if (state is CopilotError) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('AI Error: ${state.error}'),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 10),
+                    action: SnackBarAction(
+                      label: 'Change Model',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        context.push('/settings/model_selection');
+                      },
+                    ),
+                  ),
                 );
-                if (mounted) {
-                  navigator.pop();
-                }
               }
+            } else if (state is CachedMessagesLoaded) {
+              // No-op for cached messages now as we use streams
+            } else if (state is NewChatStarted) {
+              setState(() {
+                _messages.clear();
+              });
+            }
+          },
+          child: BlocBuilder<CopilotBloc, CopilotState>(
+            builder: (context, state) {
+              return ValueListenableBuilder<bool>(
+                  valueListenable: _isButtonEnabled,
+                  builder: (context, isButtonEnabled, _) {
+                    return ValueListenableBuilder<bool>(
+                        valueListenable: _isRecording,
+                        builder: (context, isRecording, _) {
+                          return ValueListenableBuilder<bool>(
+                              valueListenable: _isListeningSpeech,
+                              builder: (context, isListeningSpeech, _) {
+                                return CopilotView(
+                                  messages: displayMessages,
+                                  textController: _controller,
+                                  scrollController: _scrollController,
+                                  isButtonEnabled: isButtonEnabled,
+                                  isRecording: isRecording,
+                                  isListeningSpeech: isListeningSpeech,
+                                  isLoading: state is CopilotLoading,
+                                  currentTier: _currentTier,
+                                  tokenUsage: _tokenUsage,
+                                  tokenLimit: _tokenLimit,
+                                  userPermissions: _userPermissions,
+                                  onSendMessage: _sendMessage,
+                                  onPickImage: _pickImage,
+                                  onCancelImage: _cancelImage,
+                                  conversationSidebar: ConversationSidebar(
+                                    repository: _conversationRepo,
+                                    currentConversationId:
+                                        _currentConversationId,
+                                    onConversationSelected: _loadConversation,
+                                    onNewChat: _startNewConversation,
+                                    onDeleteConversation:
+                                        _showDeleteConfirmation,
+                                    onRenameConversation: _showRenameDialog,
+                                  ),
+                                  isSidebarVisible: _isSidebarVisible,
+                                  onToggleHistory: () {
+                                    setState(() {
+                                      _isSidebarVisible = !_isSidebarVisible;
+                                    });
+                                  },
+                                  onHistoryToggle: (val) {},
+                                  onEditMessage: _handleEditMessage,
+                                  onSpeechStart: () async {
+                                    _isListeningSpeech.value = true;
+                                    final speechRecognitionService =
+                                        GetIt.instance<
+                                            AbstractSpeechRecognitionService>();
+                                    final currentLocale = context.locale;
+                                    if (speechRecognitionService
+                                        is HybridSpeechRecognitionService) {
+                                      speechRecognitionService.setLanguage(
+                                          currentLocale.languageCode);
+                                    }
+                                    final startResult =
+                                        await speechRecognitionService
+                                            .startListening();
+                                    startResult.fold((failure) {
+                                      _isListeningSpeech.value = false;
+                                      _showTypingEffect(
+                                          'Error starting speech recognition: ${failure.message}');
+                                    }, (_) {});
+                                  },
+                                  onSpeechStop: () async {
+                                    final speechRecognitionService =
+                                        GetIt.instance<
+                                            AbstractSpeechRecognitionService>();
+                                    final stopResult =
+                                        await speechRecognitionService
+                                            .stopListening();
+                                    _isListeningSpeech.value = false;
+                                    stopResult.fold(
+                                      (failure) => _showTypingEffect(
+                                          'Error stopping: ${failure.message}'),
+                                      (transcript) {
+                                        if (transcript.isNotEmpty) {
+                                          _controller.text = _controller
+                                                  .text.isNotEmpty
+                                              ? '${_controller.text} $transcript'
+                                              : transcript;
+                                        }
+                                      },
+                                    );
+                                  },
+                                  pickedImage: _pickedImage,
+                                  navMenuButton: navMenuButton,
+                                  currentUserPhotoUrl: FirebaseAuth
+                                      .instance.currentUser?.photoURL,
+                                  currentUserDisplayName: FirebaseAuth
+                                      .instance.currentUser?.displayName,
+                                );
+                              });
+                        });
+                  });
             },
-            child: const Text('Rename'),
           ),
-        ],
-      ),
-    );
+        ));
   }
 }

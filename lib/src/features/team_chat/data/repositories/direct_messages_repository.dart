@@ -7,35 +7,39 @@ class DirectMessagesRepository {
   final FirebaseFirestore _firestore;
 
   DirectMessagesRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Get all direct conversations for a user
-  Stream<List<DirectConversationModel>> getDirectConversations(String userId) {
+  Stream<List<DirectConversationModel>> getDirectConversations(String userId,
+      {int limit = 50}) {
     return _firestore
         .collection('direct_messages')
         .where('participantIds', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => DirectConversationModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => DirectConversationModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   /// Get messages for a direct conversation
-  Stream<List<TeamMessageModel>> getMessages(String conversationId) {
+  Stream<List<TeamMessageModel>> getMessages(String conversationId,
+      {int limit = 50}) {
     return _firestore
         .collection('direct_messages')
         .doc(conversationId)
         .collection('messages')
         .orderBy('timestamp', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => TeamMessageModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => TeamMessageModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   /// Send a message in a direct conversation
@@ -68,9 +72,8 @@ class DirectMessagesRepository {
     batch.set(messageRef, message.toFirestore());
 
     // 2. Update conversation metadata
-    final conversationRef = _firestore
-        .collection('direct_messages')
-        .doc(conversationId);
+    final conversationRef =
+        _firestore.collection('direct_messages').doc(conversationId);
 
     batch.update(conversationRef, {
       'lastMessage': type == MessageType.text ? content : '[Image]',
@@ -119,4 +122,3 @@ class DirectMessagesRepository {
     return newChatRef.id;
   }
 }
-
