@@ -182,6 +182,26 @@ service cloud.firestore {
        allow update: if hasPermission(resource.data.clinicId, 'restoreRecycleBinItem'); // Restore (often involves move or flag update)
     }
 
+    // AI Copilot Conversations (Chat History)
+    match /conversations/{conversationId} {
+       // Users can read/write their own conversations
+       allow read, write: if isSignedIn() && resource.data.userId == request.auth.uid;
+       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+       
+       // Messages subcollection
+       match /messages/{messageId} {
+          allow read, write: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+       }
+    }
+
+    // Teams Collection (Custom Teams)
+    match /custom_teams/{teamId} {
+       allow read: if isClinicMember(resource.data.clinicId);
+       allow create: if hasPermission(request.resource.data.clinicId, 'createTeam');
+       allow update: if hasPermission(resource.data.clinicId, 'manageTeams');
+       allow delete: if hasPermission(resource.data.clinicId, 'archiveTeam');
+    }
+
     // Default Deny
     match /{document=**} {
       allow read, write: if false;

@@ -228,10 +228,16 @@ async function migrateClinicMembers() {
 
         for (const memberDoc of membersSnapshot.docs) {
             const data = memberDoc.data();
-            const role = (data.role || '').toLowerCase();
+            let role = (data.role || '').toLowerCase();
 
-            // Determine permissions based on role
-            // Strict security updates: enforce the new map.
+            // REVERT FIX: Migrate 'owner' back to 'admin' per user request
+            if (role === 'owner') {
+                console.log(`   - Migrating user ${memberDoc.id} from 'owner' back to 'admin'`);
+                role = 'admin';
+                batch.update(memberDoc.ref, { role: 'admin' });
+            }
+
+            // Ensure 'admin' has the exact same permissions as the previous 'owner' concept
             const permissions = ROLE_PERMISSIONS[role] || [];
 
             if (permissions.length > 0) {

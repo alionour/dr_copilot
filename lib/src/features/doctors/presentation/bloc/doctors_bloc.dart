@@ -22,8 +22,8 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess = await _doctorsUseCase.addDoctor(event.doctor);
     failureOrSuccess.fold(
-      (failure) =>
-          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) => emit(
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure))),
       (_) {
         final updatedDoctors = List<DoctorModel>.from(state.doctors)
           ..add(event.doctor);
@@ -39,8 +39,8 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     final failureOrDoctors =
         await _doctorsUseCase.getDoctors(clinicId: event.clinicId);
     failureOrDoctors.fold(
-      (failure) =>
-          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) => emit(
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure))),
       (doctors) => emit(DoctorsLoaded(doctors)),
     );
   }
@@ -50,8 +50,8 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     final failureOrSuccess =
         await _doctorsUseCase.updateDoctor(event.doctorId, event.doctor);
     failureOrSuccess.fold(
-      (failure) =>
-          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) => emit(
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure))),
       (_) {
         final updatedDoctors = state.doctors.map((doctor) {
           return doctor.id == event.doctorId ? event.doctor : doctor;
@@ -67,8 +67,8 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess = await _doctorsUseCase.deleteDoctor(event.doctorId);
     failureOrSuccess.fold(
-      (failure) =>
-          DoctorsError(state.doctors, message: _mapFailureToMessage(failure)),
+      (failure) => emit(
+          DoctorsError(state.doctors, message: _mapFailureToMessage(failure))),
       (_) {
         final updatedDoctors = state.doctors
             .where((doctor) => doctor.id != event.doctorId)
@@ -91,4 +91,3 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     }
   }
 }
-

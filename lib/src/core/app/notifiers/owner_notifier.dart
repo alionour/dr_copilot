@@ -3,6 +3,7 @@ import 'package:dr_copilot/src/features/auth/domain/models/clinic_model.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 
@@ -20,25 +21,27 @@ class OwnerNotifier with ChangeNotifier {
   AppRole? _role;
   AppRole? get role => _role;
 
-  List<AppPermission> _permissions = [];
-  List<AppPermission> get permissions => _permissions;
-
   List<ClinicModel> _clinics = [];
   List<ClinicModel> get clinics => _clinics;
 
   bool _loading = false;
   bool get loading => _loading;
 
+  /// Delegate permission checks to PermissionService
   bool hasPermission(AppPermission permission) {
-    return _permissions.contains(permission);
+    return GetIt.I<PermissionService>().hasPermissionSync(
+      permission,
+      clinicId: _clinicId,
+    );
   }
 
   void clear() {
     _ownerId = null;
     _clinicId = null;
     _role = null;
-    _permissions = [];
     _clinics = [];
+    // Clear permission cache in service
+    GetIt.I<PermissionService>().clearCache();
     notifyListeners();
   }
 
@@ -68,7 +71,6 @@ class OwnerNotifier with ChangeNotifier {
         _ownerId = null;
         _clinicId = null;
         _role = null;
-        _permissions = [];
         _loading = false;
         notifyListeners();
         return;
@@ -107,10 +109,10 @@ class OwnerNotifier with ChangeNotifier {
         debugPrint('[OwnerNotifier] No clinicId found.');
       }
 
-      // Load Role and Permissions from the clinic members subcollection (Single Source of Truth)
+      // Load Role from clinic members subcollection
       if (_clinicId != null) {
         debugPrint(
-          '[OwnerNotifier] Fetching permissions from clinics/$_clinicId/members/${user.uid}',
+          '[OwnerNotifier] Fetching role from clinics/$_clinicId/members/${user.uid}',
         );
         try {
           final memberDoc = await FirebaseFirestore.instance
@@ -133,36 +135,21 @@ class OwnerNotifier with ChangeNotifier {
               debugPrint('[OwnerNotifier] Loaded role: $_role');
             }
 
-            // Parse Permissions
-            if (memberData?['permissions'] != null) {
-              final permsList = memberData!['permissions'] as List<dynamic>;
-              _permissions = permsList.map((p) {
-                return AppPermission.values.firstWhere(
-                  (e) => e.name == p,
-                  orElse: () =>
-                      AppPermission.viewAllPatients, // Default fallback
-                );
-              }).toList();
-              debugPrint(
-                '[OwnerNotifier] Loaded ${_permissions.length} permissions',
-              );
-            } else {
-              _permissions = [];
-              debugPrint('[OwnerNotifier] No permissions field in member doc');
-            }
+            // Trigger PermissionService to cache permissions
+            debugPrint(
+                '[OwnerNotifier] Priming PermissionService permission cache');
+            await GetIt.I<PermissionService>().getUserPermissions(
+              clinicId: _clinicId,
+            );
           } else {
             debugPrint(
               '[OwnerNotifier] ❌ Member document not found for user in clinic $_clinicId',
             );
-            // Fallback or clear permissions?
-            // If member doc doesn't exist, they technically aren't a member or data is missing.
             _role = null;
-            _permissions = [];
           }
         } catch (e) {
-          debugPrint('[OwnerNotifier] ❌ Error fetching member permissions: $e');
+          debugPrint('[OwnerNotifier] ❌ Error fetching member data: $e');
           _role = null;
-          _permissions = [];
         }
       }
 
@@ -243,7 +230,6 @@ class OwnerNotifier with ChangeNotifier {
       debugPrint('[OwnerNotifier] ❌ Fatal error in loadOwnerIdAndClinicId: $e');
       // Set minimal defaults to allow app to continue
       _role = null;
-      _permissions = [];
       _clinics = [];
     } finally {
       _loading = false;

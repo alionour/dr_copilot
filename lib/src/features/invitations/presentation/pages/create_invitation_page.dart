@@ -613,7 +613,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ...AppRole.values.map((role) {
-          if (role == AppRole.superAdmin) return const SizedBox.shrink();
           return RadioListTile<AppRole>(
             title: Text(_getRoleDisplayName(role)),
             subtitle: Text(
