@@ -63,27 +63,26 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   void _calculateAllowedTypes() {
     // Access OwnerNotifier to get current real-time permissions
     final ownerNotifier = context.read<OwnerNotifier>();
-    final permissions = ownerNotifier.permissions;
     final role = ownerNotifier.role;
 
     final allowed = <NotificationType>[];
     final allowedTargets = <NotificationTargetType>[];
 
     // 1. Determine Allowed Types based on Permissions
-    if (permissions.contains(AppPermission.sendNotificationMessage)) {
+    if (ownerNotifier.hasPermission(AppPermission.sendNotificationMessage)) {
       allowed.add(NotificationType.message);
     }
-    if (permissions.contains(AppPermission.sendNotificationAppointment)) {
+    if (ownerNotifier
+        .hasPermission(AppPermission.sendNotificationAppointment)) {
       allowed.add(NotificationType.appointment);
     }
-    if (permissions.contains(AppPermission.sendNotificationReminder)) {
+    if (ownerNotifier.hasPermission(AppPermission.sendNotificationReminder)) {
       allowed.add(NotificationType.reminder);
     }
 
     // Admin/Manager Types
     if (role == AppRole.admin ||
-        role == AppRole.superAdmin ||
-        permissions.contains(AppPermission.manageNotifications)) {
+        ownerNotifier.hasPermission(AppPermission.manageNotifications)) {
       allowed.add(NotificationType.system);
       allowed.add(NotificationType.alert);
       allowed.add(NotificationType.report);
@@ -92,8 +91,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
 
     // 2. Determine Allowed Targets
     if (role == AppRole.admin ||
-        role == AppRole.superAdmin ||
-        permissions.contains(AppPermission.manageNotifications)) {
+        ownerNotifier.hasPermission(AppPermission.manageNotifications)) {
       // Admins can target everyone
       allowedTargets.addAll([
         NotificationTargetType.ownerClinics,
@@ -203,22 +201,16 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
       message: _messageController.text,
       type: _selectedType!,
       sender: NotificationSender(
-        type:
-            (context.read<AuthBloc>().state is AuthSignedIn &&
-                (context.read<AuthBloc>().state as AuthSignedIn).user?.clinics
-                        ?.any((c) => c['role'] == AppRole.superAdmin.name) ==
-                    true)
-            ? NotificationSenderType.programmer
-            : NotificationSenderType.clinicOwner,
+        type: NotificationSenderType.clinicOwner,
         senderId: context.read<AuthBloc>().state is AuthSignedIn
             ? (context.read<AuthBloc>().state as AuthSignedIn).user?.uid ??
-                  'unknown_sender'
+                'unknown_sender'
             : 'unknown_sender',
         senderName: context.read<AuthBloc>().state is AuthSignedIn
             ? (context.read<AuthBloc>().state as AuthSignedIn)
-                      .user
-                      ?.displayName ??
-                  'Clinic Staff'
+                    .user
+                    ?.displayName ??
+                'Clinic Staff'
             : 'Clinic Staff',
       ),
       target: NotificationTarget(
@@ -229,8 +221,8 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
         ownerId: _selectedTargetType == NotificationTargetType.ownerClinics
             // Auto-use current user ID as owner ID for simplicity and security
             ? (context.read<AuthBloc>().state is AuthSignedIn
-                  ? (context.read<AuthBloc>().state as AuthSignedIn).user?.uid
-                  : null)
+                ? (context.read<AuthBloc>().state as AuthSignedIn).user?.uid
+                : null)
             : null,
         clinicIds: _selectedTargetType == NotificationTargetType.specificClinic
             ? _selectedClinicIds
@@ -386,12 +378,11 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                   items: _actionOptions.entries
                       .where((entry) => entry.key != 'custom') // Hide custom
                       .map((entry) {
-                        return DropdownMenuItem(
-                          value: entry.key,
-                          child: Text(entry.key.toUpperCase()),
-                        );
-                      })
-                      .toList(),
+                    return DropdownMenuItem(
+                      value: entry.key,
+                      child: Text(entry.key.toUpperCase()),
+                    );
+                  }).toList(),
                   onChanged: (value) {
                     setState(() => _selectedAction = value!);
                   },
@@ -568,4 +559,3 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
     );
   }
 }
-

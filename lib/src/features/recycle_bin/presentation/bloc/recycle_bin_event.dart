@@ -29,5 +29,4 @@ class PermanentlyDeleteItem extends RecycleBinEvent {
   List<Object?> get props => [id, type];
 }
 
-enum RecycleBinItemType { evaluation, session }
-
+enum RecycleBinItemType { evaluation, session, patient, calendarEvent }

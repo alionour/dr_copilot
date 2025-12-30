@@ -7,13 +7,13 @@ part of 'clinic_model.dart';
 // **************************************************************************
 
 ClinicModel _$ClinicModelFromJson(Map<String, dynamic> json) => ClinicModel(
-  id: json['id'] as String,
-  name: json['name'] as String,
-  location: json['location'] as String?,
-  ownerId: json['ownerId'] as String,
-  adminEmail: json['adminEmail'] as String,
-  createdAt: const TimestampConverter().fromJson(json['createdAt']),
-);
+      id: json['id'] as String,
+      name: json['name'] as String,
+      location: json['location'] as String?,
+      ownerId: json['ownerId'] as String,
+      adminEmail: json['adminEmail'] as String,
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
+    );
 
 Map<String, dynamic> _$ClinicModelToJson(ClinicModel instance) =>
     <String, dynamic>{
@@ -23,13 +23,11 @@ Map<String, dynamic> _$ClinicModelToJson(ClinicModel instance) =>
       'ownerId': instance.ownerId,
       'adminEmail': instance.adminEmail,
       'createdAt': _$JsonConverterToJson<dynamic, Timestamp>(
-        instance.createdAt,
-        const TimestampConverter().toJson,
-      ),
+          instance.createdAt, const TimestampConverter().toJson),
     };
 
 Json? _$JsonConverterToJson<Json, Value>(
   Value? value,
   Json? Function(Value value) toJson,
-) => value == null ? null : toJson(value);
-
+) =>
+    value == null ? null : toJson(value);

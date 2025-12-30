@@ -214,7 +214,7 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
             groupValue: _selectedActiveModel,
             onChanged: _setActiveModel,
             secondary: isSelected
-                ? Icon(Icons.check_circle,
+                ? Icon(Icons.check_circle_outline,
                     color: Theme.of(context).colorScheme.primary)
                 : null,
           );

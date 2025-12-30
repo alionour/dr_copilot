@@ -12,9 +12,8 @@ CustomTeamModel _$CustomTeamModelFromJson(Map<String, dynamic> json) =>
       clinicId: json['clinicId'] as String,
       ownerId: json['ownerId'] as String,
       name: json['name'] as String,
-      memberIds: (json['memberIds'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+      memberIds:
+          (json['memberIds'] as List<dynamic>).map((e) => e as String).toList(),
       isArchived: json['isArchived'] as bool? ?? false,
       createdAt: CustomTeamModel._timestampFromJson(json['createdAt']),
     );
@@ -29,4 +28,3 @@ Map<String, dynamic> _$CustomTeamModelToJson(CustomTeamModel instance) =>
       'isArchived': instance.isArchived,
       'createdAt': CustomTeamModel._timestampToJson(instance.createdAt),
     };
-

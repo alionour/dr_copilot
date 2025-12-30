@@ -152,9 +152,8 @@ class _DebugNotificationSenderPageState
     });
 
     try {
-      final usersSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .get();
+      final usersSnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
 
       final batch = FirebaseFirestore.instance.batch();
       final now = DateTime.now();
@@ -178,9 +177,8 @@ class _DebugNotificationSenderPageState
           ),
         );
 
-        final docRef = FirebaseFirestore.instance
-            .collection('notifications')
-            .doc();
+        final docRef =
+            FirebaseFirestore.instance.collection('notifications').doc();
         batch.set(docRef, notification.toJson());
       }
 
@@ -239,7 +237,8 @@ class _DebugNotificationSenderPageState
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning, color: Colors.orange),
+                            const Icon(Icons.warning_amber_rounded,
+                                color: Colors.orange),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -301,31 +300,31 @@ class _DebugNotificationSenderPageState
                         Color color;
                         switch (type) {
                           case NotificationType.appointment:
-                            icon = Icons.calendar_today;
+                            icon = Icons.calendar_today_outlined;
                             color = Colors.purple;
                             break;
                           case NotificationType.message:
-                            icon = Icons.message;
+                            icon = Icons.chat_bubble_outline;
                             color = Colors.indigo;
                             break;
                           case NotificationType.reminder:
-                            icon = Icons.alarm;
+                            icon = Icons.alarm_outlined;
                             color = Colors.teal;
                             break;
                           case NotificationType.system:
-                            icon = Icons.info;
+                            icon = Icons.info_outline;
                             color = Colors.blue;
                             break;
                           case NotificationType.payment:
-                            icon = Icons.payment;
+                            icon = Icons.payment_outlined;
                             color = Colors.green;
                             break;
                           case NotificationType.report:
-                            icon = Icons.assessment;
+                            icon = Icons.assessment_outlined;
                             color = Colors.orange;
                             break;
                           case NotificationType.alert:
-                            icon = Icons.warning;
+                            icon = Icons.warning_amber_rounded;
                             color = Colors.red;
                             break;
                         }
@@ -392,11 +391,11 @@ class _DebugNotificationSenderPageState
                     // Quick Templates
                     ExpansionTile(
                       title: Text('quickTemplates'.tr()),
-                      leading: const Icon(Icons.auto_awesome),
+                      leading: const Icon(Icons.auto_awesome_outlined),
                       children: [
                         ListTile(
                           leading: const Icon(
-                            Icons.calendar_today,
+                            Icons.calendar_today_outlined,
                             color: Colors.purple,
                           ),
                           title: Text('appointmentReminder'.tr()),
@@ -410,7 +409,7 @@ class _DebugNotificationSenderPageState
                         ),
                         ListTile(
                           leading: const Icon(
-                            Icons.medication,
+                            Icons.medication_outlined,
                             color: Colors.red,
                           ),
                           title: Text('medicationReminder'.tr()),
@@ -467,7 +466,7 @@ class _DebugNotificationSenderPageState
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: _sendToAllUsers,
-                      icon: const Icon(Icons.group),
+                      icon: const Icon(Icons.group_outlined),
                       label: Text('sendToAllUsers'.tr()),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.all(16),
@@ -482,4 +481,3 @@ class _DebugNotificationSenderPageState
     );
   }
 }
-

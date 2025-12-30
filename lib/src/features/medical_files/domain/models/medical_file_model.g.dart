@@ -35,4 +35,3 @@ Map<String, dynamic> _$MedicalFileModelToJson(MedicalFileModel instance) =>
       'metadata': instance.metadata,
       'createdAt': instance.createdAt.toIso8601String(),
     };
-

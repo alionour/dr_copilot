@@ -73,3 +73,14 @@ class ApiKeyFailure extends Failure {
   ApiKeyFailure(super.message, [super.code = 401]);
 }
 
+/// Represents a failure that occurs during authentication processes.
+class AuthFailure extends Failure {
+  /// Represents a failure related to authentication (e.g. wrong password, user not found).
+  AuthFailure(super.message, [super.code = 401]);
+}
+
+/// Represents an unknown or unexpected failure.
+class UnknownFailure extends Failure {
+  /// Represents a failure that hasn't been specifically categorized.
+  UnknownFailure(super.message, [super.code = 500]);
+}

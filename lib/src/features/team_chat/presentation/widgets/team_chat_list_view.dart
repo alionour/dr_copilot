@@ -17,7 +17,7 @@ class TeamChatListView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Team Chat'),
-        leading: const Icon(Icons.chat),
+        leading: const Icon(Icons.chat_outlined),
       ),
       floatingActionButton: onAddChat != null
           ? FloatingActionButton(
@@ -53,8 +53,8 @@ class TeamChatListView extends StatelessWidget {
                 return ListTile(
                   leading: CircleAvatar(
                     child: conversation.isDirectMessage
-                        ? const Icon(Icons.person)
-                        : const Icon(Icons.group),
+                        ? const Icon(Icons.person_outline)
+                        : const Icon(Icons.group_outlined),
                   ),
                   title: Text(conversation.title),
                   subtitle: conversation.lastMessage != null

@@ -20,7 +20,7 @@ class ApiKeySettingsPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.admin_panel_settings,
+              Icons.admin_panel_settings_outlined,
               size: 64,
               color: Theme.of(context).disabledColor,
             ),

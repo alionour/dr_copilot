@@ -80,7 +80,7 @@ class TeamChatListPage extends StatelessWidget {
 
 class _ConversationTile extends StatelessWidget {
   final dynamic
-  conversation; // Can be TeamConversationModel or DirectConversationModel
+      conversation; // Can be TeamConversationModel or DirectConversationModel
   final String currentUserId;
 
   const _ConversationTile({
@@ -118,14 +118,14 @@ class _ConversationTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         child: isDirectMessage
-            ? const Icon(Icons.person)
-            : const Icon(Icons.group),
+            ? const Icon(Icons.person_outline)
+            : const Icon(Icons.group_outlined),
       ),
       title: Text(
         isDirectMessage
             ? otherUserId // Direct message - show other user
             : (conversation as TeamConversationModel).metadata['teamName'] ??
-                  'Team Chat',
+                'Team Chat',
       ),
       subtitle: lastMessage != null
           ? Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis)
@@ -157,4 +157,3 @@ class _ConversationTile extends StatelessWidget {
     }
   }
 }
-
