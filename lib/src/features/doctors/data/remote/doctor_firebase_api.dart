@@ -1,11 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/error/exceptions.dart';
 import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class DoctorFirebaseApi {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> addDoctor(DoctorModel doctor) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageDoctors)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore
           .collection('doctors')
@@ -17,6 +22,9 @@ class DoctorFirebaseApi {
   }
 
   Future<DoctorModel> getDoctor(String doctorId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewDoctors)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       final doc = await _firestore.collection('doctors').doc(doctorId).get();
       if (!doc.exists) {
@@ -29,6 +37,9 @@ class DoctorFirebaseApi {
   }
 
   Future<List<DoctorModel>> getDoctors({String? clinicId}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewDoctors)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       Query query = _firestore.collection('doctors');
       if (clinicId != null) {
@@ -42,6 +53,9 @@ class DoctorFirebaseApi {
   }
 
   Future<void> updateDoctor(String doctorId, DoctorModel doctor) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageDoctors)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore
           .collection('doctors')
@@ -53,6 +67,9 @@ class DoctorFirebaseApi {
   }
 
   Future<void> deleteDoctor(String doctorId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.manageDoctors)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore.collection('doctors').doc(doctorId).delete();
     } catch (e) {
@@ -60,4 +77,3 @@ class DoctorFirebaseApi {
     }
   }
 }
-

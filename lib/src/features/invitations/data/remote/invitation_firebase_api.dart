@@ -3,11 +3,16 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/core/error/exceptions.dart';
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class InvitationFirebaseApi {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> createInvitation(InvitationModel invitation) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.sendInvitation)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore
           .collection('user_invitations')
@@ -20,6 +25,9 @@ class InvitationFirebaseApi {
   }
 
   Future<List<InvitationModel>> getInvitationsByClinic(String clinicId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewInvitations)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       final snapshot = await _firestore
           .collection('user_invitations')
@@ -42,6 +50,9 @@ class InvitationFirebaseApi {
   Future<List<InvitationModel>> getPendingInvitationsByClinic(
     String clinicId,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewInvitations)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       final snapshot = await _firestore
           .collection('user_invitations')
@@ -63,6 +74,9 @@ class InvitationFirebaseApi {
   }
 
   Future<void> deleteInvitation(String invitationId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.revokeInvitation)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore
           .collection('user_invitations')
@@ -75,6 +89,9 @@ class InvitationFirebaseApi {
   }
 
   Future<void> resendInvitation(String invitationId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.sendInvitation)) {
+      throw ServerException('Permission denied', 403);
+    }
     try {
       await _firestore.collection('user_invitations').doc(invitationId).update({
         'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
@@ -85,4 +102,3 @@ class InvitationFirebaseApi {
     }
   }
 }
-

@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
-import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/repositories/abstract_financials_repository.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
@@ -13,11 +16,9 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   final CollectionReference _transactionsCollection =
       FirebaseFirestore.instance.collection('transactions');
 
-  String? get ownerId => OwnerNotifier().ownerId;
-
-  /// Ensures all queries are scoped to the current user.
-  Query _userScopedQuery() =>
-      _transactionsCollection.where('ownerId', isEqualTo: ownerId);
+  /// Ensures all queries are scoped to the current clinic.
+  Query _clinicScopedQuery(String clinicId) =>
+      _transactionsCollection.where('clinicId', isEqualTo: clinicId);
 
   /// Checks if the user is authenticated.
   ///
@@ -34,6 +35,9 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   @override
   Future<Either<Failure, TransactionModel>> addTransaction(
       TransactionModel transaction) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       await _transactionsCollection
           .doc(transaction.id)
@@ -47,11 +51,15 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Fetches transactions with optional pagination.
   @override
   Future<Either<Failure, List<TransactionModel>>> getTransactions({
+    required String clinicId,
     String? lastDocumentId,
     int limit = 20,
   }) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewFinancials)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
-      Query query = _userScopedQuery()
+      Query query = _clinicScopedQuery(clinicId)
           .orderBy('transactionDate', descending: true)
           .limit(limit);
 
@@ -77,6 +85,9 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   @override
   Future<Either<Failure, TransactionModel>> updateTransaction(
       String id, TransactionModel transaction) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.editFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -100,7 +111,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
             updatedData['updatedAt'] = Timestamp.fromDate(
                 DateTime.now().toUtc()); // Add updatedAt field
             await _transactionsCollection.doc(id).update(updatedData);
-            _userScopedQuery();
+            // _userScopedQuery(); // Removed useless call
             return Right(transaction.copyWith(id: id));
           } else {
             return Left(ServerFailure('Unauthorized', 403));
@@ -118,6 +129,9 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Deletes a transaction by its ID.
   @override
   Future<Either<Failure, void>> deleteTransaction(String id) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       await _transactionsCollection.doc(id).delete();
       return const Right(null);
@@ -130,11 +144,14 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Searches transactions by description.
   @override
   Future<Either<Failure, List<TransactionModel>>> searchTransactions(
-      {String? description}) async {
+      {required String clinicId, String? description}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewFinancials)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef = _userScopedQuery();
+        Query queryRef = _clinicScopedQuery(clinicId);
 
         if (description != null && description.isNotEmpty) {
           queryRef = queryRef
@@ -170,13 +187,15 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Fetches transactions by a specific date.
   @override
   Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
-      DateTime date,
-      {String? lastDocumentID,
-      int limit = 20}) async {
+      String clinicId, DateTime date,
+      {String? lastDocumentID, int limit = 20}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewFinancials)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        Query queryRef = _userScopedQuery()
+        Query queryRef = _clinicScopedQuery(clinicId)
             .where('transactionDate',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(
                     DateTime(date.year, date.month, date.day)))
@@ -214,7 +233,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
   /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
   @override
-  Future<Either<Failure, int>> getTransactionsCount() async {
+  Future<Either<Failure, int>> getTransactionsCount(String clinicId) async {
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -222,7 +241,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final snapshot = await _userScopedQuery().get();
+        final snapshot = await _clinicScopedQuery(clinicId).get();
         return Right(snapshot.docs.length);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -234,7 +253,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
   /// Aggregates and returns the total revenue for a given year using Firestore aggregation.
   @override
-  Future<Either<Failure, double>> getTotalRevenueForYear(int year) async {
+  Future<Either<Failure, double>> getTotalRevenueForYear(
+      String clinicId, int year) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -243,7 +263,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       final start = DateTime(year, 1, 1);
       final end = DateTime(year + 1, 1, 1);
-      final query = _userScopedQuery()
+      final query = _clinicScopedQuery(clinicId)
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -281,7 +301,8 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
   /// Aggregates and returns the total expenses for a given year using Firestore aggregation.
   @override
-  Future<Either<Failure, double>> getTotalExpensesForYear(int year) async {
+  Future<Either<Failure, double>> getTotalExpensesForYear(
+      String clinicId, int year) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -290,7 +311,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
 
       final start = DateTime(year, 1, 1);
       final end = DateTime(year + 1, 1, 1);
-      final query = _userScopedQuery()
+      final query = _clinicScopedQuery(clinicId)
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -329,7 +350,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Aggregates and returns the total revenue for a given year and month using Firestore aggregation.
   @override
   Future<Either<Failure, double>> getTotalRevenueForMonth(
-      int year, int month) async {
+      String clinicId, int year, int month) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -340,7 +361,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       final end = (month == 12)
           ? DateTime(year + 1, 1, 1)
           : DateTime(year, month + 1, 1);
-      final query = _userScopedQuery()
+      final query = _clinicScopedQuery(clinicId)
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -379,7 +400,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Aggregates and returns the total expenses for a given year and month using Firestore aggregation.
   @override
   Future<Either<Failure, double>> getTotalExpensesForMonth(
-      int year, int month) async {
+      String clinicId, int year, int month) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -390,7 +411,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
       final end = (month == 12)
           ? DateTime(year + 1, 1, 1)
           : DateTime(year, month + 1, 1);
-      final query = _userScopedQuery()
+      final query = _clinicScopedQuery(clinicId)
           .where('transactionDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(start))
           .where('transactionDate', isLessThan: Timestamp.fromDate(end))
@@ -429,6 +450,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Aggregates and returns the total for a given direction and optional source, year, and month.
   @override
   Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required String clinicId, // Added clinicId
     required TransactionDirection direction,
     TransactionSource? source,
     int? year,
@@ -440,7 +462,7 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
         return Left(ServerFailure('User not authenticated', 401));
       }
 
-      Query query = _userScopedQuery();
+      Query query = _clinicScopedQuery(clinicId);
 
       if (year != null) {
         final start = DateTime(year, month ?? 1, 1);
@@ -521,9 +543,9 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
   /// Deletes transactions by their reference ID.
   @override
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
-      String referenceId) async {
+      String clinicId, String referenceId) async {
     try {
-      final querySnapshot = await _userScopedQuery()
+      final querySnapshot = await _clinicScopedQuery(clinicId)
           .where('referenceId', isEqualTo: referenceId)
           .get();
 
@@ -537,4 +559,3 @@ class TransactionsFirebaseApi extends AbstractTransactionsRepository {
     }
   }
 }
-

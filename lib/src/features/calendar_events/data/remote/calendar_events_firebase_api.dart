@@ -14,8 +14,8 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
   String? get clinicId => OwnerNotifier().clinicId;
 
   /// Reference to the Firestore collection for calendar events
-  final CollectionReference _eventsCollection = FirebaseFirestore.instance
-      .collection('calendar_events');
+  final CollectionReference _eventsCollection =
+      FirebaseFirestore.instance.collection('calendar_events');
 
   /// Firebase Authentication instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -38,6 +38,9 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _eventsCollection
             .where('clinicId', isEqualTo: clinicId)
@@ -137,6 +140,9 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _eventsCollection
             .where('clinicId', isEqualTo: clinicId)
@@ -180,6 +186,9 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final data = event.toJson();
 
@@ -241,8 +250,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
           }
 
           // Check authorization
-          final canEdit =
-              (createdBy == user.uid) ||
+          final canEdit = (createdBy == user.uid) ||
               (OwnerNotifier().hasPermission(AppPermission.editCalendarEvent) &&
                   OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
 
@@ -303,8 +311,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
           final createdBy = data['createdBy']?.toString();
 
           // Check authorization
-          final canDelete =
-              (createdBy == user.uid) ||
+          final canDelete = (createdBy == user.uid) ||
               (OwnerNotifier().hasPermission(
                     AppPermission.deleteCalendarEvent,
                   ) &&
@@ -343,6 +350,9 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _eventsCollection
             .where('clinicId', isEqualTo: clinicId)
@@ -414,6 +424,9 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef = _eventsCollection
             .where('clinicId', isEqualTo: clinicId)
@@ -508,5 +521,125 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
-}
 
+  /// Get all deleted events
+  @override
+  Future<Either<Failure, List<CalendarEventModel>>> getDeletedEvents() async {
+    if (!await _isAuthenticated()) {
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+
+    try {
+      final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
+      if (user != null) {
+        Query queryRef = _eventsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .where('deletedAt', isNull: false);
+
+        // Filter by doctorId if user doesn't have viewAllSessions permission
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        final snapshot =
+            await queryRef.orderBy('deletedAt', descending: true).get();
+
+        List<CalendarEventModel> events = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          return CalendarEventModel.fromJson({...data, 'id': doc.id});
+        }).toList();
+
+        return Right(events);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error getting deleted events: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Restore a deleted event
+  @override
+  Future<Either<Failure, void>> restoreEvent(String id) async {
+    if (!await _isAuthenticated()) {
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // Here we might want to check permissions again, similar to update/delete
+        // For simplicity, reusing the logic or just allowing if they can access it?
+        // Let's stick to the pattern: check if they can edit/delete it essentially.
+
+        final doc = await _eventsCollection.doc(id).get();
+        if (!doc.exists) {
+          return Left(ServerFailure('Event does not exist', 404));
+        }
+
+        final data = doc.data() as Map<String, dynamic>?;
+        final createdBy = data?['createdBy']?.toString();
+
+        final canRestore = (createdBy == user.uid) ||
+            (OwnerNotifier().hasPermission(AppPermission.editCalendarEvent) &&
+                OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
+
+        if (canRestore) {
+          await _eventsCollection.doc(id).update({
+            'deletedAt': null,
+            'deletedBy': null,
+          });
+          return Right(null);
+        } else {
+          return Left(ServerFailure('Unauthorized', 403));
+        }
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error restoring event: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Permanently delete an event
+  @override
+  Future<Either<Failure, void>> permanentlyDeleteEvent(String id) async {
+    if (!await _isAuthenticated()) {
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // Check permissions
+        final doc = await _eventsCollection.doc(id).get();
+        if (!doc.exists) {
+          return Left(ServerFailure('Event does not exist', 404));
+        }
+
+        final data = doc.data() as Map<String, dynamic>?;
+        final createdBy = data?['createdBy']?.toString();
+
+        final canDelete = (createdBy == user.uid) ||
+            (OwnerNotifier().hasPermission(AppPermission.deleteCalendarEvent) &&
+                OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
+
+        if (canDelete) {
+          await _eventsCollection.doc(id).delete();
+          return Right(null);
+        } else {
+          return Left(ServerFailure('Unauthorized', 403));
+        }
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error permanently deleting event: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+}

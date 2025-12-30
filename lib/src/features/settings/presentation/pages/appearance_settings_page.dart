@@ -94,7 +94,9 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                         themeNotifier.toggleTheme();
                       },
                       secondary: Icon(
-                        isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                        isDarkMode
+                            ? Icons.dark_mode_outlined
+                            : Icons.light_mode_outlined,
                       ),
                     );
                   },
@@ -105,7 +107,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   subtitle: Text(
                     _colorSchemes[themeNotifier.currentScheme] ?? 'Teal',
                   ),
-                  leading: const Icon(Icons.palette),
+                  leading: const Icon(Icons.palette_outlined),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => _showColorSchemeDialog(themeNotifier),
                 ),
@@ -170,7 +172,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   title: Text(schemeName),
                   trailing: isSelected
                       ? Icon(
-                          Icons.check_circle,
+                          Icons.check_circle_outline,
                           color: Theme.of(context).colorScheme.primary,
                         )
                       : null,

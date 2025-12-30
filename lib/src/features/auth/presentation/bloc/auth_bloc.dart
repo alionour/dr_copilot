@@ -27,27 +27,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ///
   /// @param event The event to sign in with Google.
   /// @param emit The function to emit states.
+  /// Handles the SignInWithGoogle event.
+  ///
+  /// @param event The event to sign in with Google.
+  /// @param emit The function to emit states.
   void _signInWithGoogle(
     SignInWithGoogle event,
     Emitter<AuthState> emit,
   ) async {
-    try {
-      emit(const AuthLoading());
-      debugPrint('SignInWithGoogle event triggered');
-      final user = await authUseCase.signInWithGoogle();
-      if (user != null) {
-        // Initialize FCM for the user
-        await _initializeFCM(user.uid);
+    emit(const AuthLoading());
+    debugPrint('SignInWithGoogle event triggered');
+    final result = await authUseCase.signInWithGoogle();
 
-        // Optionally store user data if needed
-        emit(AuthSignedIn(message: 'User signed in successfully', user: user));
-      } else {
-        emit(const AuthError(message: 'Google sign-in aborted'));
-      }
-    } catch (error) {
-      emit(AuthError(message: error.toString()));
-      debugPrint('Google sign-in error: $error');
-    }
+    await result.fold(
+      (failure) async {
+        debugPrint('Google sign-in error: ${failure.message}');
+        emit(AuthError(message: failure.message));
+      },
+      (user) async {
+        if (user != null) {
+          // Initialize FCM for the user
+          await _initializeFCM(user.uid);
+          emit(
+              AuthSignedIn(message: 'User signed in successfully', user: user));
+        } else {
+          emit(const AuthError(message: 'Google sign-in aborted'));
+        }
+      },
+    );
   }
 
   /// Handles the SignInWithEmailAndPassword event.
@@ -58,25 +65,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SignInWithEmailAndPassword event,
     Emitter<AuthState> emit,
   ) async {
-    try {
-      emit(const AuthLoading());
-      debugPrint('SignInWithEmailAndPassword event triggered');
-      final user = await authUseCase.signInWithEmailAndPassword(
-        event.email,
-        event.password,
-      );
+    emit(const AuthLoading());
+    debugPrint('SignInWithEmailAndPassword event triggered');
+    final result = await authUseCase.signInWithEmailAndPassword(
+      event.email,
+      event.password,
+    );
+
+    await result.fold((failure) async {
+      debugPrint('Email/password sign-in error: ${failure.message}');
+      emit(AuthError(message: failure.message));
+    }, (user) async {
       if (user != null) {
         // Initialize FCM for the user
         await _initializeFCM(user.uid);
-
         emit(AuthSignedIn(message: 'User signed in successfully', user: user));
       } else {
         emit(const AuthError(message: 'Sign-in failed'));
       }
-    } catch (error) {
-      emit(AuthError(message: error.toString()));
-      debugPrint('Email/password sign-in error: $error');
-    }
+    });
   }
 
   /// Initialize FCM service for the user
@@ -95,30 +102,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// @param event The event to sign out.
   /// @param emit The function to emit states.
   void _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
-    try {
-      debugPrint('Sign out event triggered');
-      final user = await authUseCase.getCurrentUser();
+    debugPrint('Sign out event triggered');
+
+    final currentUserResult = await authUseCase.getCurrentUser();
+
+    // Attempt to clear cache for current user photo
+    currentUserResult.fold((l) => null, // Ignore failure here
+        (user) async {
       if (user != null && user.photoURL != null) {
         await CachedNetworkImage.evictFromCache(user.photoURL!);
       }
+    });
 
-      // Clean up FCM (delete token and stop listeners)
-      try {
-        final fcmService = GetIt.instance<FCMService>();
-        await fcmService.deleteToken();
-        debugPrint('[AuthBloc] FCM cleaned up');
-      } catch (e) {
-        debugPrint('[AuthBloc] Error cleaning up FCM: $e');
-      }
+    // Clean up FCM (delete token and stop listeners)
+    try {
+      final fcmService = GetIt.instance<FCMService>();
+      await fcmService.deleteToken();
+      debugPrint('[AuthBloc] FCM cleaned up');
+    } catch (e) {
+      debugPrint('[AuthBloc] Error cleaning up FCM: $e');
+    }
 
-      await authUseCase.signOut();
+    final signOutResult = await authUseCase.signOut();
+
+    signOutResult.fold((failure) {
+      debugPrint('Sign-out error: ${failure.message}');
+      emit(AuthError(message: failure.message));
+    }, (_) {
       debugPrint('Sign-out successful');
       RoutingConfig.router.go('/');
       emit(AuthSignedOut());
-    } catch (e) {
-      debugPrint('Sign-out error: $e');
-      emit(AuthError(message: e.toString()));
-    }
+    });
   }
 
   /// Returns a stream of authentication state changes (UserModel? or null).
@@ -145,4 +159,3 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 }
-

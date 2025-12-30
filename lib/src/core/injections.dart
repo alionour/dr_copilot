@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/subscription/domain/services/quota_servi
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/features/auth/auth_injections.dart';
 import 'package:dr_copilot/src/core/services/services_injections.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
 import 'package:dr_copilot/src/features/calendar/calendar_injections.dart';
 import 'package:dr_copilot/src/features/calendar_events/calendar_events_injections.dart';
 import 'package:dr_copilot/src/features/copilot_chat/copilot_injections.dart';
@@ -59,6 +60,7 @@ Future<void> initInjections() async {
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton(() => const FlutterSecureStorage());
   sl.registerLazySingleton(() => BiometricAuthService());
+  sl.registerLazySingleton(() => RemoteConfigService());
   initServicesInjections();
 
   // Features (order matters due to dependencies)
@@ -174,7 +176,11 @@ Future<void> initInjections() async {
 
   // Recycle Bin
   sl.registerFactory(
-    () => RecycleBinBloc(evaluationsRepository: sl(), sessionsRepository: sl()),
+    () => RecycleBinBloc(
+      evaluationsRepository: sl(),
+      sessionsRepository: sl(),
+      patientsRepository: sl(),
+      calendarEventsRepository: sl(),
+    ),
   );
 }
-

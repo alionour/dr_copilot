@@ -78,8 +78,8 @@ enum Destination {
   ),
 
   // Team Collaboration
-  teamChat(NavItemModel('messages', Icons.chat), 'Messages'),
-  teams(NavItemModel('teams', Icons.groups), 'Manage your teams'),
+  teamChat(NavItemModel('messages', Icons.chat_outlined), 'Messages'),
+  teams(NavItemModel('teams', Icons.groups_outlined), 'Manage your teams'),
 
   // Additional (not currently in menu)
   chat(NavItemModel('chat', Icons.chat_bubble_outline), 'Open chat'),
@@ -92,4 +92,3 @@ enum Destination {
   final String message; // Tooltip or explanation for the destination
   const Destination(this.model, this.message);
 }
-

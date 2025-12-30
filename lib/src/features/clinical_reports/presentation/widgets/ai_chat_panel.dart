@@ -84,7 +84,7 @@ class _AIChatPanelState extends State<AIChatPanel> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.auto_awesome,
+                        Icons.auto_awesome_outlined,
                         color: Theme.of(context).primaryColor,
                         size: 20,
                       ),
@@ -114,46 +114,43 @@ class _AIChatPanelState extends State<AIChatPanel> {
 
           // Content
           Expanded(
-            child:
-                BlocBuilder<
-                  AddEditClinicalReportBloc,
-                  AddEditClinicalReportState
-                >(
-                  builder: (context, state) {
-                    if (state is AddEditClinicalReportLoaded) {
-                      if (state.isAILoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+            child: BlocBuilder<AddEditClinicalReportBloc,
+                AddEditClinicalReportState>(
+              builder: (context, state) {
+                if (state is AddEditClinicalReportLoaded) {
+                  if (state.isAILoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                      if (state.isReviewingAIChanges) {
-                        return _buildReviewUI(context);
-                      }
+                  if (state.isReviewingAIChanges) {
+                    return _buildReviewUI(context);
+                  }
 
-                      return DefaultTabController(
-                        length: 2,
-                        child: Column(
-                          children: [
-                            const TabBar(
-                              tabs: [
-                                Tab(text: 'Edit'),
-                                Tab(text: 'Chat'),
-                              ],
-                            ),
-                            Expanded(
-                              child: TabBarView(
-                                children: [
-                                  _buildEditTab(context, state),
-                                  _buildChatTab(context, state),
-                                ],
-                              ),
-                            ),
+                  return DefaultTabController(
+                    length: 2,
+                    child: Column(
+                      children: [
+                        const TabBar(
+                          tabs: [
+                            Tab(text: 'Edit'),
+                            Tab(text: 'Chat'),
                           ],
                         ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              _buildEditTab(context, state),
+                              _buildChatTab(context, state),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ),
         ],
       ),
@@ -185,8 +182,8 @@ class _AIChatPanelState extends State<AIChatPanel> {
                 child: OutlinedButton(
                   onPressed: () {
                     context.read<AddEditClinicalReportBloc>().add(
-                      AIEditRejected(),
-                    );
+                          AIEditRejected(),
+                        );
                   },
                   child: const Text('Reject'),
                 ),
@@ -196,8 +193,8 @@ class _AIChatPanelState extends State<AIChatPanel> {
                 child: ElevatedButton(
                   onPressed: () {
                     context.read<AddEditClinicalReportBloc>().add(
-                      AIEditAccepted(),
-                    );
+                          AIEditAccepted(),
+                        );
                   },
                   child: const Text('Accept'),
                 ),
@@ -392,7 +389,7 @@ class _AIChatPanelState extends State<AIChatPanel> {
                 Row(
                   children: [
                     Icon(
-                      Icons.auto_awesome,
+                      Icons.auto_awesome_outlined,
                       size: 16,
                       color: Theme.of(context).primaryColor,
                     ),
@@ -503,9 +500,8 @@ class _AIChatPanelState extends State<AIChatPanel> {
                     final message = state.chatMessages[index];
                     final isUser = message.sender == ChatMessageSender.user;
                     return Align(
-                      alignment: isUser
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment:
+                          isUser ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         constraints: BoxConstraints(
                           maxWidth: MediaQuery.of(context).size.width * 0.7,
@@ -582,8 +578,8 @@ class _AIChatPanelState extends State<AIChatPanel> {
                     onSubmitted: (value) {
                       if (value.isNotEmpty && state.report != null) {
                         context.read<AddEditClinicalReportBloc>().add(
-                          SendChatMessage(state.report!.id, value),
-                        );
+                              SendChatMessage(state.report!.id, value),
+                            );
                         chatController.clear();
                       }
                     },
@@ -602,8 +598,9 @@ class _AIChatPanelState extends State<AIChatPanel> {
                     if (chatController.text.isNotEmpty &&
                         state.report != null) {
                       context.read<AddEditClinicalReportBloc>().add(
-                        SendChatMessage(state.report!.id, chatController.text),
-                      );
+                            SendChatMessage(
+                                state.report!.id, chatController.text),
+                          );
                       chatController.clear();
                     }
                   },
@@ -663,4 +660,3 @@ class _AIChatPanelState extends State<AIChatPanel> {
     );
   }
 }
-

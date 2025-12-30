@@ -224,9 +224,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                 Text(
                   'Premium Feature',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.tertiary,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -313,24 +313,24 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   }
 
   List<Step> getSteps() => [
-    Step(
-      title: Text('recipient'.tr()),
-      content: _buildEmailSelectionSection(),
-      isActive: _currentStep >= 0,
-      state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-    ),
-    Step(
-      title: Text('assignRole'.tr()),
-      content: _buildRolesSection(),
-      isActive: _currentStep >= 1,
-      state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-    ),
-    Step(
-      title: Text('review'.tr()),
-      content: _buildReviewSection(),
-      isActive: _currentStep >= 2,
-    ),
-  ];
+        Step(
+          title: Text('recipient'.tr()),
+          content: _buildEmailSelectionSection(),
+          isActive: _currentStep >= 0,
+          state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+        ),
+        Step(
+          title: Text('assignRole'.tr()),
+          content: _buildRolesSection(),
+          isActive: _currentStep >= 1,
+          state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+        ),
+        Step(
+          title: Text('review'.tr()),
+          content: _buildReviewSection(),
+          isActive: _currentStep >= 2,
+        ),
+      ];
 
   Widget _buildReviewSection() {
     final String email = _useManualEntry
@@ -613,7 +613,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ...AppRole.values.map((role) {
-          if (role == AppRole.superAdmin) return const SizedBox.shrink();
           return RadioListTile<AppRole>(
             title: Text(_getRoleDisplayName(role)),
             subtitle: Text(
@@ -770,6 +769,12 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows access to billing, invoices, and financial reports.';
       case AppPermission.manageInvoices:
         return 'Allows creating and modifying invoices and payments.';
+      case AppPermission.addFinancialEntry:
+        return 'Allows adding new financial records (invoices, bills, transactions).';
+      case AppPermission.editFinancialEntry:
+        return 'Allows editing existing financial records.';
+      case AppPermission.deleteFinancialEntry:
+        return 'Allows deleting financial records.';
 
       // Copilot chat
       case AppPermission.useCopilot:
@@ -799,6 +804,34 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       case AppPermission.manageSettings:
         return 'Allows managing all settings.';
 
+      // Medical Files
+      case AppPermission.viewMedicalFiles:
+        return 'Allows viewing medical files.';
+      case AppPermission.addMedicalFile:
+        return 'Allows uploading or adding new medical files.';
+      case AppPermission.editMedicalFile:
+        return 'Allows editing medical file details.';
+      case AppPermission.deleteMedicalFile:
+        return 'Allows deleting medical files.';
+
+      // Medications
+      case AppPermission.viewMedications:
+        return 'Allows viewing patient medications.';
+      case AppPermission.addMedication:
+        return 'Allows prescribing or adding medications.';
+      case AppPermission.editMedication:
+        return 'Allows editing medication details.';
+      case AppPermission.deleteMedication:
+        return 'Allows removing medications.';
+
+      // Recycle Bin
+      case AppPermission.viewRecycleBin:
+        return 'Allows accessing the recycle bin.';
+      case AppPermission.restoreRecycleBinItem:
+        return 'Allows restoring deleted items.';
+      case AppPermission.permanentDeleteRecycleBinItem:
+        return 'Allows permanently deleting items.';
+
       // Admin
       case AppPermission.manageStaff:
         return 'Allows managing staff members.';
@@ -814,6 +847,36 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows generating and viewing detailed clinic reports.';
       case AppPermission.viewCharts:
         return 'Allows viewing data visualizations and performance charts.';
+
+      // Clinical Reports
+      case AppPermission.viewClinicalReports:
+        return 'Allows viewing clinical reports.';
+      case AppPermission.addClinicalReport:
+        return 'Allows creating new clinical reports.';
+      case AppPermission.editClinicalReport:
+        return 'Allows editing existing clinical reports.';
+      case AppPermission.deleteClinicalReport:
+        return 'Allows deleting clinical reports.';
+
+      // Doctors
+      case AppPermission.viewDoctors:
+        return 'Allows viewing the doctors directory.';
+      case AppPermission.manageDoctors:
+        return 'Allows adding, collecting, or removing doctors.';
+
+      // Invitations
+      case AppPermission.viewInvitations:
+        return 'Allows viewing pending and sent invitations.';
+      case AppPermission.sendInvitation:
+        return 'Allows sending new invitations to staff or doctors.';
+      case AppPermission.revokeInvitation:
+        return 'Allows revoking or deleting invitations.';
+
+      // Subscription
+      case AppPermission.viewSubscription:
+        return 'Allows viewing billing and subscription details.';
+      case AppPermission.manageSubscription:
+        return 'Allows upgrading or changing the subscription plan.';
 
       // Help/Support
       case AppPermission.viewHelp:
@@ -837,4 +900,3 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     }
   }
 }
-

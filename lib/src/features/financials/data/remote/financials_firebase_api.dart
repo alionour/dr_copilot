@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/financials/data/remote/abstract_financial_api.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
@@ -20,6 +21,9 @@ import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.d
 class FinancialsFirebaseApi extends AbstractFinancialApi {
   // --- Transactions CRUD ---
   final TransactionsUseCase transactionsUseCase;
+
+  /// The clinic ID of the user, fetched from OwnerNotifier.
+  String? get clinicId => OwnerNotifier().clinicId;
 
   /// The owner ID of the user, fetched from Firebase Auth.
   String? get ownerId => OwnerNotifier().ownerId;
@@ -49,15 +53,32 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
       String referenceId) async {
-    return await transactionsUseCase
-        .deleteTransactionByReferenceId(referenceId);
+    if (clinicId == null) {
+      return Left(ServerFailure(
+          'No clinic ID found. Please ensure you are assigned to a clinic.',
+          403));
+    }
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
+    return await transactionsUseCase.deleteTransactionByReferenceId(
+        clinicId!, referenceId);
   }
 
   // Fetch all transactions
   @override
   Future<Either<Failure, List<TransactionModel>>> fetchTransactions(
       {String? lastDocumentId, int? limit = 20}) async {
+    if (clinicId == null) {
+      return Left(ServerFailure(
+          'No clinic ID found. Please ensure you are assigned to a clinic.',
+          403));
+    }
+    if (!OwnerNotifier().hasPermission(AppPermission.viewFinancials)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     return await transactionsUseCase.getTransactions(
+      clinicId: clinicId!,
       lastDocumentId: lastDocumentId,
       limit: limit,
     );
@@ -67,6 +88,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, InvoiceModel>> addInvoice(
       {required InvoiceModel invoice}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -88,6 +112,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, InvoiceModel>> updateInvoice(
       {required InvoiceModel invoice}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.editFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -107,11 +134,19 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, List<InvoiceModel>>> fetchInvoices() async {
     try {
+      if (clinicId == null) {
+        return Left(ServerFailure(
+            'No clinic ID found. Please ensure you are assigned to a clinic.',
+            403));
+      }
+      if (!OwnerNotifier().hasPermission(AppPermission.viewFinancials)) {
+        return Left(ServerFailure('Permission denied', 403));
+      }
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final snapshot = await FirebaseFirestore.instance
             .collection('invoices')
-            .where('ownerId', isEqualTo: ownerId)
+            .where('clinicId', isEqualTo: clinicId)
             .get();
         final invoices = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -136,6 +171,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
 
   @override
   Future<Either<Failure, void>> deleteInvoice(String id) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -156,6 +194,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, InvoiceModel>> deleteInvoiceByReferenceId(
       String referenceId) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -181,6 +222,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   // --- Bill CRUD ---
   @override
   Future<Either<Failure, BillModel>> addBill({required BillModel bill}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.addFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -201,6 +245,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, BillModel>> updateBill(
       {required BillModel bill}) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.editFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -220,11 +267,19 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, List<BillModel>>> fetchBills() async {
     try {
+      if (clinicId == null) {
+        return Left(ServerFailure(
+            'No clinic ID found. Please ensure you are assigned to a clinic.',
+            403));
+      }
+      if (!OwnerNotifier().hasPermission(AppPermission.viewFinancials)) {
+        return Left(ServerFailure('Permission denied', 403));
+      }
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final snapshot = await FirebaseFirestore.instance
             .collection('bills')
-            .where('ownerId', isEqualTo: ownerId)
+            .where('clinicId', isEqualTo: clinicId)
             .get();
         final bills = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -248,6 +303,9 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
 
   @override
   Future<Either<Failure, void>> deleteBill(String id) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteFinancialEntry)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -702,4 +760,3 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
     }
   }
 }
-

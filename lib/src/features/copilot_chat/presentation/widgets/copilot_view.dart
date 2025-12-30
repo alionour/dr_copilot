@@ -77,7 +77,7 @@ class CopilotView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('copilotChat'.tr()),
-        leading: const Icon(Icons.chat),
+        leading: const Icon(Icons.chat_outlined),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
@@ -236,7 +236,7 @@ class CopilotView extends StatelessWidget {
                                                         padding:
                                                             EdgeInsets.all(2.0),
                                                         child: Icon(
-                                                          Icons.cancel,
+                                                          Icons.cancel_outlined,
                                                           color: Colors.red,
                                                           size: 20,
                                                         ),

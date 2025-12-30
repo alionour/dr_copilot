@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/features/auth/domain/models/role_permissions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 /// Service for checking user permissions based on their assigned roles.
 ///
@@ -11,15 +11,71 @@ class PermissionService {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
+  // Permission cache: clinicId -> list of permission names
+  final Map<String, List<String>> _permissionCache = {};
+  DateTime? _cacheExpiry;
+  static const _cacheDuration = Duration(minutes: 5);
+
   PermissionService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
   })  : _auth = auth ?? FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// Checks if the current user has a specific permission.
+  /// Synchronous permission check using cached permissions.
   ///
-  /// [permission] - The permission string to check (e.g., 'can_add_patient')
+  /// This is the preferred method for UI permission checks.
+  /// Returns false if permissions are not cached yet.
+  ///
+  /// [permission] - The AppPermission enum to check
+  /// [clinicId] - Optional clinic ID, falls back to user's primary clinic
+  bool hasPermissionSync(AppPermission permission, {String? clinicId}) {
+    final cached = _getCachedPermissions(clinicId);
+    final hasIt = cached?.contains(permission.name) ?? false;
+
+    if (!hasIt && cached != null) {
+      debugPrint(
+          '[PermissionService] Permission check FAILED: ${permission.name} not in cached permissions');
+      debugPrint('[PermissionService] User has: $cached');
+    }
+
+    return hasIt;
+  }
+
+  /// Get cached permissions for a clinic.
+  List<String>? _getCachedPermissions(String? clinicId) {
+    // Check if cache is expired
+    if (_cacheExpiry != null && DateTime.now().isAfter(_cacheExpiry!)) {
+      debugPrint('[PermissionService] Cache expired, clearing...');
+      _permissionCache.clear();
+      _cacheExpiry = null;
+      return null;
+    }
+
+    final key = clinicId ?? 'default';
+    return _permissionCache[key];
+  }
+
+  /// Set cached permissions for a clinic.
+  void _setCachedPermissions(String? clinicId, List<String> permissions) {
+    final key = clinicId ?? 'default';
+    _permissionCache[key] = permissions;
+    _cacheExpiry = DateTime.now().add(_cacheDuration);
+    debugPrint(
+        '[PermissionService] Cached ${permissions.length} permissions for clinic $key');
+  }
+
+  /// Clear the permission cache.
+  /// Call this on logout or when permissions change.
+  void clearCache() {
+    debugPrint('[PermissionService] Clearing permission cache');
+    _permissionCache.clear();
+    _cacheExpiry = null;
+  }
+
+  /// Checks if the current user has a specific permission (async).
+  ///
+  /// [permission] - The permission string to check (e.g., 'viewAllPatients')
   /// [clinicId] - Optional clinic ID to check clinic-specific roles
   ///
   /// Returns true if user has the permission, false otherwise.
@@ -73,118 +129,67 @@ class PermissionService {
   ///
   /// Returns a list of all permission strings the user has.
   /// Returns null on error.
+  /// Automatically caches results for better performance.
   Future<List<String>?> getUserPermissions({String? clinicId}) async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) return null;
 
     try {
-      // 1. Check if user is the OWNER of the clinic
-      if (clinicId != null) {
+      // Check cache first
+      final cached = _getCachedPermissions(clinicId);
+      if (cached != null) {
         debugPrint(
-            '[PermissionService] Checking owner for clinicId: $clinicId, userId: $userId');
-        final clinicDoc =
-            await _firestore.collection('clinics').doc(clinicId).get();
-        if (clinicDoc.exists) {
-          final ownerId = clinicDoc.data()?['ownerId'];
-          debugPrint('[PermissionService] Clinic ownerId: $ownerId');
-          if (ownerId == userId) {
+            '[PermissionService] Returning ${cached.length} cached permissions');
+        return cached;
+      }
+
+      // If no clinicId provided, try to get from user's primary clinic
+      String? targetClinicId = clinicId;
+      if (targetClinicId == null) {
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+        targetClinicId = userDoc.data()?['primaryClinicId'];
+      }
+
+      if (targetClinicId == null) {
+        debugPrint(
+            '[PermissionService] No clinicId available - cannot load permissions');
+        return null;
+      }
+
+      debugPrint(
+          '[PermissionService] Loading permissions from Firestore for userId: $userId, clinicId: $targetClinicId');
+
+      // Get permissions directly from clinic members subcollection
+      final memberDoc = await _firestore
+          .collection('clinics')
+          .doc(targetClinicId)
+          .collection('members')
+          .doc(userId)
+          .get();
+
+      if (memberDoc.exists) {
+        final memberData = memberDoc.data();
+        debugPrint('[PermissionService] Found member doc');
+
+        if (memberData != null && memberData['permissions'] != null) {
+          if (memberData['permissions'] is List) {
+            final permissions = List<String>.from(memberData['permissions']);
             debugPrint(
-                '[PermissionService] User is OWNER - granting all permissions');
-            // Owners get ALL permissions implicitly
-            return [
-              'can_add_patient',
-              'can_edit_patient',
-              'can_delete_patient',
-              'can_view_patient',
-              'can_add_session',
-              'can_edit_session',
-              'can_delete_session',
-              'can_view_session',
-              'can_add_evaluation',
-              'can_edit_evaluation',
-              'can_delete_evaluation',
-              'can_view_evaluation',
-              'can_view_analytics',
-              'can_manage_clinic',
-              'can_manage_staff',
-              'can_assign_roles',
-              'can_view_financials',
-              'can_use_copilot'
-            ];
+                '[PermissionService] Loaded ${permissions.length} permissions from Firestore');
+
+            // Cache the permissions
+            _setCachedPermissions(targetClinicId, permissions);
+
+            return permissions;
           }
         } else {
-          debugPrint(
-              '[PermissionService] Clinic doc does not exist for $clinicId');
+          debugPrint('[PermissionService] No permissions field in member doc');
         }
       } else {
-        debugPrint(
-            '[PermissionService] clinicId is NULL - skipping owner check');
+        debugPrint('[PermissionService] Member doc not found');
       }
 
-      // 2. Initial role set & direct permissions
-      List<String> userRoles = [];
-      Set<String> allPermissions = {};
-
-      // 3. Try to get roles and permissions from clinic members subcollection
-      if (clinicId != null) {
-        final memberDoc = await _firestore
-            .collection('clinics')
-            .doc(clinicId)
-            .collection('members')
-            .doc(userId)
-            .get();
-
-        if (memberDoc.exists) {
-          final memberData = memberDoc.data();
-          debugPrint('[PermissionService] Found member doc: $memberData');
-
-          if (memberData != null) {
-            // Handle Roles
-            if (memberData['role'] != null) {
-              if (memberData['role'] is String) {
-                userRoles.add(memberData['role'] as String);
-              } else if (memberData['role'] is List) {
-                userRoles.addAll(List<String>.from(memberData['role']));
-              }
-            }
-            if (memberData['roles'] != null && memberData['roles'] is List) {
-              userRoles.addAll(List<String>.from(memberData['roles']));
-            }
-
-            // Handle Direct Permissions
-            if (memberData['permissions'] != null) {
-              debugPrint('[PermissionService] Found direct permissions list');
-              if (memberData['permissions'] is List) {
-                allPermissions
-                    .addAll(List<String>.from(memberData['permissions']));
-              }
-            }
-          }
-        }
-      }
-
-      // 4. Fallback: Check user document for global roles (legacy/backup)
-      if (userRoles.isEmpty && allPermissions.isEmpty) {
-        final userDoc = await _firestore.collection('users').doc(userId).get();
-        final userData = userDoc.data();
-        if (userData != null && userData['roles'] != null) {
-          try {
-            userRoles = List<String>.from(userData['roles'] as List);
-          } catch (e) {
-            // Ignore parsing errors
-          }
-        }
-      }
-
-      debugPrint('[PermissionService] Final user roles: $userRoles');
-
-      // 5. Add Key-Based Permissions from Roles
-      for (final role in userRoles) {
-        final permissions = rolePermissions[role] ?? [];
-        allPermissions.addAll(permissions);
-      }
-
-      return allPermissions.toList();
+      return [];
     } catch (e) {
       debugPrint('[PermissionService] Error getting user permissions: $e');
       return null;
