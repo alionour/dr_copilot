@@ -7,6 +7,7 @@ import 'package:dr_copilot/src/features/financials/transactions/domain/models/tr
 abstract class AbstractTransactionsRepository {
   /// Fetches all transactions.
   Future<Either<Failure, List<TransactionModel>>> getTransactions({
+    required String clinicId, // Added clinicId
     String? lastDocumentId,
     int limit = 20,
   });
@@ -23,33 +24,41 @@ abstract class AbstractTransactionsRepository {
   Future<Either<Failure, void>> deleteTransaction(String id);
 
   /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
-  Future<Either<Failure, int>> getTransactionsCount();
+  Future<Either<Failure, int>> getTransactionsCount(
+      String clinicId); // Added clinicId
 
   /// Searches transactions based on criteria.
   Future<Either<Failure, List<TransactionModel>>> searchTransactions({
+    required String clinicId, // Added clinicId
     String? description,
   });
 
   /// Gets transactions by a specific date.
   Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
+      String clinicId, // Added clinicId
       DateTime date,
       {String? lastDocumentID,
       int limit = 20});
 
   /// Returns the total revenue (inwards) for a given year.
-  Future<Either<Failure, double>> getTotalRevenueForYear(int year);
+  Future<Either<Failure, double>> getTotalRevenueForYear(
+      String clinicId, int year);
 
   /// Returns the total expenses (outwards) for a given year.
-  Future<Either<Failure, double>> getTotalExpensesForYear(int year);
+  Future<Either<Failure, double>> getTotalExpensesForYear(
+      String clinicId, int year);
 
   /// Returns the total revenue (inwards) for a given month and year.
-  Future<Either<Failure, double>> getTotalRevenueForMonth(int year, int month);
+  Future<Either<Failure, double>> getTotalRevenueForMonth(
+      String clinicId, int year, int month);
 
   /// Returns the total expenses (outwards) for a given month and year.
-  Future<Either<Failure, double>> getTotalExpensesForMonth(int year, int month);
+  Future<Either<Failure, double>> getTotalExpensesForMonth(
+      String clinicId, int year, int month);
 
   /// Returns the total for a given direction (inwards/outwards) and optional source.
   Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required String clinicId, // Added clinicId
     required TransactionDirection direction,
     TransactionSource? source,
     int? year,
@@ -78,6 +87,5 @@ abstract class AbstractTransactionsRepository {
 
   /// Deletes a transaction by its reference ID.
   Future<Either<Failure, void>> deleteTransactionByReferenceId(
-      String referenceId);
+      String clinicId, String referenceId);
 }
-

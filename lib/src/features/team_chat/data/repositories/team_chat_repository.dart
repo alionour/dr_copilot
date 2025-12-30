@@ -6,7 +6,7 @@ class TeamChatRepository {
   final FirebaseFirestore _firestore;
 
   TeamChatRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Get all active conversations for a specific user
   Stream<List<TeamConversationModel>> getConversations(String userId) {
@@ -16,10 +16,10 @@ class TeamChatRepository {
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => TeamConversationModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => TeamConversationModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   /// Get messages for a specific conversation
@@ -31,10 +31,10 @@ class TeamChatRepository {
         .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => TeamMessageModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => TeamMessageModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   /// Send a message to a conversation
@@ -67,9 +67,8 @@ class TeamChatRepository {
     batch.set(messageRef, message.toFirestore());
 
     // 2. Update conversation last message details
-    final conversationRef = _firestore
-        .collection('team_conversations')
-        .doc(conversationId);
+    final conversationRef =
+        _firestore.collection('team_conversations').doc(conversationId);
 
     batch.update(conversationRef, {
       'lastMessage': type == MessageType.text ? content : '[Image]',
@@ -88,6 +87,12 @@ class TeamChatRepository {
     required String currentUserId,
     required String targetUserId,
   }) async {
+    // Starting a chat is available to all staff, but ideally checked against clinic membership.
+    // Since this is 1:1, basic membership (implicit) is usually enough,
+    // but strict mode might require `manageTeams` or similar. Keeping it open for now as 'chat' is basic.
+    // However, if we wanted strictness:
+    // if (!OwnerNotifier().hasPermission(AppPermission.manageTeams)) throw Exception('...');
+
     // 1. Check if 1-on-1 chat already exists
     // We need to find conversations with exactly 2 participants AND no teamId in metadata
     final querySnapshot = await _firestore
@@ -150,4 +155,3 @@ class TeamChatRepository {
     }
   }
 }
-

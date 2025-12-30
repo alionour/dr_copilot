@@ -58,11 +58,11 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
         if (_canLoadMore) {
           _canLoadMore = false;
           context.read<EvaluationsBloc>().add(
-            LoadMoreEvaluations(
-              lastDocumentId: state.evaluations.last.id,
-              limit: 20,
-            ),
-          );
+                LoadMoreEvaluations(
+                  lastDocumentId: state.evaluations.last.id,
+                  limit: 20,
+                ),
+              );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -107,8 +107,8 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                         _selectedIndex = 0; // Reset selection on new query
                       });
                       context.read<EvaluationsBloc>().add(
-                        SearchEvaluations(name: query),
-                      ); // Trigger search event
+                            SearchEvaluations(name: query),
+                          ); // Trigger search event
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -156,7 +156,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.filter_alt),
+                    icon: const Icon(Icons.filter_alt_outlined),
                     tooltip: 'toggleFilters'.tr(),
                     onPressed: () {
                       setState(() {
@@ -193,8 +193,8 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           if (!context.mounted) return;
 
                           context.read<EvaluationsBloc>().add(
-                            GetEvaluationsByDate(date: selectedDate),
-                          );
+                                GetEvaluationsByDate(date: selectedDate),
+                              );
                         }
                       },
                     ),
@@ -239,8 +239,8 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
               final evaluations = (state is EvaluationsLoaded)
                   ? state.evaluations
                   : (state is EvaluationsLoadingMore)
-                  ? state.evaluations
-                  : <EvaluationModel>[];
+                      ? state.evaluations
+                      : <EvaluationModel>[];
 
               final groupedEvaluations = <String, List<EvaluationModel>>{};
               for (var evaluation in evaluations) {
@@ -253,9 +253,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                     .add(evaluation);
               }
 
-              final sortedGroupedEvaluations =
-                  groupedEvaluations.entries.toList()
-                    ..sort((a, b) => b.key.compareTo(a.key));
+              final sortedGroupedEvaluations = groupedEvaluations.entries
+                  .toList()
+                ..sort((a, b) => b.key.compareTo(a.key));
 
               return Column(
                 children: [
@@ -267,15 +267,16 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Icon(Icons.assignment, size: 20, color: Colors.blue),
+                        Icon(Icons.assignment_outlined,
+                            size: 20, color: Colors.blue),
                         const SizedBox(width: 4),
                         Text(
                           '${evaluations.length} ',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
                         ),
                         Text(
                           'loaded'.tr(),
@@ -286,14 +287,16 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                             children: [
                               const SizedBox(width: 16),
                               Icon(
-                                Icons.cloud,
+                                Icons.cloud_outlined,
                                 size: 18,
                                 color: Colors.deepPurple,
                               ),
                               const SizedBox(width: 2),
                               Text(
                                 '$_firestoreEvaluationsCount',
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.deepPurple,
@@ -436,4 +439,3 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
     }
   }
 }
-

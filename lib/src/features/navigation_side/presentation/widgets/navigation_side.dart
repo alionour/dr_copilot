@@ -383,6 +383,37 @@ class _NavigationSideState extends State<NavigationSide> {
                                                         ),
                                                   ),
                                                 ),
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.orange
+                                                        .withOpacity(0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
+                                                    border: Border.all(
+                                                        color: Colors.orange,
+                                                        width: 1),
+                                                  ),
+                                                  child: Text(
+                                                    'BETA',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelSmall
+                                                        ?.copyWith(
+                                                          color: Colors
+                                                              .orange[800],
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 10,
+                                                          letterSpacing: 0.5,
+                                                        ),
+                                                  ),
+                                                ),
                                               ],
                                             ),
                                           );
@@ -481,7 +512,8 @@ class _NavigationSideState extends State<NavigationSide> {
                                                             url,
                                                           ) =>
                                                               const Icon(
-                                                            Icons.person_pin,
+                                                            Icons
+                                                                .account_circle_outlined,
                                                           ),
                                                           errorWidget: (
                                                             context,

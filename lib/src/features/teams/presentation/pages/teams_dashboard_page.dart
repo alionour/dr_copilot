@@ -43,8 +43,8 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSignedIn && authState.user?.primaryClinicId != null) {
       context.read<TeamsBloc>().add(
-        LoadTeamsEvent(clinicId: authState.user!.primaryClinicId!),
-      );
+            LoadTeamsEvent(clinicId: authState.user!.primaryClinicId!),
+          );
     }
   }
 
@@ -85,7 +85,8 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.group_off, size: 64, color: Colors.grey[400]),
+                    Icon(Icons.group_off_outlined,
+                        size: 64, color: Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
                       'noTeamsYet'.tr(),
@@ -120,7 +121,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.chat),
+                          icon: const Icon(Icons.chat_outlined),
                           onPressed: () => _startTeamChat(context, team),
                           tooltip: 'startChat'.tr(),
                         ),
@@ -130,7 +131,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                               value: 'edit',
                               child: Row(
                                 children: [
-                                  const Icon(Icons.edit),
+                                  const Icon(Icons.edit_outlined),
                                   const SizedBox(width: 8),
                                   Text('edit'.tr()),
                                 ],
@@ -144,7 +145,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                                 child: Row(
                                   children: [
                                     const Icon(
-                                      Icons.archive,
+                                      Icons.archive_outlined,
                                       color: Colors.orange,
                                     ),
                                     const SizedBox(width: 8),
@@ -193,28 +194,28 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       ),
       floatingActionButton:
           OwnerNotifier().hasPermission(AppPermission.createTeam)
-          ? FloatingActionButton.extended(
-              onPressed: () async {
-                final teamsBloc = context.read<TeamsBloc>();
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider.value(
-                      value: teamsBloc,
-                      child: const CreateEditTeamPage(),
-                    ),
-                  ),
-                );
+              ? FloatingActionButton.extended(
+                  onPressed: () async {
+                    final teamsBloc = context.read<TeamsBloc>();
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider.value(
+                          value: teamsBloc,
+                          child: const CreateEditTeamPage(),
+                        ),
+                      ),
+                    );
 
-                // Reload teams if a team was created/updated
-                if (result == true) {
-                  _loadTeams();
-                }
-              },
-              icon: const Icon(Icons.add),
-              label: Text('createTeam'.tr()),
-            )
-          : null,
+                    // Reload teams if a team was created/updated
+                    if (result == true) {
+                      _loadTeams();
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  label: Text('createTeam'.tr()),
+                )
+              : null,
     );
   }
 
@@ -274,12 +275,12 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
             .collection('team_conversations')
             .doc(conversationId)
             .set({
-              'clinicId': team.clinicId,
-              'participantIds': team.memberIds,
-              'createdAt': Timestamp.now(),
-              'updatedAt': Timestamp.now(),
-              'metadata': {'teamId': team.id, 'teamName': team.name},
-            });
+          'clinicId': team.clinicId,
+          'participantIds': team.memberIds,
+          'createdAt': Timestamp.now(),
+          'updatedAt': Timestamp.now(),
+          'metadata': {'teamId': team.id, 'teamName': team.name},
+        });
       }
 
       if (context.mounted) {
@@ -298,4 +299,3 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
     }
   }
 }
-

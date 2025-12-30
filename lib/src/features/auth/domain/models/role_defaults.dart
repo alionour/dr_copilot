@@ -9,7 +9,6 @@ import 'package:dr_copilot/src/features/notifications/domain/models/notification
 class RoleDefaults {
   static List<AppPermission> getPermissionsForRole(AppRole role) {
     switch (role) {
-      case AppRole.superAdmin:
       case AppRole.admin:
         return [
           ...AppPermission.values,
@@ -74,10 +73,6 @@ class RoleDefaults {
   static List<NotificationTargetType> getAllowedNotificationTargets(
     AppRole role,
   ) {
-    if (role == AppRole.superAdmin) {
-      return NotificationTargetType.values;
-    }
-
     if (role == AppRole.admin) {
       return [
         NotificationTargetType.ownerClinics,
@@ -95,4 +90,3 @@ class RoleDefaults {
     ];
   }
 }
-

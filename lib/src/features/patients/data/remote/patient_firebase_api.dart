@@ -33,6 +33,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
@@ -89,6 +92,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   Future<Either<Failure, PatientModel>> addPatient(PatientModel patient) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final data = patient.toJson();
         data.remove('id'); // Exclude the `id` field from the document data
@@ -96,6 +102,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           ...data,
           'userId': user.uid,
           "createdBy": user.uid,
+          'clinicId': clinicId,
         });
         final createdPatient = patient.copyWith(
           id: docRef.id, // Assign the generated document ID
@@ -173,6 +180,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
@@ -235,6 +245,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       {DocumentSnapshot? lastDocument, int limit = 20}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         final startOfMonth = DateTime(year, month, 1);
         final endOfMonth = DateTime(year, month + 1, 1);
@@ -315,6 +328,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
@@ -355,6 +371,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     }
     try {
       final user = _auth.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       if (user != null) {
         Query query =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
@@ -373,5 +392,83 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
-}
 
+  /// Gets all deleted patients (where deletedAt is not null).
+  @override
+  Future<Either<Failure, List<PatientModel>>> getDeletedPatients() async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
+      if (user != null) {
+        Query queryRef = _patientsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .where('deletedAt', isNull: false);
+
+        // Filter by createdBy if the user does not have permission to view all patients
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
+          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
+        }
+
+        final snapshot =
+            await queryRef.orderBy('deletedAt', descending: true).get();
+
+        List<PatientModel> patients = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) {
+            throw Exception('Document data is null');
+          }
+          return PatientModel.fromJson({
+            ...data,
+            'id': doc.id,
+          });
+        }).toList();
+
+        return Right(patients);
+      }
+      return Left(ServerFailure('User not authenticated', 401));
+    } catch (e) {
+      debugPrint('Error in getDeletedPatients: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Restores a deleted patient by setting deletedAt to null.
+  @override
+  Future<Either<Failure, void>> restorePatient(String id) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      await _patientsCollection.doc(id).update({
+        'deletedAt': null,
+      });
+      return const Right(null);
+    } catch (e) {
+      debugPrint('Error restoring patient: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Permanently deletes a patient from Firestore.
+  @override
+  Future<Either<Failure, void>> permanentlyDeletePatient(String id) async {
+    if (!await _isAuthenticated()) {
+      debugPrint('User not authenticated');
+      return Left(ServerFailure('User not authenticated', 401));
+    }
+    try {
+      await _patientsCollection.doc(id).delete();
+      return const Right(null);
+    } catch (e) {
+      debugPrint('Error permanently deleting patient: $e');
+      return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+}

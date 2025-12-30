@@ -134,7 +134,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.lock_outline_rounded,
+                Icons.lock_outline,
                 size: 64,
                 color: Theme.of(context).colorScheme.outline,
               ),
@@ -153,7 +153,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
               const SizedBox(height: 32),
               FilledButton.icon(
                 onPressed: () => context.push('/subscription_pricing'),
-                icon: const Icon(Icons.star),
+                icon: const Icon(Icons.star_border),
                 label: Text('upgrade'.tr()),
               ),
             ],
@@ -190,7 +190,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                       Row(
                         children: [
                           Icon(
-                            Icons.download_rounded,
+                            Icons.download_outlined,
                             size: 32,
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -229,37 +229,37 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                     children: [
                       _buildIncludedItem(
                         context,
-                        Icons.person,
+                        Icons.person_outline,
                         'userProfile'.tr(),
                       ),
                       _buildIncludedItem(
                         context,
-                        Icons.people,
+                        Icons.people_outline,
                         'patientsAndDoctors'.tr(),
                       ),
                       _buildIncludedItem(
                         context,
-                        Icons.description,
+                        Icons.description_outlined,
                         'clinicalReports'.tr(),
                       ),
                       _buildIncludedItem(
                         context,
-                        Icons.event,
+                        Icons.event_outlined,
                         'sessionsAndEvaluations'.tr(),
                       ),
                       _buildIncludedItem(
                         context,
-                        Icons.attach_money,
+                        Icons.monetization_on_outlined,
                         'financialRecords'.tr(),
                       ),
                       _buildIncludedItem(
                         context,
-                        Icons.chat,
+                        Icons.chat_outlined,
                         'copilotConversations'.tr(),
                       ),
                       _buildIncludedItem(
                         context,
-                        Icons.notifications,
+                        Icons.notifications_outlined,
                         'notifications'.tr(),
                         isLast: true,
                       ),
@@ -296,7 +296,9 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                             ),
                             Text(
                               '${(state.progress * 100).toStringAsFixed(0)}%',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -311,12 +313,12 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                         const SizedBox(height: 8),
                         Text(
                           state.currentCategory,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
@@ -336,7 +338,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                         Row(
                           children: [
                             Icon(
-                              Icons.check_circle,
+                              Icons.check_circle_outline,
                               color: Theme.of(context).colorScheme.primary,
                               size: 32,
                             ),
@@ -344,7 +346,9 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                             Expanded(
                               child: Text(
                                 'exportSuccess'.tr(),
-                                style: Theme.of(context).textTheme.titleMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
                                     ?.copyWith(
                                       color: Theme.of(
                                         context,
@@ -359,12 +363,12 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                           'exportSuccessDescription'.tr(
                             args: [_formatBytes(state.fileSize)],
                           ),
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                  ),
                         ),
                         const SizedBox(height: 16),
                         Wrap(
@@ -373,12 +377,12 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                           children: [
                             FilledButton.icon(
                               onPressed: () => _openFile(state.filePath),
-                              icon: const Icon(Icons.folder_open),
+                              icon: const Icon(Icons.folder_open_outlined),
                               label: Text('openFile'.tr()),
                             ),
                             OutlinedButton.icon(
                               onPressed: () => _shareFile(state.filePath),
-                              icon: const Icon(Icons.share),
+                              icon: const Icon(Icons.share_outlined),
                               label: Text('share'.tr()),
                             ),
                           ],
@@ -398,8 +402,8 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                       ? null
                       : () {
                           context.read<ExportBloc>().add(
-                            const ExportDataRequested(),
-                          );
+                                const ExportDataRequested(),
+                              );
                         },
                   icon: state is ExportInProgress
                       ? const SizedBox(
@@ -410,13 +414,13 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.download),
+                      : const Icon(Icons.download_outlined),
                   label: Text(
                     state is ExportInProgress
                         ? 'exporting'.tr()
                         : state is ExportSuccess
-                        ? 'exportAgain'.tr()
-                        : 'startExport'.tr(),
+                            ? 'exportAgain'.tr()
+                            : 'startExport'.tr(),
                   ),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -442,12 +446,12 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
                       Expanded(
                         child: Text(
                           'exportLegalNotice'.tr(),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                         ),
                       ),
                     ],
@@ -524,4 +528,3 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
     }
   }
 }
-

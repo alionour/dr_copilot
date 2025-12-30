@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 
@@ -22,21 +24,20 @@ class AuthUseCase {
 
   /// Authenticates a user with the provided [email] and [password].
   ///
-  /// Returns a [UserModel] object if authentication is successful.
-  ///
-  /// Throws an exception if authentication fails.
-  Future<UserModel?> signInWithEmailAndPassword(
+  /// Returns a [Right(UserModel)] object if authentication is successful.
+  /// Returns a [Left(Failure)] if authentication fails.
+  Future<Either<Failure, UserModel?>> signInWithEmailAndPassword(
       String email, String password) async {
     return await repository.signInWithEmailAndPassword(email, password);
   }
 
   /// Signs out the currently authenticated user.
-  Future<void> signOut() async {
-    await repository.signOut();
+  Future<Either<Failure, void>> signOut() async {
+    return await repository.signOut();
   }
 
   /// Returns the current authenticated user, or null if not signed in.
-  Future<UserModel?> getCurrentUser() async {
+  Future<Either<Failure, UserModel?>> getCurrentUser() async {
     return await repository.getCurrentUser();
   }
 
@@ -46,25 +47,25 @@ class AuthUseCase {
   }
 
   /// Signs in the user using Google authentication.
-  Future<UserModel?> signInWithGoogle() async {
+  Future<Either<Failure, UserModel?>> signInWithGoogle() async {
     return await repository.signInWithGoogle();
   }
 
   /// Registers a new user with email and password.
-  Future<UserModel?> signUpWithEmailAndPassword(
+  Future<Either<Failure, UserModel?>> signUpWithEmailAndPassword(
       String email, String password) async {
     return await repository.signUpWithEmailAndPassword(email, password);
   }
 
   /// Deletes the currently authenticated user.
-  Future<void> deleteCurrentUser() async {
-    await repository.deleteCurrentUser();
+  Future<Either<Failure, void>> deleteCurrentUser() async {
+    return await repository.deleteCurrentUser();
   }
 
   /// Updates the current user's display name and/or photo URL.
-  Future<void> updateProfile({String? displayName, String? photoURL}) async {
-    await repository.updateProfile(
+  Future<Either<Failure, void>> updateProfile(
+      {String? displayName, String? photoURL}) async {
+    return await repository.updateProfile(
         displayName: displayName, photoURL: photoURL);
   }
 }
-

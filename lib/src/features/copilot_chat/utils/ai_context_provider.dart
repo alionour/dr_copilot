@@ -73,7 +73,7 @@ class AIContextProvider {
     2. CHECK PARAMETERS: Compare user input against the function's parameters.
     3. SMART BATCHING: 
 $batchingInstructions
-       - Example: "I can help with that. Could you provide the patient's name${readableFields.isNotEmpty ? ', ' + readableFields.join(', ') : ', age, and phone number'}?"
+       - Example: "I can help with that. Could you provide the patient's name${readableFields.isNotEmpty ? ', ${readableFields.join(', ')}' : ', age, and phone number'}?"
     
     4. NO NAG: If the user provides just the Name and says "Skip the rest" or implies they are done, execute the function immediately. Do not insist on optional fields.
     

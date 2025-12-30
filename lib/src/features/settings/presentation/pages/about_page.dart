@@ -50,7 +50,6 @@ class _AboutPageState extends State<AboutPage>
           SliverAppBar(
             expandedHeight: 220,
             pinned: true,
-
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -171,49 +170,49 @@ class _AboutPageState extends State<AboutPage>
   Widget _buildFeaturesTab(ThemeData theme, ColorScheme colorScheme) {
     final features = [
       {
-        'icon': Icons.people_rounded,
+        'icon': Icons.people_outline,
         'title': 'featurePatientManagement'.tr(),
         'description': 'featurePatientManagementDesc'.tr(),
         'color': Colors.blue,
       },
       {
-        'icon': Icons.calendar_today_rounded,
+        'icon': Icons.calendar_today_outlined,
         'title': 'featureAppointments'.tr(),
         'description': 'featureAppointmentsDesc'.tr(),
         'color': Colors.purple,
       },
       {
-        'icon': Icons.receipt_long_rounded,
+        'icon': Icons.receipt_long_outlined,
         'title': 'featureBilling'.tr(),
         'description': 'featureBillingDesc'.tr(),
         'color': Colors.green,
       },
       {
-        'icon': Icons.description_rounded,
+        'icon': Icons.description_outlined,
         'title': 'featureClinicalReports'.tr(),
         'description': 'featureClinicalReportsDesc'.tr(),
         'color': Colors.orange,
       },
       {
-        'icon': Icons.psychology_rounded,
+        'icon': Icons.psychology_outlined,
         'title': 'featureAiAssistant'.tr(),
         'description': 'featureAiAssistantDesc'.tr(),
         'color': Colors.pink,
       },
       {
-        'icon': Icons.chat_rounded,
+        'icon': Icons.chat_outlined,
         'title': 'featureTeamChat'.tr(),
         'description': 'featureTeamChatDesc'.tr(),
         'color': Colors.teal,
       },
       {
-        'icon': Icons.analytics_rounded,
+        'icon': Icons.analytics_outlined,
         'title': 'featureFinancials'.tr(),
         'description': 'featureFinancialsDesc'.tr(),
         'color': Colors.indigo,
       },
       {
-        'icon': Icons.cloud_rounded,
+        'icon': Icons.cloud_outlined,
         'title': 'featureIntegrations'.tr(),
         'description': 'featureIntegrationsDesc'.tr(),
         'color': Colors.cyan,
@@ -234,7 +233,7 @@ class _AboutPageState extends State<AboutPage>
               child: Row(
                 children: [
                   Icon(
-                    Icons.info_outline_rounded,
+                    Icons.info_outline,
                     size: 32,
                     color: colorScheme.primary,
                   ),
@@ -295,7 +294,7 @@ class _AboutPageState extends State<AboutPage>
                   Row(
                     children: [
                       Icon(
-                        Icons.code_rounded,
+                        Icons.code,
                         color: colorScheme.primary,
                         size: 28,
                       ),
@@ -329,7 +328,7 @@ class _AboutPageState extends State<AboutPage>
                   Row(
                     children: [
                       Icon(
-                        Icons.build_circle_rounded,
+                        Icons.build_circle_outlined,
                         color: colorScheme.primary,
                         size: 28,
                       ),
@@ -345,32 +344,32 @@ class _AboutPageState extends State<AboutPage>
                   const SizedBox(height: 20),
                   ...[
                     {
-                      'icon': Icons.flutter_dash_rounded,
+                      'icon': Icons.flutter_dash,
                       'text': 'technologyFlutter'.tr(),
                       'color': Colors.blue,
                     },
                     {
-                      'icon': Icons.whatshot_rounded,
+                      'icon': Icons.whatshot,
                       'text': 'technologyFirebase'.tr(),
                       'color': Colors.orange,
                     },
                     {
-                      'icon': Icons.stars_rounded,
+                      'icon': Icons.stars,
                       'text': 'technologyGemini'.tr(),
                       'color': Colors.purple,
                     },
                     {
-                      'icon': Icons.auto_awesome_rounded,
+                      'icon': Icons.auto_awesome_outlined,
                       'text': 'technologyOpenAI'.tr(),
                       'color': Colors.green,
                     },
                     {
-                      'icon': Icons.psychology_rounded,
+                      'icon': Icons.get_app_outlined,
                       'text': 'technologyClaude'.tr(),
                       'color': Colors.pink,
                     },
                     {
-                      'icon': Icons.cloud_queue_rounded,
+                      'icon': Icons.cloud_queue,
                       'text': 'technologyGoogleCloud'.tr(),
                       'color': Colors.cyan,
                     },
@@ -382,7 +381,8 @@ class _AboutPageState extends State<AboutPage>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: (tech['color'] as Color).withValues(alpha: 0.1),
+                              color: (tech['color'] as Color)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -421,7 +421,7 @@ class _AboutPageState extends State<AboutPage>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      Icons.privacy_tip_rounded,
+                      Icons.privacy_tip_outlined,
                       color: colorScheme.primary,
                     ),
                   ),
@@ -441,7 +441,7 @@ class _AboutPageState extends State<AboutPage>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      Icons.gavel_rounded,
+                      Icons.gavel_outlined,
                       color: colorScheme.primary,
                     ),
                   ),
@@ -468,7 +468,7 @@ class _AboutPageState extends State<AboutPage>
       child: Column(
         children: [
           _ContactCard(
-            icon: Icons.email_rounded,
+            icon: Icons.email_outlined,
             title: 'contactEmailLabel'.tr(),
             value: 'contactEmailValue'.tr(),
             color: Colors.red,
@@ -483,7 +483,7 @@ class _AboutPageState extends State<AboutPage>
           ),
           const SizedBox(height: 16),
           _ContactCard(
-            icon: Icons.language_rounded,
+            icon: Icons.language_outlined,
             title: 'contactWebsiteLabel'.tr(),
             value: 'contactWebsiteValue'.tr(),
             color: Colors.blue,
@@ -498,7 +498,7 @@ class _AboutPageState extends State<AboutPage>
           ),
           const SizedBox(height: 16),
           _ContactCard(
-            icon: Icons.support_agent_rounded,
+            icon: Icons.support_agent,
             title: 'contactSupportChat'.tr(),
             value: 'messagingSupport'.tr(),
             color: Colors.green,
@@ -524,7 +524,7 @@ class _AboutPageState extends State<AboutPage>
           child: Column(
             children: [
               _SystemInfoRow(
-                icon: Icons.info_outline_rounded,
+                icon: Icons.info_outline,
                 label: 'appVersionLabel'.tr(),
                 value: _packageInfo!.version,
                 color: Colors.blue,
@@ -532,7 +532,7 @@ class _AboutPageState extends State<AboutPage>
               ),
               const Divider(height: 32),
               _SystemInfoRow(
-                icon: Icons.tag_rounded,
+                icon: Icons.tag,
                 label: 'buildNumberLabel'.tr(),
                 value: _packageInfo!.buildNumber,
                 color: Colors.purple,
@@ -540,7 +540,7 @@ class _AboutPageState extends State<AboutPage>
               ),
               const Divider(height: 32),
               _SystemInfoRow(
-                icon: Icons.devices_rounded,
+                icon: Icons.devices_other_outlined,
                 label: 'platformLabel'.tr(),
                 value: defaultTargetPlatform.name,
                 color: Colors.orange,
@@ -548,7 +548,7 @@ class _AboutPageState extends State<AboutPage>
               ),
               const Divider(height: 32),
               _SystemInfoRow(
-                icon: Icons.vpn_key_rounded,
+                icon: Icons.vpn_key_outlined,
                 label: 'App ID',
                 value: _packageInfo!.packageName,
                 color: Colors.green,
@@ -749,4 +749,3 @@ class _SystemInfoRow extends StatelessWidget {
     );
   }
 }
-

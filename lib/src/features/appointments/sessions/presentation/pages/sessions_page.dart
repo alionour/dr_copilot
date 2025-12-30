@@ -62,8 +62,9 @@ class _SessionsPageState extends State<SessionsPage> {
         if (_canLoadMore) {
           _canLoadMore = false;
           context.read<SessionsBloc>().add(
-            LoadMoreSessions(lastDocumentId: state.sessions.last.id, limit: 20),
-          );
+                LoadMoreSessions(
+                    lastDocumentId: state.sessions.last.id, limit: 20),
+              );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -108,8 +109,8 @@ class _SessionsPageState extends State<SessionsPage> {
                         _selectedIndex = 0; // Reset selection on new query
                       });
                       context.read<SessionsBloc>().add(
-                        SearchSessions(name: query),
-                      ); // Trigger search event
+                            SearchSessions(name: query),
+                          ); // Trigger search event
                     },
                     onSubmitted: (_) {
                       _listFocusNode.requestFocus();
@@ -157,7 +158,7 @@ class _SessionsPageState extends State<SessionsPage> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.filter_alt),
+                    icon: const Icon(Icons.filter_alt_outlined),
                     tooltip: 'toggleFilters'.tr(),
                     onPressed: () {
                       setState(() {
@@ -194,8 +195,8 @@ class _SessionsPageState extends State<SessionsPage> {
                           if (!context.mounted) return;
 
                           context.read<SessionsBloc>().add(
-                            GetSessionsByDate(date: selectedDate),
-                          );
+                                GetSessionsByDate(date: selectedDate),
+                              );
                         }
                       },
                     ),
@@ -254,8 +255,8 @@ class _SessionsPageState extends State<SessionsPage> {
               final sessions = (state is SessionsLoaded)
                   ? state.sessions
                   : (state is SessionsLoadingMore)
-                  ? state.sessions
-                  : <SessionModel>[];
+                      ? state.sessions
+                      : <SessionModel>[];
 
               final groupedSessions = <String, List<SessionModel>>{};
               for (var session in sessions) {
@@ -283,15 +284,16 @@ class _SessionsPageState extends State<SessionsPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Icon(Icons.assignment, size: 20, color: Colors.blue),
+                        Icon(Icons.assignment_outlined,
+                            size: 20, color: Colors.blue),
                         const SizedBox(width: 4),
                         Text(
                           '${sessions.length} ',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
                         ),
                         Text(
                           'loaded'.tr(),
@@ -299,11 +301,14 @@ class _SessionsPageState extends State<SessionsPage> {
                         ),
                         if (_firestoreSessionsCount != null) ...[
                           const SizedBox(width: 16),
-                          Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
+                          Icon(Icons.cloud_outlined,
+                              size: 18, color: Colors.deepPurple),
                           const SizedBox(width: 2),
                           Text(
                             '$_firestoreSessionsCount',
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.deepPurple,
@@ -446,4 +451,3 @@ class _SessionsPageState extends State<SessionsPage> {
     ).format(parsedDate ?? DateTime.now());
   }
 }
-

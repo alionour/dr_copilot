@@ -98,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                                 width: 120,
                                 height: 120,
                                 placeholderBuilder: (context) => const Icon(
-                                  Icons.local_hospital,
+                                  Icons.local_hospital_outlined,
                                   size: 80,
                                   color: Colors.blue,
                                 ),
@@ -109,7 +109,9 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 32),
                         Text(
                           'welcomeBack'.tr(),
-                          style: Theme.of(context).textTheme.headlineMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
@@ -119,12 +121,12 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 8),
                         Text(
                           'signInToContinue'.tr(),
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 48),
@@ -199,21 +201,25 @@ class _LoginPageState extends State<LoginPage> {
                           child: Column(
                             children: [
                               Icon(
-                                Icons.security,
+                                Icons.security_outlined,
                                 size: 32,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'secureAuthentication'.tr(),
-                                style: Theme.of(context).textTheme.titleSmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
                                     ?.copyWith(fontWeight: FontWeight.w600),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'googleAuthDescription'.tr(),
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
                                         context,
@@ -236,4 +242,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-

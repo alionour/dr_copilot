@@ -265,52 +265,58 @@ class DeleteTransaction extends FinancialsEvent {
 
 /// Event to fetch total revenue (inwards) for a given year.
 class FetchTotalRevenueForYear extends FinancialsEvent {
+  final String clinicId;
   final int year;
-  const FetchTotalRevenueForYear(this.year);
+  const FetchTotalRevenueForYear(this.clinicId, this.year);
   @override
-  List<Object?> get props => [year];
+  List<Object?> get props => [clinicId, year];
 }
 
 /// Event to fetch total expenses (outwards) for a given year.
 class FetchTotalExpensesForYear extends FinancialsEvent {
+  final String clinicId;
   final int year;
-  const FetchTotalExpensesForYear(this.year);
+  const FetchTotalExpensesForYear(this.clinicId, this.year);
   @override
-  List<Object?> get props => [year];
+  List<Object?> get props => [clinicId, year];
 }
 
 /// Event to fetch total revenue (inwards) for a given month and year.
 class GetTotalRevenueForMonth extends FinancialsEvent {
+  final String clinicId;
   final int year;
   final int month;
-  const GetTotalRevenueForMonth(this.year, this.month);
+  const GetTotalRevenueForMonth(this.clinicId, this.year, this.month);
   @override
-  List<Object?> get props => [year, month];
+  List<Object?> get props => [clinicId, year, month];
 }
 
 /// Event to fetch total expenses (outwards) for a given month and year.
 class GetTotalExpensesForMonth extends FinancialsEvent {
+  final String clinicId;
   final int year;
   final int month;
-  const GetTotalExpensesForMonth(this.year, this.month);
+  const GetTotalExpensesForMonth(this.clinicId, this.year, this.month);
   @override
-  List<Object?> get props => [year, month];
+  List<Object?> get props => [clinicId, year, month];
 }
 
 /// Event to fetch total for a given direction and optional source, year, and month.
 class FetchTotalByDirectionAndSource extends FinancialsEvent {
+  final String clinicId;
   final TransactionDirection direction;
   final TransactionSource? source;
   final int? year;
   final int? month;
   const FetchTotalByDirectionAndSource({
+    required this.clinicId,
     required this.direction,
     this.source,
     this.year,
     this.month,
   });
   @override
-  List<Object?> get props => [direction, source, year, month];
+  List<Object?> get props => [clinicId, direction, source, year, month];
 }
 
 ///Event to pay a bill
@@ -320,4 +326,3 @@ class PayBill extends FinancialsEvent {
   @override
   List<Object?> get props => [bill];
 }
-

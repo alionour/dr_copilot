@@ -28,16 +28,6 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     on<LoadMoreTransactions>(_onLoadMoreTransactions);
     on<UpdateTransactionEvent>(_onUpdateTransaction);
     on<GetTransactionsCount>(_onGetTransactionsCount);
-
-    /// Initial event to fetch transactions when the bloc is created.
-    /// Used in [DashboardPage].
-    /// Adds a [GetTransactions] event to the bloc with the following parameters:
-    /// - [lastDocumentID]: `null`, indicating that transactions should be fetched from the beginning.
-    /// - [limit]: `3`, specifying the maximum number of transactions to retrieve.
-    add(GetTransactions(
-      lastDocumentID: null,
-      limit: 3,
-    ));
   }
 
   /// Handles fetching all financial transactions.
@@ -45,6 +35,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       GetTransactions event, Emitter<TransactionsState> emit) async {
     emit(TransactionsLoading(state.transactions));
     final failureOrTransactions = await _transactionsUseCase.getTransactions(
+      clinicId: event.clinicId,
       lastDocumentId: event.lastDocumentID,
       limit: event.limit,
     );
@@ -125,6 +116,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     emit(TransactionsLoading(state.transactions));
 
     final failureOrTransactions = await _transactionsUseCase.searchTransactions(
+      clinicId: event.clinicId,
       description: event.description,
     );
 
@@ -152,6 +144,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       emit(TransactionsLoaded(currentState.transactions, isLoadingMore: true));
       await Future.delayed(Duration(seconds: 1));
       final result = await _transactionsUseCase.getTransactions(
+        clinicId: event.clinicId,
         lastDocumentId: event.lastDocumentId,
         limit: event.limit,
       );
@@ -186,6 +179,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     emit(TransactionsLoading(state.transactions));
 
     final result = await _transactionsUseCase.getTransactionsByDate(
+      event.clinicId,
       event.date,
     );
     emit(result.fold(
@@ -208,12 +202,13 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   /// - [emit]: The function used to emit new [Tr]s.
   void _onGetTransactionsCount(
       GetTransactionsCount event, Emitter<TransactionsState> emit) async {
-    final failureOrCount = await _transactionsUseCase.getTransactionsCount();
+    final failureOrCount =
+        await _transactionsUseCase.getTransactionsCount(event.clinicId);
     emit(failureOrCount.fold(
       (failure) => TransactionsError(state.transactions,
           message: _mapFailureToMessage(failure)),
       (acc) {
-        debugPrint('Total transactions count: $count');
+        debugPrint('Total transactions count: $acc');
 
         emit(TransactionsCountLoaded(acc, state.transactions));
         return TransactionsLoaded(state.transactions);
@@ -258,4 +253,3 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     }
   }
 }
-
