@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 // import 'package:dr_copilot/src/features/admin/presentation/pages/admin_migration_page.dart'; // REMOVED
 
+/// The main settings page of the application.
+///
+/// Displays various settings sections like General, Copilot Preference, App Settings, etc.
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 

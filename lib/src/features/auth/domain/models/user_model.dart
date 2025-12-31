@@ -14,9 +14,17 @@ part 'user_model.g.dart';
 @JsonSerializable()
 class UserModel {
   // === Firestore fields (stored in database) ===
+
+  /// The unique identifier for the user (from Firebase Auth).
   final String uid;
+
+  /// The user's email address.
   final String? email;
+
+  /// The user's display name.
   final String? displayName;
+
+  /// The URL of the user's profile photo.
   final String? photoURL;
 
   /// Multi-clinic support - array of clinic memberships with roles
@@ -125,8 +133,11 @@ class UserModel {
 
   // Helper methods for clinic-based roles
 
-  /// Get user's role in a specific clinic
-  /// First checks the clinics array, then falls back to Firestore if not found
+  /// Gets the user's role in a specific clinic.
+  ///
+  /// First checks the [clinics] array (new structure), then falls back to
+  /// checking the `clinics/{clinicId}/members/{uid}` document in Firestore
+  /// (migration fallback).
   Future<String?> getRoleInClinic(String clinicId) async {
     // First, try to get role from clinics array (new multi-clinic structure)
     if (clinics != null) {
@@ -168,18 +179,18 @@ class UserModel {
     return null;
   }
 
-  /// Check if user is admin in a specific clinic
+  /// Checks if the user is an admin in a specific clinic.
   Future<bool> isAdminInClinic(String clinicId) async {
     final role = await getRoleInClinic(clinicId);
     return role?.toLowerCase() == 'admin';
   }
 
-  /// Check if user belongs to a specific clinic
+  /// Checks if the user belongs to a specific clinic.
   bool belongsToClinic(String clinicId) {
     return clinicIds?.contains(clinicId) ?? false;
   }
 
-  /// Get all clinic IDs where user is admin
+  /// Gets all clinic IDs where the user has the 'admin' role.
   List<String> get adminClinicIds {
     if (clinics == null) return [];
     return clinics!

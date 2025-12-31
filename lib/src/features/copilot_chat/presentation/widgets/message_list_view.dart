@@ -10,6 +10,7 @@ class MessageListView extends StatelessWidget {
   final String? currentUserPhotoUrl;
   final String? currentUserDisplayName;
   final List<String>? userPermissions;
+  final Function(bool isLike, String messageId) onFeedback;
 
   const MessageListView({
     super.key,
@@ -17,6 +18,7 @@ class MessageListView extends StatelessWidget {
     required this.messages,
     required this.isLoading,
     required this.onEdit,
+    required this.onFeedback,
     this.currentUserPhotoUrl,
     this.currentUserDisplayName,
     this.userPermissions,
@@ -70,13 +72,16 @@ class MessageListView extends StatelessWidget {
             }
 
             final message = messages[index];
+            final isLastMessage = index == messages.length - 1;
             return MessageBubble(
               message: message,
+              isLastMessage: isLastMessage,
               currentUserPhotoUrl: currentUserPhotoUrl,
               currentUserDisplayName: currentUserDisplayName,
               onEdit: (newText) {
                 onEdit(message['id'], newText);
               },
+              onFeedback: onFeedback,
             );
           },
         ),

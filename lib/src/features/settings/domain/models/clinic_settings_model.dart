@@ -1,12 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
+/// A model class representing clinic-specific settings.
 class ClinicSettingsModel extends Equatable {
+  /// The working days of the clinic (1 = Monday, 7 = Sunday).
   final List<int> workingDays;
+
+  /// The list of required fields for Copilot AI generation.
   final List<String> copilotRequiredFields;
+
+  /// The timestamp when the settings were last updated.
   final DateTime? lastUpdated;
+
+  /// The ID of the user who last updated the settings.
   final String? updatedBy;
 
+  /// Creates a new [ClinicSettingsModel] instance.
   const ClinicSettingsModel({
     this.workingDays = const [1, 2, 3, 4, 5],
     this.copilotRequiredFields = const [],

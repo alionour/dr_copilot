@@ -2,7 +2,79 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
+import 'package:dr_copilot/src/features/medical_files/domain/models/medical_file_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+/// Shows a details dialog for medical files with key-value metadata.
+void _showMedicalFileDetailsDialog(
+    BuildContext context, MedicalFileModel file) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(file.title),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailRow(context, 'type'.tr(), file.type),
+            _buildDetailRow(
+                context, 'date'.tr(), file.date.toString().split(' ')[0]),
+            if (file.description != null && file.description!.isNotEmpty)
+              _buildDetailRow(context, 'description'.tr(), file.description!),
+            if (file.metadata != null && file.metadata!.isNotEmpty) ...[
+              const Divider(),
+              Text(
+                'attributes'.tr(),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              ...file.metadata!.entries.map(
+                (entry) => _buildDetailRow(context, entry.key, entry.value),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('close'.tr()),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Builds a row displaying a label and value pair.
+Widget _buildDetailRow(BuildContext context, String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            '$label:',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
 class MedicalFileListWidget extends StatelessWidget {
   final String patientId;
@@ -55,7 +127,7 @@ class MedicalFileListWidget extends StatelessWidget {
                         await launchUrl(uri);
                       }
                     } else {
-                      // TODO: Show details dialog for "key-value" only records
+                      _showMedicalFileDetailsDialog(context, file);
                     }
                   },
                   child: Column(
@@ -64,23 +136,23 @@ class MedicalFileListWidget extends StatelessWidget {
                       Expanded(
                         child: file.fileUrl != null
                             ? (file.type == 'X-Ray' ||
-                                      file.type == 'Image' ||
-                                      file.fileUrl!.endsWith('.jpg') ||
-                                      file.fileUrl!.endsWith('.png'))
-                                  ? Image.network(
-                                      file.fileUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                      ),
-                                    )
-                                  : const Center(
-                                      child: Icon(
-                                        Icons.insert_drive_file,
-                                        size: 50,
-                                      ),
-                                    )
+                                    file.type == 'Image' ||
+                                    file.fileUrl!.endsWith('.jpg') ||
+                                    file.fileUrl!.endsWith('.png'))
+                                ? Image.network(
+                                    file.fileUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.broken_image,
+                                      size: 50,
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.insert_drive_file,
+                                      size: 50,
+                                    ),
+                                  )
                             : const Center(
                                 child: Icon(Icons.info, size: 50),
                               ), // No file, just data
@@ -106,7 +178,9 @@ class MedicalFileListWidget extends StatelessWidget {
                                 file.metadata!.isNotEmpty)
                               Text(
                                 '${file.metadata!.length} attributes',
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(fontStyle: FontStyle.italic),
                               ),
                           ],
@@ -132,4 +206,3 @@ class MedicalFileListWidget extends StatelessWidget {
     );
   }
 }
-

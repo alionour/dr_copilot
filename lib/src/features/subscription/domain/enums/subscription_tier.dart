@@ -1,6 +1,12 @@
+/// Enum representing the available subscription tiers.
 enum SubscriptionTier {
+  /// Free tier with limited features.
   free,
+
+  /// Professional tier with enhanced features.
   pro,
+
+  /// Elite tier with full access to all premium features.
   elite;
 
   /// Returns true if the plan allows adding team members (inviting others).
@@ -84,4 +90,3 @@ enum SubscriptionTier {
     }
   }
 }
-

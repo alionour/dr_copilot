@@ -9,7 +9,6 @@ import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.d
 import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 class MockEvaluationsUseCase extends Mock implements EvaluationsUseCase {}
 

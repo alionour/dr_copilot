@@ -391,7 +391,7 @@ class _NavigationSideState extends State<NavigationSide> {
                                                       vertical: 2),
                                                   decoration: BoxDecoration(
                                                     color: Colors.orange
-                                                        .withOpacity(0.2),
+                                                        .withValues(alpha: 0.2),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             4),

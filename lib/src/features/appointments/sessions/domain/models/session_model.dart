@@ -4,11 +4,21 @@ import 'package:json_annotation/json_annotation.dart';
 part 'session_model.g.dart';
 
 /// Class for session type presets
+/// Class defining preset types for sessions with standard names.
 class SessionTypePresets {
+  /// Preset for Pediatric Intensive sessions.
   static const String pediatricIntensive = 'Pediatric Intensive';
+
+  /// Preset for Adult Intensive sessions.
   static const String adultIntensive = 'Adult Intensive';
+
+  /// Preset for Standard sessions.
   static const String standard = 'Standard';
+
+  /// Preset for Traction sessions.
   static const String traction = 'Traction';
+
+  /// Preset for Custom sessions.
   static const String custom = 'Custom';
 
   static const List<String> values = [
@@ -71,34 +81,61 @@ class NullableTimestampConverter implements JsonConverter<Timestamp?, dynamic> {
 }
 
 @JsonSerializable()
+
+/// A model class representing a therapy session.
+@JsonSerializable()
 class SessionModel {
+  /// The unique identifier of the session.
   final String id;
+
+  /// The ID of the patient attending the session.
   final String patientId;
+
+  /// The cost/price of the session.
   final double price;
 
+  /// The start date and time of the session.
   @TimestampConverter()
   final Timestamp startDateTime;
 
+  /// The end date and time of the session.
   @TimestampConverter()
   final Timestamp endDateTime;
 
+  /// The type of the session (e.g., Standard, Intensive).
   final String? sessionType;
+
+  /// The ID of the owner/clinic admin.
   final String ownerId;
+
+  /// The ID of the clinic where the session is held.
   final String clinicId;
+
+  /// The ID of the user who created the session record.
   final String createdBy;
+
+  /// The name of the patient (denormalized for convenient display).
   final String? patientName;
+
+  /// The ID of the user who last updated the session record.
   final String? updatedBy;
+
+  /// The ID of the user who deleted the session record (if soft deleted).
   final String? deletedBy;
 
+  /// The timestamp when the session was soft deleted.
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
 
+  /// The timestamp when the session record was created.
   @TimestampConverter()
   final Timestamp createdAt;
 
+  /// The timestamp when the session record was last updated.
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
 
+  /// The ID of the doctor conducting the session.
   final String? doctorId;
 
   SessionModel({
@@ -163,4 +200,3 @@ class SessionModel {
     );
   }
 }
-

@@ -22,6 +22,7 @@ part 'financials_state.dart';
 /// Bloc for managing financial transactions.
 class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
   // --- Bill CRUD Handlers ---
+  /// Handles fetching all bills.
   Future<void> _onFetchBills(
       FetchBills event, Emitter<FinancialsState> emit) async {
     final result = await financialsUseCase.fetchBills();
@@ -42,6 +43,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     );
   }
 
+  /// Handles adding a new bill.
   Future<void> _onAddBill(AddBill event, Emitter<FinancialsState> emit) async {
     final result = await financialsUseCase.addBill(bill: event.bill);
     result.fold(
@@ -52,6 +54,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     );
   }
 
+  /// Handles updating an existing bill.
   Future<void> _onUpdateBill(
       UpdateBill event, Emitter<FinancialsState> emit) async {
     final result = await financialsUseCase.updateBill(bill: event.bill);
@@ -63,6 +66,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     );
   }
 
+  /// Handles deleting a bill.
   Future<void> _onDeleteBill(
       DeleteBill event, Emitter<FinancialsState> emit) async {
     final result = await financialsUseCase.deleteBill(event.id);
@@ -257,6 +261,7 @@ class FinancialsBloc extends Bloc<FinancialsEvent, FinancialsState> {
     );
   }
 
+  /// Handles generating bills from scheduled bill definitions.
   Future<void> _onGenerateBillsFromScheduled(
       GenerateBillsFromScheduled event, Emitter<FinancialsState> emit) async {
     // 1. Fetch all scheduled bills

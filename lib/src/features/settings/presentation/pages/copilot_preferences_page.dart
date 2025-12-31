@@ -1,9 +1,8 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:provider/provider.dart';
 
 class CopilotPreferencesPage extends StatelessWidget {
   const CopilotPreferencesPage({super.key});
@@ -24,7 +23,7 @@ class CopilotPreferencesPage extends StatelessWidget {
             children: [
               if (!canEdit)
                 Container(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: Colors.amber.withValues(alpha: 0.1),
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
@@ -43,6 +42,22 @@ class CopilotPreferencesPage extends StatelessWidget {
                     ],
                   ),
                 ),
+              _buildSectionHeader(context, 'Model Preferences'),
+              SwitchListTile(
+                title: const Text('Use Premium Models'),
+                subtitle: const Text(
+                  'Always use advanced models (e.g., GPT-4, Claude 3 Opus) for better quality, even on simple queries.',
+                ),
+                value: state.usePremiumModels,
+                onChanged: canEdit
+                    ? (value) {
+                        context
+                            .read<SettingsBloc>()
+                            .add(UpdateUsePremiumModelsEvent(value));
+                      }
+                    : null,
+              ),
+              const Divider(),
               _buildSectionHeader(context, 'Patient Data Requirements'),
               _buildSwitch(
                 context,

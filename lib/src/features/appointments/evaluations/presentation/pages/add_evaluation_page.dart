@@ -93,9 +93,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
 
   Future<void> _fetchCurrencyProfiles() async {
     try {
-      final failureOrProfiles = await context
-          .read<EvaluationsBloc>()
-          .getCurrencyProfiles();
+      final failureOrProfiles =
+          await context.read<EvaluationsBloc>().getCurrencyProfiles();
+      if (!mounted) return;
       failureOrProfiles.fold(
         (failure) {
           debugPrint('Failed to fetch currency profiles: ${failure.message}');
@@ -111,7 +111,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       );
     } catch (e) {
       debugPrint('Error in _fetchCurrencyProfiles: $e');
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
       );
@@ -134,9 +134,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final DateTime initialDate = isStart
-        ? _startDate!.toDate()
-        : _endDate!.toDate();
+    final DateTime initialDate =
+        isStart ? _startDate!.toDate() : _endDate!.toDate();
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -146,7 +145,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     );
 
     if (pickedDate != null) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() {
         if (isStart) {
           _startDate = Timestamp.fromDate(
@@ -181,8 +180,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     final int roundedMinute = (minute < 15)
         ? 0
         : (minute < 45)
-        ? 30
-        : 0;
+            ? 30
+            : 0;
     final int hour = (minute >= 45) ? dateTime.hour + 1 : dateTime.hour;
     return DateTime(
       dateTime.year,
@@ -194,9 +193,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
   }
 
   Future<void> _selectTime(BuildContext context, bool isStart) async {
-    final DateTime initialDate = isStart
-        ? _startDate!.toDate()
-        : _endDate!.toDate();
+    final DateTime initialDate =
+        isStart ? _startDate!.toDate() : _endDate!.toDate();
     final TimeOfDay initialTime = TimeOfDay.fromDateTime(initialDate);
 
     final TimeOfDay? pickedTime = await showTimePicker(
@@ -205,7 +203,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     );
 
     if (pickedTime != null) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() {
         final DateTime selectedDateTime = DateTime(
           initialDate.year,
@@ -275,10 +273,12 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           LimitType.evaluations,
         );
 
-        if (!canAdd && mounted) {
+        if (!canAdd) {
+          if (!mounted) return;
           _showUpgradeDialog(context, 'evaluationLimitReached'.tr());
           return;
         }
+        if (!mounted) return;
       }
 
       if (_selectedInvoiceStatus == null && widget.evaluation == null) {
@@ -298,13 +298,11 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         endDateTime: _endDate!,
         createdAt: widget.evaluation?.createdAt ?? now,
         price: double.parse(_actualPriceController.text),
-        ownerId:
-            widget.evaluation?.ownerId ??
+        ownerId: widget.evaluation?.ownerId ??
             FirebaseAuth.instance.currentUser?.uid ??
             '',
         clinicId: _selectedClinicId!,
-        createdBy:
-            widget.evaluation?.createdBy ??
+        createdBy: widget.evaluation?.createdBy ??
             FirebaseAuth.instance.currentUser?.uid ??
             '',
         doctorId: _selectedDoctor?.id,
@@ -312,16 +310,16 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
 
       if (widget.evaluation != null) {
         context.read<EvaluationsBloc>().add(
-          UpdateEvaluation(evaluation.id, evaluation),
-        );
+              UpdateEvaluation(evaluation.id, evaluation),
+            );
       } else {
         context.read<EvaluationsBloc>().add(
-          AddEvaluation(
-            evaluation,
-            invoiceStatus: _selectedInvoiceStatus!,
-            currencyProfileId: _selectedCurrencyProfile!.id,
-          ),
-        );
+              AddEvaluation(
+                evaluation,
+                invoiceStatus: _selectedInvoiceStatus!,
+                currencyProfileId: _selectedCurrencyProfile!.id,
+              ),
+            );
       }
     }
   }
@@ -557,8 +555,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                             query = newQuery;
                                           });
                                           context.read<PatientsBloc>().add(
-                                            SearchPatients(name: query),
-                                          );
+                                                SearchPatients(name: query),
+                                              );
                                         },
                                         onFieldSubmitted: (_) {
                                           FocusScope.of(
@@ -576,8 +574,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                             shrinkWrap: true,
                                             itemCount:
                                                 _filteredPatients.length > 5
-                                                ? 5
-                                                : _filteredPatients.length,
+                                                    ? 5
+                                                    : _filteredPatients.length,
                                             itemBuilder: (context, index) {
                                               return ListTile(
                                                 title: Text(
@@ -590,7 +588,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                         _filteredPatients[index]
                                                             .name;
                                                     _selectedPatient =
-                                                        _filteredPatients[index];
+                                                        _filteredPatients[
+                                                            index];
                                                     _filteredPatients = [];
                                                   });
                                                   FocusScope.of(
@@ -614,8 +613,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Tooltip(
-                                                  message: 'goToAddPatient'
-                                                      .tr(),
+                                                  message:
+                                                      'goToAddPatient'.tr(),
                                                   child: IconButton(
                                                     icon: const Icon(
                                                       Icons.arrow_forward,
@@ -641,7 +640,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'startDateTime'.tr(),
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -692,7 +693,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'endDateTime'.tr(),
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -743,7 +746,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 '${'duration'.tr()}: ${_endDate!.toDate().difference(_startDate!.toDate()).inMinutes / 60.0} ${'hours'.tr()}',
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -764,7 +769,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               alignment: AlignmentDirectional.centerStart,
                               child: Text(
                                 'actualPrice'.tr(),
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -851,55 +858,47 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       Row(
                                         children: [
                                           Expanded(
-                                            child:
-                                                DropdownButtonFormField<
-                                                  CurrencyProfileModel
-                                                >(
-                                                  initialValue:
-                                                      _selectedCurrencyProfile,
-                                                  decoration: InputDecoration(
-                                                    labelText: 'currencyProfile'
-                                                        .tr(),
-                                                    labelStyle:
-                                                        Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
+                                            child: DropdownButtonFormField<
+                                                CurrencyProfileModel>(
+                                              initialValue:
+                                                  _selectedCurrencyProfile,
+                                              decoration: InputDecoration(
+                                                labelText:
+                                                    'currencyProfile'.tr(),
+                                                labelStyle: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              items: _currencyProfiles.map((
+                                                CurrencyProfileModel profile,
+                                              ) {
+                                                return DropdownMenuItem<
+                                                    CurrencyProfileModel>(
+                                                  value: profile,
+                                                  child: Text(
+                                                    profile.currency.tr(),
                                                   ),
-                                                  items: _currencyProfiles.map((
-                                                    CurrencyProfileModel
-                                                    profile,
-                                                  ) {
-                                                    return DropdownMenuItem<
-                                                      CurrencyProfileModel
-                                                    >(
-                                                      value: profile,
-                                                      child: Text(
-                                                        profile.currency.tr(),
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                                  onChanged:
-                                                      (
-                                                        CurrencyProfileModel?
-                                                        newValue,
-                                                      ) {
-                                                        setState(() {
-                                                          _selectedCurrencyProfile =
-                                                              newValue;
-                                                        });
-                                                      },
-                                                ),
+                                                );
+                                              }).toList(),
+                                              onChanged: (
+                                                CurrencyProfileModel? newValue,
+                                              ) {
+                                                setState(() {
+                                                  _selectedCurrencyProfile =
+                                                      newValue;
+                                                });
+                                              },
+                                            ),
                                           ),
                                           IconButton(
                                             icon: const Icon(Icons.refresh),
                                             onPressed: _fetchCurrencyProfiles,
-                                            tooltip: 'refreshCurrencyProfiles'
-                                                .tr(),
+                                            tooltip:
+                                                'refreshCurrencyProfiles'.tr(),
                                           ),
                                         ],
                                       ),
@@ -907,47 +906,41 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                       Row(
                                         children: [
                                           Expanded(
-                                            child:
-                                                DropdownButtonFormField<
-                                                  InvoiceStatus
-                                                >(
-                                                  initialValue: _selectedInvoiceStatus,
-                                                  decoration: InputDecoration(
-                                                    labelText: 'invoiceStatus'
+                                            child: DropdownButtonFormField<
+                                                InvoiceStatus>(
+                                              initialValue:
+                                                  _selectedInvoiceStatus,
+                                              decoration: InputDecoration(
+                                                labelText: 'invoiceStatus'.tr(),
+                                                labelStyle: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              items: InvoiceStatus.values.map((
+                                                InvoiceStatus status,
+                                              ) {
+                                                return DropdownMenuItem<
+                                                    InvoiceStatus>(
+                                                  value: status,
+                                                  child: Text(
+                                                    'invoiceStatus.${status.name}'
                                                         .tr(),
-                                                    labelStyle:
-                                                        Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
                                                   ),
-                                                  items: InvoiceStatus.values.map((
-                                                    InvoiceStatus status,
-                                                  ) {
-                                                    return DropdownMenuItem<
-                                                      InvoiceStatus
-                                                    >(
-                                                      value: status,
-                                                      child: Text(
-                                                        'invoiceStatus.${status.name}'
-                                                            .tr(),
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                                  onChanged:
-                                                      (
-                                                        InvoiceStatus? newValue,
-                                                      ) {
-                                                        setState(() {
-                                                          _selectedInvoiceStatus =
-                                                              newValue;
-                                                        });
-                                                      },
-                                                ),
+                                                );
+                                              }).toList(),
+                                              onChanged: (
+                                                InvoiceStatus? newValue,
+                                              ) {
+                                                setState(() {
+                                                  _selectedInvoiceStatus =
+                                                      newValue;
+                                                });
+                                              },
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -1009,4 +1002,3 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     );
   }
 }
-

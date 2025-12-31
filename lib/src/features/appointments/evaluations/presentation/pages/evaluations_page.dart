@@ -11,6 +11,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
+/// A page that displays a list of evaluations with filtering and search capabilities.
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
 

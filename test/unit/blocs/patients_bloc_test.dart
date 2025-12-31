@@ -17,6 +17,7 @@ class MockPatientModel extends Mock implements PatientModel {
   Timestamp? get createdAt => Timestamp.now();
 }
 
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot {}
 
 class FakePatientModel extends Fake implements PatientModel {}

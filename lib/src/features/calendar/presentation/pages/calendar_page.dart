@@ -10,7 +10,23 @@ import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc
 import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart' as sf;
 import 'dart:ui';
+import 'package:equatable/equatable.dart';
 
+/// Abstract base class for all calendar events.
+abstract class CalendarEvent extends Equatable {
+  const CalendarEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+/// Event triggered to authenticate with Google Calendar.
+class AuthenticateCalendar extends CalendarEvent {}
+
+/// Event triggered to fetch all calendar events.
+class GetCalendarEvents extends CalendarEvent {}
+
+/// A page that displays a calendar with events from Google Calendar and local sources.
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
 
@@ -32,7 +48,7 @@ class _CalendarPageState extends State<CalendarPage> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withOpacity(0.05), // Subtle dark tint
+                color: Colors.black.withValues(alpha: 0.05), // Subtle dark tint
               ),
             ),
           ),
@@ -45,7 +61,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 30,
                     spreadRadius: 0,
                     offset: const Offset(0, 10),
@@ -61,7 +77,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
                       backgroundColor:
-                          Theme.of(context).primaryColor.withOpacity(0.1),
+                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Theme.of(context).primaryColor,
                       ),

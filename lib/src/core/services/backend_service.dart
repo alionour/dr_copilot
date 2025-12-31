@@ -2,11 +2,14 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:developer';
 
+/// Service for communicating with the backend API (AWS Lambda).
 class BackendService {
   static const String baseUrl =
       'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com';
 
-  // Health check
+  /// Checks the health of the backend service.
+  ///
+  /// Returns `true` if the backend is reachable and initialized.
   static Future<bool> checkHealth() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/'));
@@ -22,7 +25,9 @@ class BackendService {
     }
   }
 
-  // Send invitation
+  /// Sends an invitation email to a user.
+  ///
+  /// Returns a map with `success` and `message` or `error`.
   static Future<Map<String, dynamic>> sendInvitation({
     required String recipientEmail,
     required String recipientName,
@@ -78,7 +83,7 @@ class BackendService {
     }
   }
 
-  // Send notification
+  /// Sends a push notification to a user.
   static Future<Map<String, dynamic>> sendNotification({
     required String userId,
     required String title,
@@ -117,7 +122,7 @@ class BackendService {
     }
   }
 
-  // Verify invitation token
+  /// Verifies if an invitation token is valid.
   static Future<Map<String, dynamic>> verifyInvitation(String token) async {
     log('--- Verifying Invitation ---');
     log('Token: $token');
@@ -139,7 +144,7 @@ class BackendService {
     }
   }
 
-  // Accept invitation
+  /// Accepts an invitation for a user using the given token.
   static Future<Map<String, dynamic>> acceptInvitation({
     required String token,
     required String userId,
@@ -164,7 +169,7 @@ class BackendService {
       log('Response Body: ${response.body}');
 
       final data = json.decode(response.body);
-      
+
       if (response.statusCode == 200) {
         log('Invitation accepted successfully via backend.');
         return {
@@ -187,6 +192,4 @@ class BackendService {
       };
     }
   }
-
 }
-

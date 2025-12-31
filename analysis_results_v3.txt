@@ -1,0 +1,18 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing dr_copilot...                                         
+
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:284:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:311:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:315:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\appointments\sessions\presentation\pages\add_session_page.dart:348:32 - use_build_context_synchronously
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\financials\presentation\pages\dashboard_page.dart:293:38 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:339:13 - deprecated_member_use
+   info - The imported package 'flutter_tts' isn't a dependency of the importing package - packages\flutter_tts_fixed\example\lib\main.dart:6:8 - depend_on_referenced_packages
+   info - Invalid use of a private type in a public API - packages\flutter_tts_fixed\example\lib\main.dart:12:3 - library_private_types_in_public_api
+   info - Statements in an if should be enclosed in a block - packages\flutter_tts_fixed\example\lib\main.dart:246:11 - curly_braces_in_flow_control_structures
+   info - 'partialResults' is deprecated and shouldn't be used. Use SpeechListenOptions.partialResults instead - packages\speech_to_text_windows\example\lib\main.dart:103:9 - deprecated_member_use
+   info - The imported package 'path' isn't a dependency of the importing package - test\screenshot\screenshot_test_harness.dart:11:8 - depend_on_referenced_packages
+warning - Unused import: 'package:easy_localization/easy_localization.dart' - test\unit\blocs\evaluations_bloc_test.dart:12:8 - unused_import
+warning - Unused import: 'package:dr_copilot/src/core/error/failures.dart' - test\unit\services\clinical_report_service_test.dart:2:8 - unused_import
+

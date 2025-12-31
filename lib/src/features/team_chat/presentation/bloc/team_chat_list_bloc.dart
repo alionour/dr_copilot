@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/models/team_conversation_model.dart';
@@ -22,7 +23,7 @@ class LoadTeamChats extends TeamChatListEvent {
 
 class AllChatsUpdated extends TeamChatListEvent {
   final List<dynamic>
-  conversations; // Mix of TeamConversation and DirectConversation
+      conversations; // Mix of TeamConversation and DirectConversation
   const AllChatsUpdated(this.conversations);
   @override
   List<Object?> get props => [conversations];
@@ -65,7 +66,7 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
   List<DirectConversationModel> _latestDirectMessages = [];
 
   TeamChatListBloc(this._teamChatRepository, this._directMessagesRepository)
-    : super(TeamChatListInitial()) {
+      : super(TeamChatListInitial()) {
     on<LoadTeamChats>(_onLoadTeamChats);
     on<AllChatsUpdated>(_onAllChatsUpdated);
   }
@@ -76,36 +77,34 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
     _directMessagesSubscription?.cancel();
 
     // Listen to team chats
-    _teamChatsSubscription = _teamChatRepository
-        .getConversations(event.userId)
-        .listen(
-          (teamChats) {
-            print('TeamChats received: ${teamChats.length}');
-            _latestTeamChats = teamChats;
-            _mergeAndEmit();
-          },
-          onError: (e) {
-            print('TeamChats error: $e');
-            _latestTeamChats = [];
-            _mergeAndEmit();
-          },
-        );
+    _teamChatsSubscription =
+        _teamChatRepository.getConversations(event.userId).listen(
+      (teamChats) {
+        debugPrint('TeamChats received: ${teamChats.length}');
+        _latestTeamChats = teamChats;
+        _mergeAndEmit();
+      },
+      onError: (e) {
+        debugPrint('TeamChats error: $e');
+        _latestTeamChats = [];
+        _mergeAndEmit();
+      },
+    );
 
     // Listen to direct messages
-    _directMessagesSubscription = _directMessagesRepository
-        .getDirectConversations(event.userId)
-        .listen(
-          (directMessages) {
-            print('DirectMessages received: ${directMessages.length}');
-            _latestDirectMessages = directMessages;
-            _mergeAndEmit();
-          },
-          onError: (e) {
-            print('DirectMessages error: $e');
-            _latestDirectMessages = [];
-            _mergeAndEmit();
-          },
-        );
+    _directMessagesSubscription =
+        _directMessagesRepository.getDirectConversations(event.userId).listen(
+      (directMessages) {
+        debugPrint('DirectMessages received: ${directMessages.length}');
+        _latestDirectMessages = directMessages;
+        _mergeAndEmit();
+      },
+      onError: (e) {
+        debugPrint('DirectMessages error: $e');
+        _latestDirectMessages = [];
+        _mergeAndEmit();
+      },
+    );
   }
 
   void _mergeAndEmit() {
@@ -115,7 +114,7 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
       ..._latestTeamChats,
     ];
 
-    print(
+    debugPrint(
       'Merged conversations: ${allConversations.length} (${_latestDirectMessages.length} direct + ${_latestTeamChats.length} team)',
     );
 
@@ -149,4 +148,3 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
     return super.close();
   }
 }
-

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/audio_player_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,13 +12,17 @@ class MessageBubble extends StatefulWidget {
   final Function(String) onEdit;
   final String? currentUserPhotoUrl;
   final String? currentUserDisplayName;
+  final bool isLastMessage;
+  final Function(bool isLike, String messageId) onFeedback;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.onEdit,
+    required this.onFeedback,
     this.currentUserPhotoUrl,
     this.currentUserDisplayName,
+    this.isLastMessage = false,
   });
 
   @override
@@ -326,29 +332,30 @@ class _MessageBubbleState extends State<MessageBubble> {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh, size: 16),
-                      onPressed: () {
-                        // TODO: Implement regenerate functionality
-                      },
-                      tooltip: 'Regenerate response',
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
+                    if (widget.isLastMessage)
+                      IconButton(
+                        icon: const Icon(Icons.refresh, size: 16),
+                        onPressed: () {
+                          context
+                              .read<CopilotBloc>()
+                              .add(const RegenerateResponseEvent());
+                        },
+                        tooltip: 'Regenerate response',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     IconButton(
                       icon: const Icon(Icons.thumb_up_outlined, size: 16),
-                      onPressed: () {
-                        // TODO: Implement like functionality
-                      },
+                      onPressed: () => widget.onFeedback(
+                          true, widget.message.hashCode.toString()),
                       tooltip: 'Good response',
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
                     IconButton(
                       icon: const Icon(Icons.thumb_down_outlined, size: 16),
-                      onPressed: () {
-                        // TODO: Implement dislike functionality
-                      },
+                      onPressed: () => widget.onFeedback(
+                          false, widget.message.hashCode.toString()),
                       tooltip: 'Bad response',
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),

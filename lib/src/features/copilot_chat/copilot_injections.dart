@@ -8,6 +8,7 @@ import 'services/deepseek_service.dart';
 import 'services/qwen_service.dart';
 import 'services/claude_service.dart';
 import 'services/ai_router_service.dart';
+import 'data/repositories/conversation_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -28,6 +29,7 @@ void initCopilotInjections() {
       claudeService: sl(),
       routerService: sl(),
       secureStorage: sl(),
+      conversationRepository: sl(),
     ),
   );
 
@@ -67,4 +69,7 @@ void initCopilotInjections() {
       subscriptionService: sl(),
     ),
   );
+
+  // Repositories
+  sl.registerLazySingleton(() => ConversationRepository());
 }

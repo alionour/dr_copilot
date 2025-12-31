@@ -112,6 +112,109 @@ class _TransactionsPageState extends State<TransactionsPage> {
     }
   }
 
+  /// Shows an action dialog for the selected transaction.
+  void _showTransactionActions(
+      BuildContext context, TransactionModel transaction) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.visibility_outlined),
+              title: Text('viewDetails'.tr()),
+              onTap: () {
+                Navigator.pop(context);
+                _showTransactionDetails(context, transaction);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              title: Text('delete'.tr(),
+                  style: const TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _confirmDeleteTransaction(context, transaction);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Shows transaction details in a dialog.
+  void _showTransactionDetails(
+      BuildContext context, TransactionModel transaction) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(transaction.description),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${'amount'.tr()}: ${transaction.amount.toStringAsFixed(2)}'),
+            const SizedBox(height: 8),
+            Text(
+                '${'date'.tr()}: ${transaction.transactionDate.toDate().toString().split(' ')[0]}'),
+            Text('${'type'.tr()}: ${transaction.transactionSource.value}'),
+            if (transaction.notes != null && transaction.notes!.isNotEmpty)
+              Text('${'notes'.tr()}: ${transaction.notes}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('close'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a confirmation dialog before deleting a transaction.
+  void _confirmDeleteTransaction(
+      BuildContext context, TransactionModel transaction) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('deleteTransaction'.tr()),
+        content: Text('deleteTransactionConfirmation'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<TransactionsBloc>().add(
+                    DeleteTransactionEvent(transaction.id),
+                  );
+            },
+            child:
+                Text('delete'.tr(), style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // final navMenuButton = NavMenuButtonProvider.of(context); // removed unused
@@ -499,12 +602,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                             _selectedIndex = transactions
                                                 .indexOf(transaction);
                                           });
-                                          // TODO: Add proper deletion confirmation or edit
-                                          // context.read<TransactionsBloc>().add(
-                                          //   DeleteTransactionEvent(
-                                          //     transaction.id,
-                                          //   ),
-                                          // );
+                                          _showTransactionActions(
+                                              context, transaction);
                                         },
                                       );
                                     }),

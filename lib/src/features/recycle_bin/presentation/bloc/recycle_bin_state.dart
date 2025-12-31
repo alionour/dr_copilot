@@ -44,16 +44,16 @@ class RecycleBinLoaded extends RecycleBinState {
       final aTime = (a is EvaluationModel)
           ? a.deletedAt
           : (a is SessionModel)
-              ? (a as SessionModel).deletedAt
+              ? a.deletedAt
               : (a is PatientModel)
-                  ? (a as PatientModel).deletedAt
+                  ? a.deletedAt
                   : (a as CalendarEventModel).deletedAt;
       final bTime = (b is EvaluationModel)
           ? b.deletedAt
           : (b is SessionModel)
-              ? (b as SessionModel).deletedAt
+              ? b.deletedAt
               : (b is PatientModel)
-                  ? (b as PatientModel).deletedAt
+                  ? b.deletedAt
                   : (b as CalendarEventModel).deletedAt;
       if (aTime == null && bTime == null) return 0;
       if (aTime == null) return 1;

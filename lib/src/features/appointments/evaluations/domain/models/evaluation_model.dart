@@ -46,33 +46,58 @@ class NullableTimestampConverter implements JsonConverter<Timestamp?, dynamic> {
 }
 
 @JsonSerializable()
+
+/// A model class representing a patient evaluation.
+@JsonSerializable()
 class EvaluationModel {
+  /// The unique identifier of the evaluation.
   final String id;
+
+  /// The ID of the patient being evaluated.
   final String patientId;
+
+  /// The name of the patient (denormalized).
   final String patientName;
+
+  /// The cost/price of the evaluation.
   final double price;
 
+  /// The start date and time of the evaluation.
   @TimestampConverter()
   final Timestamp startDateTime;
 
+  /// The end date and time of the evaluation.
   @TimestampConverter()
   final Timestamp endDateTime;
 
+  /// The ID of the owner/clinic admin.
   final String ownerId;
+
+  /// The ID of the clinic where the evaluation is held.
   final String clinicId;
+
+  /// The ID of the user who created the evaluation record.
   final String createdBy;
+
+  /// The ID of the user who last updated the evaluation record.
   final String? updatedBy;
+
+  /// The ID of the user who deleted the evaluation record (if soft deleted).
   final String? deletedBy;
 
+  /// The timestamp when the evaluation record was created.
   @TimestampConverter()
   final Timestamp createdAt;
 
+  /// The timestamp when the evaluation record was last updated.
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
 
+  /// The timestamp when the evaluation record was soft deleted.
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
 
+  /// The ID of the doctor conducting the evaluation.
   final String? doctorId;
 
   EvaluationModel({
@@ -134,4 +159,3 @@ class EvaluationModel {
     );
   }
 }
-

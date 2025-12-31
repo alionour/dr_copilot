@@ -1,6 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BetaFullPage extends StatelessWidget {
@@ -17,7 +15,10 @@ class BetaFullPage extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Colors.white,
-              Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+              Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.2),
             ],
           ),
         ),
@@ -29,7 +30,7 @@ class BetaFullPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(

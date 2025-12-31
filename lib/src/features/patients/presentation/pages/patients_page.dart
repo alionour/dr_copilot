@@ -24,18 +24,25 @@ class PatientsPage extends StatefulWidget {
 }
 
 class _PatientsPageState extends State<PatientsPage> {
+  /// The current search query.
   String query = '';
   final ScrollController _scrollController = ScrollController();
   final FocusNode _listFocusNode = FocusNode();
   final FocusNode _searchFocusNode = FocusNode();
   int _selectedIndex = 0;
   bool _showFilters = false;
+
+  // Filter states
   DateTime? _selectedDate;
   String? _selectedGender;
   int? _minAge;
   int? _maxAge;
   String? _selectedAddress;
+
+  /// Whether more patients can be loaded (pagination).
   bool _canLoadMore = true;
+
+  /// The total count of patients fetched from Firestore.
   int? _firestorePatientsCount;
 
   @override

@@ -62,10 +62,18 @@ import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 
+/// Configuration for the application's routing using [GoRouter].
+///
+/// Handles navigation, deep linking, and route definitions.
 class RoutingConfig {
+  /// Global key for the [ScaffoldMessenger] to show snackbars and banners.
   static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
+  /// The [GoRouter] instance definition.
+  ///
+  /// Defines all the routes in the application, including the shell route
+  /// for the persistent bottom navigation bar ([NavigationSide]).
   static final GoRouter router = GoRouter(
     errorBuilder: (context, state) => const ErrorRoutePage(),
     routes: [
@@ -476,6 +484,7 @@ class RoutingConfig {
   );
 }
 
+/// A fallback page displayed when a navigation error occurs.
 class ErrorRoutePage extends StatelessWidget {
   const ErrorRoutePage({super.key});
 

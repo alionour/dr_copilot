@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/services/fcm_service.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
@@ -47,7 +48,7 @@ void main() {
       build: () {
         when(
           () => mockAuthUseCase.signInWithEmailAndPassword(any(), any()),
-        ).thenAnswer((_) async => tUser);
+        ).thenAnswer((_) async => Right(tUser));
         when(
           () => mockFCMService.initialize(any()),
         ).thenAnswer((_) async => {});

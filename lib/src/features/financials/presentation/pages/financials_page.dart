@@ -8,6 +8,10 @@ import 'package:dr_copilot/src/features/financials/presentation/pages/goals_page
 import 'package:dr_copilot/src/features/financials/presentation/pages/dashboard_page.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 
+/// The main page for the Financials feature.
+///
+/// Handles navigation between various financial sub-pages (Dashboard, Transactions, Charts, etc.)
+/// and provides a responsive layout with a sidebar on desktop and bottom navigation on mobile.
 class FinancialsPage extends StatefulWidget {
   const FinancialsPage({super.key});
 

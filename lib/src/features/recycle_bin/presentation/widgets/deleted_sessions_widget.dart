@@ -1,5 +1,5 @@
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
-import 'package:dr_copilot/src/features/recycle_bin/presentation/bloc/recycle_bin_bloc.dart';
+
 import 'package:dr_copilot/src/features/recycle_bin/presentation/widgets/recycle_bin_item_tile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';

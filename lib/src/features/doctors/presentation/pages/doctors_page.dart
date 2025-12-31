@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
+/// A page that displays a list of doctors for the current clinic.
 class DoctorsPage extends StatefulWidget {
   const DoctorsPage({super.key});
 

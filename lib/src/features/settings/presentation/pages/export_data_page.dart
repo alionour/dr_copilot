@@ -519,6 +519,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
     try {
       final file = File(filePath);
       if (await file.exists()) {
+        // ignore: deprecated_member_use
         await Share.shareXFiles([
           XFile(filePath),
         ], text: 'exportShareText'.tr());

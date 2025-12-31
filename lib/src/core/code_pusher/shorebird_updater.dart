@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+
 // ignore: depend_on_referenced_packages
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 

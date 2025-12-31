@@ -37,3 +37,12 @@ class UpdateWorkingDaysEvent extends SettingsEvent {
   @override
   List<Object> get props => [workingDays];
 }
+
+class UpdateUsePremiumModelsEvent extends SettingsEvent {
+  final bool usePremium;
+
+  const UpdateUsePremiumModelsEvent(this.usePremium);
+
+  @override
+  List<Object> get props => [usePremium];
+}

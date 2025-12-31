@@ -8,6 +8,9 @@ import 'package:equatable/equatable.dart';
 part 'doctors_event.dart';
 part 'doctors_state.dart';
 
+/// BLoC for managing the state of the Doctors feature.
+///
+/// Handles events for fetching, adding, updating, and deleting doctors.
 class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
   final DoctorsUseCase _doctorsUseCase;
 
@@ -18,6 +21,7 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     on<DeleteDoctor>(_onDeleteDoctor);
   }
 
+  /// Handles the [AddDoctor] event.
   void _onAddDoctor(AddDoctor event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess = await _doctorsUseCase.addDoctor(event.doctor);
@@ -34,6 +38,7 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     );
   }
 
+  /// Handles the [GetDoctors] event.
   void _onGetDoctors(GetDoctors event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
     final failureOrDoctors =
@@ -45,6 +50,7 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     );
   }
 
+  /// Handles the [UpdateDoctor] event.
   void _onUpdateDoctor(UpdateDoctor event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess =
@@ -63,6 +69,7 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
     );
   }
 
+  /// Handles the [DeleteDoctor] event.
   void _onDeleteDoctor(DeleteDoctor event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
     final failureOrSuccess = await _doctorsUseCase.deleteDoctor(event.doctorId);

@@ -4,7 +4,12 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+/// A utility class for handling exceptions and mapping them to [Failure] objects.
 class ErrorHandler {
+  /// Maps an exception/error object to a specific [Failure] type.
+  ///
+  /// Handles [FirebaseAuthException], [FirebaseException], [SocketException],
+  /// and others, returning a localized failure.
   static Failure mapExceptionToFailure(Object error) {
     debugPrint('ErrorHandler caught error: $error');
 

@@ -5,14 +5,24 @@ import 'package:json_annotation/json_annotation.dart';
 part 'scheduled_bill_model.g.dart';
 
 /// The recurrence frequency for a scheduled bill.
+/// The recurrence frequency for a scheduled bill.
 enum ScheduledBillRecurrence {
+  /// One-time bill.
   none,
+
+  /// Weekly recurrence.
   weekly,
+
+  /// Monthly recurrence.
   monthly,
+
+  /// Yearly recurrence.
   yearly;
 
+  /// Returns the string representation of the recurrence.
   String get asString => name;
 
+  /// Parses a string to a [ScheduledBillRecurrence], defaulting to [none] if unknown.
   static ScheduledBillRecurrence fromString(String? value) {
     switch (value) {
       case 'weekly':
@@ -49,24 +59,54 @@ enum ScheduledBillType {
 }
 
 @JsonSerializable(explicitToJson: true)
+
+/// A model class representing a scheduled bill (recurring income/expense).
+@JsonSerializable(explicitToJson: true)
 class ScheduledBillModel {
+  /// The unique identifier of the scheduled bill.
   final String id;
+
+  /// The title of the scheduled bill.
   final String title;
+
+  /// A description of the scheduled bill.
   final String description;
+
+  /// The amount of the scheduled bill.
   final double amount;
+
+  /// The ID of the currency profile used.
   final String currencyProfileId;
+
+  /// The type of the scheduled bill (income or expense).
   final ScheduledBillType type;
+
+  /// The next scheduled date and time.
   @TimestampConverter()
   final Timestamp scheduledAt;
+
+  /// The timestamp when the record was created.
   @TimestampConverter()
   final Timestamp createdAt;
+
+  /// The timestamp when the record was last updated.
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
+
+  /// The timestamp when the record was deleted.
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
+
+  /// The ID of the user who created the record.
   final String createdBy;
+
+  /// The ID of the user who last updated the record.
   final String? updatedBy;
+
+  /// The ID of the user who deleted the record.
   final String? deletedBy;
+
+  /// The recurrence frequency.
   final ScheduledBillRecurrence recurrence;
 
   ScheduledBillModel({
@@ -125,4 +165,3 @@ class ScheduledBillModel {
     );
   }
 }
-

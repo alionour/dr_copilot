@@ -413,6 +413,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
           }
         }
 
+        if (!mounted) return;
+
         const uuid = Uuid();
         final patientModel = PatientModel(
           id: uuid.v4(), // Generate a unique ID

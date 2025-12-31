@@ -53,6 +53,10 @@ import 'package:dr_copilot/src/features/medications/presentation/bloc/medication
 /// await initInjections();
 /// ```
 
+/// The global service locator instance.
+///
+/// Accessed via [GetIt.instance]. Use this to retrieve registered singletons
+/// and factories throughout the application.
 final sl = GetIt.instance;
 
 Future<void> initInjections() async {

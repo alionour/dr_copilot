@@ -19,24 +19,50 @@ class ConversationRepository {
   String _generateTitle(String message) {
     // Remove common words and clean up
     final words = message.trim().split(' ');
-    final stopWords = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'but', 'can', 'you', 'how', 'what', 'when', 'where', 'why'};
-    
-    final meaningfulWords = words.where((word) => 
-      word.length > 2 && !stopWords.contains(word.toLowerCase())
-    ).take(6).join(' ');
-    
+    final stopWords = {
+      'the',
+      'a',
+      'an',
+      'is',
+      'are',
+      'was',
+      'were',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'and',
+      'or',
+      'but',
+      'can',
+      'you',
+      'how',
+      'what',
+      'when',
+      'where',
+      'why'
+    };
+
+    final meaningfulWords = words
+        .where((word) =>
+            word.length > 2 && !stopWords.contains(word.toLowerCase()))
+        .take(6)
+        .join(' ');
+
     String title = meaningfulWords.isNotEmpty ? meaningfulWords : message;
-    
+
     // Truncate if too long
     if (title.length > 40) {
       title = '${title.substring(0, 40)}...';
     }
-    
+
     // Capitalize first letter
     if (title.isNotEmpty) {
       title = title[0].toUpperCase() + title.substring(1);
     }
-    
+
     return title.isNotEmpty ? title : 'New Chat';
   }
 
@@ -96,7 +122,8 @@ class ConversationRepository {
     final now = DateTime.now();
     final batch = _firestore.batch();
 
-    final conversationDocRef = _firestore.collection('conversations').doc(conversationId);
+    final conversationDocRef =
+        _firestore.collection('conversations').doc(conversationId);
 
     // Add message to subcollection
     final messageRef = conversationDocRef.collection('messages').doc();
@@ -116,7 +143,8 @@ class ConversationRepository {
     // Update conversation
     batch.update(conversationDocRef, {
       'updatedAt': Timestamp.fromDate(now),
-      'lastMessageSnippet': text.length > 50 ? '${text.substring(0, 50)}...' : text,
+      'lastMessageSnippet':
+          text.length > 50 ? '${text.substring(0, 50)}...' : text,
     });
 
     await batch.commit();
@@ -167,10 +195,10 @@ class ConversationRepository {
       final conversations = snapshot.docs
           .map((doc) => ConversationModel.fromFirestore(doc))
           .toList();
-      
+
       // Sort client-side instead (temporary workaround)
       conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-      
+
       return conversations;
     });
   }
@@ -185,7 +213,8 @@ class ConversationRepository {
       return Stream.value([]);
     }
 
-    final conversationDocRef = _firestore.collection('conversations').doc(conversationId);
+    final conversationDocRef =
+        _firestore.collection('conversations').doc(conversationId);
     Query query = conversationDocRef
         .collection('messages')
         .orderBy('timestamp', descending: false)
@@ -250,5 +279,20 @@ class ConversationRepository {
       'updatedAt': Timestamp.fromDate(DateTime.now()),
     });
   }
-}
 
+  // Save feedback to Firestore
+  Future<void> saveFeedback({
+    required String messageId,
+    required bool isLike,
+    required String userId,
+    required String clinicId,
+  }) async {
+    await _firestore.collection('copilot_feedback').add({
+      'messageId': messageId,
+      'isLike': isLike,
+      'userId': userId,
+      'clinicId': clinicId,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+}

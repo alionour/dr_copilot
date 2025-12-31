@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart';
@@ -18,6 +19,10 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 part 'copilot_event.dart';
 part 'copilot_state.dart';
 
+/// The BLoC responsible for managing the state of the Copilot Chat feature.
+///
+/// Handles events for generating responses, uploading images, caching messages,
+/// and managing user feedback. Integates with multiple AI services via [AIRouterService].
 class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   final VertexAIService vertexAIService;
   final GPTService gptService;
@@ -27,6 +32,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
   final ClaudeService claudeService;
   final AIRouterService routerService;
   final FlutterSecureStorage secureStorage;
+  final ConversationRepository conversationRepository;
 
   CopilotBloc({
     required this.vertexAIService,
@@ -37,6 +43,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     required this.claudeService,
     required this.routerService,
     required this.secureStorage,
+    required this.conversationRepository,
   }) : super(CopilotInitial()) {
     on<GenerateResponseEvent>(_onGenerateResponse);
     on<UploadImageEvent>(_onUploadImage);
@@ -44,8 +51,18 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     on<LoadCachedMessagesEvent>(_onLoadCachedMessages);
     on<StartNewChatEvent>(_onStartNewChat);
     on<UpdateCopilotSettingsEvent>(_onUpdateCopilotSettings);
+    on<RegenerateResponseEvent>(_onRegenerateResponse);
+    on<ProvideFeedbackEvent>(_onProvideFeedback);
   }
 
+  // Keep track of the last user query context for regeneration
+  /// The last query submitted by the user, used for regeneration.
+  String? _lastQuery;
+
+  /// The history of messages for the current conversation context.
+  List<Map<String, dynamic>> _lastMessageHistory = [];
+
+  /// Retries a storage operation with exponential backoff.
   Future<T> _retryStorage<T>(Future<T> Function() operation) async {
     int retries = 0;
     while (true) {
@@ -64,12 +81,14 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     Emitter<CopilotState> emit,
   ) async {
     emit(CopilotLoading());
+    _lastQuery = event.query;
+    _lastMessageHistory = event.messageHistory;
     try {
       // Use AI Router to get the optimal service for this query
       final service = await routerService.getServiceForQuery(
         query: event.query,
         clinicId: event.clinicId,
-        forcePremium: false, // TODO: Add user setting for this
+        forcePremium: event.forcePremium,
       );
 
       // Append timestamp for temporal context (cost-effective: ~8 tokens, 0 permission overhead)
@@ -118,7 +137,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       final service = await routerService.getServiceForQuery(
         query: event.text,
         clinicId: event.clinicId,
-        forcePremium: false,
+        forcePremium: event.forcePremium,
       );
 
       // Append timestamp for temporal context
@@ -196,5 +215,46 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     vertexAIService.updateModelConfig(event.requiredFields);
     deepSeekService.updateModelConfig(event.requiredFields);
     qwenService.updateModelConfig(event.requiredFields);
+  }
+
+  Future<void> _onRegenerateResponse(
+    RegenerateResponseEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
+    if (_lastQuery == null) return;
+
+    // Trigger the same generation logic
+    add(GenerateResponseEvent(
+      query: _lastQuery!,
+      messageHistory: _lastMessageHistory,
+      clinicId: event.clinicId,
+      userId: event.userId,
+    ));
+  }
+
+  Future<void> _onProvideFeedback(
+    ProvideFeedbackEvent event,
+    Emitter<CopilotState> emit,
+  ) async {
+    // Placeholder for feedback submission
+    debugPrint(
+        'Feedback received for message ${event.messageId}: ${event.isLike ? "Like" : "Dislike"}');
+
+    if (event.userId == null || event.clinicId == null) {
+      debugPrint('[CopilotBloc] Missing user/clinic ID for feedback');
+      return;
+    }
+
+    try {
+      await conversationRepository.saveFeedback(
+        messageId: event.messageId,
+        isLike: event.isLike,
+        userId: event.userId!,
+        clinicId: event.clinicId!,
+      );
+      debugPrint('[CopilotBloc] Feedback saved successfully');
+    } catch (e) {
+      debugPrint('[CopilotBloc] Error saving feedback: $e');
+    }
   }
 }

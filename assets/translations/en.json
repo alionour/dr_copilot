@@ -938,5 +938,12 @@
   "addFinancialGoal": "Add Financial Goal",
   "addNewGoal": "Add New Goal",
   "enterValidInteger": "Please enter a valid integer",
-  "progressLabelWithPercent": "Progress: {}%"
+  "progressLabelWithPercent": "Progress: {}%",
+  "deleteTransaction": "Delete Transaction",
+  "deleteTransactionConfirmation": "Are you sure you want to delete this transaction? This action cannot be undone.",
+  "viewDetails": "View Details",
+  "transaction": "Transaction",
+  "close": "Close",
+  "date": "Date",
+  "attributes": "Attributes"
 }

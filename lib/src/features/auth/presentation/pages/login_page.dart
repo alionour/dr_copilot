@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+/// The login screen for the application.
+///
+/// Handles user sign-in via Google and displays the app logo and welcome message.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 

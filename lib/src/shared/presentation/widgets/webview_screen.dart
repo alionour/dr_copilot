@@ -5,8 +5,15 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// A reusable widget for displaying web content within the app.
+///
+/// Uses [InAppWebView] to render the URL and provides a title bar with an
+/// option to open in the system browser.
 class WebViewScreen extends StatefulWidget {
+  /// The title to display in the [AppBar].
   final String title;
+
+  /// The URL to load in the web view.
   final String url;
 
   const WebViewScreen({super.key, required this.title, required this.url});
@@ -74,4 +81,3 @@ class _WebViewScreenState extends State<WebViewScreen> {
     );
   }
 }
-

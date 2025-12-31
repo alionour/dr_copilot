@@ -10,6 +10,7 @@ class MockPatientFirebaseApi extends Mock implements PatientFirebaseApi {}
 
 class MockPatientModel extends Mock implements PatientModel {}
 
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot {}
 
 class FakePatientModel extends Fake implements PatientModel {}

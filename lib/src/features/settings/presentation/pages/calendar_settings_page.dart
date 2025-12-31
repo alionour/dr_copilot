@@ -4,7 +4,6 @@ import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 
 class CalendarSettingsPage extends StatelessWidget {
   const CalendarSettingsPage({super.key});
@@ -39,7 +38,7 @@ class CalendarSettingsPage extends StatelessWidget {
             children: [
               if (!canEdit)
                 Container(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: Colors.amber.withValues(alpha: 0.1),
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [

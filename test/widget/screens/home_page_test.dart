@@ -21,14 +21,14 @@ class MockSpeechRecognitionService extends Mock
     implements AbstractSpeechRecognitionService {}
 
 void main() {
-  late MockCopilotBloc mockCopilotBloc;
+  // late MockCopilotBloc mockCopilotBloc;
   late MockOwnerNotifier mockOwnerNotifier;
   late MockQuotaService mockQuotaService;
   late MockSubscriptionService mockSubscriptionService;
   late MockSpeechRecognitionService mockSpeechService;
 
   setUp(() {
-    mockCopilotBloc = MockCopilotBloc();
+    // mockCopilotBloc = MockCopilotBloc();
     mockOwnerNotifier = MockOwnerNotifier();
     mockQuotaService = MockQuotaService();
     mockSubscriptionService = MockSubscriptionService();

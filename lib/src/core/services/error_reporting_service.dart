@@ -2,15 +2,36 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// Custom error reporting service
 class ErrorReportingService {
-  /// TODO: Replace with your actual backend error reporting endpoint
+  /// The backend endpoint for error reporting.
   static const String _errorEndpoint =
       'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/errors';
 
+  /// Cached app version to avoid repeated async calls.
+  static String? _cachedAppVersion;
+
+  /// Gets the app version, caching it for subsequent calls.
+  static Future<String> _getAppVersion() async {
+    if (_cachedAppVersion != null) {
+      return _cachedAppVersion!;
+    }
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _cachedAppVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
+      return _cachedAppVersion!;
+    } catch (e) {
+      debugPrint('Failed to get package info: $e');
+      return 'unknown';
+    }
+  }
+
   static Future<void> reportError(Object error, StackTrace? stack) async {
     try {
+      final appVersion = await _getAppVersion();
+
       final errorData = {
         'error': error.toString(),
         'stackTrace': stack?.toString() ?? 'No stack trace available',
@@ -35,7 +56,7 @@ class ErrorReportingService {
                     Platform.isFuchsia)
                 ? Platform.operatingSystemVersion
                 : 'unknown',
-        'appVersion': '1.0.1', // TODO: Get from package_info_plus
+        'appVersion': appVersion,
       };
 
       await http

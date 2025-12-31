@@ -15,24 +15,46 @@ class GoalTypeConverter implements JsonConverter<GoalType, String> {
   String toJson(GoalType object) => goalTypeToString(object);
 }
 
+/// Enum representing the type of financial goal.
 enum GoalType {
+  /// Goal based on yearly session count.
   sessionsYear,
+
+  /// Goal based on monthly session count.
   sessionsMonth,
+
+  /// Goal based on yearly evaluation count.
   evaluationsYear,
+
+  /// Goal based on monthly evaluation count.
   evaluationsMonth,
+
+  /// Goal to decrease overall expenses.
   decreaseExpenses,
+
+  /// Goal to increase total revenue.
   increaseTotalRevenue,
+
+  /// Goal to increase total profit.
   increaseTotalProfit,
+
+  /// Goal to increase revenue specifically from sessions.
   increaseSessionsRevenue,
+
+  /// Goal to increase revenue specifically from evaluations.
   increaseEvaluationsRevenue,
+
+  /// Custom user-defined goal.
   custom;
 
+  /// Returns true if the goal is based on counts (sessions/evaluations).
   bool get isCountBased =>
       this == GoalType.sessionsYear ||
       this == GoalType.sessionsMonth ||
       this == GoalType.evaluationsYear ||
       this == GoalType.evaluationsMonth;
 
+  /// Returns true if the goal is based on monetary amounts.
   bool get isAmountBased =>
       this == GoalType.decreaseExpenses ||
       this == GoalType.increaseTotalRevenue ||
@@ -40,6 +62,7 @@ enum GoalType {
       this == GoalType.increaseSessionsRevenue ||
       this == GoalType.increaseEvaluationsRevenue;
 
+  /// Returns true if it is a custom goal.
   bool get isCustom => this == GoalType.custom;
 }
 
@@ -95,24 +118,50 @@ GoalType goalTypeFromString(String value) {
   }
 }
 
+/// Abstract base class for all goal models.
 abstract class GoalModelBase {
+  /// The unique identifier of the goal.
   final String id;
+
+  /// The title of the goal.
   final String title;
+
+  /// An optional description of the goal.
   final String? description;
+
+  /// The type of the goal.
   @GoalTypeConverter()
   final GoalType goalType;
+
+  /// The color associated with the goal (integer representation).
   final int color;
+
+  /// The timestamp when the goal was created.
   @TimestampConverter()
   final Timestamp createdAt;
+
+  /// The timestamp when the goal was last updated.
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
+
+  /// The timestamp when the goal was deleted.
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
+
+  /// The ID of the user who created the goal.
   final String createdBy;
+
+  /// The ID of the user who last updated the goal.
   final String? updatedBy;
+
+  /// The ID of the user who deleted the goal.
   final String? deletedBy;
-  final int? year; // Add this
-  final int? month; // Add this
+
+  /// The target year for the goal (if applicable).
+  final int? year;
+
+  /// The target month for the goal (if applicable).
+  final int? month;
 
   const GoalModelBase({
     required this.id,
@@ -131,8 +180,10 @@ abstract class GoalModelBase {
   });
 }
 
+/// A goal model specifically for count-based targets (e.g., number of sessions).
 @JsonSerializable(explicitToJson: true)
 class CountGoalModel extends GoalModelBase {
+  /// The target count value.
   final int targetCount;
 
   const CountGoalModel({
@@ -191,8 +242,10 @@ class CountGoalModel extends GoalModelBase {
   }
 }
 
+/// A goal model specifically for monetary amount-based targets (e.g., revenue target).
 @JsonSerializable(explicitToJson: true)
 class AmountGoalModel extends GoalModelBase {
+  /// The target monetary amount.
   final double targetAmount;
 
   const AmountGoalModel({
@@ -328,4 +381,3 @@ class CustomGoalModel extends GoalModelBase {
     );
   }
 }
-

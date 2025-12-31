@@ -4,20 +4,41 @@ import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 
 part 'notification_model.g.dart';
 
+/// A model class representing a notification.
 @JsonSerializable()
 class NotificationModel {
+  /// The unique identifier of the notification.
   final String id;
+
+  /// The ID of the user who should receive this notification.
   final String userId;
+
+  /// The title of the notification.
   final String title;
+
+  /// The message body of the notification.
   final String message;
+
+  /// The type/category of the notification.
   final NotificationType type;
+
+  /// Whether the notification has been read by the user.
   final bool isRead;
+
+  /// The timestamp when the notification was created.
   @JsonKey(fromJson: _timestampFromJson, toJson: _timestampToJson)
   final DateTime createdAt;
+
+  /// An optional URL for navigation when the notification is tapped.
   final String? actionUrl;
+
+  /// Additional metadata associated with the notification.
   final Map<String, dynamic>? metadata;
 
+  /// Information about who sent the notification.
   final NotificationSender sender;
+
+  /// Information about who should receive the notification.
   final NotificationTarget target;
 
   NotificationModel({
@@ -83,6 +104,7 @@ class NotificationModel {
   }
 }
 
+/// Enum representing the type of notification.
 enum NotificationType {
   @JsonValue('appointment')
   appointment,
@@ -168,4 +190,3 @@ class NotificationTarget {
 
   Map<String, dynamic> toJson() => _$NotificationTargetToJson(this);
 }
-

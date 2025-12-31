@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifica
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_state.dart';
 import 'package:flutter/foundation.dart';
 
+/// BLoC for managing notification state and operations.
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   final NotificationsUseCase useCase;
   final SendBulkNotificationUseCase? sendBulkUseCase;
@@ -13,7 +14,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   StreamSubscription? _unreadCountSubscription;
 
   NotificationsBloc({required this.useCase, this.sendBulkUseCase})
-    : super(NotificationsInitial()) {
+      : super(NotificationsInitial()) {
     on<LoadNotificationsEvent>(_onLoadNotifications);
     on<WatchNotificationsEvent>(_onWatchNotifications);
     on<MarkNotificationAsReadEvent>(_onMarkAsRead);
@@ -189,4 +190,3 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     return super.close();
   }
 }
-

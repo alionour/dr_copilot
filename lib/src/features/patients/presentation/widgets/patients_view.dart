@@ -52,12 +52,12 @@ class _PatientsViewState extends State<PatientsView> {
   final FocusNode _searchFocusNode = FocusNode();
   bool _showFilters = false;
 
-  // Filter state for UI display only
-  DateTime? _selectedDate;
-  String? _selectedGender;
-  int? _minAge;
-  int? _maxAge;
-  String? _selectedAddress;
+  // Filter state for UI display only (Currently unused, kept for future implementation)
+  // DateTime? _selectedDate;
+  // String? _selectedGender;
+  // int? _minAge;
+  // int? _maxAge;
+  // String? _selectedAddress;
 
   bool _canLoadMore = true;
 

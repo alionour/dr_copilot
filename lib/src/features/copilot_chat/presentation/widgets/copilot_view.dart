@@ -27,6 +27,7 @@ class CopilotView extends StatelessWidget {
   final VoidCallback onToggleHistory; // For sidebar toggle
   final Function(bool) onHistoryToggle; // Alternative if state passed down
   final Function(String, String) onEditMessage;
+  final Function(bool isLike, String messageId) onFeedback;
 
   // Voice Callbacks (assume handled by parent or just void placeholders for view)
   final VoidCallback? onSpeechStart;
@@ -59,6 +60,7 @@ class CopilotView extends StatelessWidget {
     required this.onToggleHistory,
     required this.onHistoryToggle,
     required this.onEditMessage,
+    required this.onFeedback,
     this.onSpeechStart,
     this.onSpeechStop,
     this.pickedImage,
@@ -146,6 +148,7 @@ class CopilotView extends StatelessWidget {
                               messages: messages,
                               isLoading: isLoading,
                               onEdit: onEditMessage,
+                              onFeedback: onFeedback,
                               currentUserPhotoUrl: currentUserPhotoUrl,
                               currentUserDisplayName: currentUserDisplayName,
                               userPermissions: userPermissions,

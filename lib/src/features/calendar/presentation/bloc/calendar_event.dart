@@ -1,5 +1,6 @@
 part of 'calendar_bloc.dart';
 
+/// Abstract base class for all calendar events.
 abstract class CalendarEvent extends Equatable {
   const CalendarEvent();
 
@@ -7,8 +8,10 @@ abstract class CalendarEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Event triggered to authenticate with Google Calendar.
 class AuthenticateCalendar extends CalendarEvent {}
 
+/// Event triggered to fetch all calendar events.
 class GetCalendarEvents extends CalendarEvent {}
 
 /// Event to get the list of calendars, extending the base CalendarEvent class.
@@ -52,4 +55,3 @@ class AddCalendarEvent extends CalendarEvent {
   @override
   List<Object> get props => [newEvent, calendarId];
 }
-

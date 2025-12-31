@@ -1,12 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
+/// A model class representing user-specific settings and preferences.
 class UserSettingsModel extends Equatable {
+  /// A map of arbitrary user preferences.
   final Map<String, dynamic> preferences;
+
+  /// The language code for localization (e.g., 'en', 'ar').
   final String? localeCode;
+
+  /// Whether the dark mode is enabled.
   final bool? isDarkMode;
+
+  /// The timestamp when the settings were last updated.
   final DateTime? lastUpdated;
 
+  /// Creates a new [UserSettingsModel] instance.
   const UserSettingsModel({
     this.preferences = const {},
     this.localeCode,

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -21,7 +20,6 @@ import '../../../../features/auth/domain/repositories/auth_repository.dart';
 import '../../../../features/auth/domain/services/permission_service.dart';
 import '../../../../features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import '../../../../features/settings/presentation/bloc/settings_bloc.dart';
-import '../../../../features/settings/presentation/bloc/settings_state.dart';
 import '../../data/services/abstract_speech_recognition_service.dart';
 import '../../data/services/hybrid_speech_recognition_service.dart';
 import '../../../subscription/domain/enums/subscription_tier.dart';
@@ -33,12 +31,18 @@ import '../../../patients/domain/usecases/patients_usecase.dart';
 import '../../../appointments/sessions/domain/usecases/sessions_usecase.dart';
 import '../../../appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import '../bloc/copilot_bloc.dart';
-import '../bloc/copilot_event.dart';
-import '../bloc/copilot_state.dart';
 import '../widgets/conversation_sidebar.dart';
 import '../widgets/copilot_view.dart';
 import '../../../../core/helper/api_key_helper.dart';
 
+/// The main screen for the AI Copilot Chat.
+///
+/// Features:
+/// - Real-time chat with multiple AI models (Gemini, GPT, Claude, etc.)
+/// - Voice input and speech-to-text.
+/// - Image upload and analysis.
+/// - Chat history management (view, delete, rename).
+/// - Function calling execution (add/edit patients, sessions).
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
 
@@ -92,7 +96,7 @@ class _CopilotPageState extends State<CopilotPage> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
-      // Initialize settings
+      // Initialize settings: Load required fields for function calling
       final settingsState = context.read<SettingsBloc>().state;
       context.read<CopilotBloc>().add(
             UpdateCopilotSettingsEvent(settingsState.copilotRequiredFields),
@@ -129,6 +133,7 @@ class _CopilotPageState extends State<CopilotPage> {
     super.dispose();
   }
 
+  /// Loads subscription info (tier, token usage) for the current clinic context.
   Future<void> _loadSubscriptionInfo() async {
     try {
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
@@ -202,6 +207,7 @@ class _CopilotPageState extends State<CopilotPage> {
     }
   }
 
+  /// Initializes the speech recognition service based on the hybrid configuration.
   Future<void> _initSpeechRecognitionService() async {
     final speechRecognitionService =
         GetIt.instance<AbstractSpeechRecognitionService>();
@@ -251,6 +257,7 @@ class _CopilotPageState extends State<CopilotPage> {
     );
   }
 
+  /// Requests microphone permissions for voice input.
   Future<void> _requestPermissions() async {
     if (await Permission.microphone.isDenied) {
       await Permission.microphone.request();
@@ -290,6 +297,10 @@ class _CopilotPageState extends State<CopilotPage> {
     });
   }
 
+  /// Sends a message (text or image) to the AI service.
+  ///
+  /// Handles creation of new conversations, appending to existing ones,
+  /// and processing function call responses.
   void _sendMessage() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
@@ -365,7 +376,9 @@ class _CopilotPageState extends State<CopilotPage> {
                 _conversationCreationFuture = null;
               });
               // Initialize stream for new conversation
-              _loadConversation(newId);
+              if (newId != null) {
+                _loadConversation(newId);
+              }
             }
           } catch (e) {
             _conversationCreationFuture = null;
@@ -395,6 +408,7 @@ class _CopilotPageState extends State<CopilotPage> {
               text: text,
               clinicId: clinicId,
               userId: userId,
+              forcePremium: context.read<SettingsBloc>().state.usePremiumModels,
             ),
           );
       _controller.clear();
@@ -418,7 +432,9 @@ class _CopilotPageState extends State<CopilotPage> {
                 _conversationCreationFuture = null;
               });
               // Initialize stream
-              _loadConversation(newId);
+              if (newId != null) {
+                _loadConversation(newId);
+              }
             }
           } catch (e) {
             _conversationCreationFuture = null;
@@ -453,6 +469,7 @@ class _CopilotPageState extends State<CopilotPage> {
               messageHistory: recentMessages,
               clinicId: clinicId,
               userId: userId,
+              forcePremium: context.read<SettingsBloc>().state.usePremiumModels,
             ),
           );
     }
@@ -471,6 +488,7 @@ class _CopilotPageState extends State<CopilotPage> {
     });
   }
 
+  /// Loads a specific conversation by ID and listens for real-time updates.
   void _loadConversation(String conversationId) {
     setState(() {
       _currentConversationId = conversationId;
@@ -631,10 +649,36 @@ class _CopilotPageState extends State<CopilotPage> {
         messageId: messageId,
         newText: newText,
       );
-      // Stream will handle the UI update
     }
   }
 
+  void _handleFeedback(bool isLike, String messageId) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+    final clinicId = ownerNotifier.clinicId;
+
+    if (userId == null || clinicId == null) {
+      debugPrint('[CopilotPage] Missing user or clinic ID for feedback');
+      return;
+    }
+
+    context.read<CopilotBloc>().add(
+          ProvideFeedbackEvent(
+            messageId: messageId,
+            isLike: isLike,
+            userId: userId,
+            clinicId: clinicId,
+          ),
+        );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Thanks for your feedback!')),
+    );
+  }
+
+  /// Handles function calls returned by the AI (e.g., add_patient).
+  ///
+  /// Parses arguments, asks for missing required parameters, and executes the function.
   void _handleFunctionCall([FunctionCall? initialFunctionCall]) async {
     if (initialFunctionCall != null) {
       _functionCallArgs = {
@@ -680,7 +724,9 @@ class _CopilotPageState extends State<CopilotPage> {
       if (requiredFields.contains('patient.phone') ||
           requiredFields.contains('phoneNumber')) {
         if (!checkAndAsk(
-            'phoneNumber', 'What is the phone number of the patient?')) return;
+            'phoneNumber', 'What is the phone number of the patient?')) {
+          return;
+        }
       }
       if (requiredFields.contains('patient.address')) {
         if (!checkAndAsk('address', 'What is the address of the patient?')) {
@@ -688,9 +734,10 @@ class _CopilotPageState extends State<CopilotPage> {
         }
       }
       if (requiredFields.contains('patient.alt_phone')) {
-        if (!checkAndAsk(
-            'alternativePhoneNumber', 'What is the alternative phone number?'))
+        if (!checkAndAsk('alternativePhoneNumber',
+            'What is the alternative phone number?')) {
           return;
+        }
       }
       if (requiredFields.contains('patient.doctor')) {
         if (!checkAndAsk('treatingDoctor', 'Who is the treating doctor?')) {
@@ -1112,10 +1159,9 @@ class _CopilotPageState extends State<CopilotPage> {
                                   },
                                   pickedImage: _pickedImage,
                                   navMenuButton: navMenuButton,
-                                  currentUserPhotoUrl: FirebaseAuth
-                                      .instance.currentUser?.photoURL,
                                   currentUserDisplayName: FirebaseAuth
                                       .instance.currentUser?.displayName,
+                                  onFeedback: _handleFeedback,
                                 );
                               });
                         });

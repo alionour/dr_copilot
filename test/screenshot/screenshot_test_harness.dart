@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -7,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
 
 /// Test harness for capturing screenshots of widgets in isolation.

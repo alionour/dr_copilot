@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// A page that displays user notifications with real-time updates.
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
@@ -33,8 +34,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (firebaseUser != null) {
         _userId = firebaseUser.uid;
         context.read<NotificationsBloc>().add(
-          WatchNotificationsEvent(_userId!),
-        );
+              WatchNotificationsEvent(_userId!),
+            );
         _checkPermissions();
       }
     }
@@ -107,6 +108,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is NotificationSentSuccess) {
+            // Trigger a refresh to get the latest notifications
+            if (_userId != null) {
+              context.read<NotificationsBloc>().add(
+                    RefreshNotificationsEvent(_userId!),
+                  );
+            }
           }
         },
         builder: (context, state) {
@@ -127,8 +135,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     onPressed: () {
                       if (_userId != null) {
                         context.read<NotificationsBloc>().add(
-                          RefreshNotificationsEvent(_userId!),
-                        );
+                              RefreshNotificationsEvent(_userId!),
+                            );
                       }
                     },
                     icon: const Icon(Icons.refresh),
@@ -174,8 +182,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
               onRefresh: () async {
                 if (_userId != null) {
                   context.read<NotificationsBloc>().add(
-                    RefreshNotificationsEvent(_userId!),
-                  );
+                        RefreshNotificationsEvent(_userId!),
+                      );
                 }
               },
               child: Column(
@@ -214,8 +222,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           notification: notification,
                           onMarkAsRead: () {
                             context.read<NotificationsBloc>().add(
-                              MarkNotificationAsReadEvent(notification.id),
-                            );
+                                  MarkNotificationAsReadEvent(notification.id),
+                                );
                           },
                         );
                       },
@@ -247,21 +255,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
           // Handle NotificationSentSuccess - this happens after sending a notification
           // We should just keep showing the current loaded state
+          // Handle NotificationSentSuccess - show loading while refreshing
           if (state is NotificationSentSuccess) {
-            // This state is handled by the CreateNotificationPage listener
-            // But we need to handle it here too so we don't show loading
-            // Just refresh the notifications list
-            if (_userId != null) {
-              // Trigger a refresh to get the latest notifications
-              Future.microtask(() {
-                if (mounted) {
-                  context.read<NotificationsBloc>().add(
-                    RefreshNotificationsEvent(_userId!),
-                  );
-                }
-              });
-            }
-            // Show loading while we refresh
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -285,4 +280,3 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 }
-

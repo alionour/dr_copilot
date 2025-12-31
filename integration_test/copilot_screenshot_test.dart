@@ -42,6 +42,7 @@ void main() {
       onToggleHistory: () {},
       onHistoryToggle: (_) {},
       onEditMessage: (_, __) {},
+      onFeedback: (_, __) {},
       currentUserDisplayName: 'Dr. Copilot User',
       currentUserPhotoUrl: null, // Test default avatar
     );

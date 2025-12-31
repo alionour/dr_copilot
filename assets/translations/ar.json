@@ -892,5 +892,12 @@
   "addFinancialGoal": "إضافة هدف مالي",
   "addNewGoal": "إضافة هدف جديد",
   "enterValidInteger": "يرجى إدخال عدد صحيح",
-  "progressLabelWithPercent": "التقدم: {}%"
+  "progressLabelWithPercent": "التقدم: {}%",
+  "deleteTransaction": "حذف المعاملة",
+  "deleteTransactionConfirmation": "هل أنت متأكد من حذف هذه المعاملة؟ لا يمكن التراجع عن هذا الإجراء.",
+  "viewDetails": "عرض التفاصيل",
+  "transaction": "معاملة",
+  "close": "إغلاق",
+  "date": "التاريخ",
+  "attributes": "السمات"
 }

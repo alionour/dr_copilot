@@ -4,12 +4,18 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'invoice_model.g.dart';
 
+/// Enum representing the type of customer for an invoice.
 enum CustomerType {
+  /// Individual patient.
   patient,
+
+  /// Corporate or organizational client.
   organization,
+
+  /// Insurance company.
   insurance;
 
-  // Getter to return a user-friendly string
+  /// Returns a user-friendly display name.
   String get displayName {
     switch (this) {
       case CustomerType.patient:
@@ -21,17 +27,22 @@ enum CustomerType {
     }
   }
 
-  // Overriding toString for custom string representation
   @override
   String toString() => displayName;
 }
 
+/// Enum representing the source of the invoice.
 enum InvoiceSource {
+  /// Invoice generated from therapy sessions.
   sessions,
+
+  /// Invoice generated from evaluations.
   evaluations,
+
+  /// Other miscellaneous sources.
   other;
 
-  // Getter to return a user-friendly string
+  /// Returns a user-friendly display name.
   String get displayName {
     switch (this) {
       case InvoiceSource.sessions:
@@ -43,20 +54,25 @@ enum InvoiceSource {
     }
   }
 
-  // Overriding toString for custom string representation
   @override
   String toString() => displayName;
 }
 
+/// Enum representing the payment status of an invoice.
 enum InvoiceStatus {
+  /// No payment has been made.
   unpaid,
+
+  /// Fully paid.
   paid,
+
+  /// Partially paid.
   partiallyPaid;
 
-  // Method to check if the status is unpaid
+  /// Checks if the status is strictly unpaid.
   bool isUnpaid() => this == InvoiceStatus.unpaid;
 
-  // Getter to return a user-friendly string
+  /// Returns a user-friendly display name.
   String get displayName {
     switch (this) {
       case InvoiceStatus.unpaid:
@@ -68,19 +84,32 @@ enum InvoiceStatus {
     }
   }
 
-  // Overriding toString for custom string representation
   @override
   String toString() => displayName;
 }
 
+/// A model class representing a financial invoice.
 @JsonSerializable(explicitToJson: true)
 class InvoiceModel {
+  /// The unique identifier of the invoice.
   final String id;
-  final String ownerId; // The parent user document this invoice belongs to
+
+  /// The ID of the owner entity (clinic/user).
+  final String ownerId;
+
+  /// The ID of the clinic associated with the invoice.
   final String clinicId;
+
+  /// The title of the invoice.
   final String title;
+
+  /// A description of the invoice contents.
   final String description;
+
+  /// The total amount of the invoice.
   final double amount;
+
+  /// The ID of the currency profile used for this invoice.
   final String currencyProfileId;
 
   /// The date and time when the invoice was issued (business meaning).
@@ -91,22 +120,38 @@ class InvoiceModel {
   @TimestampConverter()
   final Timestamp createdAt;
 
-  /// The user ID or system that created this invoice (should not be null).
-  final String createdBy; // Not nullable, always required
+  /// The ID of the user or system that created this invoice.
+  final String createdBy;
 
+  /// The ID of the user who last updated this invoice.
   final String? updatedBy;
+
+  /// The ID of the user who deleted this invoice.
   final String? deletedBy;
+
+  /// The timestamp when the invoice was last updated.
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
+
+  /// The timestamp when the invoice was soft deleted.
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
 
+  /// The due date for payment of this invoice.
   @TimestampConverter()
   final Timestamp dueDate;
+
+  /// The ID of the customer (patient or organization).
   final String? customerId;
+
+  /// The type of the customer.
   final CustomerType? customerType;
+
+  /// The source of the invoice (e.g., sessions, evaluations).
   final InvoiceSource? source;
-  final InvoiceStatus? status; // Changed from String? to InvoiceStatus?
+
+  /// The payment status of the invoice.
+  final InvoiceStatus? status;
 
   /// The ID of the session or evaluation this invoice is for (if applicable).
   final String referenceId;
@@ -184,4 +229,3 @@ class InvoiceModel {
     );
   }
 }
-

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -290,7 +291,7 @@ class _SummaryCardState extends State<_SummaryCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           transform: _isHovered
-              ? (Matrix4.identity()..scale(1.02))
+              ? (Matrix4.identity()..scale(1.02, 1.02))
               : Matrix4.identity(),
           decoration: BoxDecoration(
             gradient: LinearGradient(

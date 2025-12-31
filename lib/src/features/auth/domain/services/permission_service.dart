@@ -15,6 +15,10 @@ class PermissionService {
   final Map<String, List<String>> _permissionCache = {};
   StreamSubscription<DocumentSnapshot>? _permissionSubscription;
 
+  // Track if permissions have been initialized
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   PermissionService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
@@ -24,14 +28,34 @@ class PermissionService {
   Future<void> clearCache() => dispose();
 
   /// Synchronous permission check using the latest streamed data.
+  ///
+  /// IMPORTANT: If permissions haven't been loaded yet (not initialized),
+  /// this returns true to allow the operation. The actual permission check
+  /// is enforced by Firestore Security Rules on the backend. This client-side
+  /// check is for UI/UX purposes only (e.g., hiding buttons the user can't use).
   bool hasPermissionSync(AppPermission permission, {String? clinicId}) {
+    // If not initialized, fail-open and let Firestore Security Rules be the gatekeeper
+    if (!_isInitialized) {
+      debugPrint(
+          '[PermissionService] Not initialized yet, allowing ${permission.name} (Firestore rules will enforce)');
+      return true;
+    }
+
     final key = clinicId ?? 'default';
     final permissions = _permissionCache[key];
 
-    // If we have no data yet, return false (fail closed)
+    // If we have no data yet (but are initialized), check default
     if (permissions == null) {
-      debugPrint('[PermissionService] Check failed: No data for clinic $key');
-      return false;
+      debugPrint(
+          '[PermissionService] No cached permissions for clinic $key, checking default');
+      final defaultPermissions = _permissionCache['default'];
+      if (defaultPermissions == null) {
+        // We're initialized but have no permissions - this means the user has none
+        debugPrint(
+            '[PermissionService] No permissions found, denying ${permission.name}');
+        return false;
+      }
+      return defaultPermissions.contains(permission.name);
     }
 
     return permissions.contains(permission.name);
@@ -77,6 +101,7 @@ class PermissionService {
           _permissionCache[targetClinicId!] = permissions;
           _permissionCache['default'] = permissions; // Set default alias
 
+          _isInitialized = true;
           debugPrint(
               '[PermissionService] Updated permissions (Count: ${permissions.length})');
         } else {
@@ -99,6 +124,7 @@ class PermissionService {
     await _permissionSubscription?.cancel();
     _permissionSubscription = null;
     _permissionCache.clear();
+    _isInitialized = false;
     debugPrint('[PermissionService] Disposed listener.');
   }
 

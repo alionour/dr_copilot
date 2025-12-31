@@ -1,12 +1,20 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
+/// Service wrapper for Firebase Remote Config.
+///
+/// Handles fetching and activating remote configuration values like feature flags
+/// and dynamic parameters.
 class RemoteConfigService {
   final FirebaseRemoteConfig _remoteConfig;
 
   RemoteConfigService({FirebaseRemoteConfig? remoteConfig})
       : _remoteConfig = remoteConfig ?? FirebaseRemoteConfig.instance;
 
+  /// Initializes the Remote Config service.
+  ///
+  /// Sets configuration settings (fetch timeout, interval) and default values.
+  /// Fetches and activates the latest config from the server.
   Future<void> initialize() async {
     try {
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
@@ -27,7 +35,9 @@ class RemoteConfigService {
     }
   }
 
+  /// Returns true if user signup is currently enabled.
   bool get isSignupEnabled => _remoteConfig.getBool('signup_enabled');
 
+  /// Returns the maximum number of users allowed in the system.
   int get maxAllowedUsers => _remoteConfig.getInt('max_allowed_users');
 }

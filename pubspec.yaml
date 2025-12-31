@@ -218,7 +218,4 @@ msix_config:
   msix_version: 1.0.3.0
   logo_path: assets/icon.png
   store: true
-  capabilities:
-    - internetClient
-    - privateNetworkClientServer
 

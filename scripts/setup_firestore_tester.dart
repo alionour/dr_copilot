@@ -1,9 +1,10 @@
+// ignore_for_file: avoid_print
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:dr_copilot/firebase_options.dart';
 
-const TESTER_UID = '6QEq5hMazPaegl2rGwulSgGdXPw1';
-const CLINIC_ID = 'test_clinic_001';
+const testerUid = '6QEq5hMazPaegl2rGwulSgGdXPw1';
+const clinicId = 'test_clinic_001';
 
 Future<void> main() async {
   print('🔥 Initializing Firebase...');
@@ -17,42 +18,42 @@ Future<void> main() async {
   try {
     // 1. Create clinic document
     print('\n📋 Creating clinic document...');
-    await firestore.collection('clinics').doc(CLINIC_ID).set({
+    await firestore.collection('clinics').doc(clinicId).set({
       'name': 'Dr. Copilot Test Clinic',
-      'ownerId': TESTER_UID,
+      'ownerId': testerUid,
       'createdAt': FieldValue.serverTimestamp(),
-      'createdBy': TESTER_UID,
+      'createdBy': testerUid,
       'address': 'Cairo, Egypt',
       'phone': '+201234567890',
     });
-    print('✅ Clinic created: $CLINIC_ID');
+    print('✅ Clinic created: $clinicId');
 
     // 2. Create user document
     print('\n👤 Creating user document...');
-    await firestore.collection('users').doc(TESTER_UID).set({
-      'uid': TESTER_UID,
+    await firestore.collection('users').doc(testerUid).set({
+      'uid': testerUid,
       'email': 'drcopilot.test@gmail.com',
       'displayName': 'Dr. Copilot Tester',
-      'primaryClinicId': CLINIC_ID,
-      'clinicIds': [CLINIC_ID],
+      'primaryClinicId': clinicId,
+      'clinicIds': [clinicId],
       'clinics': [
         {
-          'clinicId': CLINIC_ID,
+          'clinicId': clinicId,
           'role': 'admin',
         }
       ],
-      'ownerId': TESTER_UID,
+      'ownerId': testerUid,
       'createdAt': FieldValue.serverTimestamp(),
     });
-    print('✅ User created: $TESTER_UID');
+    print('✅ User created: $testerUid');
 
     // 3. Create clinic member document
     print('\n👥 Creating clinic member...');
     await firestore
         .collection('clinics')
-        .doc(CLINIC_ID)
+        .doc(clinicId)
         .collection('members')
-        .doc(TESTER_UID)
+        .doc(testerUid)
         .set({
       'role': 'admin',
       'permissions': [
@@ -61,7 +62,7 @@ Future<void> main() async {
         'deletePatients',
         'addPatients'
       ],
-      'uid': TESTER_UID,
+      'uid': testerUid,
       'email': 'drcopilot.test@gmail.com',
       'displayName': 'Dr. Copilot Tester',
       'joinedAt': FieldValue.serverTimestamp(),
@@ -70,21 +71,21 @@ Future<void> main() async {
 
     // 4. Create subscription document
     print('\n💳 Creating subscription...');
-    await firestore.collection('subscriptions').doc(CLINIC_ID).set({
+    await firestore.collection('subscriptions').doc(clinicId).set({
       'tier': 'free',
       'status': 'active',
-      'clinicId': CLINIC_ID,
+      'clinicId': clinicId,
       'createdAt': FieldValue.serverTimestamp(),
     });
     print('✅ Subscription created');
 
     // 5. Seed sample data
     print('\n📦 Seeding sample data...');
-    await seedSampleData(firestore, TESTER_UID, CLINIC_ID);
+    await seedSampleData(firestore, testerUid, clinicId);
 
     print('\n🎉 SUCCESS! Tester account is fully set up.');
-    print('Clinic ID: $CLINIC_ID');
-    print('User UID: $TESTER_UID');
+    print('Clinic ID: $clinicId');
+    print('User UID: $testerUid');
     print('\nYou can now run the screenshot test!');
   } catch (e) {
     print('\n❌ Error: $e');

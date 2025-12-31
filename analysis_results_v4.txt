@@ -1,0 +1,11 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing dr_copilot...                                         
+
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\financials\presentation\pages\dashboard_page.dart:294:38 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:340:13 - deprecated_member_use
+   info - The imported package 'flutter_tts' isn't a dependency of the importing package - packages\flutter_tts_fixed\example\lib\main.dart:6:8 - depend_on_referenced_packages
+   info - Invalid use of a private type in a public API - packages\flutter_tts_fixed\example\lib\main.dart:12:3 - library_private_types_in_public_api
+   info - Statements in an if should be enclosed in a block - packages\flutter_tts_fixed\example\lib\main.dart:246:11 - curly_braces_in_flow_control_structures
+   info - 'partialResults' is deprecated and shouldn't be used. Use SpeechListenOptions.partialResults instead - packages\speech_to_text_windows\example\lib\main.dart:103:9 - deprecated_member_use
+

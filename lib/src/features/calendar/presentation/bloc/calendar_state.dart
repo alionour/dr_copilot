@@ -25,6 +25,7 @@ final class CalendarInitial extends CalendarState {
   const CalendarInitial() : super(const []);
 }
 
+/// State indicating that Google Calendar authentication is required.
 final class CalendarAuthenticationRequired extends CalendarState {
   const CalendarAuthenticationRequired() : super(const []);
 }
@@ -75,4 +76,3 @@ final class CalendarsLoaded extends CalendarState {
   @override
   List<Object> get props => [calendars];
 }
-

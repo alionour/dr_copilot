@@ -6,32 +6,61 @@ part 'patient_model.g.dart';
 /// A model class representing a patient.
 @JsonSerializable()
 class PatientModel {
+  /// The unique identifier of the patient.
   final String id;
+
+  /// The full name of the patient.
   final String name;
+
+  /// The age of the patient (optional).
   final int? age;
+
+  /// The gender of the patient (optional).
   final String? gender;
+
+  /// The address of the patient (optional).
   final String? address;
+
+  /// The ID of the owner/creator of the patient record.
   final String ownerId;
+
+  /// The ID of the clinic the patient belongs to.
   final String clinicId;
+
+  /// The patient's phone number.
   final String? phoneNumber;
+
+  /// An alternative phone number for the patient.
   final String? alternativePhoneNumber;
+
+  /// The doctor treating the patient.
   final String? treatingDoctor;
+
+  /// The patient's occupation.
   final String? occupation;
 
+  /// The timestamp when the patient record was created.
   @TimestampConverter()
   final Timestamp? createdAt;
 
+  /// The timestamp when the patient record was last updated.
   @TimestampConverter()
   final Timestamp? updatedAt;
 
+  /// The ID of the user who created the record.
   final String? createdBy;
+
+  /// The ID of the user who last updated the record.
   final String? updatedBy;
+
+  /// The ID of the user who deleted the record (if soft deleted).
   final String? deletedBy;
 
+  /// The timestamp when the record was soft deleted.
   @TimestampConverter()
   final Timestamp? deletedAt;
 
-  /// Constructor for the Patient class.
+  /// Creates a new [PatientModel] instance.
   PatientModel({
     required this.id,
     required this.name,
@@ -52,14 +81,14 @@ class PatientModel {
     this.deletedAt,
   });
 
-  /// A factory constructor to create a Patient instance from a JSON map.
+  /// Creates a [PatientModel] from a JSON map.
   factory PatientModel.fromJson(Map<String, dynamic> json) =>
       _$PatientModelFromJson(json);
 
-  /// A method to convert a Patient instance to a JSON map.
+  /// Converts the [PatientModel] to a JSON map.
   Map<String, dynamic> toJson() => _$PatientModelToJson(this);
 
-  /// A copyWith method to create a new instance with updated fields.
+  /// Creates a copy of this [PatientModel] with the given fields replaced with new values.
   PatientModel copyWith({
     String? id,
     String? name,
@@ -123,4 +152,3 @@ class TimestampConverter implements JsonConverter<Timestamp?, dynamic> {
   @override
   dynamic toJson(Timestamp? object) => object;
 }
-

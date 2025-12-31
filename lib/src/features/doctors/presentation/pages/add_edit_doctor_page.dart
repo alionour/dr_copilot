@@ -9,7 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+/// A page for adding a new doctor or editing an existing one.
 class AddEditDoctorPage extends StatefulWidget {
+  /// The ID of the doctor to edit. If null, a new doctor will be created.
   final String? doctorId;
 
   const AddEditDoctorPage({super.key, this.doctorId});

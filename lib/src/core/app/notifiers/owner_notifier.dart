@@ -88,26 +88,118 @@ class OwnerNotifier with ChangeNotifier {
       final data = userDoc.data();
       debugPrint('[OwnerNotifier] User doc data: $data');
 
-      // Update ownerId if explicitly set in Firestore, otherwise keep user.uid
-      if (data?['ownerId'] != null) {
-        _ownerId = data!['ownerId'];
-        debugPrint('[OwnerNotifier] Updated ownerId from Firestore: $_ownerId');
+      // -----------------------------------------------------------------------
+      // STEP 1: Fetch and Validate Accessible Clinics
+      // -----------------------------------------------------------------------
+
+      // Fetch all clinics for this user based on clinicIds AND ownerId
+      Set<ClinicModel> allClinics = {};
+      Set<String> targetClinicIds = {};
+
+      // 1. Extract IDs from 'clinicIds' field (if present)
+      if (data?['clinicIds'] is List) {
+        targetClinicIds.addAll(List<String>.from(data?['clinicIds']));
       }
-      // Prefer primaryClinicId, fallback to first clinicIds entry, else null
+
+      // 2. Extract IDs from 'clinics' array (rich object)
+      if (data?['clinics'] is List) {
+        for (var c in data!['clinics']) {
+          if (c is Map && c['clinicId'] is String) {
+            targetClinicIds.add(c['clinicId']);
+          }
+        }
+      }
+
+      debugPrint(
+        '[OwnerNotifier] Consolidated clinic IDs to fetch: $targetClinicIds',
+      );
+
+      // 3. Fetch by collected IDs
+      if (targetClinicIds.isNotEmpty) {
+        final clinicIdsList = targetClinicIds.toList();
+
+        // Split into chunks of 10
+        for (var i = 0; i < clinicIdsList.length; i += 10) {
+          final end =
+              (i + 10 < clinicIdsList.length) ? i + 10 : clinicIdsList.length;
+          final chunk = clinicIdsList.sublist(i, end);
+
+          try {
+            debugPrint('[OwnerNotifier] Querying clinics with IDs: $chunk');
+            // Note: If user is not a member, Firestore rules might block reading the clinic doc.
+            // This effectively filters out clinics the user lost access to.
+            final clinicsSnap = await FirebaseFirestore.instance
+                .collection('clinics')
+                .where(FieldPath.documentId, whereIn: chunk)
+                .get();
+
+            debugPrint(
+              '[OwnerNotifier] Found ${clinicsSnap.docs.length} clinics in this chunk',
+            );
+            for (var doc in clinicsSnap.docs) {
+              final clinicData = doc.data();
+              debugPrint(
+                '[OwnerNotifier]   - Clinic: ${doc.id} -> ${clinicData['name']}',
+              );
+              allClinics
+                  .add(ClinicModel.fromJson({'id': doc.id, ...clinicData}));
+            }
+          } catch (e) {
+            debugPrint('[OwnerNotifier] ❌ Error fetching clinics chunk: $e');
+            // Likely permission denied for some clinics provided in list
+          }
+        }
+      }
+
+      // Deduplicate by ID
+      final Map<String, ClinicModel> uniqueClinics = {
+        for (var c in allClinics) c.id: c,
+      };
+
+      _clinics = uniqueClinics.values.toList();
+      debugPrint(
+        '[OwnerNotifier] ✅ Total unique (accessible) clinics loaded: ${_clinics.length}',
+      );
+      for (var clinic in _clinics) {
+        debugPrint('[OwnerNotifier]    - ${clinic.id}: ${clinic.name}');
+      }
+
+      // -----------------------------------------------------------------------
+      // STEP 2: Resolve Active Clinic ID from Validated List
+      // -----------------------------------------------------------------------
+
+      String? potentialClinicId;
+
+      // Prefer primaryClinicId if it is valid (exists in loaded clinics)
       if (data?['primaryClinicId'] != null &&
           data?['primaryClinicId'] is String) {
-        _clinicId = data?['primaryClinicId'];
-        debugPrint('[OwnerNotifier] Loaded primaryClinicId: $_clinicId');
-      } else if (data?['clinicIds'] is List &&
-          (data?['clinicIds'] as List).isNotEmpty) {
-        _clinicId = (data?['clinicIds'] as List).first;
-        debugPrint(
-          '[OwnerNotifier] Loaded first clinicId from clinicIds: $_clinicId',
-        );
-      } else {
-        _clinicId = null;
-        debugPrint('[OwnerNotifier] No clinicId found.');
+        final primaryId = data?['primaryClinicId'];
+        if (uniqueClinics.containsKey(primaryId)) {
+          potentialClinicId = primaryId;
+          debugPrint(
+              '[OwnerNotifier] Using valid primaryClinicId: $potentialClinicId');
+        } else {
+          debugPrint(
+              '[OwnerNotifier] primaryClinicId $primaryId not found in accessible clinics.');
+        }
       }
+
+      // Fallback: Use first available clinic
+      if (potentialClinicId == null && _clinics.isNotEmpty) {
+        potentialClinicId = _clinics.first.id;
+        debugPrint(
+            '[OwnerNotifier] Fallback to first available clinic: $potentialClinicId');
+      }
+
+      _clinicId = potentialClinicId;
+
+      if (_clinicId == null) {
+        debugPrint('[OwnerNotifier] ❌ No valid clinicId found for user.');
+      }
+
+      // -----------------------------------------------------------------------
+      // STEP 3: Load Role & Permissions for Selected Clinic
+      // -----------------------------------------------------------------------
 
       // Load Role from clinic members subcollection
       if (_clinicId != null) {
@@ -147,84 +239,12 @@ class OwnerNotifier with ChangeNotifier {
               '[OwnerNotifier] ❌ Member document not found for user in clinic $_clinicId',
             );
             _role = null;
+            // Should potentially clear _clinicId here too if strict
           }
         } catch (e) {
           debugPrint('[OwnerNotifier] ❌ Error fetching member data: $e');
           _role = null;
         }
-      }
-
-      // Fetch all clinics for this user based on clinicIds AND ownerId
-      Set<ClinicModel> allClinics = {};
-      Set<String> targetClinicIds = {};
-
-      // 1. Extract IDs from 'clinicIds' field (if present)
-      if (data?['clinicIds'] is List) {
-        targetClinicIds.addAll(List<String>.from(data?['clinicIds']));
-      }
-
-      // 2. Extract IDs from 'clinics' array (rich object)
-      if (data?['clinics'] is List) {
-        for (var c in data!['clinics']) {
-          if (c is Map && c['clinicId'] is String) {
-            targetClinicIds.add(c['clinicId']);
-          }
-        }
-      }
-
-      debugPrint(
-        '[OwnerNotifier] Consolidated clinic IDs to fetch: $targetClinicIds',
-      );
-
-      // 3. Fetch by collected IDs
-      if (targetClinicIds.isNotEmpty) {
-        final clinicIdsList = targetClinicIds.toList();
-
-        // Split into chunks of 10
-        for (var i = 0; i < clinicIdsList.length; i += 10) {
-          final end =
-              (i + 10 < clinicIdsList.length) ? i + 10 : clinicIdsList.length;
-          final chunk = clinicIdsList.sublist(i, end);
-
-          try {
-            debugPrint('[OwnerNotifier] Querying clinics with IDs: $chunk');
-            final clinicsSnap = await FirebaseFirestore.instance
-                .collection('clinics')
-                .where(FieldPath.documentId, whereIn: chunk)
-                .get();
-
-            debugPrint(
-              '[OwnerNotifier] Found ${clinicsSnap.docs.length} clinics in this chunk',
-            );
-            for (var doc in clinicsSnap.docs) {
-              final clinicData = doc.data();
-              debugPrint(
-                '[OwnerNotifier]   - Clinic: ${doc.id} -> ${clinicData['name']}',
-              );
-              allClinics
-                  .add(ClinicModel.fromJson({'id': doc.id, ...clinicData}));
-            }
-          } catch (e) {
-            debugPrint('[OwnerNotifier] ❌ Error fetching clinics chunk: $e');
-          }
-        }
-      }
-
-      // NOTE: Removed ownerId query - security rules don't allow querying clinics by ownerId
-      // Clinics are already loaded from clinicIds/userClinics array above
-      // If we need owner-specific clinics, they should be in the user's clinicIds field
-
-      // Deduplicate by ID
-      final Map<String, ClinicModel> uniqueClinics = {
-        for (var c in allClinics) c.id: c,
-      };
-
-      _clinics = uniqueClinics.values.toList();
-      debugPrint(
-        '[OwnerNotifier] ✅ Total unique clinics loaded: ${_clinics.length}',
-      );
-      for (var clinic in _clinics) {
-        debugPrint('[OwnerNotifier]    - ${clinic.id}: ${clinic.name}');
       }
       debugPrint('═══════════════════════════════════════════════════');
     } catch (e) {

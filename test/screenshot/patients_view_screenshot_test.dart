@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dr_copilot/src/features/patients/presentation/widgets/patients_view.dart';
 import 'screenshot_test_harness.dart';
-import 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart';
+
 import 'mock_data/patient_mock_data.dart';
 
 import 'dart:io';
@@ -47,7 +47,7 @@ void main() {
         fontLoader.addFont(
             file.readAsBytes().then((bytes) => ByteData.view(bytes.buffer)));
       } else {
-        print('WARNING: Font file not found: $path');
+        debugPrint('WARNING: Font file not found: $path');
       }
     }
     await fontLoader.load();
@@ -61,7 +61,8 @@ void main() {
           .then((bytes) => ByteData.view(bytes.buffer)));
       await materialIconsLoader.load();
     } else {
-      print('WARNING: MaterialIcons not found at ${materialIconFile.path}');
+      debugPrint(
+          'WARNING: MaterialIcons not found at ${materialIconFile.path}');
     }
 
     // Mock SharedPreferences for EasyLocalization
@@ -98,8 +99,8 @@ void main() {
     final listFinder = find.byType(ListView);
     // final itemFinder = find.byType(PatientListItem); // Commented to avoid import issues for now
 
-    print('DEBUG: Found ListView: ${listFinder.evaluate().length}');
-    // print('DEBUG: Found PatientListItem: ${itemFinder.evaluate().length}');
+    debugPrint('DEBUG: Found ListView: ${listFinder.evaluate().length}');
+    // debugPrint('DEBUG: Found PatientListItem: ${itemFinder.evaluate().length}');
 
     try {
       // Capture the screenshot using the harness which wraps with EasyLocalization

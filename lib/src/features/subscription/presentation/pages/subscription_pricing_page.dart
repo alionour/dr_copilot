@@ -1,9 +1,11 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dr_copilot/src/core/services/paddle_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// A page that displays subscription pricing plans and handles upgrades.
 class SubscriptionPricingPage extends StatefulWidget {
   const SubscriptionPricingPage({super.key});
 
@@ -44,6 +46,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
         period: _isYearly ? 'yearly' : 'monthly',
       );
 
+      if (!mounted) return;
       Navigator.pop(context); // Close loading
 
       if (checkoutUrl != null) {
@@ -52,11 +55,13 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Could not open payment page')),
           );
         }
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -67,6 +72,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       Navigator.pop(context); // Close loading
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
@@ -97,9 +103,9 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
                     'All-In-One Price, Zero Hassle.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -331,7 +337,8 @@ class _PricingCardState extends State<_PricingCard> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        transform: Matrix4.identity()
+          ..scale(_isHovered ? 1.02 : 1.0, _isHovered ? 1.02 : 1.0),
         child: Container(
           decoration: BoxDecoration(
             gradient: widget.isPopular
@@ -494,4 +501,3 @@ class _PricingCardState extends State<_PricingCard> {
     );
   }
 }
-

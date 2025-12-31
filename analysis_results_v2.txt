@@ -1,0 +1,41 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing dr_copilot...                                         
+
+   info - The type parameter name 'Type' matches a visible type name - lib\src\core\usecase\usecase.dart:6:24 - avoid_types_as_parameter_names
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:278:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:284:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:311:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:315:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\appointments\sessions\presentation\pages\add_session_page.dart:340:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\appointments\sessions\presentation\pages\add_session_page.dart:348:32 - use_build_context_synchronously
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\financials\presentation\pages\dashboard_page.dart:293:38 - deprecated_member_use
+warning - This default clause is covered by the previous cases - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:695:7 - unreachable_switch_default
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\src\features\settings\presentation\pages\export_data_page.dart:522:15 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\src\features\settings\presentation\pages\export_data_page.dart:522:21 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:47:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:55:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:60:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:70:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:71:28 - use_build_context_synchronously
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:334:40 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:83:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:88:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:99:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:104:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\features\team_chat\presentation\bloc\team_chat_list_bloc.dart:118:5 - avoid_print
+   info - The imported package 'flutter_tts' isn't a dependency of the importing package - packages\flutter_tts_fixed\example\lib\main.dart:6:8 - depend_on_referenced_packages
+   info - Invalid use of a private type in a public API - packages\flutter_tts_fixed\example\lib\main.dart:12:3 - library_private_types_in_public_api
+   info - Statements in an if should be enclosed in a block - packages\flutter_tts_fixed\example\lib\main.dart:246:11 - curly_braces_in_flow_control_structures
+   info - 'partialResults' is deprecated and shouldn't be used. Use SpeechListenOptions.partialResults instead - packages\speech_to_text_windows\example\lib\main.dart:103:9 - deprecated_member_use
+warning - Unused import: 'package:dr_copilot/src/features/patients/presentation/widgets/patient_list_item.dart' - test\screenshot\patients_view_screenshot_test.dart:8:8 - unused_import
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:50:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:64:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:101:5 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - test\screenshot\screenshot_test_harness.dart:11:8 - depend_on_referenced_packages
+warning - Unused import: 'package:easy_localization/easy_localization.dart' - test\unit\blocs\evaluations_bloc_test.dart:12:8 - unused_import
+warning - Unused import: 'package:dr_copilot/src/core/error/failures.dart' - test\unit\services\clinical_report_service_test.dart:2:8 - unused_import
+warning - The class 'Query' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:12:1 - subtype_of_sealed_class
+warning - The class 'DocumentReference' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:15:1 - subtype_of_sealed_class
+warning - The value of the local variable 'mockCopilotBloc' isn't used - test\widget\screens\home_page_test.dart:24:24 - unused_local_variable
+

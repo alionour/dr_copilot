@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:dr_copilot/src/core/error/failures.dart';
+
 import 'package:dr_copilot/src/features/clinical_reports/data/remote/clinical_report_firebase_api.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/entities/clinical_report.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/services/clinical_report_service.dart';
