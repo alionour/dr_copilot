@@ -53,11 +53,6 @@ class _PatientsViewState extends State<PatientsView> {
   bool _showFilters = false;
 
   // Filter state for UI display only
-  DateTime? _selectedDate;
-  String? _selectedGender;
-  int? _minAge;
-  int? _maxAge;
-  String? _selectedAddress;
 
   bool _canLoadMore = true;
 

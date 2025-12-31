@@ -6,7 +6,6 @@ import 'package:dr_copilot/src/features/recycle_bin/presentation/bloc/recycle_bi
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class SessionItemTile extends StatelessWidget {
   final SessionModel session;
@@ -186,7 +185,7 @@ class PatientItemTile extends StatelessWidget {
           Icons.person_outline,
           color: Colors.orange,
         ),
-        title: Text(patient.name ?? 'Unknown Patient'),
+        title: Text(patient.name),
         subtitle: Text(subtitle),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

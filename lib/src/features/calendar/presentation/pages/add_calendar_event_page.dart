@@ -162,7 +162,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
         isClinicWide: _isCloneWide,
         recurrence: _recurrence == 'none' ? null : _recurrence,
         color:
-            '#${_selectedColor.value.toRadixString(16).padLeft(8, '0').substring(2)}', // Hex string
+            '#${_selectedColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}', // Hex string
       );
 
       Navigator.of(context).pop(newEvent);
@@ -455,4 +455,3 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
     );
   }
 }
-

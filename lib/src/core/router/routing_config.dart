@@ -16,6 +16,8 @@ import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pa
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/pages/add_transaction_page.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/add_edit_clinical_report_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/create_clinical_report_page.dart';
@@ -239,6 +241,16 @@ class RoutingConfig {
             path: '/financials',
             name: 'financials',
             builder: (context, state) => const FinancialsPage(),
+            routes: [
+              GoRoute(
+                path: 'transactions/new',
+                name: 'add_edit_transaction',
+                builder: (context, state) {
+                  final transaction = state.extra as TransactionModel?;
+                  return AddTransactionPage(transaction: transaction);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/clinical_reports',

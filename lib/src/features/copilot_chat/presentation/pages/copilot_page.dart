@@ -682,6 +682,10 @@ class _CopilotPageState extends State<CopilotPage> {
         context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
 
         // Save AI response to Firebase
+        final currentFocus = FocusScope.of(context);
+        if (currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
         if (_currentConversationId != null && userId != null) {
           _conversationRepo.addMessage(
             conversationId: _currentConversationId!,
@@ -822,7 +826,9 @@ class _CopilotPageState extends State<CopilotPage> {
       if (requiredFields.contains('patient.phone') ||
           requiredFields.contains('phoneNumber')) {
         if (!checkAndAsk(
-            'phoneNumber', 'What is the phone number of the patient?')) return;
+            'phoneNumber', 'What is the phone number of the patient?')) {
+          return;
+        }
       }
       if (requiredFields.contains('patient.address')) {
         if (!checkAndAsk('address', 'What is the address of the patient?')) {
@@ -830,9 +836,10 @@ class _CopilotPageState extends State<CopilotPage> {
         }
       }
       if (requiredFields.contains('patient.alt_phone')) {
-        if (!checkAndAsk(
-            'alternativePhoneNumber', 'What is the alternative phone number?'))
+        if (!checkAndAsk('alternativePhoneNumber',
+            'What is the alternative phone number?')) {
           return;
+        }
       }
       if (requiredFields.contains('patient.doctor')) {
         if (!checkAndAsk('treatingDoctor', 'Who is the treating doctor?')) {

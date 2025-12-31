@@ -13,7 +13,8 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTransactionPage extends StatefulWidget {
-  const AddTransactionPage({super.key});
+  final TransactionModel? transaction;
+  const AddTransactionPage({super.key, this.transaction});
 
   @override
   State<AddTransactionPage> createState() => _AddTransactionPageState();
@@ -21,22 +22,20 @@ class AddTransactionPage extends StatefulWidget {
 
 class _AddTransactionPageState extends State<AddTransactionPage> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  late final TextEditingController _amountController;
+  late final TextEditingController _descriptionController;
   final _amountFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
-  Timestamp _transactionDate = Timestamp.fromDate(DateTime.now());
-  TransactionSource _transactionSource =
-      TransactionSource.invoice; // Default transaction source
+  late Timestamp _transactionDate;
+  late TransactionSource _transactionSource;
   final List<TransactionSource> _transactionSources = TransactionSource.values;
 
   // Define controllers for the new optional fields
-  final _notesController = TextEditingController();
-  final _statusController = TextEditingController();
-  final _referenceIdController = TextEditingController();
+  late final TextEditingController _notesController;
+  late final TextEditingController _statusController;
+  late final TextEditingController _referenceIdController;
 
-  TransactionStatus _selectedStatus =
-      TransactionStatus.completed; // Default status value
+  late TransactionStatus _selectedStatus;
 
   // Define focus nodes for the form fields
   final FocusNode _notesFocusNode = FocusNode();
@@ -53,6 +52,40 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   String? _selectedClinicId;
 
   String? _referenceIdError;
+
+  @override
+  void initState() {
+    super.initState();
+    final transaction = widget.transaction;
+    _amountController =
+        TextEditingController(text: transaction?.amount.toString() ?? '');
+    _descriptionController =
+        TextEditingController(text: transaction?.description ?? '');
+    _notesController = TextEditingController(text: transaction?.notes ?? '');
+    _statusController =
+        TextEditingController(); // Status handled by dropdown variable
+    _referenceIdController =
+        TextEditingController(text: transaction?.referenceId ?? '');
+
+    _transactionDate =
+        transaction?.transactionDate ?? Timestamp.fromDate(DateTime.now());
+    _transactionSource =
+        transaction?.transactionSource ?? TransactionSource.invoice;
+    _selectedStatus = transaction?.status ?? TransactionStatus.completed;
+    _selectedCurrencyProfile = transaction?.currencyProfileId;
+    _selectedClinicId = transaction?.clinicId;
+
+    // Add a listener to the transactionDate focus node to open the date picker
+    _transactionDateFocusNode.addListener(() {
+      if (_transactionDateFocusNode.hasFocus) {
+        _selectDate(context).then((_) {
+          if (mounted) {
+            FocusScope.of(context).requestFocus(_currencyProfileFocusNode);
+          }
+        });
+      }
+    });
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -76,6 +109,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   }
 
   Future<bool> _validateReferenceId(BuildContext context) async {
+    // Skip validation if editing and reference ID hasn't changed
+    if (widget.transaction != null &&
+        widget.transaction!.referenceId == _referenceIdController.text) {
+      return true;
+    }
+
     setState(() {
       _referenceIdError = null;
     });
@@ -121,7 +160,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
       if (userId != null && ownerId != null && clinicId != null) {
         final transactionData = TransactionModel(
-          id: const Uuid().v4(),
+          id: widget.transaction?.id ?? const Uuid().v4(),
           amount: double.parse(_amountController.text),
           description: _descriptionController.text,
           transactionDate: _transactionDate,
@@ -132,39 +171,30 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               _notesController.text.isNotEmpty ? _notesController.text : null,
           status: _selectedStatus,
           referenceId: _referenceIdController.text,
-          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
-          createdBy: userId,
+          createdAt: widget.transaction?.createdAt ??
+              Timestamp.fromDate(DateTime.now().toUtc()),
+          createdBy: widget.transaction?.createdBy ?? userId,
           ownerId: ownerId,
           clinicId: clinicId,
         );
-        // Dispatch AddTransactionEvent
+        // Dispatch AddTransactionEvent or UpdateTransactionEvent
         if (!mounted) return; // Ensure context is still valid after async gap
 
-        context
-            .read<TransactionsBloc>()
-            .add(AddTransactionEvent(transactionData));
+        if (widget.transaction != null) {
+          context
+              .read<TransactionsBloc>()
+              .add(UpdateTransactionEvent(transactionData.id, transactionData));
+        } else {
+          context
+              .read<TransactionsBloc>()
+              .add(AddTransactionEvent(transactionData));
+        }
       } else {
         if (!mounted) return; // Ensure context is still valid after async gap
 
         _showSnackBar(context, 'userIdCannotBeNull');
       }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Add a listener to the transactionDate focus node to open the date picker
-    _transactionDateFocusNode.addListener(() {
-      if (_transactionDateFocusNode.hasFocus) {
-        _selectDate(context).then((_) {
-          if (mounted) {
-            FocusScope.of(context).requestFocus(_currencyProfileFocusNode);
-          }
-        });
-      }
-    });
   }
 
   @override
@@ -500,4 +530,3 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 }
-

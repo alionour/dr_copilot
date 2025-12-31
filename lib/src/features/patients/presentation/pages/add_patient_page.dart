@@ -407,8 +407,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
             LimitType.patients,
           );
 
-          if (!canAdd && mounted) {
-            _showUpgradeDialog(context, 'patientLimitReached'.tr());
+          if (!canAdd) {
+            if (mounted) {
+              _showUpgradeDialog(context, 'patientLimitReached'.tr());
+            }
             return;
           }
         }
@@ -445,7 +447,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
             ),
           );
         } else {
-          BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
+          if (mounted) {
+            BlocProvider.of<PatientsBloc>(context)
+                .add(AddPatient(patientModel));
+          }
         }
       } else {
         final message = 'userIdCannotBeNull'.tr();

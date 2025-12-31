@@ -103,13 +103,13 @@ class EmptyChatPlaceholder extends StatelessWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .surfaceContainerHighest
-                    .withOpacity(0.5),
+                    .withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: Theme.of(context)
                       .colorScheme
                       .outlineVariant
-                      .withOpacity(0.5),
+                      .withValues(alpha: 0.5),
                 ),
               ),
               child: Text(

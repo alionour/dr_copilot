@@ -1,9 +1,8 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:provider/provider.dart';
 
 class CopilotPreferencesPage extends StatelessWidget {
   const CopilotPreferencesPage({super.key});
@@ -24,7 +23,7 @@ class CopilotPreferencesPage extends StatelessWidget {
             children: [
               if (!canEdit)
                 Container(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: Colors.amber.withValues(alpha: 0.1),
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [

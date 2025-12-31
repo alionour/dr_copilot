@@ -1,0 +1,43 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing lib...                                                
+
+   info - The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/foundation.dart' - lib\src\core\code_pusher\shorebird_updater.dart:3:8 - unnecessary_import
+   info - The type parameter name 'Type' matches a visible type name - lib\src\core\usecase\usecase.dart:6:24 - avoid_types_as_parameter_names
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\auth\presentation\pages\beta_full_page.dart:29:38 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - lib\src\features\calendar\presentation\pages\add_calendar_event_page.dart:165:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\calendar\presentation\pages\calendar_page.dart:35:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\calendar\presentation\pages\calendar_page.dart:64:58 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:829:73 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:839:11 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\copilot_chat\presentation\widgets\empty_chat_placeholder.dart:106:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\copilot_chat\presentation\widgets\empty_chat_placeholder.dart:112:24 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\financials\presentation\pages\dashboard_page.dart:293:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\financials\presentation\widgets\dashboard_view.dart:184:41 - deprecated_member_use
+warning - This default clause is covered by the previous cases - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:696:7 - unreachable_switch_default
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\navigation_side\presentation\widgets\navigation_side.dart:394:58 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\notifications\presentation\pages\notifications_page.dart:258:19 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\patients\presentation\pages\add_patient_page.dart:441:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\patients\presentation\pages\add_patient_page.dart:448:41 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\patients\presentation\widgets\patient_list_item.dart:35:39 - deprecated_member_use
+warning - The value of the field '_selectedDate' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:56:13 - unused_field
+warning - The value of the field '_selectedGender' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:57:11 - unused_field
+warning - The value of the field '_minAge' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:58:8 - unused_field
+warning - The value of the field '_maxAge' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:59:8 - unused_field
+warning - The value of the field '_selectedAddress' isn't used - lib\src\features\patients\presentation\widgets\patients_view.dart:60:11 - unused_field
+warning - Unnecessary cast - lib\src\features\recycle_bin\presentation\bloc\recycle_bin_state.dart:47:18 - unnecessary_cast
+warning - Unnecessary cast - lib\src\features\recycle_bin\presentation\bloc\recycle_bin_state.dart:49:22 - unnecessary_cast
+warning - Unnecessary cast - lib\src\features\recycle_bin\presentation\bloc\recycle_bin_state.dart:54:18 - unnecessary_cast
+warning - Unnecessary cast - lib\src\features\recycle_bin\presentation\bloc\recycle_bin_state.dart:56:22 - unnecessary_cast
+   info - The import of 'package:intl/intl.dart' is unnecessary because all of the used elements are also provided by the import of 'package:easy_localization/easy_localization.dart' - lib\src\features\recycle_bin\presentation\widgets\recycle_bin_item_tile.dart:9:8 - unnecessary_import
+warning - The left operand can't be null, so the right operand is never executed - lib\src\features\recycle_bin\presentation\widgets\recycle_bin_item_tile.dart:189:37 - dead_null_aware_expression
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\settings\presentation\pages\calendar_settings_page.dart:41:39 - deprecated_member_use
+   info - The import of 'package:provider/provider.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_bloc/flutter_bloc.dart' - lib\src\features\settings\presentation\pages\copilot_preferences_page.dart:6:8 - unnecessary_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\settings\presentation\pages\copilot_preferences_page.dart:27:39 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:47:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:55:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:60:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:70:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:71:28 - use_build_context_synchronously
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:334:40 - deprecated_member_use
+

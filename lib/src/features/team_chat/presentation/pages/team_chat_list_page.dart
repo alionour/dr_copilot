@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/team_chat_list_bloc.dart';
 import '../../data/models/team_conversation_model.dart';
 
@@ -14,7 +15,12 @@ class TeamChatListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
 
-    if (currentUser == null) {
+    // Get provider and auth state
+    final authState = context.read<AuthBloc>().state;
+    final userModel = authState is AuthSignedIn ? authState.user : null;
+    final clinicId = userModel?.primaryClinicId;
+
+    if (currentUser == null || clinicId == null) {
       return const Scaffold(
         body: Center(child: Text("Please sign in to view chats")),
       );
@@ -22,7 +28,7 @@ class TeamChatListPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) =>
-          sl<TeamChatListBloc>()..add(LoadTeamChats(currentUser.uid)),
+          sl<TeamChatListBloc>()..add(LoadTeamChats(currentUser.uid, clinicId)),
       child: Scaffold(
         appBar: AppBar(title: Text("teamChat".tr())),
         floatingActionButton: FloatingActionButton(

@@ -32,7 +32,7 @@ class _CalendarPageState extends State<CalendarPage> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withOpacity(0.05), // Subtle dark tint
+                color: Colors.black.withValues(alpha: 0.05), // Subtle dark tint
               ),
             ),
           ),
@@ -45,7 +45,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 30,
                     spreadRadius: 0,
                     offset: const Offset(0, 10),
@@ -61,7 +61,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
                       backgroundColor:
-                          Theme.of(context).primaryColor.withOpacity(0.1),
+                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Theme.of(context).primaryColor,
                       ),

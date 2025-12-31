@@ -1,0 +1,10 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing lib...                                                
+
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\financials\presentation\pages\dashboard_page.dart:293:38 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\patients\presentation\pages\add_patient_page.dart:443:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\patients\presentation\pages\add_patient_page.dart:450:41 - use_build_context_synchronously
+   info - The import of 'package:provider/provider.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_bloc/flutter_bloc.dart' - lib\src\features\settings\presentation\pages\copilot_preferences_page.dart:6:8 - unnecessary_import
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\src\features\subscription\presentation\pages\subscription_pricing_page.dart:342:13 - deprecated_member_use
+

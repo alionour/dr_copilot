@@ -612,22 +612,27 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...AppRole.values.map((role) {
-          return RadioListTile<AppRole>(
-            title: Text(_getRoleDisplayName(role)),
-            subtitle: Text(
-              'Assign the ${_getRoleDisplayName(role).toLowerCase()} role',
-            ),
-            value: role,
-            groupValue: _selectedRole,
-            onChanged: (AppRole? value) {
-              setState(() {
-                _selectedRole = value;
-                _updatePermissionsBasedOnRoles();
-              });
-            },
-          );
-        }),
+        RadioGroup<AppRole>(
+          groupValue: _selectedRole,
+          onChanged: (AppRole? value) {
+            setState(() {
+              _selectedRole = value;
+              _updatePermissionsBasedOnRoles();
+            });
+          },
+          child: Column(
+            children: AppRole.values.map((role) {
+              return RadioListTile<AppRole>(
+                title: Text(_getRoleDisplayName(role)),
+                subtitle: Text(
+                  'Assign the ${_getRoleDisplayName(role).toLowerCase()} role',
+                ),
+                value: role,
+                // groupValue and onChanged removed as they are handled by RadioGroup
+              );
+            }).toList(),
+          ),
+        ),
         if (_selectedRole == null)
           Padding(
             padding: EdgeInsets.all(16.0),
@@ -688,8 +693,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Financial';
       case AppRole.readonly:
         return 'Read Only';
-      default:
-        return role.name;
     }
   }
 

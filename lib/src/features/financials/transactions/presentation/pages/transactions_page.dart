@@ -495,16 +495,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                       return TransactionListItem(
                                         transaction: transaction,
                                         onTap: () {
-                                          setState(() {
-                                            _selectedIndex = transactions
-                                                .indexOf(transaction);
-                                          });
-                                          // TODO: Add proper deletion confirmation or edit
-                                          // context.read<TransactionsBloc>().add(
-                                          //   DeleteTransactionEvent(
-                                          //     transaction.id,
-                                          //   ),
-                                          // );
+                                          _showTransactionActions(
+                                              context, transaction);
                                         },
                                       );
                                     }),
@@ -584,5 +576,72 @@ class _TransactionsPageState extends State<TransactionsPage> {
       'EEEE, MMMM dd, yyyy',
       context.locale.toString(),
     ).format(parsedDate ?? DateTime.now());
+  }
+
+  void _showTransactionActions(
+      BuildContext context, TransactionModel transaction) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: Text('edit'.tr()),
+                onTap: () {
+                  context.pop(); // Close bottom sheet
+                  context.push('/financials/transactions/new',
+                      extra: transaction);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: Text(
+                  'delete'.tr(),
+                  style: const TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  context.pop(); // Close bottom sheet
+                  _showDeleteConfirmation(context, transaction);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(
+      BuildContext context, TransactionModel transaction) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('deleteTransaction'.tr()),
+          content: Text('deleteTransactionConfirmation'.tr()),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(),
+              child: Text('cancel'.tr()),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<TransactionsBloc>().add(
+                      DeleteTransactionEvent(transaction.id),
+                    );
+                context.pop();
+              },
+              child: Text(
+                'delete'.tr(),
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

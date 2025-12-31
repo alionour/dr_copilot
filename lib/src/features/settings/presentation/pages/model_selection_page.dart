@@ -151,13 +151,13 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
                       color: Theme.of(context)
                           .colorScheme
                           .primaryContainer
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.2)),
+                              .withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -183,42 +183,45 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.grey.shade200),
       ),
-      child: Column(
-        children: _availableModels.entries.map((entry) {
-          final modelKey = entry.key;
-          final modelName = entry.value;
-          final isAllowed = _isModelAllowed(modelKey);
-          final isSelected = _selectedActiveModel == modelKey;
+      child: RadioGroup<String>(
+        groupValue: _selectedActiveModel,
+        onChanged: _setActiveModel,
+        child: Column(
+          children: _availableModels.entries.map((entry) {
+            final modelKey = entry.key;
+            final modelName = entry.value;
+            final isAllowed = _isModelAllowed(modelKey);
+            final isSelected = _selectedActiveModel == modelKey;
 
-          return RadioListTile<String>(
-            title: Text(
-              modelName,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isAllowed ? null : Colors.grey,
+            return RadioListTile<String>(
+              title: Text(
+                modelName,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isAllowed ? null : Colors.grey,
+                ),
               ),
-            ),
-            subtitle: !isAllowed
-                ? Text(
-                    'Upgrade to ${[
-                      'claude',
-                      'vertex_ai'
-                    ].contains(modelKey) ? "Elite" : "Pro"} to use',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontSize: 12,
-                    ),
-                  )
-                : null,
-            value: modelKey,
-            groupValue: _selectedActiveModel,
-            onChanged: _setActiveModel,
-            secondary: isSelected
-                ? Icon(Icons.check_circle_outline,
-                    color: Theme.of(context).colorScheme.primary)
-                : null,
-          );
-        }).toList(),
+              subtitle: !isAllowed
+                  ? Text(
+                      'Upgrade to ${[
+                        'claude',
+                        'vertex_ai'
+                      ].contains(modelKey) ? "Elite" : "Pro"} to use',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    )
+                  : null,
+              value: modelKey,
+              // groupValue and onChanged removed
+              secondary: isSelected
+                  ? Icon(Icons.check_circle_outline,
+                      color: Theme.of(context).colorScheme.primary)
+                  : null,
+            );
+          }).toList(),
+        ),
       ),
     );
   }
