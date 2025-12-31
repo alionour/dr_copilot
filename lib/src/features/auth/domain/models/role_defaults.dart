@@ -32,6 +32,8 @@ class RoleDefaults {
           AppPermission.viewCalendar,
           AppPermission.addCalendarEvent,
           AppPermission.editCalendarEvent,
+          AppPermission.viewTeamPatients,
+          AppPermission.viewSpecificDoctorPatients,
           AppPermission.useCopilot,
           AppPermission.viewNotifications,
           AppPermission.sendNotificationMessage,
@@ -50,6 +52,7 @@ class RoleDefaults {
           AppPermission.viewNotifications,
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
+          AppPermission.viewTeamPatients,
         ];
 
       case AppRole.financial:

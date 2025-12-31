@@ -70,6 +70,9 @@ class SubscriptionService {
     String clinicId,
     SubscriptionFeature feature,
   ) async {
+    // Bypass for testing in debug mode
+    if (kDebugMode) return true;
+
     final tier = await getCurrentTier(clinicId);
     switch (feature) {
       case SubscriptionFeature.exportData:
@@ -90,6 +93,9 @@ class SubscriptionService {
   // Method to check Team Limits (Doctors/Staff)
   // Used before sending an invitation
   Future<bool> canInviteRole(String clinicId, String role) async {
+    // Bypass for testing in debug mode
+    if (kDebugMode) return true;
+
     final tier = await getCurrentTier(clinicId);
 
     // Quick check: if invites disabled entirely

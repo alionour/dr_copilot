@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import '../bloc/team_chat_list_bloc.dart';
 import '../../data/models/team_conversation_model.dart';
@@ -12,17 +12,24 @@ class TeamChatListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
+    // Use AuthBloc to get the full user model including clinicId
+    final authState = context.read<AuthBloc>().state;
 
-    if (currentUser == null) {
+    if (authState is! AuthSignedIn ||
+        authState.user == null ||
+        authState.user!.primaryClinicId == null) {
       return const Scaffold(
-        body: Center(child: Text("Please sign in to view chats")),
+        body: Center(child: Text("Please sign in to a clinic to view chats")),
       );
     }
 
+    final currentUser = authState.user!;
+    final currentUserId = currentUser.uid;
+    final clinicId = currentUser.primaryClinicId!;
+
     return BlocProvider(
       create: (context) =>
-          sl<TeamChatListBloc>()..add(LoadTeamChats(currentUser.uid)),
+          sl<TeamChatListBloc>()..add(LoadTeamChats(currentUserId, clinicId)),
       child: Scaffold(
         appBar: AppBar(title: Text("teamChat".tr())),
         floatingActionButton: FloatingActionButton(
@@ -65,7 +72,7 @@ class TeamChatListPage extends StatelessWidget {
                   final conversation = state.conversations[index];
                   return _ConversationTile(
                     conversation: conversation,
-                    currentUserId: currentUser.uid,
+                    currentUserId: currentUserId,
                   );
                 },
               );

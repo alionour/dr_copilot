@@ -8,11 +8,13 @@ class TeamChatRepository {
   TeamChatRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// Get all active conversations for a specific user
-  Stream<List<TeamConversationModel>> getConversations(String userId,
+  /// Get all active conversations for a specific user within a clinic
+  Stream<List<TeamConversationModel>> getConversations(
+      String userId, String clinicId,
       {int limit = 50}) {
     return _firestore
         .collection('team_conversations')
+        .where('clinicId', isEqualTo: clinicId) // Required for security rules
         .where('participantIds', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
         .limit(limit)

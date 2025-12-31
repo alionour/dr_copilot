@@ -21,6 +21,9 @@ class OwnerNotifier with ChangeNotifier {
   AppRole? _role;
   AppRole? get role => _role;
 
+  String? _teamId;
+  String? get teamId => _teamId;
+
   List<ClinicModel> _clinics = [];
   List<ClinicModel> get clinics => _clinics;
 
@@ -225,6 +228,14 @@ class OwnerNotifier with ChangeNotifier {
                 orElse: () => AppRole.readonly,
               );
               debugPrint('[OwnerNotifier] Loaded role: $_role');
+            }
+
+            // Parse Team ID
+            if (memberData?['teamId'] != null) {
+              _teamId = memberData!['teamId'] as String;
+              debugPrint('[OwnerNotifier] Loaded teamId: $_teamId');
+            } else {
+              _teamId = null;
             }
 
             // Start real-time permission listener

@@ -581,6 +581,18 @@ class _AddSessionPageState extends State<AddSessionPage> {
                               },
                             ),
                             const SizedBox(height: 8.0),
+                            if (_doctors.isEmpty)
+                              Container(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                width: double.infinity,
+                                child: Text(
+                                  'noDoctorsAvailable'.tr(),
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             DropdownButtonFormField<DoctorModel>(
                               initialValue: _selectedDoctor,
                               decoration: InputDecoration(
@@ -621,6 +633,20 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                           .toLowerCase()
                                           .contains(query.toLowerCase());
                                     }).toList();
+
+                                    if (state.patients.isEmpty) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8.0),
+                                        child: Text(
+                                          'noPatientsRecorded'.tr(),
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error),
+                                        ),
+                                      );
+                                    }
                                   }
                                   return Column(
                                     children: [

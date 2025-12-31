@@ -9,6 +9,12 @@ enum AppPermission {
   /// View only patients assigned strictly to the current user (if applicable).
   viewOwnPatients,
 
+  /// View patients assigned to the user's team.
+  viewTeamPatients,
+
+  /// View patients assigned to a specific doctor.
+  viewSpecificDoctorPatients,
+
   /// Register a new patient in the clinic.
   createPatient,
 

@@ -28,8 +28,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   @override
   Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>>
       getPatients({
-    String? lastDocumentId, // match the abstract interface
+    String? lastDocumentId,
     int? limit,
+    String? treatingDoctorId,
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -40,9 +41,59 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
+        if (treatingDoctorId != null) {
+          // If filtering by a specific doctor
+          queryRef =
+              queryRef.where('treatingDoctor', isEqualTo: treatingDoctorId);
+
+          bool isMyPatients = treatingDoctorId == user.uid;
+          bool canViewSpecific = OwnerNotifier()
+              .hasPermission(AppPermission.viewSpecificDoctorPatients);
+          bool canViewAll =
+              OwnerNotifier().hasPermission(AppPermission.viewAllPatients);
+
+          if (!canViewAll) {
+            if (isMyPatients) {
+              // Access granted (implicitly matches logic below)
+            } else if (canViewSpecific) {
+              // Access granted to specific doctor's patients
+            } else {
+              // Fallback to strict "Own" logic even when filtering by another doctor
+              // (e.g. I want to see patients treated by Dr X, but only if *I* created them or *My Team* owns them)
+              Filter accessFilter = Filter.or(
+                Filter('createdBy', isEqualTo: user.uid),
+                Filter('treatingDoctor', isEqualTo: user.uid),
+              );
+
+              if (OwnerNotifier()
+                      .hasPermission(AppPermission.viewTeamPatients) &&
+                  OwnerNotifier().teamId != null) {
+                accessFilter = Filter.or(
+                  accessFilter,
+                  Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+                );
+              }
+              queryRef = queryRef.where(accessFilter);
+            }
+          }
+        } else {
+          // No specific doctor filter. Standard visibility rules apply.
+          if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
+            Filter accessFilter = Filter.or(
+              Filter('createdBy', isEqualTo: user.uid),
+              Filter('treatingDoctor', isEqualTo: user.uid),
+            );
+
+            if (OwnerNotifier().hasPermission(AppPermission.viewTeamPatients) &&
+                OwnerNotifier().teamId != null) {
+              accessFilter = Filter.or(
+                accessFilter,
+                Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+              );
+            }
+
+            queryRef = queryRef.where(accessFilter);
+          }
         }
 
         if (lastDocumentId != null) {
@@ -187,10 +238,20 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
+        Filter accessFilter = Filter.or(
+          Filter('createdBy', isEqualTo: user.uid),
+          Filter('treatingDoctor', isEqualTo: user.uid),
+        );
+
+        if (OwnerNotifier().hasPermission(AppPermission.viewTeamPatients) &&
+            OwnerNotifier().teamId != null) {
+          accessFilter = Filter.or(
+            accessFilter,
+            Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+          );
         }
+
+        queryRef = queryRef.where(accessFilter);
 
         if (name != null && name.isNotEmpty) {
           queryRef = queryRef
@@ -258,10 +319,20 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
+        Filter accessFilter = Filter.or(
+          Filter('createdBy', isEqualTo: user.uid),
+          Filter('treatingDoctor', isEqualTo: user.uid),
+        );
+
+        if (OwnerNotifier().hasPermission(AppPermission.viewTeamPatients) &&
+            OwnerNotifier().teamId != null) {
+          accessFilter = Filter.or(
+            accessFilter,
+            Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+          );
         }
+
+        queryRef = queryRef.where(accessFilter);
 
         queryRef = queryRef
             .where('createdAt',
@@ -338,10 +409,20 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
+        Filter accessFilter = Filter.or(
+          Filter('createdBy', isEqualTo: user.uid),
+          Filter('treatingDoctor', isEqualTo: user.uid),
+        );
+
+        if (OwnerNotifier().hasPermission(AppPermission.viewTeamPatients) &&
+            OwnerNotifier().teamId != null) {
+          accessFilter = Filter.or(
+            accessFilter,
+            Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+          );
         }
+
+        queryRef = queryRef.where(accessFilter);
 
         final snapshot = await queryRef
             .orderBy('createdAt', descending: true)
@@ -383,10 +464,20 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query query =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          query = query.where('createdBy', isEqualTo: user.uid);
+        Filter accessFilter = Filter.or(
+          Filter('createdBy', isEqualTo: user.uid),
+          Filter('treatingDoctor', isEqualTo: user.uid),
+        );
+
+        if (OwnerNotifier().hasPermission(AppPermission.viewTeamPatients) &&
+            OwnerNotifier().teamId != null) {
+          accessFilter = Filter.or(
+            accessFilter,
+            Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+          );
         }
+
+        query = query.where(accessFilter);
 
         final snapshot = await query.count().get();
         return Right(snapshot.count ?? 0);
@@ -415,10 +506,20 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
             .where('clinicId', isEqualTo: clinicId)
             .where('deletedAt', isNull: false);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
+        Filter accessFilter = Filter.or(
+          Filter('createdBy', isEqualTo: user.uid),
+          Filter('treatingDoctor', isEqualTo: user.uid),
+        );
+
+        if (OwnerNotifier().hasPermission(AppPermission.viewTeamPatients) &&
+            OwnerNotifier().teamId != null) {
+          accessFilter = Filter.or(
+            accessFilter,
+            Filter('teamId', isEqualTo: OwnerNotifier().teamId),
+          );
         }
+
+        queryRef = queryRef.where(accessFilter);
 
         final snapshot = await queryRef
             .orderBy('deletedAt', descending: true)

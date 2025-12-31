@@ -16,9 +16,10 @@ abstract class TeamChatListEvent extends Equatable {
 
 class LoadTeamChats extends TeamChatListEvent {
   final String userId;
-  const LoadTeamChats(this.userId);
+  final String clinicId;
+  const LoadTeamChats(this.userId, this.clinicId);
   @override
-  List<Object?> get props => [userId];
+  List<Object?> get props => [userId, clinicId];
 }
 
 class AllChatsUpdated extends TeamChatListEvent {
@@ -77,8 +78,9 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
     _directMessagesSubscription?.cancel();
 
     // Listen to team chats
-    _teamChatsSubscription =
-        _teamChatRepository.getConversations(event.userId).listen(
+    _teamChatsSubscription = _teamChatRepository
+        .getConversations(event.userId, event.clinicId)
+        .listen(
       (teamChats) {
         debugPrint('TeamChats received: ${teamChats.length}');
         _latestTeamChats = teamChats;

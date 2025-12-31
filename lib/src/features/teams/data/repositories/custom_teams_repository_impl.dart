@@ -8,7 +8,7 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
   final FirebaseFirestore _firestore;
 
   CustomTeamsRepositoryImpl({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference get _teamsCollection =>
       _firestore.collection('custom_teams');
@@ -26,7 +26,30 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
   @override
   Future<Either<Failure, void>> updateTeam(CustomTeamModel team) async {
     try {
-      await _teamsCollection.doc(team.id).update(team.toJson());
+      final batch = _firestore.batch();
+
+      // 1. Update the team document
+      final teamRef = _teamsCollection.doc(team.id);
+      batch.update(teamRef, team.toJson());
+
+      // 2. Sync changes to the team conversation (if it exists)
+      final conversationQuery = await _firestore
+          .collection('team_conversations')
+          .where('metadata.teamId', isEqualTo: team.id)
+          .where('clinicId', isEqualTo: team.clinicId)
+          .limit(1)
+          .get();
+
+      if (conversationQuery.docs.isNotEmpty) {
+        final conversationRef = conversationQuery.docs.first.reference;
+        batch.update(conversationRef, {
+          'participantIds': team.memberIds,
+          'updatedAt':
+              Timestamp.now(), // Bump timestamp explicitly? Maybe optional.
+        });
+      }
+
+      await batch.commit();
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));
@@ -38,9 +61,8 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
     String clinicId,
   ) async {
     try {
-      final snapshot = await _teamsCollection
-          .where('clinicId', isEqualTo: clinicId)
-          .get();
+      final snapshot =
+          await _teamsCollection.where('clinicId', isEqualTo: clinicId).get();
 
       final teams = snapshot.docs
           .map((doc) => CustomTeamModel.fromFirestore(doc))
@@ -57,9 +79,8 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
     String ownerId,
   ) async {
     try {
-      final snapshot = await _teamsCollection
-          .where('ownerId', isEqualTo: ownerId)
-          .get();
+      final snapshot =
+          await _teamsCollection.where('ownerId', isEqualTo: ownerId).get();
 
       final teams = snapshot.docs
           .map((doc) => CustomTeamModel.fromFirestore(doc))
@@ -79,15 +100,15 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
         .where('clinicId', isEqualTo: clinicId)
         .snapshots()
         .map((snapshot) {
-          try {
-            final teams = snapshot.docs
-                .map((doc) => CustomTeamModel.fromFirestore(doc))
-                .toList();
-            return Right(teams);
-          } catch (e) {
-            return Left(ServerFailure(e.toString(), 500));
-          }
-        });
+      try {
+        final teams = snapshot.docs
+            .map((doc) => CustomTeamModel.fromFirestore(doc))
+            .toList();
+        return Right(teams);
+      } catch (e) {
+        return Left(ServerFailure(e.toString(), 500));
+      }
+    });
   }
 
   @override
@@ -110,4 +131,3 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
     }
   }
 }
-

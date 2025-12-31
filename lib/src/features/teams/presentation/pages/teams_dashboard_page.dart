@@ -254,13 +254,28 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       }
 
       final firestore = FirebaseFirestore.instance;
+      QuerySnapshot existingConversations;
 
-      // Try to find existing conversation for this team
-      final existingConversations = await firestore
-          .collection('team_conversations')
-          .where('metadata.teamId', isEqualTo: team.id)
-          .limit(1)
-          .get();
+      // 1. Try to find existing conversation
+      try {
+        existingConversations = await firestore
+            .collection('team_conversations')
+            .where('clinicId',
+                isEqualTo: team.clinicId) // Required for security rules
+            .where('metadata.teamId', isEqualTo: team.id)
+            .limit(1)
+            .get();
+      } catch (e) {
+        debugPrint('Error finding team chat: $e');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Error finding chat: $e'),
+                backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
 
       String conversationId;
 
@@ -268,19 +283,31 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
         // Use existing conversation
         conversationId = existingConversations.docs.first.id;
       } else {
-        // Create new conversation
-        conversationId = firestore.collection('team_conversations').doc().id;
+        // 2. Create new conversation
+        try {
+          conversationId = firestore.collection('team_conversations').doc().id;
 
-        await firestore
-            .collection('team_conversations')
-            .doc(conversationId)
-            .set({
-          'clinicId': team.clinicId,
-          'participantIds': team.memberIds,
-          'createdAt': Timestamp.now(),
-          'updatedAt': Timestamp.now(),
-          'metadata': {'teamId': team.id, 'teamName': team.name},
-        });
+          await firestore
+              .collection('team_conversations')
+              .doc(conversationId)
+              .set({
+            'clinicId': team.clinicId,
+            'participantIds': team.memberIds,
+            'createdAt': Timestamp.now(),
+            'updatedAt': Timestamp.now(),
+            'metadata': {'teamId': team.id, 'teamName': team.name},
+          });
+        } catch (e) {
+          debugPrint('Error creating team chat: $e');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text('Error creating chat: $e'),
+                  backgroundColor: Colors.red),
+            );
+          }
+          return;
+        }
       }
 
       if (context.mounted) {
@@ -288,11 +315,18 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
         context.push('/team_chat/$conversationId');
       }
     } catch (e) {
+      debugPrint('Error starting chat: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('errorStartingChat'.tr()),
+            content:
+                Text('Error: $e'), // Show specific error again for debugging
+            duration: const Duration(seconds: 10),
             backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Copy',
+              onPressed: () {},
+            ),
           ),
         );
       }

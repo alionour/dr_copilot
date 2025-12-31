@@ -899,5 +899,11 @@
   "transaction": "معاملة",
   "close": "إغلاق",
   "date": "التاريخ",
-  "attributes": "السمات"
+  "attributes": "السمات",
+  "noDoctorsAvailable": "أضف طبيباً أولاً",
+  "noPatientsRecorded": "لم يتم تسجيل أي مرضى",
+  "deletedPatients": "المرضى المحذوفين",
+  "deletedSessions": "الجلسات المحذوفة",
+  "deletedEvaluations": "التقييمات المحذوفة",
+  "deletedCalendarEvents": "أحداث التقويم المحذوفة"
 }

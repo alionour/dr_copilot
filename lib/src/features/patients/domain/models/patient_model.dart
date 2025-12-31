@@ -60,6 +60,9 @@ class PatientModel {
   @TimestampConverter()
   final Timestamp? deletedAt;
 
+  /// The ID of the team the patient is assigned to.
+  final String? teamId;
+
   /// Creates a new [PatientModel] instance.
   PatientModel({
     required this.id,
@@ -72,6 +75,7 @@ class PatientModel {
     this.phoneNumber,
     this.alternativePhoneNumber,
     this.treatingDoctor,
+    this.teamId,
     this.occupation,
     this.createdAt,
     this.updatedAt,
@@ -100,6 +104,7 @@ class PatientModel {
     String? phoneNumber,
     String? alternativePhoneNumber,
     String? treatingDoctor,
+    String? teamId,
     String? occupation,
     Timestamp? createdAt,
     Timestamp? updatedAt,
@@ -120,6 +125,7 @@ class PatientModel {
       alternativePhoneNumber:
           alternativePhoneNumber ?? this.alternativePhoneNumber,
       treatingDoctor: treatingDoctor ?? this.treatingDoctor,
+      teamId: teamId ?? this.teamId,
       occupation: occupation ?? this.occupation,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

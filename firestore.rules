@@ -147,8 +147,11 @@ service cloud.firestore {
     }
 
     // Team/Chat
+    // Team/Chat
     match /team_conversations/{chatId} {
-       allow read, write: if isClinicMember(resource.data.clinicId);
+       allow read, update, delete: if isClinicMember(resource.data.clinicId);
+       allow create: if isClinicMember(request.resource.data.clinicId);
+       
        match /messages/{msgId} {
           allow read, write: if isClinicMember(get(/databases/$(database)/documents/team_conversations/$(chatId)).data.clinicId);
        }

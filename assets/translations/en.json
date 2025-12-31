@@ -945,5 +945,11 @@
   "transaction": "Transaction",
   "close": "Close",
   "date": "Date",
-  "attributes": "Attributes"
+  "attributes": "Attributes",
+  "noDoctorsAvailable": "Add doctor first",
+  "noPatientsRecorded": "No patients recorded",
+  "deletedPatients": "Deleted Patients",
+  "deletedSessions": "Deleted Sessions",
+  "deletedEvaluations": "Deleted Evaluations",
+  "deletedCalendarEvents": "Deleted Calendar Events"
 }

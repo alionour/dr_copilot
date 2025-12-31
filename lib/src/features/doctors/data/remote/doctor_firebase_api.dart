@@ -40,11 +40,15 @@ class DoctorFirebaseApi {
     if (!OwnerNotifier().hasPermission(AppPermission.viewDoctors)) {
       throw ServerException('Permission denied', 403);
     }
+    final targetClinicId = clinicId ?? OwnerNotifier().clinicId;
+    if (targetClinicId == null) {
+      throw ServerException('Clinic ID is required to fetch doctors.', 400);
+    }
+
     try {
-      Query query = _firestore.collection('doctors');
-      if (clinicId != null) {
-        query = query.where('clinicId', isEqualTo: clinicId);
-      }
+      final query = _firestore
+          .collection('doctors')
+          .where('clinicId', isEqualTo: targetClinicId);
       final snapshot = await query.get();
       return snapshot.docs.map((doc) => DoctorModel.fromDocument(doc)).toList();
     } catch (e) {

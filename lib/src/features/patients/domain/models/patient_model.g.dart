@@ -17,6 +17,7 @@ PatientModel _$PatientModelFromJson(Map<String, dynamic> json) => PatientModel(
       phoneNumber: json['phoneNumber'] as String?,
       alternativePhoneNumber: json['alternativePhoneNumber'] as String?,
       treatingDoctor: json['treatingDoctor'] as String?,
+      teamId: json['teamId'] as String?,
       occupation: json['occupation'] as String?,
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const TimestampConverter().fromJson(json['updatedAt']),
@@ -45,4 +46,5 @@ Map<String, dynamic> _$PatientModelToJson(PatientModel instance) =>
       'updatedBy': instance.updatedBy,
       'deletedBy': instance.deletedBy,
       'deletedAt': const TimestampConverter().toJson(instance.deletedAt),
+      'teamId': instance.teamId,
     };

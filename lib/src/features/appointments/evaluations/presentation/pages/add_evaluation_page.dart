@@ -490,6 +490,19 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               },
                             ),
                             const SizedBox(height: 8.0),
+                            if (_doctors.isEmpty)
+                              Container(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                width: double.infinity,
+                                child: Text(
+                                  'noDoctorsAvailable'
+                                      .tr(), // Ensure key exists or use string
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             DropdownButtonFormField<DoctorModel>(
                               initialValue: _selectedDoctor,
                               decoration: InputDecoration(
@@ -530,6 +543,20 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                           .toLowerCase()
                                           .contains(query.toLowerCase());
                                     }).toList();
+
+                                    if (state.patients.isEmpty) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8.0),
+                                        child: Text(
+                                          'noPatientsRecorded'.tr(),
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error),
+                                        ),
+                                      );
+                                    }
                                   }
                                   return Column(
                                     children: [

@@ -10,6 +10,7 @@ abstract class AbstractPatientsRepository {
       getPatients({
     String? lastDocumentId,
     int? limit,
+    String? treatingDoctorId,
   });
 
   /// Adds a new patient.

@@ -14,12 +14,28 @@ class UnifiedChatRepository {
     required TeamChatRepository teamChatRepository,
     required DirectMessagesRepository directMessagesRepository,
     FirebaseFirestore? firestore,
-  }) : _teamChatRepository = teamChatRepository,
-       _directMessagesRepository = directMessagesRepository,
-       _firestore = firestore ?? FirebaseFirestore.instance;
+  })  : _teamChatRepository = teamChatRepository,
+        _directMessagesRepository = directMessagesRepository,
+        _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Detect if conversation is a direct message or team chat
   Future<bool> _isDirectMessage(String conversationId) async {
+    // Check if it exists in team_conversations first
+    final teamDoc = await _firestore
+        .collection('team_conversations')
+        .doc(conversationId)
+        .get();
+
+    if (teamDoc.exists) {
+      // It's a team conversation (could be team chat or 1-on-1)
+      // Check metadata to distinguish
+      final metadata = teamDoc.data()?['metadata'] as Map<String, dynamic>?;
+      // If it has a teamId in metadata, it's a team chat
+      // If not, it's a 1-on-1 direct message
+      return metadata == null || !metadata.containsKey('teamId');
+    }
+
+    // Fallback: check direct_messages collection (if you have one)
     final directDoc = await _firestore
         .collection('direct_messages')
         .doc(conversationId)
@@ -62,4 +78,3 @@ class UnifiedChatRepository {
     }
   }
 }
-

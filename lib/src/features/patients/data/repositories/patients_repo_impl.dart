@@ -16,8 +16,13 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
       getPatients({
     String? lastDocumentId,
     int? limit,
+    String? treatingDoctorId,
   }) {
-    return api.getPatients(lastDocumentId: lastDocumentId, limit: limit ?? 20);
+    return api.getPatients(
+      lastDocumentId: lastDocumentId,
+      limit: limit ?? 20,
+      treatingDoctorId: treatingDoctorId,
+    );
   }
 
   /// Adds a new patient.

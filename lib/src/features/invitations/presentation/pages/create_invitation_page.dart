@@ -236,7 +236,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
-                  onPressed: () => context.push('/subscription_pricing'),
+                  onPressed: () => context.push('/settings/subscription'),
                   icon: const Icon(Icons.verified_outlined),
                   label: Text('View Plans'),
                 ),
@@ -735,6 +735,10 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows viewing patient profiles and their complete medical records.';
       case AppPermission.viewOwnPatients:
         return 'Allows viewing only your own patient profiles.';
+      case AppPermission.viewTeamPatients:
+        return 'Allows viewing patients assigned to your team.';
+      case AppPermission.viewSpecificDoctorPatients:
+        return 'Allows viewing patients assigned to a specific doctor.';
       case AppPermission.updatePatient:
         return 'Allows editing patient demographic and contact information.';
       case AppPermission.deletePatient:
