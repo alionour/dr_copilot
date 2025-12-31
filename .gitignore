@@ -55,3 +55,4 @@ scripts/node_modules/
 token.txt
 install_log.txt
 localization_audit_report.txt
+assets/google_credentials.json
