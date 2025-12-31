@@ -12,12 +12,14 @@ class GenerateResponseEvent extends CopilotEvent {
   final List<Map<String, dynamic>> messageHistory;
   final String? clinicId;
   final String? userId;
+  final bool? forcePremium;
 
   const GenerateResponseEvent({
     required this.query,
     this.messageHistory = const [],
     this.clinicId,
     this.userId,
+    this.forcePremium,
   });
 
   @override
@@ -26,6 +28,7 @@ class GenerateResponseEvent extends CopilotEvent {
         messageHistory,
         clinicId ?? '',
         userId ?? '',
+        forcePremium ?? false,
       ];
 }
 
@@ -34,16 +37,19 @@ class UploadImageEvent extends CopilotEvent {
   final String text;
   final String? clinicId;
   final String? userId;
+  final bool? forcePremium;
 
   const UploadImageEvent({
     required this.imageBytes,
     required this.text,
     this.clinicId,
     this.userId,
+    this.forcePremium,
   });
 
   @override
-  List<Object> get props => [imageBytes, text, clinicId ?? '', userId ?? ''];
+  List<Object> get props =>
+      [imageBytes, text, clinicId ?? '', userId ?? '', forcePremium ?? false];
 }
 
 class CacheMessagesEvent extends CopilotEvent {

@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// Custom error reporting service
 class ErrorReportingService {
-  /// TODO: Replace with your actual backend error reporting endpoint
+  /// Backend error reporting endpoint
   static const String _errorEndpoint =
       'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/errors';
 
@@ -35,7 +36,8 @@ class ErrorReportingService {
                     Platform.isFuchsia)
                 ? Platform.operatingSystemVersion
                 : 'unknown',
-        'appVersion': '1.0.1', // TODO: Get from package_info_plus
+        'appVersion': (await PackageInfo.fromPlatform())
+            .version, // Get from package_info_plus
       };
 
       await http

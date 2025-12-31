@@ -290,7 +290,7 @@ class _SummaryCardState extends State<_SummaryCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           transform: _isHovered
-              ? (Matrix4.identity()..scale(1.02, 1.02, 1.02))
+              ? Matrix4.diagonal3Values(1.02, 1.02, 1.02)
               : Matrix4.identity(),
           decoration: BoxDecoration(
             gradient: LinearGradient(

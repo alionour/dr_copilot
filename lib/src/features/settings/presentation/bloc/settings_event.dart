@@ -37,3 +37,5 @@ class UpdateWorkingDaysEvent extends SettingsEvent {
   @override
   List<Object> get props => [workingDays];
 }
+
+class TogglePremiumModelsEvent extends SettingsEvent {}

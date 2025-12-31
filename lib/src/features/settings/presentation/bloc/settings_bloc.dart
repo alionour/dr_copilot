@@ -29,10 +29,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<ChangeLocaleEvent>(_changeLocale);
     on<UpdateCopilotFieldEvent>(_updateCopilotFields);
     on<UpdateWorkingDaysEvent>(_updateWorkingDays);
+    on<TogglePremiumModelsEvent>(_togglePremiumModels);
     on<_UpdateUserSettings>((event, emit) {
       emit(state.copyWith(
         isDarkMode: event.settings.isDarkMode ?? state.isDarkMode,
         localeCode: event.settings.localeCode ?? state.localeCode,
+        usePremiumModels:
+            event.settings.usePremiumModels ?? state.usePremiumModels,
       ));
     });
     on<_UpdateClinicSettings>((event, emit) {
@@ -134,6 +137,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           workingDays: event.workingDays,
           copilotRequiredFields: state.copilotRequiredFields),
     );
+  }
+
+  void _togglePremiumModels(
+      TogglePremiumModelsEvent event, Emitter<SettingsState> emit) async {
+    final newValue = !state.usePremiumModels;
+    // Optimistic update
+    emit(state.copyWith(usePremiumModels: newValue));
+
+    // Save to User Settings
+    await repository
+        .updateUserSettings(UserSettingsModel(usePremiumModels: newValue));
   }
 }
 

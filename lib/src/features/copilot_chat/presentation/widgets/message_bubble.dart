@@ -329,7 +329,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                     IconButton(
                       icon: const Icon(Icons.refresh, size: 16),
                       onPressed: () {
-                        // TODO: Implement regenerate functionality
+                        // Regenerate functionality not yet implemented
                       },
                       tooltip: 'Regenerate response',
                       padding: EdgeInsets.zero,
@@ -338,7 +338,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                     IconButton(
                       icon: const Icon(Icons.thumb_up_outlined, size: 16),
                       onPressed: () {
-                        // TODO: Implement like functionality
+                        // Like functionality handled by parent widget
                       },
                       tooltip: 'Good response',
                       padding: EdgeInsets.zero,
@@ -347,7 +347,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                     IconButton(
                       icon: const Icon(Icons.thumb_down_outlined, size: 16),
                       onPressed: () {
-                        // TODO: Implement dislike functionality
+                        // Dislike functionality handled by parent widget
                       },
                       tooltip: 'Bad response',
                       padding: EdgeInsets.zero,

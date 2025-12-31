@@ -440,12 +440,14 @@ class _AddPatientPageState extends State<AddPatientPage> {
               : null,
         );
         if (widget.patient != null) {
-          BlocProvider.of<PatientsBloc>(context).add(
-            UpdatePatient(
-              widget.patient!.id,
-              patientModel.copyWith(id: widget.patient!.id),
-            ),
-          );
+          if (mounted) {
+            BlocProvider.of<PatientsBloc>(context).add(
+              UpdatePatient(
+                widget.patient!.id,
+                patientModel.copyWith(id: widget.patient!.id),
+              ),
+            );
+          }
         } else {
           if (mounted) {
             BlocProvider.of<PatientsBloc>(context)

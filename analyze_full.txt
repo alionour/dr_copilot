@@ -1,0 +1,44 @@
+Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
+Dart SDK found. Running Flutter...
+Analyzing dr_copilot...                                         
+
+   info - The imported package 'flutter_tts' isn't a dependency of the importing package - packages\flutter_tts_fixed\example\lib\main.dart:6:8 - depend_on_referenced_packages
+   info - Invalid use of a private type in a public API - packages\flutter_tts_fixed\example\lib\main.dart:12:3 - library_private_types_in_public_api
+   info - Statements in an if should be enclosed in a block - packages\flutter_tts_fixed\example\lib\main.dart:246:11 - curly_braces_in_flow_control_structures
+   info - 'partialResults' is deprecated and shouldn't be used. Use SpeechListenOptions.partialResults instead - packages\speech_to_text_windows\example\lib\main.dart:103:9 - deprecated_member_use
+   info - The constant name 'TESTER_UID' isn't a lowerCamelCase identifier - scripts\setup_firestore_tester.dart:5:7 - constant_identifier_names
+   info - The constant name 'CLINIC_ID' isn't a lowerCamelCase identifier - scripts\setup_firestore_tester.dart:6:7 - constant_identifier_names
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:9:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:15:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:19:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:28:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:47:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:50:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:69:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:72:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:79:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:82:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:85:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:87:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:88:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:90:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\setup_firestore_tester.dart:214:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:49:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:63:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\patients_view_screenshot_test.dart:100:5 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - test\screenshot\screenshot_test_harness.dart:10:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:51:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:72:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:74:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:76:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:78:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\screenshot\screenshot_test_harness.dart:206:5 - avoid_print
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\blocs\patients_bloc_test.dart:20:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\repositories\patients_repository_test.dart:13:1 - subtype_of_sealed_class
+warning - The class 'Query' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:12:1 - subtype_of_sealed_class
+warning - The class 'DocumentReference' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:15:1 - subtype_of_sealed_class
+warning - The class 'DocumentSnapshot' shouldn't be extended, mixed in, or implemented because it's sealed - test\unit\services\subscription_service_test.dart:18:1 - subtype_of_sealed_class
+warning - The value of the local variable 'mockCopilotBloc' isn't used - test\widget\screens\home_page_test.dart:24:24 - unused_local_variable
+

@@ -115,6 +115,22 @@ class CopilotPreferencesPage extends StatelessWidget {
                       fontStyle: FontStyle.italic, color: Colors.grey),
                 ),
               ),
+              const Divider(),
+              _buildSectionHeader(context, 'AI Model Preferences'),
+              SwitchListTile(
+                title: const Text('Use Premium Models'),
+                subtitle: const Text(
+                  'Always use premium AI models (GPT-4, Claude Opus) for better quality responses',
+                ),
+                value: state.usePremiumModels,
+                onChanged: canEdit
+                    ? (_) {
+                        context
+                            .read<SettingsBloc>()
+                            .add(TogglePremiumModelsEvent());
+                      }
+                    : null,
+              ),
             ],
           );
         },

@@ -406,6 +406,10 @@ class _CopilotPageState extends State<CopilotPage> {
       }
 
       if (!mounted) return;
+
+      // Get forcePremium setting
+      final forcePremium = context.read<SettingsBloc>().state.usePremiumModels;
+
       context.read<CopilotBloc>().add(
             UploadImageEvent(
               imageBytes:
@@ -417,6 +421,7 @@ class _CopilotPageState extends State<CopilotPage> {
               text: text,
               clinicId: clinicId,
               userId: userId,
+              forcePremium: forcePremium,
             ),
           );
       // Logic for UploadImageEvent above checks _pickedImage in original code?
@@ -474,12 +479,17 @@ class _CopilotPageState extends State<CopilotPage> {
       final recentMessages = _messages.length > 8
           ? _messages.sublist(_messages.length - 8)
           : _messages;
+
+      // Get forcePremium setting
+      final forcePremium = context.read<SettingsBloc>().state.usePremiumModels;
+
       context.read<CopilotBloc>().add(
             GenerateResponseEvent(
               query: text,
               messageHistory: recentMessages,
               clinicId: clinicId,
               userId: userId,
+              forcePremium: forcePremium,
             ),
           );
     }

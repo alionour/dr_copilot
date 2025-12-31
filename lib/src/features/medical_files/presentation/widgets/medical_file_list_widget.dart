@@ -55,7 +55,8 @@ class MedicalFileListWidget extends StatelessWidget {
                         await launchUrl(uri);
                       }
                     } else {
-                      // TODO: Show details dialog for "key-value" only records
+                      // Show details dialog for key-value only records
+                      _showDetailsDialog(context, file);
                     }
                   },
                   child: Column(
@@ -64,23 +65,23 @@ class MedicalFileListWidget extends StatelessWidget {
                       Expanded(
                         child: file.fileUrl != null
                             ? (file.type == 'X-Ray' ||
-                                      file.type == 'Image' ||
-                                      file.fileUrl!.endsWith('.jpg') ||
-                                      file.fileUrl!.endsWith('.png'))
-                                  ? Image.network(
-                                      file.fileUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                      ),
-                                    )
-                                  : const Center(
-                                      child: Icon(
-                                        Icons.insert_drive_file,
-                                        size: 50,
-                                      ),
-                                    )
+                                    file.type == 'Image' ||
+                                    file.fileUrl!.endsWith('.jpg') ||
+                                    file.fileUrl!.endsWith('.png'))
+                                ? Image.network(
+                                    file.fileUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.broken_image,
+                                      size: 50,
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.insert_drive_file,
+                                      size: 50,
+                                    ),
+                                  )
                             : const Center(
                                 child: Icon(Icons.info, size: 50),
                               ), // No file, just data
@@ -106,7 +107,9 @@ class MedicalFileListWidget extends StatelessWidget {
                                 file.metadata!.isNotEmpty)
                               Text(
                                 '${file.metadata!.length} attributes',
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(fontStyle: FontStyle.italic),
                               ),
                           ],
@@ -131,5 +134,64 @@ class MedicalFileListWidget extends StatelessWidget {
       },
     );
   }
-}
 
+  void _showDetailsDialog(BuildContext context, dynamic file) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(file.title),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Date: ${file.date.toLocal().toString().split(' ')[0]}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              if (file.metadata != null && file.metadata!.isNotEmpty) ...[
+                const Text(
+                  'Details:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...file.metadata!.entries.map((entry) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              '${entry.key}:',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Text(entry.value.toString()),
+                          ),
+                        ],
+                      ),
+                    )),
+              ] else
+                const Text('No additional details available.'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('close'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+}

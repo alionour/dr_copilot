@@ -69,7 +69,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       final service = await routerService.getServiceForQuery(
         query: event.query,
         clinicId: event.clinicId,
-        forcePremium: false, // TODO: Add user setting for this
+        forcePremium: event.forcePremium ?? false,
       );
 
       // Append timestamp for temporal context (cost-effective: ~8 tokens, 0 permission overhead)
@@ -118,7 +118,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       final service = await routerService.getServiceForQuery(
         query: event.text,
         clinicId: event.clinicId,
-        forcePremium: false,
+        forcePremium: event.forcePremium ?? false,
       );
 
       // Append timestamp for temporal context

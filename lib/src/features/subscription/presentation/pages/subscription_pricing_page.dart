@@ -338,9 +338,8 @@ class _PricingCardState extends State<_PricingCard> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        transform: Matrix4.identity()
-          ..scale(_isHovered ? 1.02 : 1.0, _isHovered ? 1.02 : 1.0,
-              _isHovered ? 1.02 : 1.0),
+        transform: Matrix4.diagonal3Values(_isHovered ? 1.02 : 1.0,
+            _isHovered ? 1.02 : 1.0, _isHovered ? 1.02 : 1.0),
         child: Container(
           decoration: BoxDecoration(
             gradient: widget.isPopular
