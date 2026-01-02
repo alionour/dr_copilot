@@ -20,7 +20,8 @@ class ErrorHandler {
     } else if (error is TypeError) {
       return ValidationFailure('errors.type_error', 400);
     } else {
-      return UnknownFailure('errors.unknown');
+      // Include the raw error message for debugging Store rejections
+      return UnknownFailure('Debug Error: $error');
     }
   }
 

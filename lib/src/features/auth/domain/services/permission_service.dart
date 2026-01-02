@@ -14,6 +14,7 @@ class PermissionService {
   // Permission cache: clinicId -> list of permission names
   final Map<String, List<String>> _permissionCache = {};
   DateTime? _cacheExpiry;
+  bool _isRefreshing = false;
   static const _cacheDuration = Duration(minutes: 5);
 
   PermissionService({
@@ -43,13 +44,32 @@ class PermissionService {
   }
 
   /// Get cached permissions for a clinic.
+  /// returns cached permissions if they exist, even if expired (stale-while-revalidate)
   List<String>? _getCachedPermissions(String? clinicId) {
     // Check if cache is expired
     if (_cacheExpiry != null && DateTime.now().isAfter(_cacheExpiry!)) {
-      debugPrint('[PermissionService] Cache expired, clearing...');
-      _permissionCache.clear();
-      _cacheExpiry = null;
-      return null;
+      if (!_isRefreshing) {
+        _isRefreshing = true;
+        debugPrint(
+            '[PermissionService] Cache expired. Returning stale data and refreshing in background...');
+        // Trigger background refresh
+        // We don't await this because we want to return the stale data immediately
+        getUserPermissions(clinicId: clinicId, forceRefresh: true)
+            .whenComplete(() {
+          _isRefreshing = false;
+          // If the refresh failed to update _cacheExpiry (still expired),
+          // bump it slightly to prevent immediate retry loop.
+          if (_cacheExpiry != null && DateTime.now().isAfter(_cacheExpiry!)) {
+            debugPrint(
+                '[PermissionService] Bumping cache expiry by 10s to prevent retry loop.');
+            _cacheExpiry = DateTime.now().add(const Duration(seconds: 10));
+          }
+        }).ignore();
+      }
+
+      // Do NOT clear the cache here.
+      // We return the stale data below so the UI doesn't break.
+      // _cacheExpiry will be updated when the background refresh completes.
     }
 
     final key = clinicId ?? 'default';
@@ -71,6 +91,7 @@ class PermissionService {
     debugPrint('[PermissionService] Clearing permission cache');
     _permissionCache.clear();
     _cacheExpiry = null;
+    _isRefreshing = false;
   }
 
   /// Checks if the current user has a specific permission (async).
@@ -126,21 +147,25 @@ class PermissionService {
   /// Gets all permissions for the current user.
   ///
   /// [clinicId] - Optional clinic ID for context
+  /// [forceRefresh] - If true, ignores cache and fetches from Firestore.
   ///
   /// Returns a list of all permission strings the user has.
   /// Returns null on error.
   /// Automatically caches results for better performance.
-  Future<List<String>?> getUserPermissions({String? clinicId}) async {
+  Future<List<String>?> getUserPermissions(
+      {String? clinicId, bool forceRefresh = false}) async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) return null;
 
     try {
-      // Check cache first
-      final cached = _getCachedPermissions(clinicId);
-      if (cached != null) {
-        debugPrint(
-            '[PermissionService] Returning ${cached.length} cached permissions');
-        return cached;
+      if (!forceRefresh) {
+        // Check cache first
+        final cached = _getCachedPermissions(clinicId);
+        if (cached != null) {
+          debugPrint(
+              '[PermissionService] Returning ${cached.length} cached permissions');
+          return cached;
+        }
       }
 
       // If no clinicId provided, try to get from user's primary clinic

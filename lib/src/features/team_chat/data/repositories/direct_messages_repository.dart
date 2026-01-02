@@ -94,12 +94,15 @@ class DirectMessagesRepository {
     final querySnapshot = await _firestore
         .collection('direct_messages')
         .where('participantIds', arrayContains: currentUserId)
-        .where('clinicId', isEqualTo: clinicId)
         .get();
 
     for (var doc in querySnapshot.docs) {
+      final data = doc.data();
+      // Filter by clinicId locally to avoid composite index requirement
+      if (data['clinicId'] != clinicId) continue;
+
       final participants = List<String>.from(
-        doc.data()['participantIds'] ?? [],
+        data['participantIds'] ?? [],
       );
       if (participants.contains(targetUserId) && participants.length == 2) {
         return doc.id; // Found existing chat

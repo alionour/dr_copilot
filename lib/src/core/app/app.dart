@@ -140,7 +140,7 @@ class App extends StatelessWidget {
                         /// The title of the application displayed in the app bar or window.
                         ///
                         /// In this case, it is set to 'Dr Copilot'.
-                        title: 'Dr. Copilot',
+                        title: 'Dr. AI',
 
                         /// Applies the current theme from the [themeNotifier] and allows for further customization
                         /// by creating a copy of the theme with additional modifications.

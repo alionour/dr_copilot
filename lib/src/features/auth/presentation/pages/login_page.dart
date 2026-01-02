@@ -17,11 +17,14 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final state = context.read<AuthBloc>().state;
       if (state is AuthSignedIn) {
-        OwnerNotifier().loadOwnerIdAndClinicId();
-        RoutingConfig.router.go('/home');
+        // Await permission loading to prevent "Permission Denied" race condition
+        await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
+        if (mounted) {
+          RoutingConfig.router.go('/home');
+        }
       }
     });
   }
@@ -29,9 +32,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is AuthSignedIn) {
-          OwnerNotifier().loadOwnerIdAndClinicId();
+          // Await permission loading to prevent "Permission Denied" race condition
+          await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
           RoutingConfig.router.go('/home');
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(

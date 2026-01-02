@@ -256,8 +256,10 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       final firestore = FirebaseFirestore.instance;
 
       // Try to find existing conversation for this team
+      // IMPORTANT: Must filter by clinicId first to satisfy Firestore security rules
       final existingConversations = await firestore
           .collection('team_conversations')
+          .where('clinicId', isEqualTo: team.clinicId)
           .where('metadata.teamId', isEqualTo: team.id)
           .limit(1)
           .get();
@@ -266,17 +268,52 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
 
       if (existingConversations.docs.isNotEmpty) {
         // Use existing conversation
-        conversationId = existingConversations.docs.first.id;
+        final doc = existingConversations.docs.first;
+        conversationId = doc.id;
+
+        // Ensure current user is in participantIds
+        final data = doc.data();
+        final List<dynamic> participants = data['participantIds'] ?? [];
+        final currentUserId = authState.user!.uid;
+
+        debugPrint('--- DEBUG PERMISSION ---');
+        debugPrint('Current User ID: $currentUserId');
+        debugPrint('Doc ID: $conversationId');
+        debugPrint('Participants in Doc: $participants');
+        debugPrint(
+            'Is User in Participants? ${participants.contains(currentUserId)}');
+        debugPrint('------------------------');
+
+        if (!participants.contains(currentUserId)) {
+          // Add user to participants
+          final updatedParticipants = List<String>.from(participants)
+            ..add(currentUserId);
+          try {
+            await firestore
+                .collection('team_conversations')
+                .doc(conversationId)
+                .update({'participantIds': updatedParticipants});
+          } catch (e) {
+            debugPrint('Error updating participants: $e');
+            // Consider showing error to user or proceeding hoping for the best
+          }
+        }
       } else {
         // Create new conversation
         conversationId = firestore.collection('team_conversations').doc().id;
+
+        final currentUserId = authState.user!.uid;
+        final participantIds = List<String>.from(team.memberIds);
+        if (!participantIds.contains(currentUserId)) {
+          participantIds.add(currentUserId);
+        }
 
         await firestore
             .collection('team_conversations')
             .doc(conversationId)
             .set({
           'clinicId': team.clinicId,
-          'participantIds': team.memberIds,
+          'participantIds': participantIds,
           'createdAt': Timestamp.now(),
           'updatedAt': Timestamp.now(),
           'metadata': {'teamId': team.id, 'teamName': team.name},
@@ -291,8 +328,9 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('errorStartingChat'.tr()),
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }

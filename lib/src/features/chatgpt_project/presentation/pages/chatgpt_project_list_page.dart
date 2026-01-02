@@ -79,4 +79,3 @@ class ChatGptProjectListPage extends StatelessWidget {
     );
   }
 }
-

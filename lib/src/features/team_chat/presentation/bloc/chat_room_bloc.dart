@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/models/team_message_model.dart';
@@ -81,12 +82,11 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
   void _onLoadMessages(LoadMessages event, Emitter<ChatRoomState> emit) {
     emit(ChatRoomLoading());
     _messagesSubscription?.cancel();
-    _messagesSubscription = _repository
-        .getMessages(event.conversationId)
-        .listen(
-          (messages) => add(MessagesUpdated(messages)),
-          onError: (e) => add(MessagesUpdated([])),
-        );
+    _messagesSubscription =
+        _repository.getMessages(event.conversationId).listen(
+              (messages) => add(MessagesUpdated(messages)),
+              onError: (e) => add(MessagesUpdated([])),
+            );
   }
 
   Future<void> _onSendMessage(
@@ -101,8 +101,9 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
         type: event.type,
       );
     } catch (e) {
-      // Handle error (maybe show a snackbar via listener)
-      // For now, we rely on stream update
+      debugPrint('[ChatRoomBloc] Error sending message: $e');
+      debugPrint('[ChatRoomBloc] Conversation ID was: ${event.conversationId}');
+      emit(ChatRoomError('Failed to send message: $e'));
     }
   }
 
@@ -116,4 +117,3 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     return super.close();
   }
 }
-

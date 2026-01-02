@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter/material.dart';
-import 'package:dr_copilot/src/core/router/routing_config.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -201,33 +200,6 @@ class GoogleSignInHelper {
     }
   }
 
-  Future<void> _showDebugDialog(String title, String content) async {
-    try {
-      final context =
-          RoutingConfig.router.routerDelegate.navigatorKey.currentContext;
-      if (context != null) {
-        await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(title),
-            content: SingleChildScrollView(child: Text(content)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      } else {
-        debugPrint(
-            '[_showDebugDialog] No context found for dialog: $title - $content');
-      }
-    } catch (e) {
-      debugPrint('[_showDebugDialog] Error showing dialog: $e');
-    }
-  }
-
   Future<Map<String, String>> _loadCredentials() async {
     String? clientId;
     String? clientSecret;
@@ -294,17 +266,14 @@ class GoogleSignInHelper {
             'C-Secret: ${clientSecret ?? "NULL"}\n'
             'Port: ${redirectPortStr ?? "NULL"}';
         debugPrint(errorMsg);
-        await _showDebugDialog('Credential Error', errorMsg);
-        return null;
+        throw Exception(errorMsg);
       }
 
       int redirectPort;
       try {
         redirectPort = int.parse(redirectPortStr);
       } catch (e) {
-        await _showDebugDialog(
-            'Port Error', 'Invalid port string: $redirectPortStr');
-        return null;
+        throw Exception('Invalid port string: $redirectPortStr');
       }
 
       // 1. Create a local server
@@ -315,9 +284,7 @@ class GoogleSignInHelper {
           redirectPort,
         );
       } catch (e) {
-        await _showDebugDialog(
-            'Network Error', 'Could not bind to port $redirectPort: $e');
-        return null;
+        throw Exception('Could not bind to port $redirectPort: $e');
       }
 
       final redirectUri = 'http://localhost:${server.port}';
@@ -343,9 +310,7 @@ class GoogleSignInHelper {
         }
       } catch (e) {
         await server.close();
-        await _showDebugDialog(
-            'Browser Error', 'Failed to launch auth URL: $e');
-        return null;
+        throw Exception('Failed to launch auth URL: $e');
       }
 
       // 4. Listen for the redirect
@@ -447,9 +412,8 @@ class GoogleSignInHelper {
       }
     } catch (error) {
       debugPrint('Desktop sign in error: $error');
-      await _showDebugDialog(
-          'Sign-In Error', 'An unexpected error occurred: $error');
-      return null;
+      // Re-throw so caller can handle it
+      throw Exception('Sign-In Failed: $error');
     }
   }
 

@@ -21,7 +21,7 @@ class RemoteConfigService {
       });
 
       await _remoteConfig.fetchAndActivate();
-      debugPrint('Remote Config initialized. signup_enabled: $isSignupEnabled');
+      debugPrint('Remote Config initialized successfully');
     } catch (e) {
       debugPrint('Error initializing Remote Config: $e');
     }

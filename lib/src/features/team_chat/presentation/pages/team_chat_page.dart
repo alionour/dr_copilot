@@ -55,161 +55,172 @@ class _TeamChatPageState extends State<TeamChatPage> {
             "chat".tr(), // Ideally show participant name
           ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: BlocConsumer<ChatRoomBloc, ChatRoomState>(
-                listener: (context, state) {
-                  if (state is ChatRoomLoaded) {
-                    _scrollToBottom();
-                  }
-                },
-                builder: (context, state) {
-                  if (state is ChatRoomLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is ChatRoomError) {
-                    return Center(child: Text(state.message));
-                  } else if (state is ChatRoomLoaded) {
-                    final messages = state.messages;
-                    if (messages.isEmpty) {
-                      return Center(child: Text("sayHello".tr()));
-                    }
-                    return ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        final isMe = message.senderId == currentUser.uid;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: isMe
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              if (!isMe) ...[
-                                CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
-                                  child: Text(
-                                    message.senderId
-                                        .substring(0, 1)
-                                        .toUpperCase(),
-                                    style: TextStyle(
-                                      color: Theme.of(
+        body: Builder(
+          builder: (context) {
+            return Column(
+              children: [
+                Expanded(
+                  child: BlocConsumer<ChatRoomBloc, ChatRoomState>(
+                    listener: (context, state) {
+                      if (state is ChatRoomLoaded) {
+                        _scrollToBottom();
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is ChatRoomLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is ChatRoomError) {
+                        return Center(child: Text(state.message));
+                      } else if (state is ChatRoomLoaded) {
+                        final messages = state.messages;
+                        if (messages.isEmpty) {
+                          return Center(child: Text("sayHello".tr()));
+                        }
+                        return ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            final isMe = message.senderId == currentUser.uid;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment: isMe
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  if (!isMe) ...[
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: Theme.of(
                                         context,
-                                      ).colorScheme.onPrimaryContainer,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
+                                      ).colorScheme.primaryContainer,
+                                      child: Text(
+                                        message.senderId
+                                            .substring(0, 1)
+                                            .toUpperCase(),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Container(
+                                    margin: EdgeInsets.zero,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isMe
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.primaryContainer
+                                          : Theme.of(
+                                              context,
+                                            )
+                                              .colorScheme
+                                              .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.65,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          message.content,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: isMe
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .onPrimaryContainer
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          timeago.format(message.timestamp),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                fontSize: 10,
+                                                color: isMe
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .onPrimaryContainer
+                                                        .withValues(alpha: 0.7)
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant
+                                                        .withValues(alpha: 0.7),
+                                              ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                              ],
-                              Container(
-                                margin: EdgeInsets.zero,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isMe
-                                      ? Theme.of(
-                                          context,
-                                        ).colorScheme.primaryContainer
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.65,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      message.content,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color: isMe
-                                                ? Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimaryContainer
-                                                : Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      timeago.format(message.timestamp),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            fontSize: 10,
-                                            color: isMe
-                                                ? Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimaryContainer
-                                                      .withValues(alpha: 0.7)
-                                                : Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant
-                                                      .withValues(alpha: 0.7),
-                                          ),
+                                  if (isMe) ...[
+                                    const SizedBox(width: 8),
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundImage: currentUser.photoURL !=
+                                              null
+                                          ? NetworkImage(currentUser.photoURL!)
+                                          : null,
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer,
+                                      child: currentUser.photoURL == null
+                                          ? Text(
+                                              (currentUser.displayName ??
+                                                      currentUser.email ??
+                                                      'U')
+                                                  .substring(0, 1)
+                                                  .toUpperCase(),
+                                              style: TextStyle(
+                                                color: Theme.of(
+                                                  context,
+                                                )
+                                                    .colorScheme
+                                                    .onPrimaryContainer,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            )
+                                          : null,
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
-                              if (isMe) ...[
-                                const SizedBox(width: 8),
-                                CircleAvatar(
-                                  radius: 16,
-                                  backgroundImage: currentUser.photoURL != null
-                                      ? NetworkImage(currentUser.photoURL!)
-                                      : null,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
-                                  child: currentUser.photoURL == null
-                                      ? Text(
-                                          (currentUser.displayName ??
-                                                  currentUser.email ??
-                                                  'U')
-                                              .substring(0, 1)
-                                              .toUpperCase(),
-                                          style: TextStyle(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onPrimaryContainer,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                              ],
-                            ],
-                          ),
+                            );
+                          },
                         );
-                      },
-                    );
-                  }
-                  return const SizedBox();
-                },
-              ),
-            ),
-            _buildMessageInput(context, currentUser.uid),
-          ],
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+                _buildMessageInput(context, currentUser.uid),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -250,13 +261,12 @@ class _TeamChatPageState extends State<TeamChatPage> {
     if (_textController.text.trim().isEmpty) return;
 
     context.read<ChatRoomBloc>().add(
-      SendMessage(
-        conversationId: widget.conversationId,
-        senderId: currentUserId,
-        content: _textController.text.trim(),
-      ),
-    );
+          SendMessage(
+            conversationId: widget.conversationId,
+            senderId: currentUserId,
+            content: _textController.text.trim(),
+          ),
+        );
     _textController.clear();
   }
 }
-
