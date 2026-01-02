@@ -51,10 +51,17 @@ service cloud.firestore {
       allow read: if isClinicMember(clinicId);
       allow write: if hasPermission(clinicId, 'manageSettings');
 
+
       match /members/{memberId} {
         allow read: if isClinicMember(clinicId);
         // Only admins/owners with manageStaff permission can write members
         allow write: if hasPermission(clinicId, 'manageStaff');
+      }
+
+      // Clinic Settings (Missing Rule Fix)
+      match /settings/{settingId} {
+        allow read: if isClinicMember(clinicId);
+        allow write: if hasPermission(clinicId, 'manageSettings');
       }
       
        // Patients (subcollection style if used)
@@ -216,6 +223,15 @@ service cloud.firestore {
        allow create: if request.auth != null; // Simplified create for now (should check participants)
        allow read: if request.auth != null && (resource == null || request.auth.uid in resource.data.participantIds);
        allow update, delete: if request.auth.uid in resource.data.participantIds;
+    }
+
+    // Notifications (Missing Rule Fix)
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Allow users to delete/update their own notifications (e.g. mark as read)
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Allow creation? Usually server-side, but if client creates:
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     // Default Deny
