@@ -64,6 +64,7 @@ class _CopilotPageState extends State<CopilotPage> {
   Map<String, dynamic> _functionCallArgs = {};
   String? _currentParameterBeingAsked;
   String? _lastQuery; // Store last query for retry
+  Timer? _typingTimer; // Track typing effect timer
   final _audioRecorder = AudioRecorder();
 
   late final ConversationRepository _conversationRepo;
@@ -690,6 +691,7 @@ class _CopilotPageState extends State<CopilotPage> {
                                       .instance.currentUser?.photoURL,
                                   currentUserDisplayName: FirebaseAuth
                                       .instance.currentUser?.displayName,
+                                  onStopGeneration: _stopGeneration,
                                 );
                               });
                         });
@@ -723,7 +725,8 @@ class _CopilotPageState extends State<CopilotPage> {
     });
     int index = _messages.length - 1;
     int charIndex = 0;
-    Timer.periodic(const Duration(milliseconds: 20), (timer) {
+    _typingTimer?.cancel(); // Cancel previous timer if any
+    _typingTimer = Timer.periodic(const Duration(milliseconds: 20), (timer) {
       if (charIndex < message.length) {
         setState(() {
           _messages[index]["message"] += message[charIndex];
@@ -732,6 +735,7 @@ class _CopilotPageState extends State<CopilotPage> {
         _scrollToBottom();
       } else {
         timer.cancel();
+        _typingTimer = null;
         // Format the message as markdown
         setState(() {
           _messages[index]["message"] = _formatMarkdown(
@@ -759,6 +763,13 @@ class _CopilotPageState extends State<CopilotPage> {
   String _formatMarkdown(String message) {
     // Return markdown as-is, no HTML conversion needed
     return message;
+  }
+
+  void _stopGeneration() {
+    debugPrint('[CopilotPage] Stop generation requested');
+    _typingTimer?.cancel();
+    _typingTimer = null;
+    context.read<CopilotBloc>().add(StopGenerationEvent());
   }
 
   void _askForParameter(String parameterName, String question) {

@@ -71,3 +71,5 @@ class UpdateCopilotSettingsEvent extends CopilotEvent {
   @override
   List<Object> get props => [requiredFields];
 }
+
+class StopGenerationEvent extends CopilotEvent {}

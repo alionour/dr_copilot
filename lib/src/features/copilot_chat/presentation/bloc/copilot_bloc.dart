@@ -44,6 +44,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     on<LoadCachedMessagesEvent>(_onLoadCachedMessages);
     on<StartNewChatEvent>(_onStartNewChat);
     on<UpdateCopilotSettingsEvent>(_onUpdateCopilotSettings);
+    on<StopGenerationEvent>(_onStopGeneration);
   }
 
   Future<T> _retryStorage<T>(Future<T> Function() operation) async {
@@ -196,5 +197,13 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     vertexAIService.updateModelConfig(event.requiredFields);
     deepSeekService.updateModelConfig(event.requiredFields);
     qwenService.updateModelConfig(event.requiredFields);
+  }
+
+  void _onStopGeneration(
+    StopGenerationEvent event,
+    Emitter<CopilotState> emit,
+  ) {
+    debugPrint('[CopilotBloc] Generation stopped by user');
+    emit(CopilotGenerationStopped());
   }
 }

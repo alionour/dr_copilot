@@ -49,3 +49,4 @@ class CopilotFunctionCall extends CopilotState {
 
 class NewChatStarted extends CopilotState {}
 
+class CopilotGenerationStopped extends CopilotState {}

@@ -40,6 +40,7 @@ void main() {
       onPickImage: () {},
       onCancelImage: () {},
       onToggleHistory: () {},
+      onStopGeneration: () {},
       onHistoryToggle: (_) {},
       onEditMessage: (_, __) {},
       currentUserDisplayName: 'Dr. Copilot User',

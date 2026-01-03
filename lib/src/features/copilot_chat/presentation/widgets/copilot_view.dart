@@ -25,6 +25,7 @@ class CopilotView extends StatelessWidget {
   final VoidCallback onPickImage;
   final VoidCallback onCancelImage;
   final VoidCallback onToggleHistory; // For sidebar toggle
+  final VoidCallback onStopGeneration; // Stop AI generation
   final Function(bool) onHistoryToggle; // Alternative if state passed down
   final Function(String, String) onEditMessage;
 
@@ -57,6 +58,7 @@ class CopilotView extends StatelessWidget {
     required this.onPickImage,
     required this.onCancelImage,
     required this.onToggleHistory,
+    required this.onStopGeneration,
     required this.onHistoryToggle,
     required this.onEditMessage,
     this.onSpeechStart,
@@ -254,6 +256,8 @@ class CopilotView extends StatelessWidget {
                                             ),
                                             child: TextFormField(
                                               controller: textController,
+                                              enabled:
+                                                  !isLoading, // Disable during loading
                                               // focusNode: _focusNode,
                                               decoration: InputDecoration(
                                                 hintText:
@@ -274,12 +278,22 @@ class CopilotView extends StatelessWidget {
                                               textInputAction:
                                                   TextInputAction.send,
                                               onFieldSubmitted: (value) =>
-                                                  onSendMessage(),
+                                                  isLoading
+                                                      ? null
+                                                      : onSendMessage(),
                                             ),
                                           ),
                                         ),
-                                        // Send / Mic buttons
-                                        if (textController.text.isNotEmpty ||
+                                        // Send / Stop / Mic buttons
+                                        if (isLoading)
+                                          IconButton(
+                                            onPressed: onStopGeneration,
+                                            icon: const Icon(Icons.stop_circle),
+                                            color: Colors.red,
+                                            tooltip: 'Stop generating',
+                                          )
+                                        else if (textController
+                                                .text.isNotEmpty ||
                                             pickedImage != null)
                                           IconButton(
                                             onPressed: onSendMessage,
