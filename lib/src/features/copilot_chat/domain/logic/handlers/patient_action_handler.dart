@@ -21,7 +21,7 @@ class PatientActionHandler extends BaseActionHandler {
   Future<Map<String, dynamic>> addPatient(Map<String, dynamic> args) async {
     debugPrint('[PatientActionHandler] addPatient called with args: $args');
     // Check permission
-    final permError = await checkPermission('can_add_patient');
+    final permError = await checkPermission('createPatient');
     if (permError != null) {
       debugPrint('[PatientActionHandler] Permission error: $permError');
       return permError;
@@ -64,7 +64,7 @@ class PatientActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> editPatient(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_edit_patient');
+    final permError = await checkPermission('updatePatient');
     if (permError != null) return permError;
 
     final ownerId = ownerNotifier.ownerId;
@@ -101,7 +101,7 @@ class PatientActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> deletePatient(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_delete_patient');
+    final permError = await checkPermission('deletePatient');
     if (permError != null) return permError;
 
     final result = await patientsUseCase.deletePatient(args['id']);

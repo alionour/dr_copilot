@@ -20,7 +20,7 @@ class SessionActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> addSession(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_add_session');
+    final permError = await checkPermission('createSession');
     if (permError != null) return permError;
 
     final ownerId = ownerNotifier.ownerId;
@@ -60,7 +60,7 @@ class SessionActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> editSession(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_edit_session');
+    final permError = await checkPermission('updateSession');
     if (permError != null) return permError;
 
     final ownerId = ownerNotifier.ownerId;
@@ -105,7 +105,7 @@ class SessionActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> deleteSession(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_delete_session');
+    final permError = await checkPermission('deleteSession');
     if (permError != null) return permError;
 
     final result = await sessionsUseCase.deleteSession(args['id']);

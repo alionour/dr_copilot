@@ -20,7 +20,7 @@ class EvaluationActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> addEvaluation(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_add_evaluation');
+    final permError = await checkPermission('createEvaluation');
     if (permError != null) return permError;
 
     final ownerId = ownerNotifier.ownerId;
@@ -59,7 +59,7 @@ class EvaluationActionHandler extends BaseActionHandler {
 
   Future<Map<String, dynamic>> editEvaluation(Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_edit_evaluation');
+    final permError = await checkPermission('updateEvaluation');
     if (permError != null) return permError;
 
     final ownerId = ownerNotifier.ownerId;
@@ -105,7 +105,7 @@ class EvaluationActionHandler extends BaseActionHandler {
   Future<Map<String, dynamic>> deleteEvaluation(
       Map<String, dynamic> args) async {
     // Check permission
-    final permError = await checkPermission('can_delete_evaluation');
+    final permError = await checkPermission('deleteEvaluation');
     if (permError != null) return permError;
 
     final result = await evaluationsUseCase.deleteEvaluation(args['id']);
