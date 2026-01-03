@@ -40,7 +40,7 @@ class GeminiService implements AIService {
     }
 
     return GenerativeModel(
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-2.5-flash',
       apiKey: apiKey,
       tools: getGeminiTools(userRequiredFields: _currentRequiredFields),
       safetySettings: [
@@ -65,7 +65,8 @@ class GeminiService implements AIService {
         'Gemini API Key not found. Please configure it in settings.',
       );
     }
-    return GenerativeModel(model: 'gemini-2.5-flash-lite', apiKey: apiKey);
+    // gemini-2.5-flash is multimodal
+    return GenerativeModel(model: 'gemini-2.5-flash', apiKey: apiKey);
   }
 
   Future<void> _checkTokenLimit(String clinicId) async {
