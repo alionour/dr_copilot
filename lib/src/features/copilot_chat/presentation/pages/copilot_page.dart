@@ -63,6 +63,7 @@ class _CopilotPageState extends State<CopilotPage> {
   final List<Map<String, dynamic>> _messages = [];
   Map<String, dynamic> _functionCallArgs = {};
   String? _currentParameterBeingAsked;
+  String? _lastQuery; // Store last query for retry
   final _audioRecorder = AudioRecorder();
 
   late final ConversationRepository _conversationRepo;
@@ -100,6 +101,8 @@ class _CopilotPageState extends State<CopilotPage> {
     _loadSubscriptionInfo();
   }
 
+  StreamSubscription? _usageSubscription;
+
   Future<void> _loadSubscriptionInfo() async {
     try {
       final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
@@ -116,24 +119,34 @@ class _CopilotPageState extends State<CopilotPage> {
       }
 
       if (clinicId != null && user != null) {
+        // Load static tier info
         final tier = await sl<SubscriptionService>().getCurrentTier(clinicId);
-        final tokenUsage = await sl<QuotaService>().getUsage(
-          clinicId,
-          null,
-          LimitType.aiTokens,
-        );
 
         if (mounted) {
           setState(() {
             _currentTier = tier;
-            _tokenUsage = tokenUsage;
             _tokenLimit = tier.maxMonthlyTokens;
           });
         }
+
+        // Setup real-time usage listener
+        _usageSubscription?.cancel();
+        _usageSubscription = sl<QuotaService>()
+            .watchUsage(
+          clinicId,
+          null,
+          LimitType.aiTokens,
+        )
+            .listen((usage) {
+          if (mounted) {
+            setState(() {
+              _tokenUsage = usage;
+            });
+          }
+        });
       }
     } catch (e) {
       debugPrint('[CopilotPage] Error loading subscription info: $e');
-      // Non-fatal: just log and continue
     }
 
     // Load user permissions
@@ -267,6 +280,7 @@ class _CopilotPageState extends State<CopilotPage> {
     _isButtonEnabled.dispose();
     _isListeningSpeech.dispose();
     _audioRecorder.dispose();
+    _usageSubscription?.cancel();
     // Don't dispose the speech recognition service here as it's a singleton
     // It will be disposed when the app closes
     super.dispose();
@@ -483,6 +497,8 @@ class _CopilotPageState extends State<CopilotPage> {
       // Get forcePremium setting
       final forcePremium = context.read<SettingsBloc>().state.usePremiumModels;
 
+      _lastQuery = text; // Capture for retry
+
       context.read<CopilotBloc>().add(
             GenerateResponseEvent(
               query: text,
@@ -524,13 +540,46 @@ class _CopilotPageState extends State<CopilotPage> {
                     content: Text('AI Error: ${state.error}'),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 10),
-                    action: SnackBarAction(
-                      label: 'Change Model',
-                      textColor: Colors.white,
-                      onPressed: () {
-                        context.push('/settings/model_selection');
-                      },
-                    ),
+                    action: _lastQuery != null
+                        ? SnackBarAction(
+                            label: 'Retry',
+                            textColor: Colors.white,
+                            onPressed: () {
+                              // Trigger retry
+                              final ownerNotifier = Provider.of<OwnerNotifier>(
+                                  context,
+                                  listen: false);
+                              final userId =
+                                  FirebaseAuth.instance.currentUser?.uid;
+                              final forcePremium = context
+                                  .read<SettingsBloc>()
+                                  .state
+                                  .usePremiumModels;
+
+                              if (userId != null &&
+                                  ownerNotifier.clinicId != null) {
+                                context
+                                    .read<CopilotBloc>()
+                                    .add(GenerateResponseEvent(
+                                      query: _lastQuery!, // Use stored query
+                                      messageHistory: _messages.length > 8
+                                          ? _messages
+                                              .sublist(_messages.length - 8)
+                                          : _messages,
+                                      clinicId: ownerNotifier.clinicId!,
+                                      userId: userId,
+                                      forcePremium: forcePremium,
+                                    ));
+                              }
+                            },
+                          )
+                        : SnackBarAction(
+                            label: 'Change Model',
+                            textColor: Colors.white,
+                            onPressed: () {
+                              context.push('/settings/model_selection');
+                            },
+                          ),
                   ),
                 );
               }

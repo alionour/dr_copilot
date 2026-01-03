@@ -44,6 +44,11 @@ service cloud.firestore {
       match /{document=**} {
          allow read, write: if isOwner(userId);
       }
+
+      // Usage Tracking (Daily Limits)
+      match /usage_tracking/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Clinics -> Members
@@ -58,10 +63,22 @@ service cloud.firestore {
         allow write: if hasPermission(clinicId, 'manageStaff');
       }
 
+      
       // Clinic Settings (Missing Rule Fix)
       match /settings/{settingId} {
         allow read: if isClinicMember(clinicId);
         allow write: if hasPermission(clinicId, 'manageSettings');
+      }
+
+      // Usage Tracking (QuotaService)
+      match /usage_tracking/{docId} {
+         // Allow members to read usage (for quota checks)
+         allow read: if isClinicMember(clinicId) || 
+                        get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerId == request.auth.uid;
+         
+         // Allow members/owners to WRITE usage (increment counters)
+         allow write: if isClinicMember(clinicId) || 
+                         get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerId == request.auth.uid;
       }
       
        // Patients (subcollection style if used)

@@ -64,21 +64,50 @@ class QuotaService {
 
       if (data == null) return 0;
 
-      switch (type) {
-        case LimitType.sessions:
-          return data['session_count'] ?? 0;
-        case LimitType.evaluations:
-          return data['evaluation_count'] ?? 0;
-        case LimitType.imageAnalysis:
-          return data['image_analysis_count'] ?? 0;
-        case LimitType.aiTokens:
-          return data['token_count'] ?? 0;
-        default:
-          return 0;
-      }
+      return _parseUsageData(data, type);
     } catch (e) {
       debugPrint('Error getting usage for $type: $e');
       return 0; // Fail open or closed? Open allows usage on error, closed blocks.
+    }
+  }
+
+  /// Watch usage count for a specific limit type (Real-time)
+  Stream<int> watchUsage(String clinicId, String? userId, LimitType type) {
+    if (type == LimitType.patients) {
+      return _firestore
+          .collection('patients')
+          .where('clinicId', isEqualTo: clinicId)
+          .snapshots()
+          .map((snapshot) => snapshot.size);
+    }
+
+    if (type == LimitType.aiChat) {
+      if (userId == null) return Stream.value(0);
+      return _getUserQuotaDoc(userId).snapshots().map((doc) {
+        return (doc.data() as Map<String, dynamic>?)?['chat_count'] ?? 0;
+      });
+    }
+
+    // Monthly limits
+    return _getClinicQuotaDoc(clinicId).snapshots().map((doc) {
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return 0;
+      return _parseUsageData(data, type);
+    });
+  }
+
+  int _parseUsageData(Map<String, dynamic> data, LimitType type) {
+    switch (type) {
+      case LimitType.sessions:
+        return data['session_count'] ?? 0;
+      case LimitType.evaluations:
+        return data['evaluation_count'] ?? 0;
+      case LimitType.imageAnalysis:
+        return data['image_analysis_count'] ?? 0;
+      case LimitType.aiTokens:
+        return data['token_count'] ?? 0;
+      default:
+        return 0;
     }
   }
 
