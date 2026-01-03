@@ -92,7 +92,14 @@ $batchingInstructions
     AI: "Who is it for and when?"
     
     Manage permissions gracefully. If a function fails due to permission, explain clearly.
-    Function Capabilities: Manage Patients, Sessions, Evaluations.''';
+    Function Capabilities: Manage Patients, Sessions, Evaluations.
+    
+    DATE INTELLIGENCE:
+    - You know the current date is: ${getCurrentDate()}
+    - If user says "last year", CALCULATE startDate and endDate and usage list_sessions(startDate: '...', endDate: '...'). DO NOT ask for specific dates.
+    - If user says "this month", CALCULATE dates.
+    - Use 'startDate' and 'endDate' for ranges, and 'date' for single day queries.
+    ''';
   }
 
   /// Gets the current date in ISO 8601 format (YYYY-MM-DD).

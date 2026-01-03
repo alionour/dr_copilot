@@ -673,8 +673,10 @@ class _CopilotPageState extends State<CopilotPage> {
                                             .stopListening();
                                     _isListeningSpeech.value = false;
                                     stopResult.fold(
-                                      (failure) => _showTypingEffect(
-                                          'Error stopping: ${failure.message}'),
+                                      (failure) {
+                                        debugPrint(
+                                            '[Speech] Error stopping: ${failure.message}');
+                                      },
                                       (transcript) {
                                         if (transcript.isNotEmpty) {
                                           _controller.text = _controller

@@ -212,15 +212,40 @@ class FunctionCallHandler {
     return result.fold(
       (failure) => {'error': failure.message},
       (patients) {
+        var filtered = patients;
+
+        // Filter by Name
         if (args['name'] != null) {
-          final filtered = patients
+          filtered = filtered
               .where((p) => p.name
                   .toLowerCase()
                   .contains((args['name'] as String).toLowerCase()))
               .toList();
-          return {'patients': filtered.map((p) => p.toJson()).toList()};
         }
-        return {'patients': patients.map((p) => p.toJson()).toList()};
+
+        // Filter by Date Range (Start Date) on createdAt
+        if (args['startDate'] != null) {
+          final startDate = DateTime.parse(args['startDate']);
+          filtered = filtered.where((p) {
+            if (p.createdAt == null) return false;
+            final date = p.createdAt!.toDate();
+            return date.isAfter(startDate) || date.isAtSameMomentAs(startDate);
+          }).toList();
+        }
+
+        // Filter by Date Range (End Date) on createdAt
+        if (args['endDate'] != null) {
+          final endDate = DateTime.parse(args['endDate'])
+              .add(const Duration(days: 1))
+              .subtract(const Duration(seconds: 1)); // End of the day
+          filtered = filtered.where((p) {
+            if (p.createdAt == null) return false;
+            final date = p.createdAt!.toDate();
+            return date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
+          }).toList();
+        }
+
+        return {'patients': filtered.map((p) => p.toJson()).toList()};
       },
     );
   }
@@ -337,12 +362,13 @@ class FunctionCallHandler {
   }
 
   Future<Map<String, dynamic>> _listSessions(Map<String, dynamic> args) async {
-    final result = await sessionsUseCase
-        .getAllSessions(); // Assuming getAllSessions exists
+    final result = await sessionsUseCase.getAllSessions();
     return result.fold(
       (failure) => {'error': failure.message},
       (sessions) {
         var filtered = sessions;
+
+        // Filter by Patient Name
         if (args['patientName'] != null) {
           filtered = filtered
               .where((s) => (s.patientName ?? '')
@@ -350,6 +376,40 @@ class FunctionCallHandler {
                   .contains((args['patientName'] as String).toLowerCase()))
               .toList();
         }
+
+        // Filter by Specific Date
+        if (args['date'] != null) {
+          final filterDate = DateTime.parse(args['date']);
+          filtered = filtered.where((s) {
+            final sessionDate = s.startDateTime.toDate();
+            return sessionDate.year == filterDate.year &&
+                sessionDate.month == filterDate.month &&
+                sessionDate.day == filterDate.day;
+          }).toList();
+        }
+
+        // Filter by Date Range (Start Date)
+        if (args['startDate'] != null) {
+          final startDate = DateTime.parse(args['startDate']);
+          filtered = filtered
+              .where((s) =>
+                  s.startDateTime.toDate().isAfter(startDate) ||
+                  s.startDateTime.toDate().isAtSameMomentAs(startDate))
+              .toList();
+        }
+
+        // Filter by Date Range (End Date)
+        if (args['endDate'] != null) {
+          final endDate = DateTime.parse(args['endDate'])
+              .add(const Duration(days: 1))
+              .subtract(const Duration(seconds: 1)); // End of the day
+          filtered = filtered
+              .where((s) =>
+                  s.startDateTime.toDate().isBefore(endDate) ||
+                  s.startDateTime.toDate().isAtSameMomentAs(endDate))
+              .toList();
+        }
+
         return {'sessions': filtered.map((s) => s.toJson()).toList()};
       },
     );
@@ -470,6 +530,8 @@ class FunctionCallHandler {
       (failure) => {'error': failure.message},
       (evaluations) {
         var filtered = evaluations;
+
+        // Filter by Patient Name
         if (args['patientName'] != null) {
           filtered = filtered
               .where((e) => e.patientName
@@ -477,6 +539,40 @@ class FunctionCallHandler {
                   .contains((args['patientName'] as String).toLowerCase()))
               .toList();
         }
+
+        // Filter by Specific Date
+        if (args['date'] != null) {
+          final filterDate = DateTime.parse(args['date']);
+          filtered = filtered.where((e) {
+            final evalDate = e.startDateTime.toDate();
+            return evalDate.year == filterDate.year &&
+                evalDate.month == filterDate.month &&
+                evalDate.day == filterDate.day;
+          }).toList();
+        }
+
+        // Filter by Date Range (Start Date)
+        if (args['startDate'] != null) {
+          final startDate = DateTime.parse(args['startDate']);
+          filtered = filtered
+              .where((e) =>
+                  e.startDateTime.toDate().isAfter(startDate) ||
+                  e.startDateTime.toDate().isAtSameMomentAs(startDate))
+              .toList();
+        }
+
+        // Filter by Date Range (End Date)
+        if (args['endDate'] != null) {
+          final endDate = DateTime.parse(args['endDate'])
+              .add(const Duration(days: 1))
+              .subtract(const Duration(seconds: 1)); // End of the day
+          filtered = filtered
+              .where((e) =>
+                  e.startDateTime.toDate().isBefore(endDate) ||
+                  e.startDateTime.toDate().isAtSameMomentAs(endDate))
+              .toList();
+        }
+
         return {'evaluations': filtered.map((e) => e.toJson()).toList()};
       },
     );

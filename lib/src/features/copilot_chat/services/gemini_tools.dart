@@ -327,7 +327,15 @@ List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
             properties: {
               'name': Schema(SchemaType.string,
                   description:
-                      'Optional: The name or partial name to filter patients by.')
+                      'Optional: The name or partial name to filter patients by.'),
+              'startDate': Schema(SchemaType.string,
+                  format: 'date',
+                  description:
+                      'Optional: The start date of the range to filter patients by creation date (e.g., \'YYYY-MM-DD\').'),
+              'endDate': Schema(SchemaType.string,
+                  format: 'date',
+                  description:
+                      'Optional: The end date of the range to filter patients by creation date (e.g., \'YYYY-MM-DD\').')
             },
           ),
         ),
@@ -355,7 +363,15 @@ List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
               'date': Schema(SchemaType.string,
                   format: 'date',
                   description:
-                      'Optional: The date to filter sessions by (e.g., \'YYYY-MM-DD\').')
+                      'Optional: The specific date to filter sessions by (e.g., \'YYYY-MM-DD\').'),
+              'startDate': Schema(SchemaType.string,
+                  format: 'date',
+                  description:
+                      'Optional: The start date of the range to filter sessions by (e.g., \'YYYY-MM-DD\').'),
+              'endDate': Schema(SchemaType.string,
+                  format: 'date',
+                  description:
+                      'Optional: The end date of the range to filter sessions by (e.g., \'YYYY-MM-DD\').')
             },
           ),
         ),
@@ -383,7 +399,15 @@ List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
               'date': Schema(SchemaType.string,
                   format: 'date',
                   description:
-                      'Optional: The date to filter evaluations by (e.g., \'YYYY-MM-DD\').')
+                      'Optional: The specific date to filter evaluations by (e.g., \'YYYY-MM-DD\').'),
+              'startDate': Schema(SchemaType.string,
+                  format: 'date',
+                  description:
+                      'Optional: The start date of the range to filter evaluations by (e.g., \'YYYY-MM-DD\').'),
+              'endDate': Schema(SchemaType.string,
+                  format: 'date',
+                  description:
+                      'Optional: The end date of the range to filter evaluations by (e.g., \'YYYY-MM-DD\').')
             },
           ),
         ),
