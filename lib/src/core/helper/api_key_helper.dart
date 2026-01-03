@@ -43,4 +43,9 @@ class ApiKeyHelper {
   static String get deepgramKey => kIsWeb
       ? const String.fromEnvironment('DEEPGRAM_API_KEY', defaultValue: '')
       : getPlatformEnv('DEEPGRAM_API_KEY');
+
+  /// Retrieves the Groq API key from the environment variables.
+  static String get groqKey => kIsWeb
+      ? const String.fromEnvironment('GROQ_API_KEY', defaultValue: '')
+      : getPlatformEnv('GROQ_API_KEY');
 }

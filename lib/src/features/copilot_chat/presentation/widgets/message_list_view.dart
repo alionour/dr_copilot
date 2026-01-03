@@ -27,6 +27,7 @@ class MessageListView extends StatelessWidget {
     return Stack(
       children: [
         ListView.builder(
+          reverse: true,
           controller: scrollController,
           itemCount: messages.length + (isLoading ? 1 : 0),
           itemBuilder: (context, index) {
@@ -70,10 +71,29 @@ class MessageListView extends StatelessWidget {
             }
 
             final message = messages[index];
+
+            // Allow editing ONLY if this is the most recent user message
+            // Since list is [Newest ... Oldest], we find the first isUser==true.
+            // If this message IS that one, it's editable.
+            bool isEditable = false;
+            if (message['isUser'] == true) {
+              // Check if there are any NEWER user messages (lower index)
+              // If no user messages exist at indices 0 to index-1, this is the first (newest).
+              bool newerUserMessageExists = false;
+              for (int i = 0; i < index; i++) {
+                if (messages[i]['isUser'] == true) {
+                  newerUserMessageExists = true;
+                  break;
+                }
+              }
+              isEditable = !newerUserMessageExists;
+            }
+
             return MessageBubble(
               message: message,
               currentUserPhotoUrl: currentUserPhotoUrl,
               currentUserDisplayName: currentUserDisplayName,
+              isEditable: isEditable, // Pass restriction
               onEdit: (newText) {
                 onEdit(message['id'], newText);
               },

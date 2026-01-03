@@ -7,6 +7,7 @@ import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversat
 import 'package:dr_copilot/src/features/copilot_chat/domain/logic/function_call_handler.dart';
 import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/bloc/copilot_bloc.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/groq_service.dart';
 
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/conversation_sidebar.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
@@ -96,10 +97,97 @@ class _CopilotPageState extends State<CopilotPage> {
       context.read<CopilotBloc>().add(
             UpdateCopilotSettingsEvent(settingsState.copilotRequiredFields),
           );
+      // Load cached messages to restore session
+      context.read<CopilotBloc>().add(LoadCachedMessagesEvent());
     });
+
+    _scrollController.addListener(_onScroll);
     _initializeAvailableModels();
     _requestPermissions();
     _loadSubscriptionInfo();
+  }
+
+  // Pagination State
+  bool _isLoadingMore = false;
+  bool _hasMoreMessages = true;
+  dynamic _lastLoadedTimestamp; // Cursor for pagination
+
+  void _onScroll() {
+    if (_scrollController.hasClients &&
+        _scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent &&
+        !_isLoadingMore &&
+        _hasMoreMessages &&
+        _currentConversationId != null) {
+      _loadMoreMessages();
+    }
+  }
+
+  Future<void> _loadMoreMessages() async {
+    if (_currentConversationId == null || _isLoadingMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final oldMessages = await _conversationRepo.fetchMessages(
+        conversationId: _currentConversationId!,
+        limit: 20,
+        lastTimestamp: _lastLoadedTimestamp,
+      );
+
+      if (oldMessages.isEmpty) {
+        setState(() {
+          _hasMoreMessages = false;
+          _isLoadingMore = false;
+        });
+        return;
+      }
+
+      // Update cursor
+      _lastLoadedTimestamp = oldMessages.last.timestamp;
+
+      setState(() {
+        // Prepend older messages to the TOP of the list
+        // Note: The UI displays reversed list (index 0 is bottom/newest).
+        // Wait... _messages list order:
+        // Currently: _loadConversation adds newest first (reversed) -> so index 0 is oldest?
+        // Let's re-verify list order in _loadConversation.
+
+        // _loadConversation:
+        // for (var msg in messages.reversed) { _messages.add(...) }
+        // repo returns NEWEST first (A, B, C) where A is newest.
+        // reversed: (C, B, A) -> C is oldest.
+        // So _messages = [Oldest, ..., Newest].
+        // ListView is properly standard (top is index 0).
+
+        // So to add OLDER messages, we must insert them at index 0.
+        // oldMessages from repo = [D, E, F] (D is newer than E).
+        // we want [F, E, D, C, B, A].
+
+        final converted = <Map<String, dynamic>>[];
+        for (var msg in oldMessages) {
+          converted.add({
+            "id": msg.id,
+            "isUser": msg.isUser,
+            "message": msg.text,
+            "type": msg.type,
+            "url": msg.audioUrl,
+            "duration": msg.audioDuration,
+          });
+        }
+        // Since list is reverse: true (0=Bottom, N=Top/Oldest), we append OLDER messages to the END.
+        _messages.addAll(converted);
+
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      debugPrint('[CopilotPage] Error loading more messages: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
   }
 
   StreamSubscription? _usageSubscription;
@@ -261,18 +349,6 @@ class _CopilotPageState extends State<CopilotPage> {
     if (ApiKeyHelper.claudeKey.isNotEmpty) _availableModels.add('Claude');
   }
 
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -326,7 +402,7 @@ class _CopilotPageState extends State<CopilotPage> {
       // User is providing an answer to a pending function call parameter.
       final message = _controller.text;
       _controller.clear();
-      _messages.add({"isUser": true, "message": message});
+      _messages.insert(0, {"isUser": true, "message": message});
 
       // Ensure conversation exists before saving answer
       String? convId = _currentConversationId;
@@ -361,21 +437,34 @@ class _CopilotPageState extends State<CopilotPage> {
         );
       }
 
-      // Update the specific parameter being asked for
-      _functionCallArgs[_currentParameterBeingAsked!] = message;
-      _currentParameterBeingAsked = null; // Reset after receiving the answer
+      // CRITICAL FIX: Instead of manually setting the parameter and retrying locally,
+      // we must send the response back to the AI so it can parse complex answers
+      // (like "22, male, 0123...") and update the function call arguments itself.
 
-      _handleFunctionCall(); // Continue processing the function call
-      _scrollToBottom();
-      if (!mounted) return;
-      context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
+      _currentParameterBeingAsked = null; // Clear the flag
+
+      // Get forcePremium setting
+      final forcePremium = context.read<SettingsBloc>().state.usePremiumModels;
+
+      // Send to AI to process the answer
+      context.read<CopilotBloc>().add(GenerateResponseEvent(
+            query: message,
+            messageHistory: _messages.length > 8
+                ? _messages.sublist(_messages.length - 8)
+                : _messages,
+            clinicId: clinicId!,
+            userId: userId,
+            forcePremium: forcePremium,
+          ));
+
+      _scrollToEnd();
       return;
     }
 
     if (_pickedImage != null && _controller.text.isNotEmpty) {
       final text = _controller.text;
       setState(() {
-        _messages.add({
+        _messages.insert(0, {
           "isUser": true,
           "message": text,
           "image": base64Encode(_pickedImage!),
@@ -447,7 +536,7 @@ class _CopilotPageState extends State<CopilotPage> {
       final text = _controller.text;
       final messageId = const Uuid().v4();
       setState(() {
-        _messages.add({
+        _messages.insert(0, {
           "id": messageId,
           "isUser": true,
           "message": text,
@@ -510,7 +599,7 @@ class _CopilotPageState extends State<CopilotPage> {
             ),
           );
     }
-    _scrollToBottom();
+    _scrollToEnd();
     if (!mounted) return;
     context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
   }
@@ -534,6 +623,9 @@ class _CopilotPageState extends State<CopilotPage> {
               _loadSubscriptionInfo();
             } else if (state is CopilotFunctionCall) {
               _handleFunctionCall(state.functionCall);
+            } else if (state is CopilotGroqFunctionCall) {
+              // Handle Groq function calls by converting to handler format
+              _handleGroqFunctionCall(state.functionCall);
             } else if (state is CopilotError) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -588,7 +680,7 @@ class _CopilotPageState extends State<CopilotPage> {
               setState(() {
                 _messages.addAll(state.messages);
               });
-              _scrollToBottom();
+              _scrollToEnd();
             } else if (state is NewChatStarted) {
               setState(() {
                 _messages.clear();
@@ -703,29 +795,13 @@ class _CopilotPageState extends State<CopilotPage> {
         ));
   }
 
-  void _handleEditMessage(String messageId, String newText) {
-    if (_currentConversationId != null) {
-      _conversationRepo.updateMessage(
-        conversationId: _currentConversationId!,
-        messageId: messageId,
-        newText: newText,
-      );
-      final index = _messages.indexWhere((msg) => msg['id'] == messageId);
-      if (index != -1) {
-        setState(() {
-          _messages[index]['message'] = newText;
-        });
-      }
-    }
-  }
-
   void _showTypingEffect(String message) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     setState(() {
-      _messages.add({"isUser": false, "message": ""});
+      _messages.insert(0, {"isUser": false, "message": ""});
     });
-    int index = _messages.length - 1;
+    int index = 0;
     int charIndex = 0;
     _typingTimer?.cancel(); // Cancel previous timer if any
     _typingTimer = Timer.periodic(const Duration(milliseconds: 20), (timer) {
@@ -734,7 +810,7 @@ class _CopilotPageState extends State<CopilotPage> {
           _messages[index]["message"] += message[charIndex];
         });
         charIndex++;
-        _scrollToBottom();
+        _scrollToEnd();
       } else {
         timer.cancel();
         _typingTimer = null;
@@ -758,6 +834,8 @@ class _CopilotPageState extends State<CopilotPage> {
             senderId: 'ai',
           );
         }
+        // Scroll to bottom (Newest message/Index 0)
+        _scrollToEnd();
       }
     });
   }
@@ -802,6 +880,8 @@ class _CopilotPageState extends State<CopilotPage> {
           .first;
 
       setState(() {
+        // Repo returns Newest -> Oldest. ListView is reverse: true (Index 0 = Bottom/Newest).
+        // So we keep the order as is: [Newest, ..., Oldest]
         for (var msg in messages) {
           _messages.add({
             "id": msg.id,
@@ -813,7 +893,8 @@ class _CopilotPageState extends State<CopilotPage> {
           });
         }
       });
-      _scrollToBottom();
+      // Scroll to bottom (Newest message/Index 0)
+      _scrollToEnd();
     });
   }
 
@@ -849,6 +930,16 @@ class _CopilotPageState extends State<CopilotPage> {
     );
   }
 
+  /// Handles Groq function calls by converting to the standard format
+  void _handleGroqFunctionCall(GroqFunctionCall groqCall) {
+    // Convert GroqFunctionCall to the format expected by _handleFunctionCall
+    _functionCallArgs = {
+      'functionName': groqCall.name,
+      ...groqCall.arguments,
+    };
+    _handleFunctionCall();
+  }
+
   void _handleFunctionCall([FunctionCall? initialFunctionCall]) async {
     if (initialFunctionCall != null) {
       _functionCallArgs = {
@@ -876,52 +967,116 @@ class _CopilotPageState extends State<CopilotPage> {
     }
 
     if (functionName == 'add_patient') {
+      // 1. Check strict parameters first (name)
       if (!checkAndAsk('name', 'What is the name of the patient?')) return;
 
-      // Check for user-configured required fields
+      // 2. Collect all missing optional-but-required fields
       final requiredFields =
           context.read<SettingsBloc>().state.copilotRequiredFields;
-
       debugPrint(
           '[CopilotPage] Add Patient - Required Fields Config: $requiredFields');
 
+      List<String> missingFields = [];
+      List<String> missingFieldPrompts = [];
+
+      // Check Age
       if (requiredFields.contains('patient.age') ||
           requiredFields.contains('age')) {
-        if (!checkAndAsk('age', 'What is the age of the patient?')) return;
+        final val = _functionCallArgs['age'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('age');
+          missingFieldPrompts.add('age');
+        }
       }
+
+      // Check Gender
       if (requiredFields.contains('patient.gender') ||
           requiredFields.contains('gender')) {
-        if (!checkAndAsk('gender', 'What is the gender of the patient?')) {
-          return;
+        final val = _functionCallArgs['gender'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('gender');
+          missingFieldPrompts.add('gender');
         }
       }
+
+      // Check Phone
       if (requiredFields.contains('patient.phone') ||
           requiredFields.contains('phoneNumber')) {
-        if (!checkAndAsk(
-            'phoneNumber', 'What is the phone number of the patient?')) {
-          return;
+        final val = _functionCallArgs['phoneNumber'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('phoneNumber');
+          missingFieldPrompts.add('phone number');
         }
       }
+
+      // Check Address
       if (requiredFields.contains('patient.address')) {
-        if (!checkAndAsk('address', 'What is the address of the patient?')) {
-          return;
+        final val = _functionCallArgs['address'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('address');
+          missingFieldPrompts.add('address');
         }
       }
+
+      // Check Alt Phone
       if (requiredFields.contains('patient.alt_phone')) {
-        if (!checkAndAsk('alternativePhoneNumber',
-            'What is the alternative phone number?')) {
-          return;
+        final val = _functionCallArgs['alternativePhoneNumber'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('alternativePhoneNumber');
+          missingFieldPrompts.add('alternative phone number');
         }
       }
+
+      // Check Doctor
       if (requiredFields.contains('patient.doctor')) {
-        if (!checkAndAsk('treatingDoctor', 'Who is the treating doctor?')) {
-          return;
+        final val = _functionCallArgs['treatingDoctor'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('treatingDoctor');
+          missingFieldPrompts.add('treating doctor');
         }
       }
+
+      // Check Occupation
       if (requiredFields.contains('patient.occupation')) {
-        if (!checkAndAsk('occupation', 'What is the patient\'s occupation?')) {
-          return;
+        final val = _functionCallArgs['occupation'];
+        if (val == null ||
+            val.toString().trim().isEmpty ||
+            val.toString().toLowerCase() == 'null') {
+          missingFields.add('occupation');
+          missingFieldPrompts.add('occupation');
         }
+      }
+
+      // 3. Ask for all missing fields at once
+      if (missingFields.isNotEmpty) {
+        String prompt;
+        if (missingFields.length == 1) {
+          prompt = 'What is the ${missingFieldPrompts.first} of the patient?';
+        } else {
+          final last = missingFieldPrompts.removeLast();
+          final joined = missingFieldPrompts.join(', ');
+          prompt =
+              'Could you please provide the $joined, and $last of the patient?';
+        }
+
+        // We use the first missing field as the 'key' for the AI context,
+        // but the prompt asks for EVERYTHING.
+        // NOTE: The AI needs to be smart enough to parse multiple items from the next user response.
+        // Groq/Llama 3 is good at this.
+        _askForParameter(missingFields.first, prompt);
+        return;
       }
 
       _executeFunction(functionName);
@@ -1241,5 +1396,88 @@ class _CopilotPageState extends State<CopilotPage> {
         ],
       ),
     );
+  }
+
+  void _scrollToEnd() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0.0, // Scroll to bottom (0.0 because reverse: true)
+        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+      );
+    }
+  }
+
+  void _handleEditMessage(String messageId, String currentText) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Message'),
+        content: const Text(
+          'Editing this message will remove it and any subsequent response, allowing you to edit and resend. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _performRewindEdit(messageId, currentText);
+            },
+            child: const Text('Edit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performRewindEdit(String messageId, String currentText) async {
+    if (_currentConversationId == null) return;
+
+    // 1. Populate text controller
+    setState(() {
+      _controller.text = currentText;
+      _focusNode.requestFocus();
+    });
+
+    // 2. Find message index
+    final index = _messages.indexWhere((m) => m['id'] == messageId);
+    if (index == -1) return;
+
+    String? responseIdToDelete;
+    if (index > 0) {
+      final newerMsg = _messages[index - 1];
+      // If the message immediately after (newer) is from AI, mark for deletion
+      if (newerMsg['isUser'] == false) {
+        responseIdToDelete = newerMsg['id'];
+      }
+    }
+
+    // 3. Update UI instantly
+    setState(() {
+      _messages.removeAt(index); // Remove User Msg first
+      if (responseIdToDelete != null) {
+        _messages.removeWhere((m) => m['id'] == responseIdToDelete);
+      }
+    });
+
+    // 4. Delete from Backend
+    try {
+      await _conversationRepo.deleteMessage(
+        conversationId: _currentConversationId!,
+        messageId: messageId,
+      );
+      if (responseIdToDelete != null) {
+        await _conversationRepo.deleteMessage(
+          conversationId: _currentConversationId!,
+          messageId: responseIdToDelete,
+        );
+      }
+    } catch (e) {
+      debugPrint("Error deleting messages: $e");
+      // Optional: Undo local changes or show error
+    }
   }
 }

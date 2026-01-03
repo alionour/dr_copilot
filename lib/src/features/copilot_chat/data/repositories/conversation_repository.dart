@@ -19,24 +19,50 @@ class ConversationRepository {
   String _generateTitle(String message) {
     // Remove common words and clean up
     final words = message.trim().split(' ');
-    final stopWords = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'but', 'can', 'you', 'how', 'what', 'when', 'where', 'why'};
-    
-    final meaningfulWords = words.where((word) => 
-      word.length > 2 && !stopWords.contains(word.toLowerCase())
-    ).take(6).join(' ');
-    
+    final stopWords = {
+      'the',
+      'a',
+      'an',
+      'is',
+      'are',
+      'was',
+      'were',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'and',
+      'or',
+      'but',
+      'can',
+      'you',
+      'how',
+      'what',
+      'when',
+      'where',
+      'why'
+    };
+
+    final meaningfulWords = words
+        .where((word) =>
+            word.length > 2 && !stopWords.contains(word.toLowerCase()))
+        .take(6)
+        .join(' ');
+
     String title = meaningfulWords.isNotEmpty ? meaningfulWords : message;
-    
+
     // Truncate if too long
     if (title.length > 40) {
       title = '${title.substring(0, 40)}...';
     }
-    
+
     // Capitalize first letter
     if (title.isNotEmpty) {
       title = title[0].toUpperCase() + title.substring(1);
     }
-    
+
     return title.isNotEmpty ? title : 'New Chat';
   }
 
@@ -96,7 +122,8 @@ class ConversationRepository {
     final now = DateTime.now();
     final batch = _firestore.batch();
 
-    final conversationDocRef = _firestore.collection('conversations').doc(conversationId);
+    final conversationDocRef =
+        _firestore.collection('conversations').doc(conversationId);
 
     // Add message to subcollection
     final messageRef = conversationDocRef.collection('messages').doc();
@@ -116,7 +143,8 @@ class ConversationRepository {
     // Update conversation
     batch.update(conversationDocRef, {
       'updatedAt': Timestamp.fromDate(now),
-      'lastMessageSnippet': text.length > 50 ? '${text.substring(0, 50)}...' : text,
+      'lastMessageSnippet':
+          text.length > 50 ? '${text.substring(0, 50)}...' : text,
     });
 
     await batch.commit();
@@ -140,6 +168,21 @@ class ConversationRepository {
       'text': newText,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // Delete a specific message
+  Future<void> deleteMessage({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    if (_currentUserId == null) throw Exception('User not authenticated');
+
+    await _firestore
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .doc(messageId)
+        .delete();
   }
 
   // Get conversations for current user with pagination
@@ -167,10 +210,10 @@ class ConversationRepository {
       final conversations = snapshot.docs
           .map((doc) => ConversationModel.fromFirestore(doc))
           .toList();
-      
+
       // Sort client-side instead (temporary workaround)
       conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-      
+
       return conversations;
     });
   }
@@ -185,10 +228,11 @@ class ConversationRepository {
       return Stream.value([]);
     }
 
-    final conversationDocRef = _firestore.collection('conversations').doc(conversationId);
+    final conversationDocRef =
+        _firestore.collection('conversations').doc(conversationId);
     Query query = conversationDocRef
         .collection('messages')
-        .orderBy('timestamp', descending: false)
+        .orderBy('timestamp', descending: true) // Fetch newest first
         .limit(limit);
 
     if (startAfter != null) {
@@ -200,6 +244,31 @@ class ConversationRepository {
           .map((doc) => MessageModel.fromFirestore(doc))
           .toList();
     });
+  }
+
+  // Fetch messages for pagination (Future-based)
+  Future<List<MessageModel>> fetchMessages({
+    required String conversationId,
+    int limit = 20,
+    dynamic lastTimestamp,
+  }) async {
+    if (_currentUserId == null) {
+      return [];
+    }
+
+    final conversationDocRef =
+        _firestore.collection('conversations').doc(conversationId);
+    Query query = conversationDocRef
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .limit(limit);
+
+    if (lastTimestamp != null) {
+      query = query.startAfter([lastTimestamp]);
+    }
+
+    final snapshot = await query.get();
+    return snapshot.docs.map((doc) => MessageModel.fromFirestore(doc)).toList();
   }
 
   // Delete a conversation and all its messages
@@ -251,4 +320,3 @@ class ConversationRepository {
     });
   }
 }
-

@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dar
 import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/groq_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/ai_router_service.dart';
@@ -77,7 +78,7 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       final queryWithContext =
           '${event.query}\n\n${AIContextProvider.getTimestamp()}';
 
-      // Special handling for Gemini to support function calling which returns a different type
+      // Handle Gemini with function calling
       if (service is GeminiService) {
         final response = await service.getGeminiResponse(
           queryWithContext,
@@ -91,7 +92,25 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
         } else {
           emit(CopilotResponseGenerated(response.text ?? ''));
         }
-      } else {
+      }
+      // Handle Groq with function calling
+      else if (service is GroqService) {
+        final response = await service.getGroqResponse(
+          queryWithContext,
+          messageHistory: event.messageHistory,
+          clinicId: event.clinicId,
+          userId: event.userId,
+        );
+        if (response.hasFunctionCall) {
+          // Convert GroqFunctionCall to Gemini-compatible FunctionCall
+          final groqCall = response.functionCall!;
+          emit(CopilotGroqFunctionCall(groqCall));
+        } else {
+          emit(CopilotResponseGenerated(response.text ?? ''));
+        }
+      }
+      // Default: just generate text response
+      else {
         final response = await service.generateResponse(
           queryWithContext,
           messageHistory: event.messageHistory,

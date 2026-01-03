@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'base_action_handler.dart';
+import '../../../services/function_call_handler/utils/id_resolver.dart';
 
 class PatientActionHandler extends BaseActionHandler {
   final PatientsUseCase patientsUseCase;
@@ -74,8 +75,35 @@ class PatientActionHandler extends BaseActionHandler {
       return {'error': 'Owner ID or Clinic ID not available.'};
     }
 
+    // Resolve ID if name is provided
+    String? patientId = args['id'];
+    if (patientId != null && !IdResolver.isValidId(patientId)) {
+      try {
+        // It looks like a name, try to resolve it
+        final resolvedId = await IdResolver.resolvePatientId(
+          patientId,
+          patientsUseCase.repository,
+        );
+        if (resolvedId == null) {
+          return {
+            'error':
+                'Could not find patient "$patientId". Please provide a valid patient ID or check the name.'
+          };
+        }
+        patientId = resolvedId;
+      } catch (e) {
+        if (e is AmbiguousMatchException) {
+          return {
+            'error':
+                '⚠️ Found ${e.count} patients matching "${e.name}".\n\nPlease provide the **Full Name** (e.g. "John Doe") or the **System ID** to ensure we update the correct person.'
+          };
+        }
+        rethrow;
+      }
+    }
+
     final patient = PatientModel(
-      id: args['id'],
+      id: patientId!,
       name: args['name'] ?? '',
       age: args['age'],
       gender: args['gender'],
@@ -104,7 +132,18 @@ class PatientActionHandler extends BaseActionHandler {
     final permError = await checkPermission('deletePatient');
     if (permError != null) return permError;
 
-    final result = await patientsUseCase.deletePatient(args['id']);
+    final String? patientId = args['id'];
+
+    // STRICT CHECK: For deletion, we do NOT auto-resolve names.
+    // The user must provide the exact ID to ensure they are deleting the right person.
+    if (patientId == null || !IdResolver.isValidId(patientId)) {
+      return {
+        'error':
+            '⚠️ Safety Lock: To delete a patient, you must provide their exact System ID (not their name). \n\nPlease ask "Get valid ID for [Name]" first, then use that ID to delete.'
+      };
+    }
+
+    final result = await patientsUseCase.deletePatient(patientId);
     return result.fold(
       (failure) => {'error': failure.message},
       (success) =>

@@ -42,9 +42,10 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   ///
   /// Usage of this provider allows descendant widgets to access and interact with
   /// the [NavigationBloc] for navigation and user data management.
-      BlocProvider<NavigationBloc>(
-        create: (context) => sl<NavigationBloc>(),
-      ),
+  BlocProvider<NavigationBloc>(
+    create: (context) => sl<NavigationBloc>(),
+  ),
+
   /// Provides an instance of [PatientsBloc] to the widget tree.
   ///
   /// This [BlocProvider] is responsible for creating and managing the lifecycle
@@ -158,4 +159,3 @@ final appBlocProviders = <BlocProvider<dynamic>>[
     create: (context) => sl<NotificationsBloc>(),
   ),
 ];
-

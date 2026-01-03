@@ -9,7 +9,7 @@ class MessageBubble extends StatefulWidget {
   final Map<String, dynamic> message;
   final Function(String) onEdit;
   final String? currentUserPhotoUrl;
-  final String? currentUserDisplayName;
+  final bool isEditable;
 
   const MessageBubble({
     super.key,
@@ -17,7 +17,10 @@ class MessageBubble extends StatefulWidget {
     required this.onEdit,
     this.currentUserPhotoUrl,
     this.currentUserDisplayName,
+    this.isEditable = true,
   });
+
+  final String? currentUserDisplayName;
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -150,17 +153,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 16),
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = true;
-                        });
-                      },
-                      tooltip: 'Edit message',
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
+                    if (widget.isEditable)
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 16),
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = true;
+                          });
+                        },
+                        tooltip: 'Edit message',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                   ],
                 ),
               );

@@ -7,6 +7,7 @@ import 'services/gemini_service.dart';
 import 'services/deepseek_service.dart';
 import 'services/qwen_service.dart';
 import 'services/claude_service.dart';
+import 'services/groq_service.dart';
 import 'services/ai_router_service.dart';
 
 final sl = GetIt.instance;
@@ -59,11 +60,16 @@ void initCopilotInjections() {
         quotaService: sl(), subscriptionService: sl()),
   );
   sl.registerLazySingleton(
+    () => GroqService(ApiKeyHelper.groqKey,
+        quotaService: sl(), subscriptionService: sl()),
+  );
+  sl.registerLazySingleton(
     () => AIRouterService(
       geminiService: sl(),
       gptService: sl(),
       claudeService: sl(),
       deepSeekService: sl(),
+      groqService: sl(),
       subscriptionService: sl(),
     ),
   );

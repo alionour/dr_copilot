@@ -47,6 +47,16 @@ class CopilotFunctionCall extends CopilotState {
   List<Object> get props => [functionCall];
 }
 
+/// State for Groq function calls
+class CopilotGroqFunctionCall extends CopilotState {
+  final GroqFunctionCall functionCall;
+
+  const CopilotGroqFunctionCall(this.functionCall);
+
+  @override
+  List<Object> get props => [functionCall];
+}
+
 class NewChatStarted extends CopilotState {}
 
 class CopilotGenerationStopped extends CopilotState {}
