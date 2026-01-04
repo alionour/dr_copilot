@@ -218,7 +218,8 @@ service cloud.firestore {
        
        // Messages subcollection
        match /messages/{messageId} {
-          allow read, write: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+          allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+          allow read, update, delete: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
        }
     }
 

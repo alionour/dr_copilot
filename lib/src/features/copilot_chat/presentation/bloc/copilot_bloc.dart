@@ -75,6 +75,8 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
       );
 
       // Append timestamp for temporal context (cost-effective: ~8 tokens, 0 permission overhead)
+
+      // Append timestamp for temporal context (cost-effective: ~8 tokens, 0 permission overhead)
       final queryWithContext =
           '${event.query}\n\n${AIContextProvider.getTimestamp()}';
 
@@ -169,6 +171,12 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     await _retryStorage(
       () => secureStorage.write(key: 'cachedMessages', value: messagesJson),
     );
+    if (event.conversationId != null) {
+      await _retryStorage(
+        () => secureStorage.write(
+            key: 'cachedConversationId', value: event.conversationId),
+      );
+    }
   }
 
   Future<void> _onLoadCachedMessages(
@@ -178,11 +186,14 @@ class CopilotBloc extends Bloc<CopilotEvent, CopilotState> {
     final messagesJson =
         await _retryStorage(() => secureStorage.read(key: 'cachedMessages')) ??
             '[]';
+    final conversationId = await _retryStorage(
+        () => secureStorage.read(key: 'cachedConversationId'));
+
     final List<dynamic> decodedMessages = jsonDecode(messagesJson);
     final messages = decodedMessages
         .map((message) => Map<String, dynamic>.from(message))
         .toList();
-    emit(CachedMessagesLoaded(messages));
+    emit(CachedMessagesLoaded(messages, conversationId: conversationId));
   }
 
   Future<void> _onStartNewChat(

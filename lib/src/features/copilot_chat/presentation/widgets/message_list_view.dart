@@ -31,8 +31,8 @@ class MessageListView extends StatelessWidget {
           controller: scrollController,
           itemCount: messages.length + (isLoading ? 1 : 0),
           itemBuilder: (context, index) {
-            // Show typing indicator as last item
-            if (index == messages.length && isLoading) {
+            // Show typing indicator at index 0 (bottom of reversed list)
+            if (index == 0 && isLoading) {
               return Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -70,7 +70,11 @@ class MessageListView extends StatelessWidget {
               );
             }
 
-            final message = messages[index];
+            // Adjust index for actual message (skip loading indicator at 0)
+            final messageIndex = isLoading ? index - 1 : index;
+            if (messageIndex < 0) return const SizedBox.shrink();
+
+            final message = messages[messageIndex];
 
             // Allow editing ONLY if this is the most recent user message
             // Since list is [Newest ... Oldest], we find the first isUser==true.

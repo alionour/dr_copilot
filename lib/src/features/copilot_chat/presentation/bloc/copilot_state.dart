@@ -31,11 +31,12 @@ class CopilotError extends CopilotState {
 
 class CachedMessagesLoaded extends CopilotState {
   final List<Map<String, dynamic>> messages;
+  final String? conversationId;
 
-  const CachedMessagesLoaded(this.messages);
+  const CachedMessagesLoaded(this.messages, {this.conversationId});
 
   @override
-  List<Object> get props => [messages];
+  List<Object> get props => [messages, conversationId ?? ''];
 }
 
 class CopilotFunctionCall extends CopilotState {

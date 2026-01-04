@@ -10,7 +10,11 @@ class SettingsState extends Equatable {
   const SettingsState({
     this.isDarkMode = false,
     this.localeCode = 'en',
-    this.copilotRequiredFields = const [],
+    this.copilotRequiredFields = const [
+      'patient.age',
+      'patient.gender',
+      'patient.phone'
+    ],
     this.workingDays = const [1, 2, 3, 4, 5], // Default: Mon-Fri
     this.usePremiumModels = false,
   });

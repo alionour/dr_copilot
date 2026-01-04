@@ -54,11 +54,12 @@ class UploadImageEvent extends CopilotEvent {
 
 class CacheMessagesEvent extends CopilotEvent {
   final List<Map<String, dynamic>> messages;
+  final String? conversationId;
 
-  const CacheMessagesEvent(this.messages);
+  const CacheMessagesEvent(this.messages, {this.conversationId});
 
   @override
-  List<Object> get props => [messages];
+  List<Object> get props => [messages, conversationId ?? ''];
 }
 
 class LoadCachedMessagesEvent extends CopilotEvent {}

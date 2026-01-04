@@ -6,7 +6,6 @@ import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.d
 import 'package:dr_copilot/src/features/copilot_chat/services/groq_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
-import 'package:flutter/foundation.dart';
 
 /// Defines the complexity level of a user query
 enum QueryComplexity {
@@ -21,9 +20,7 @@ class AIRouterService {
   final GeminiService _geminiService;
   final GPTService _gptService;
   final ClaudeService _claudeService;
-  final DeepSeekService _deepSeekService;
   final GroqService _groqService;
-  final SubscriptionService _subscriptionService;
 
   AIRouterService({
     required GeminiService geminiService,
@@ -35,9 +32,7 @@ class AIRouterService {
   })  : _geminiService = geminiService,
         _gptService = gptService,
         _claudeService = claudeService,
-        _deepSeekService = deepSeekService,
-        _groqService = groqService,
-        _subscriptionService = subscriptionService;
+        _groqService = groqService;
 
   /// Gets the appropriate AI service based on query complexity and user tier
   /// Groq is used by default (free, fast, supports function calling)
@@ -47,19 +42,12 @@ class AIRouterService {
     required String? clinicId,
     bool forcePremium = false,
   }) async {
-    // Fetch user's subscription tier
-    final userTier = clinicId != null
-        ? await _subscriptionService.getCurrentTier(clinicId)
-        : SubscriptionTier.free;
-
     // If user forces premium, use Gemini (best function calling support)
     if (forcePremium) {
-      debugPrint('[AIRouter] Premium mode forced, using Gemini');
       return _geminiService;
     }
 
     // Use Groq by default (free tier, has function calling support)
-    debugPrint('[AIRouter] Using Groq (free, supports function calling)');
     return _groqService;
   }
 

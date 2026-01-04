@@ -70,20 +70,21 @@ class EmptyChatPlaceholder extends StatelessWidget {
     final capabilities = <String>[];
 
     // Group permissions into actionable items
-    bool canManagePatients = permissions.contains('can_add_patient') ||
-        permissions.contains('can_edit_patient');
-    bool canManageSessions = permissions.contains('can_add_session') ||
-        permissions.contains('can_edit_session');
-    bool canManageEvals = permissions.contains('can_add_evaluation') ||
-        permissions.contains('can_edit_evaluation');
+    bool canManagePatients = permissions.contains('createPatient') ||
+        permissions.contains('updatePatient');
+    bool canManageSessions = permissions.contains('createSession') ||
+        permissions.contains('updateSession');
+    bool canManageEvals = permissions.contains('createEvaluation') ||
+        permissions.contains('updateEvaluation');
 
     if (canManagePatients) capabilities.add('Manage Patients 👥');
     if (canManageSessions) capabilities.add('Schedule Sessions 📅');
     if (canManageEvals) capabilities.add('Track Evaluations 📊');
-    if (permissions.contains('can_view_analytics')) {
+    if (permissions.contains('viewCharts') ||
+        permissions.contains('viewReports')) {
       capabilities.add('Analyze Clinic Data 📈');
     }
-    if (permissions.contains('can_view_financials')) {
+    if (permissions.contains('viewFinancials')) {
       capabilities.add('Check Financials 💰');
     }
 

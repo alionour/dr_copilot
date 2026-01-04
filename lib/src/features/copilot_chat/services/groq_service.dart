@@ -142,80 +142,97 @@ class GroqService implements AIService {
 
     debugPrint(
         '[GroqService] Sending request to Groq API with function calling...');
+    debugPrint('[GroqService] Messages payload: ${jsonEncode(messages)}');
 
-    // Get OpenAI-compatible tools
     final tools = getOpenAITools(userRequiredFields: _currentRequiredFields);
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: jsonEncode({
-        'model': 'llama-3.3-70b-versatile', // Best free model with tool support
-        'messages': messages,
-        'tools': tools,
-        'tool_choice': 'auto', // Let the model decide when to use tools
-        'temperature': 0.7,
-        'max_tokens': 4096,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      // Track tokens
-      if (clinicId != null && data['usage'] != null) {
-        final totalTokens = data['usage']['total_tokens'] as int?;
-        if (totalTokens != null) {
-          await _quotaService.incrementUsage(
-            clinicId,
-            userId,
-            LimitType.aiTokens,
-            amount: totalTokens,
+    try {
+      final response = await http
+          .post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey',
+        },
+        body: jsonEncode({
+          'model':
+              'llama-3.3-70b-versatile', // Best free model with tool support
+          'messages': messages,
+          'tools': tools,
+          'tool_choice': 'auto', // Let model decide when to use tools
+          'parallel_tool_calls':
+              false, // Force sequential, structured tool calls
+          'temperature': 0.7,
+          'max_tokens': 4096,
+        }),
+      )
+          .timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception(
+            'Request timed out. Please check your internet connection or try again.',
           );
-        }
-      }
+        },
+      );
 
-      final message = data['choices'][0]['message'];
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
 
-      // Check if there's a tool call
-      if (message['tool_calls'] != null &&
-          (message['tool_calls'] as List).isNotEmpty) {
-        final toolCall = message['tool_calls'][0];
-        final functionName = toolCall['function']['name'] as String;
-
-        // Safely parse arguments with null check
-        final argsString = toolCall['function']['arguments'] as String?;
-        Map<String, dynamic> functionArgs = {};
-        if (argsString != null && argsString.isNotEmpty) {
-          final decoded = jsonDecode(argsString);
-          if (decoded is Map<String, dynamic>) {
-            functionArgs = decoded;
-          } else if (decoded is Map) {
-            functionArgs = Map<String, dynamic>.from(decoded);
+        // Track tokens
+        if (clinicId != null && data['usage'] != null) {
+          final totalTokens = data['usage']['total_tokens'] as int?;
+          if (totalTokens != null) {
+            await _quotaService.incrementUsage(
+              clinicId,
+              userId,
+              LimitType.aiTokens,
+              amount: totalTokens,
+            );
           }
         }
 
-        debugPrint('[GroqService] Function call detected: $functionName');
-        debugPrint('[GroqService] Arguments: $functionArgs');
+        final message = data['choices'][0]['message'];
 
-        return GroqResponse(
-          functionCall: GroqFunctionCall(
-            name: functionName,
-            arguments: functionArgs,
-          ),
-        );
+        // Check if there's a tool call
+        if (message['tool_calls'] != null &&
+            (message['tool_calls'] as List).isNotEmpty) {
+          final toolCall = message['tool_calls'][0];
+          final functionName = toolCall['function']['name'] as String;
+
+          // Safely parse arguments with null check
+          final argsString = toolCall['function']['arguments'] as String?;
+          Map<String, dynamic> functionArgs = {};
+          if (argsString != null && argsString.isNotEmpty) {
+            final decoded = jsonDecode(argsString);
+            if (decoded is Map<String, dynamic>) {
+              functionArgs = decoded;
+            } else if (decoded is Map) {
+              functionArgs = Map<String, dynamic>.from(decoded);
+            }
+          }
+
+          debugPrint('[GroqService] Function call detected: $functionName');
+          debugPrint('[GroqService] Arguments: $functionArgs');
+
+          return GroqResponse(
+            functionCall: GroqFunctionCall(
+              name: functionName,
+              arguments: functionArgs,
+            ),
+          );
+        }
+
+        // Regular text response
+        debugPrint('[GroqService] Text response received');
+        return GroqResponse(text: message['content'] as String?);
+      } else {
+        debugPrint(
+            '[GroqService] Error: ${response.statusCode} ${response.body}');
+        throw Exception('Failed to get response from Groq: ${response.body}');
       }
-
-      // Regular text response
-      debugPrint('[GroqService] Text response received');
-      return GroqResponse(text: message['content'] as String?);
-    } else {
-      debugPrint(
-          '[GroqService] Error: ${response.statusCode} ${response.body}');
-      throw Exception('Failed to get response from Groq: ${response.body}');
+    } catch (e) {
+      debugPrint('[GroqService] Exception: $e');
+      rethrow;
     }
   }
 }

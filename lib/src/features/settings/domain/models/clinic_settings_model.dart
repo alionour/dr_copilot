@@ -9,7 +9,11 @@ class ClinicSettingsModel extends Equatable {
 
   const ClinicSettingsModel({
     this.workingDays = const [1, 2, 3, 4, 5],
-    this.copilotRequiredFields = const [],
+    this.copilotRequiredFields = const [
+      'patient.age',
+      'patient.gender',
+      'patient.phone'
+    ],
     this.lastUpdated,
     this.updatedBy,
   });
@@ -25,7 +29,7 @@ class ClinicSettingsModel extends Equatable {
               ?.where((e) => e != null)
               .map((e) => e.toString())
               .toList() ??
-          const [],
+          const ['patient.age', 'patient.gender', 'patient.phone'],
       lastUpdated: json['lastUpdated'] is Timestamp
           ? (json['lastUpdated'] as Timestamp).toDate()
           : null,

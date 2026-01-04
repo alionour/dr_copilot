@@ -37,6 +37,7 @@ import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecas
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
 
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
@@ -97,8 +98,6 @@ class _CopilotPageState extends State<CopilotPage> {
       context.read<CopilotBloc>().add(
             UpdateCopilotSettingsEvent(settingsState.copilotRequiredFields),
           );
-      // Load cached messages to restore session
-      context.read<CopilotBloc>().add(LoadCachedMessagesEvent());
     });
 
     _scrollController.addListener(_onScroll);
@@ -253,15 +252,33 @@ class _CopilotPageState extends State<CopilotPage> {
           '[CopilotPage] Loading permissions - clinicId: $clinicId, userId: ${user?.uid}');
 
       if (user != null) {
-        final hasPermission = await sl<PermissionService>().getUserPermissions(
+        var permissions = await sl<PermissionService>().getUserPermissions(
           clinicId: clinicId,
         );
 
-        debugPrint('[CopilotPage] Loaded permissions: $hasPermission');
+        // If user is Owner or Admin, they should have all capabilities
+        // even if not explicitly listed in permissions list
+        if ((permissions == null || permissions.isEmpty) &&
+            (ownerNotifier.ownerId == user.uid ||
+                ownerNotifier.role == AppRole.admin)) {
+          permissions = [
+            'createPatient',
+            'updatePatient',
+            'createSession',
+            'updateSession',
+            'createEvaluation',
+            'updateEvaluation',
+            'viewCharts',
+            'viewReports',
+            'viewFinancials',
+          ];
+        }
 
-        if (mounted && hasPermission != null) {
+        debugPrint('[CopilotPage] Final permissions: $permissions');
+
+        if (mounted && permissions != null) {
           setState(() {
-            _userPermissions = hasPermission;
+            _userPermissions = permissions!;
           });
           debugPrint('[CopilotPage] Set permissions state: $_userPermissions');
         }
@@ -679,6 +696,9 @@ class _CopilotPageState extends State<CopilotPage> {
             } else if (state is CachedMessagesLoaded) {
               setState(() {
                 _messages.addAll(state.messages);
+                if (state.conversationId != null) {
+                  _currentConversationId = state.conversationId;
+                }
               });
               _scrollToEnd();
             } else if (state is NewChatStarted) {
@@ -820,7 +840,6 @@ class _CopilotPageState extends State<CopilotPage> {
             _messages[index]["message"],
           );
         });
-        context.read<CopilotBloc>().add(CacheMessagesEvent(_messages));
 
         // Save AI response to Firebase
         final currentFocus = FocusScope.of(context);
