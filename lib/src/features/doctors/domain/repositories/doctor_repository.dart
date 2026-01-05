@@ -9,5 +9,6 @@ abstract class DoctorRepository {
   Future<Either<Failure, void>> updateDoctor(
       String doctorId, DoctorModel doctor);
   Future<Either<Failure, void>> deleteDoctor(String doctorId);
+  Future<Either<Failure, bool>> isEmailTaken(String email,
+      {required String clinicId, String? excludeId});
 }
-

@@ -147,7 +147,11 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.pop();
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/staff');
+            }
           },
         ),
       ),
@@ -160,7 +164,13 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
               context,
             ).showSnackBar(SnackBar(content: Text(message)));
             if (isEditing) {
-              if (context.mounted) context.pop();
+              if (context.mounted) {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/staff');
+                }
+              }
             } else {
               _nameController.clear();
               _emailController.clear();

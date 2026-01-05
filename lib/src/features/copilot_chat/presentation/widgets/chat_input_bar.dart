@@ -136,7 +136,8 @@ class ChatInputBar extends StatelessWidget {
                 DropdownButton<String>(
                   value: selectedModel,
                   onChanged: isModelChoiceEnabled ? onModelChanged : null,
-                  items: availableModels.map<DropdownMenuItem<String>>((String value) {
+                  items: availableModels
+                      .map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -151,4 +152,3 @@ class ChatInputBar extends StatelessWidget {
     );
   }
 }
-

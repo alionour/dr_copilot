@@ -87,4 +87,14 @@ class AuthRepositoryImpl implements AbstractAuthRepository {
       return Left(ErrorHandler.mapExceptionToFailure(e));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> doesUserExist(String email) async {
+    try {
+      final exists = await api.doesUserExist(email);
+      return Right(exists);
+    } catch (e) {
+      return Left(ErrorHandler.mapExceptionToFailure(e));
+    }
+  }
 }

@@ -119,7 +119,7 @@ class _DoctorListItemState extends State<DoctorListItem> {
                     children: [
                       OutlinedButton.icon(
                         onPressed: () {
-                          context.go('/doctors/${widget.doctorModel.id}/edit');
+                          context.go('/doctors/${widget.doctorModel.id}');
                         },
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         label: Text('edit'.tr()),
@@ -180,4 +180,3 @@ class _DoctorListItemState extends State<DoctorListItem> {
     );
   }
 }
-

@@ -61,5 +61,16 @@ class DoctorRepositoryImpl implements DoctorRepository {
       return Left(ServerFailure(e.message, e.statusCode));
     }
   }
-}
 
+  @override
+  Future<Either<Failure, bool>> isEmailTaken(String email,
+      {required String clinicId, String? excludeId}) async {
+    try {
+      final result = await _doctorFirebaseApi.isEmailTaken(email,
+          clinicId: clinicId, excludeId: excludeId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
+    }
+  }
+}

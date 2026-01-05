@@ -66,9 +66,9 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
 
     if (isEditing) {
       // Fetch doctor details if in editing mode
-      context
-          .read<DoctorsBloc>()
-          .add(const GetDoctors()); // Fetch all doctors to find the one to edit
+      context.read<DoctorsBloc>().add(GetDoctors(
+          clinicId:
+              _selectedClinicId)); // Fetch doctors for the specific clinic
     }
     _selectedSpecialty = _initialDoctor?.specialty;
   }

@@ -478,7 +478,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           FilledButton(
             onPressed: () {
               context.pop();
-              context.push('/subscription_pricing');
+              context.push('/settings/subscription');
             },
             child: Text('upgrade'.tr()),
           ),

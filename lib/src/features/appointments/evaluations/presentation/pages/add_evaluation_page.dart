@@ -340,7 +340,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           FilledButton(
             onPressed: () {
               context.pop();
-              context.push('/subscription_pricing');
+              context.push('/settings/subscription');
             },
             child: Text('upgrade'.tr()),
           ),

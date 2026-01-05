@@ -20,6 +20,27 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
 
   void _onAddDoctor(AddDoctor event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
+
+    // Check for duplicate email
+    final isTakenOrFailure = await _doctorsUseCase
+        .isEmailTaken(event.doctor.email, clinicId: event.doctor.clinicId);
+
+    bool isTaken = false;
+
+    isTakenOrFailure.fold((failure) {
+      emit(DoctorsError(state.doctors, message: _mapFailureToMessage(failure)));
+      return;
+    }, (taken) {
+      isTaken = taken;
+    });
+
+    if (state is DoctorsError) return;
+
+    if (isTaken) {
+      emit(DoctorsError(state.doctors, message: 'emailAlreadyInUse'.tr()));
+      return;
+    }
+
     final failureOrSuccess = await _doctorsUseCase.addDoctor(event.doctor);
     failureOrSuccess.fold(
       (failure) => emit(
@@ -47,6 +68,29 @@ class DoctorsBloc extends Bloc<DoctorsEvent, DoctorsState> {
 
   void _onUpdateDoctor(UpdateDoctor event, Emitter<DoctorsState> emit) async {
     emit(DoctorsLoading(state.doctors));
+
+    // Check for duplicate email
+    final isTakenOrFailure = await _doctorsUseCase.isEmailTaken(
+        event.doctor.email,
+        clinicId: event.doctor.clinicId,
+        excludeId: event.doctorId);
+
+    bool isTaken = false;
+
+    isTakenOrFailure.fold((failure) {
+      emit(DoctorsError(state.doctors, message: _mapFailureToMessage(failure)));
+      return;
+    }, (taken) {
+      isTaken = taken;
+    });
+
+    if (state is DoctorsError) return;
+
+    if (isTaken) {
+      emit(DoctorsError(state.doctors, message: 'emailAlreadyInUse'.tr()));
+      return;
+    }
+
     final failureOrSuccess =
         await _doctorsUseCase.updateDoctor(event.doctorId, event.doctor);
     failureOrSuccess.fold(

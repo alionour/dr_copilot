@@ -111,7 +111,7 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
           ),
           action: SnackBarAction(
             label: 'Upgrade',
-            onPressed: () => context.push('/subscription_pricing'),
+            onPressed: () => context.push('/settings/subscription'),
           ),
         ),
       );

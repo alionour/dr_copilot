@@ -149,7 +149,9 @@ service cloud.firestore {
     // Doctors
     match /doctors/{doctorId} {
       allow read: if hasPermission(resource.data.clinicId, 'viewDoctors');
-      allow write: if hasPermission(resource.data.clinicId, 'manageDoctors'); // includes create/update/delete
+      allow create: if hasPermission(request.resource.data.clinicId, 'manageDoctors');
+      allow update: if hasPermission(resource.data.clinicId, 'manageDoctors');
+      allow delete: if hasPermission(resource.data.clinicId, 'manageDoctors');
     }
 
     // Invitations
@@ -167,7 +169,9 @@ service cloud.firestore {
     // Staff
     match /staff/{staffId} {
       allow read: if isClinicMember(resource.data.clinicId); // Public to clinic usually
-      allow write: if hasPermission(resource.data.clinicId, 'manageStaff');
+      allow create: if hasPermission(request.resource.data.clinicId, 'manageStaff');
+      allow update: if hasPermission(resource.data.clinicId, 'manageStaff');
+      allow delete: if hasPermission(resource.data.clinicId, 'manageStaff');
     }
 
     // Team/Chat
@@ -193,11 +197,15 @@ service cloud.firestore {
     // Evaluation/Sessions (Standard)
     match /sessions/{sessionId} {
        allow read: if hasPermission(resource.data.clinicId, 'viewAllSessions');
-       allow write: if hasPermission(resource.data.clinicId, 'createSession'); // Simplification
+       allow create: if hasPermission(request.resource.data.clinicId, 'createSession');
+       allow update: if hasPermission(resource.data.clinicId, 'createSession');
+       allow delete: if hasPermission(resource.data.clinicId, 'createSession');
     }
     match /evaluations/{evalId} {
        allow read: if hasPermission(resource.data.clinicId, 'viewAllEvaluations');
-       allow write: if hasPermission(resource.data.clinicId, 'createEvaluation'); // Simplification
+       allow create: if hasPermission(request.resource.data.clinicId, 'createEvaluation');
+       allow update: if hasPermission(resource.data.clinicId, 'createEvaluation');
+       allow delete: if hasPermission(resource.data.clinicId, 'createEvaluation');
     }
 
     // Specific fallback for Recycle Bin? 

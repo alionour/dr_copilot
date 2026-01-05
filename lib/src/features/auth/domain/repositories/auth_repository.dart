@@ -36,4 +36,7 @@ abstract class AbstractAuthRepository {
   /// Updates the current user's display name and/or photo URL.
   Future<Either<Failure, void>> updateProfile(
       {String? displayName, String? photoURL});
+
+  /// Checks if a user with the given [email] already exists in the system.
+  Future<Either<Failure, bool>> doesUserExist(String email);
 }

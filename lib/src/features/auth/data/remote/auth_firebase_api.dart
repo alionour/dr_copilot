@@ -714,6 +714,20 @@ class AuthFirebaseApi {
       return UserModel.fromFirebaseUser(user);
     });
   }
+
+  /// Checks if a user with the given [email] already exists in the system.
+  Future<bool> doesUserExist(String email) async {
+    try {
+      final querySnapshot = await _usersCollection
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      debugPrint('Error checking user existence: $e');
+      throw Exception('Failed to check user existence');
+    }
+  }
 }
 
 // Custom class to represent a Google sign-in account (platform-agnostic)

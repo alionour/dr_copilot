@@ -152,7 +152,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
               ),
               const SizedBox(height: 32),
               FilledButton.icon(
-                onPressed: () => context.push('/subscription_pricing'),
+                onPressed: () => context.push('/settings/subscription'),
                 icon: const Icon(Icons.star_border),
                 label: Text('upgrade'.tr()),
               ),

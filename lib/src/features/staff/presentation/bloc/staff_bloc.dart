@@ -20,6 +20,31 @@ class StaffBloc extends Bloc<StaffEvent, StaffState> {
 
   void _onAddStaff(AddStaff event, Emitter<StaffState> emit) async {
     emit(StaffLoading(state.staff));
+
+    // Check for duplicate email
+    final isTakenOrFailure = await _staffUseCases
+        .isEmailTaken(event.staff.email, clinicId: event.staff.clinicId);
+
+    // We need to handle the Either<Failure, bool> here.
+    // If it's a failure (Left), we report it.
+    // If it's success (Right), we check the boolean value.
+
+    bool isTaken = false;
+
+    isTakenOrFailure.fold((failure) {
+      emit(StaffError(state.staff, message: _mapFailureToMessage(failure)));
+      return; // Exit early on check failure
+    }, (taken) {
+      isTaken = taken;
+    });
+
+    if (state is StaffError) return; // Detailed flow control check
+
+    if (isTaken) {
+      emit(StaffError(state.staff, message: 'emailAlreadyInUse'.tr()));
+      return;
+    }
+
     final failureOrSuccess = await _staffUseCases.addStaff(event.staff);
     failureOrSuccess.fold(
       (failure) =>
@@ -49,6 +74,29 @@ class StaffBloc extends Bloc<StaffEvent, StaffState> {
 
   void _onUpdateStaff(UpdateStaff event, Emitter<StaffState> emit) async {
     emit(StaffLoading(state.staff));
+
+    // Check for duplicate email
+    final isTakenOrFailure = await _staffUseCases.isEmailTaken(
+        event.staff.email,
+        clinicId: event.staff.clinicId,
+        excludeId: event.staffId);
+
+    bool isTaken = false;
+
+    isTakenOrFailure.fold((failure) {
+      emit(StaffError(state.staff, message: _mapFailureToMessage(failure)));
+      return;
+    }, (taken) {
+      isTaken = taken;
+    });
+
+    if (state is StaffError) return;
+
+    if (isTaken) {
+      emit(StaffError(state.staff, message: 'emailAlreadyInUse'.tr()));
+      return;
+    }
+
     final failureOrSuccess =
         await _staffUseCases.updateStaff(event.staffId, event.staff);
     failureOrSuccess.fold(
@@ -92,4 +140,3 @@ class StaffBloc extends Bloc<StaffEvent, StaffState> {
     }
   }
 }
-

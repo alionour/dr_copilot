@@ -76,4 +76,35 @@ class DoctorFirebaseApi {
       throw ServerException(e.toString(), 500);
     }
   }
+
+  Future<bool> isEmailTaken(String email,
+      {required String clinicId, String? excludeId}) async {
+    // Check in staff collection
+    final staffQuery = await _firestore
+        .collection('staff')
+        .where('clinicId', isEqualTo: clinicId)
+        .where('email', isEqualTo: email)
+        .get();
+
+    for (var doc in staffQuery.docs) {
+      if (excludeId == null || doc.id != excludeId) {
+        return true;
+      }
+    }
+
+    // Check in doctors collection
+    final doctorQuery = await _firestore
+        .collection('doctors')
+        .where('clinicId', isEqualTo: clinicId)
+        .where('email', isEqualTo: email)
+        .get();
+
+    for (var doc in doctorQuery.docs) {
+      if (excludeId == null || doc.id != excludeId) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }

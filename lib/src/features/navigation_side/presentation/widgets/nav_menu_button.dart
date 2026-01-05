@@ -52,4 +52,3 @@ class NavMenuButtonProvider extends InheritedWidget {
   bool updateShouldNotify(NavMenuButtonProvider oldWidget) =>
       navMenuButton != oldWidget.navMenuButton;
 }
-

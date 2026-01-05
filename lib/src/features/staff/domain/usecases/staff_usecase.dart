@@ -24,5 +24,10 @@ class StaffUseCases {
   Future<Either<Failure, void>> deleteStaff(String staffId) {
     return _repository.deleteStaff(staffId);
   }
-}
 
+  Future<Either<Failure, bool>> isEmailTaken(String email,
+      {required String clinicId, String? excludeId}) {
+    return _repository.isEmailTaken(email,
+        clinicId: clinicId, excludeId: excludeId);
+  }
+}

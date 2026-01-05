@@ -15,6 +15,7 @@ import 'package:dr_copilot/src/features/auth/domain/models/role_defaults.dart';
 import 'package:dr_copilot/src/features/staff/domain/usecases/staff_usecase.dart';
 import 'package:dr_copilot/src/core/services/backend_service.dart';
 import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
+import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'dart:developer';
 
 // Person model to combine staff and doctors for selection
@@ -84,9 +85,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   }
 
   Future<void> _loadStaffAndDoctors() async {
-    setState(() => _isLoadingPeople = true);
-
-    final List<PersonOption> people = [];
+    final Map<String, PersonOption> uniquePeople = {};
 
     final staffResult = await sl<StaffUseCases>().getAllStaff(
       clinicId: widget.clinicId,
@@ -97,8 +96,13 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       for (var staff in staffList) {
         final staffEmail = staff.email;
         if (staffEmail.isNotEmpty) {
-          people.add(
-            PersonOption(name: staff.name, email: staffEmail, role: staff.role),
+          uniquePeople.putIfAbsent(
+            staffEmail,
+            () => PersonOption(
+              name: staff.name,
+              email: staffEmail,
+              role: staff.role,
+            ),
           );
         }
       }
@@ -112,8 +116,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     ) {
       for (var doctor in doctorList) {
         if (doctor.email.isNotEmpty) {
-          people.add(
-            PersonOption(
+          uniquePeople.putIfAbsent(
+            doctor.email,
+            () => PersonOption(
               name: doctor.name,
               email: doctor.email,
               role: 'Doctor',
@@ -124,7 +129,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     });
 
     setState(() {
-      _availablePeople = people;
+      _availablePeople = uniquePeople.values.toList();
       _isLoadingPeople = false;
     });
   }
@@ -157,11 +162,33 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     }
   }
 
-  void _sendInvitation() {
+  Future<void> _sendInvitation() async {
     final String email = _useManualEntry
         ? _emailController.text.trim()
         : _selectedPerson?.email ?? '';
     final String name = _useManualEntry ? '' : _selectedPerson?.name ?? '';
+
+    // Check if user already exists
+    final authRepo = sl<AbstractAuthRepository>();
+    final failureOrExists = await authRepo.doesUserExist(email);
+
+    bool userExists = false;
+    failureOrExists.fold(
+      (failure) => log('Error checking user existence: $failure'),
+      (exists) => userExists = exists,
+    );
+
+    if (userExists) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('userAlreadyRegistered'.tr()),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return;
+    }
 
     final invitation = InvitationModel(
       id: FirebaseFirestore.instance.collection('invitations').doc().id,
@@ -175,7 +202,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     );
 
     // Dispatch event to save to Firestore
-    context.read<InvitationBloc>().add(CreateInvitation(invitation));
+    if (mounted) {
+      context.read<InvitationBloc>().add(CreateInvitation(invitation));
+    }
 
     // After saving, trigger the email without waiting
     BackendService.sendInvitation(
@@ -197,7 +226,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     });
 
     // Pop the screen immediately for a good UX
-    context.pop();
+    if (mounted) {
+      context.pop();
+    }
   }
 
   @override
@@ -236,7 +267,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
-                  onPressed: () => context.push('/subscription_pricing'),
+                  onPressed: () => context.push('/settings/subscription'),
                   icon: const Icon(Icons.verified_outlined),
                   label: Text('View Plans'),
                 ),
@@ -260,7 +291,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           type: StepperType.vertical,
           currentStep: _currentStep,
           onStepTapped: (step) => setState(() => _currentStep = step),
-          onStepContinue: () {
+          onStepContinue: () async {
             final isLastStep = _currentStep == getSteps().length - 1;
             if (_formKey.currentState!.validate()) {
               if (_currentStep == 1 && _selectedRole == null) {
@@ -271,7 +302,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
               }
 
               if (isLastStep) {
-                _sendInvitation();
+                await _sendInvitation();
               } else {
                 setState(() => _currentStep += 1);
               }
@@ -518,6 +549,11 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
             validator: (value) {
               if (value == null || value.isEmpty || !value.contains('@')) {
                 return 'Please enter a valid email address';
+              }
+              if (_availablePeople.any(
+                (p) => p.email.toLowerCase() == value.toLowerCase(),
+              )) {
+                return 'This user is already a member. Please select them from the list.';
               }
               return null;
             },
