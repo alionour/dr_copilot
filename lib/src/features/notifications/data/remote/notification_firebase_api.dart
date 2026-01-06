@@ -11,7 +11,7 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
   static const String _usersCollectionName = 'users';
 
   NotificationFirebaseApi({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference get _collection => _firestore.collection(_collectionName);
   CollectionReference get _usersCollection =>
@@ -92,9 +92,8 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
   @override
   Future<void> deleteAllNotifications(String userId) async {
     try {
-      final querySnapshot = await _collection
-          .where('userId', isEqualTo: userId)
-          .get();
+      final querySnapshot =
+          await _collection.where('userId', isEqualTo: userId).get();
 
       final batch = _firestore.batch();
       for (var doc in querySnapshot.docs) {
@@ -130,25 +129,24 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
         .limit(20) // Limit to last 20 notifications
         .snapshots()
         .asyncMap((snapshot) async {
-          try {
-            return snapshot.docs
-                .map(
-                  (doc) => NotificationModel.fromJson({
-                    ...doc.data() as Map<String, dynamic>,
-                    'id': doc.id,
-                  }),
-                )
-                .toList();
-          } catch (e) {
-            // Log error but don't crash
-            debugPrint('Error mapping notifications: $e');
-            return <NotificationModel>[];
-          }
-        })
-        .handleError((error) {
-          debugPrint('Error in notifications stream: $error');
-          return <NotificationModel>[];
-        });
+      try {
+        return snapshot.docs
+            .map(
+              (doc) => NotificationModel.fromJson({
+                ...doc.data() as Map<String, dynamic>,
+                'id': doc.id,
+              }),
+            )
+            .toList();
+      } catch (e) {
+        // Log error but don't crash
+        debugPrint('Error mapping notifications: $e');
+        return <NotificationModel>[];
+      }
+    }).handleError((error) {
+      debugPrint('Error in notifications stream: $error');
+      return <NotificationModel>[];
+    });
   }
 
   @override
@@ -264,8 +262,23 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
           if (target.clinicIds == null || target.clinicIds!.isEmpty) {
             return [];
           }
-          query = query.where('clinicIds', arrayContainsAny: target.clinicIds);
-          break;
+          // Query clinics/{clinicId}/members for each clinic
+          final Set<String> userIds = {};
+          for (final clinicId in target.clinicIds!) {
+            try {
+              final membersSnapshot = await _firestore
+                  .collection('clinics')
+                  .doc(clinicId)
+                  .collection('members')
+                  .get();
+              userIds.addAll(membersSnapshot.docs.map((doc) => doc.id));
+            } catch (e) {
+              debugPrint('Error fetching members for clinic $clinicId: $e');
+            }
+          }
+          // If we found members, return them.
+          // Note: This replaces the 'users' collection query for this case.
+          return userIds.toList();
 
         case NotificationTargetType.customTeam:
           // For custom team, fetch team members from the teams collection
@@ -296,4 +309,3 @@ class NotificationFirebaseApi implements AbstractNotificationApi {
     }
   }
 }
-
