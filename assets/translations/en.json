@@ -598,6 +598,7 @@
   "success": "Success",
   "transactionAddedSuccessfully": "Transaction added successfully",
   "transactionsFound": "Transactions Found",
+  "TransactionsFound": "Transactions Found",
   "transactionSource": "Transaction Source",
   "transactionUpdated": "Transaction updated successfully",
   "valueTooLarge": "Value is too large",

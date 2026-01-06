@@ -47,6 +47,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   };
 
   final Set<AppRole> _selectedRoles = {};
+  final Map<String, String> _clinicRoles = {};
 
   final List<String> _selectedClinicIds = [];
   String? _selectedTeamId;
@@ -58,6 +59,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   void initState() {
     super.initState();
     _calculateAllowedTypes();
+    _loadClinicRoles();
   }
 
   void _calculateAllowedTypes() {
@@ -139,6 +141,31 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             }
           });
         });
+      }
+    }
+  }
+
+  Future<void> _loadClinicRoles() async {
+    final state = context.read<AuthBloc>().state;
+    if (state is AuthSignedIn && state.user != null) {
+      final user = state.user!;
+      if (user.clinics != null) {
+        for (final clinic in user.clinics!) {
+          final clinicId = clinic['clinicId'] as String?;
+          if (clinicId != null) {
+            // Try to get from cache/object first
+            String? role = clinic['role'] as String?;
+
+            // If missing, fetch using the helper
+            role ??= await user.getRoleInClinic(clinicId);
+
+            if (mounted) {
+              setState(() {
+                _clinicRoles[clinicId] = role ?? 'Unknown';
+              });
+            }
+          }
+        }
       }
     }
   }
@@ -471,7 +498,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
           spacing: 8,
           children: user.clinics!.map((clinic) {
             final clinicId = clinic['clinicId'] as String?;
-            final role = clinic['role'] as String? ?? 'Unknown';
+            // Use fetched role if available, otherwise fallback to object or Unknown
+            final role = _clinicRoles[clinicId] ??
+                (clinic['role'] as String? ?? 'Unknown');
 
             if (clinicId == null) {
               return const SizedBox.shrink();

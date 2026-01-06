@@ -616,6 +616,7 @@
   "success": "نجح",
   "transactionAddedSuccessfully": "تمت إضافة المعاملة بنجاح",
   "transactionsFound": "تم العثور على معاملات",
+  "TransactionsFound": "تم العثور على معاملات",
   "transactionSource": "مصدر المعاملة",
   "transactionUpdated": "تم تحديث المعاملة بنجاح",
   "valueTooLarge": "القيمة كبيرة جداً",
