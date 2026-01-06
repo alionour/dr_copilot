@@ -470,8 +470,12 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
         Wrap(
           spacing: 8,
           children: user.clinics!.map((clinic) {
-            final clinicId = clinic['clinicId'] as String;
-            final role = clinic['role'] as String;
+            final clinicId = clinic['clinicId'] as String?;
+            final role = clinic['role'] as String? ?? 'Unknown';
+
+            if (clinicId == null) {
+              return const SizedBox.shrink();
+            }
             final label = 'Clinic: $clinicId ($role)';
 
             return FilterChip(
