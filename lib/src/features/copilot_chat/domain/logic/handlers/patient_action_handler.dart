@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:flutter/foundation.dart';
@@ -14,10 +13,9 @@ class PatientActionHandler extends BaseActionHandler {
 
   PatientActionHandler({
     required this.patientsUseCase,
-    required OwnerNotifier ownerNotifier,
-    required PermissionService permissionService,
-  }) : super(
-            ownerNotifier: ownerNotifier, permissionService: permissionService);
+    required super.ownerNotifier,
+    required super.permissionService,
+  });
 
   Future<Map<String, dynamic>> addPatient(Map<String, dynamic> args) async {
     debugPrint('[PatientActionHandler] addPatient called with args: $args');

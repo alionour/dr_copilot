@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
-import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 
@@ -13,10 +13,9 @@ class EvaluationActionHandler extends BaseActionHandler {
 
   EvaluationActionHandler({
     required this.evaluationsUseCase,
-    required OwnerNotifier ownerNotifier,
-    required PermissionService permissionService,
-  }) : super(
-            ownerNotifier: ownerNotifier, permissionService: permissionService);
+    required super.ownerNotifier,
+    required super.permissionService,
+  });
 
   Future<Map<String, dynamic>> addEvaluation(Map<String, dynamic> args) async {
     // Check permission

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
-import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 
@@ -13,10 +13,9 @@ class SessionActionHandler extends BaseActionHandler {
 
   SessionActionHandler({
     required this.sessionsUseCase,
-    required OwnerNotifier ownerNotifier,
-    required PermissionService permissionService,
-  }) : super(
-            ownerNotifier: ownerNotifier, permissionService: permissionService);
+    required super.ownerNotifier,
+    required super.permissionService,
+  });
 
   Future<Map<String, dynamic>> addSession(Map<String, dynamic> args) async {
     // Check permission

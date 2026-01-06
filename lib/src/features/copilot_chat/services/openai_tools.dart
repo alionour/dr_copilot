@@ -1,5 +1,5 @@
-/// OpenAI-compatible tool definitions for function calling
-/// Used by Groq, GPT, DeepSeek, and other OpenAI-compatible APIs
+// OpenAI-compatible tool definitions for function calling
+// Used by Groq, GPT, DeepSeek, and other OpenAI-compatible APIs
 
 List<Map<String, dynamic>> getOpenAITools(
     {List<String> userRequiredFields = const []}) {

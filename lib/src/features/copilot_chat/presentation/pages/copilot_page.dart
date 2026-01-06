@@ -454,6 +454,8 @@ class _CopilotPageState extends State<CopilotPage> {
         );
       }
 
+      if (!mounted) return;
+
       // CRITICAL FIX: Instead of manually setting the parameter and retrying locally,
       // we must send the response back to the AI so it can parse complex answers
       // (like "22, male, 0123...") and update the function call arguments itself.

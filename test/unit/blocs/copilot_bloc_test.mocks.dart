@@ -977,17 +977,6 @@ class MockAIRouterService extends _i1.Mock implements _i14.AIRouterService {
   }
 
   @override
-  _i6.Future<_i14.QueryComplexity> classifyQueryComplexity(String? query) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #classifyQueryComplexity,
-          [query],
-        ),
-        returnValue:
-            _i6.Future<_i14.QueryComplexity>.value(_i14.QueryComplexity.simple),
-      ) as _i6.Future<_i14.QueryComplexity>);
-
-  @override
   _i6.Future<_i2.AIService> getServiceForQuery({
     required String? query,
     required String? clinicId,

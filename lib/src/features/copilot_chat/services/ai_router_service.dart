@@ -1,10 +1,7 @@
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart';
-import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
-import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dart';
-import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart';
+
 import 'package:dr_copilot/src/features/copilot_chat/services/groq_service.dart';
-import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 
 /// Defines the complexity level of a user query
@@ -18,20 +15,13 @@ enum QueryComplexity {
 /// Supports function calling via Groq (free) or Gemini (premium)
 class AIRouterService {
   final GeminiService _geminiService;
-  final GPTService _gptService;
-  final ClaudeService _claudeService;
   final GroqService _groqService;
 
   AIRouterService({
     required GeminiService geminiService,
-    required GPTService gptService,
-    required ClaudeService claudeService,
-    required DeepSeekService deepSeekService,
     required GroqService groqService,
     required SubscriptionService subscriptionService,
   })  : _geminiService = geminiService,
-        _gptService = gptService,
-        _claudeService = claudeService,
         _groqService = groqService;
 
   /// Gets the appropriate AI service based on query complexity and user tier
@@ -49,16 +39,5 @@ class AIRouterService {
 
     // Use Groq by default (free tier, has function calling support)
     return _groqService;
-  }
-
-  /// Returns the best service available for the user's subscription tier
-  AIService _getBestServiceForTier(SubscriptionTier tier) {
-    if (tier.canUseEliteModels) {
-      return _claudeService;
-    } else if (tier.canUseAdvancedModels) {
-      return _gptService;
-    } else {
-      return _groqService;
-    }
   }
 }

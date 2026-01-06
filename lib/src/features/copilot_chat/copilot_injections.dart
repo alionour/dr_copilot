@@ -66,9 +66,6 @@ void initCopilotInjections() {
   sl.registerLazySingleton(
     () => AIRouterService(
       geminiService: sl(),
-      gptService: sl(),
-      claudeService: sl(),
-      deepSeekService: sl(),
       groqService: sl(),
       subscriptionService: sl(),
     ),

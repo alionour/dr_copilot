@@ -1,31 +1,52 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/calendar/v3.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
-
+import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
+
+
 
 /// A list of OAuth 2.0 scopes required for Google Sign-In, Calendar, Drive, and Docs API access.
-final scopes = [
-  'profile',
-  'email',
-  'openid',
-  CalendarApi.calendarScope,
-  CalendarApi.calendarEventsScope,
-  CalendarApi.calendarReadonlyScope,
-  CalendarApi.calendarEventsReadonlyScope,
-  CalendarApi.calendarSettingsReadonlyScope,
-  // Downgrade to drive.file to avoid CASA security assessment
-  drive.DriveApi.driveFileScope,
-];
+List<String> get scopes {
+  final basicScopes = [
+    'profile',
+    'email',
+    'openid',
+  ];
+
+  final sensitiveScopes = [
+    CalendarApi.calendarScope,
+    CalendarApi.calendarEventsScope,
+    CalendarApi.calendarReadonlyScope,
+    CalendarApi.calendarEventsReadonlyScope,
+    CalendarApi.calendarSettingsReadonlyScope,
+    // Downgrade to drive.file to avoid CASA security assessment
+    drive.DriveApi.driveFileScope,
+  ];
+
+  try {
+    final remoteConfig = sl<RemoteConfigService>();
+    if (remoteConfig.enableSensitiveScopes) {
+      return [...basicScopes, ...sensitiveScopes];
+    }
+  } catch (e) {
+    debugPrint('Error fetching remote config for scopes: $e');
+  }
+
+  return basicScopes;
+}
 
 /// Custom AuthClient for using a saved access token with Google APIs
 class AuthClient extends BaseClient {

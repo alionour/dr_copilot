@@ -18,6 +18,7 @@ class RemoteConfigService {
       await _remoteConfig.setDefaults(const {
         'signup_enabled': true,
         'max_allowed_users': 1000,
+        'enable_sensitive_scopes': false,
       });
 
       await _remoteConfig.fetchAndActivate();
@@ -30,4 +31,7 @@ class RemoteConfigService {
   bool get isSignupEnabled => _remoteConfig.getBool('signup_enabled');
 
   int get maxAllowedUsers => _remoteConfig.getInt('max_allowed_users');
+
+  bool get enableSensitiveScopes =>
+      _remoteConfig.getBool('enable_sensitive_scopes');
 }
