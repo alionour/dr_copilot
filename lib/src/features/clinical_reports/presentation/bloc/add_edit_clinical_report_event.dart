@@ -187,3 +187,11 @@ class FinalizeClinicalReport extends AddEditClinicalReportEvent {
   List<Object> get props => [reportId];
 }
 
+class UpdateBodyMarkers extends AddEditClinicalReportEvent {
+  final List<BodyMarker> markers;
+
+  const UpdateBodyMarkers(this.markers);
+
+  @override
+  List<Object> get props => [markers];
+}

@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
 import 'package:dr_copilot/src/features/calendar_events/domain/usecases/calendar_events_usecase.dart';
 import 'package:equatable/equatable.dart';
@@ -20,6 +22,24 @@ class CalendarEventsBloc
     on<DeleteCalendarEvent>(_onDeleteCalendarEvent);
     on<SearchEvents>(_onSearchEvents);
     on<LoadEventById>(_onLoadEventById);
+    on<StreamEventsByDateRange>(_onStreamEventsByDateRange);
+  }
+
+  Future<void> _onStreamEventsByDateRange(
+    StreamEventsByDateRange event,
+    Emitter<CalendarEventsState> emit,
+  ) async {
+    emit(CalendarEventsLoading());
+    await emit.forEach<Either<Failure, List<CalendarEventModel>>>(
+      useCase.repository.streamEventsByDateRange(
+        event.startDate,
+        event.endDate,
+      ),
+      onData: (result) => result.fold(
+        (failure) => CalendarEventsError(failure.message),
+        (events) => CalendarEventsLoaded(events),
+      ),
+    );
   }
 
   Future<void> _onLoadEventsByDateRange(
@@ -149,4 +169,3 @@ class CalendarEventsBloc
     );
   }
 }
-

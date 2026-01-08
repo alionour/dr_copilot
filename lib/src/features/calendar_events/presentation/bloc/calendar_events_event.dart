@@ -19,6 +19,17 @@ class LoadEventsByDateRange extends CalendarEventsEvent {
   List<Object?> get props => [startDate, endDate];
 }
 
+/// Stream events within a specific date range
+class StreamEventsByDateRange extends CalendarEventsEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const StreamEventsByDateRange(this.startDate, this.endDate);
+
+  @override
+  List<Object?> get props => [startDate, endDate];
+}
+
 /// Load all events without date filtering
 class LoadAllEvents extends CalendarEventsEvent {
   const LoadAllEvents();
@@ -84,4 +95,3 @@ class LoadEventById extends CalendarEventsEvent {
   @override
   List<Object?> get props => [id];
 }
-

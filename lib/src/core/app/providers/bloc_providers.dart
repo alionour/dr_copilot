@@ -8,6 +8,9 @@ import '../../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../../features/copilot_chat/presentation/bloc/copilot_bloc.dart';
 import '../../../features/financials/presentation/bloc/financials_bloc.dart';
 import '../../../features/notifications/presentation/bloc/notifications_bloc.dart';
+import '../../../features/calendar_events/presentation/bloc/calendar_events_bloc.dart';
+import '../../../features/inventory/presentation/bloc/inventory_bloc.dart';
+import '../../../features/tasks/presentation/bloc/tasks_bloc.dart';
 
 import '../../../features/navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../../../features/patients/presentation/bloc/patients_bloc.dart';
@@ -157,5 +160,28 @@ final appBlocProviders = <BlocProvider<dynamic>>[
   /// notifications functionality including real-time updates from Firebase.
   BlocProvider<NotificationsBloc>(
     create: (context) => sl<NotificationsBloc>(),
+  ),
+
+  /// Provides an instance of [CalendarEventsBloc] to the widget tree.
+  ///
+  /// This [BlocProvider] creates and manages the lifecycle of [CalendarEventsBloc],
+  /// making it available to all descendant widgets that require access to
+  /// calendar events functionality including real-time streaming.
+  BlocProvider<CalendarEventsBloc>(
+    create: (context) => sl<CalendarEventsBloc>(),
+  ),
+
+  /// Provides an instance of [InventoryBloc] to the widget tree.
+  ///
+  /// This [BlocProvider] creates and manages the lifecycle of [InventoryBloc],
+  /// making it available to all descendant widgets that require access to
+  /// inventory management functionality.
+  BlocProvider<InventoryBloc>(
+    create: (context) => sl<InventoryBloc>(),
+  ),
+
+  /// Provides an instance of [TasksBloc] to the widget tree.
+  BlocProvider<TasksBloc>(
+    create: (context) => sl<TasksBloc>(),
   ),
 ];

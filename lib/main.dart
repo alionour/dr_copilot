@@ -17,17 +17,29 @@ import 'src/core/services/fcm_service.dart';
 import 'firebase_options.dart';
 import 'src/core/app/app.dart';
 
+// ... imports
+import 'dart:convert';
+import 'package:dr_copilot/src/features/presentation/presentation_app.dart';
+
 /// The entry point of the application.
 ///
 /// This asynchronous `main` function initializes and starts the app.
 /// Place any necessary setup or initialization logic here before running the app.
-void main() async {
+void main(List<String> args) async {
+  if (args.firstOrNull == 'multi_window') {
+    final windowId = args[1];
+    final argument = args[2].isEmpty
+        ? const <String, dynamic>{}
+        : jsonDecode(args[2]) as Map<String, dynamic>;
+    runApp(PresentationApp(windowId: windowId, arguments: argument));
+    return;
+  }
+
   runZonedGuarded<Future<void>>(() async {
-    // Initialize Flutter bindings and Firebase
-    // This is necessary for plugins that require platform channels to be set up
-    // before the app starts running.
+    // ... existing initialization logic
     WidgetsFlutterBinding.ensureInitialized();
 
+    // ... rest of main function remains the same
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
 

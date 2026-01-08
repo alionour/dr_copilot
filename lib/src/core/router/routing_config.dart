@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/auth/presentation/pages/signup_page.dart';
+import 'package:dr_copilot/src/features/charts/presentation/bloc/charts_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/navigation_side.dart';
@@ -17,6 +18,7 @@ import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/e
 import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
 import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/pages/add_transaction_page.dart';
+import 'package:dr_copilot/src/features/kiosk/presentation/pages/kiosk_management_page.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/add_edit_clinical_report_page.dart';
@@ -48,11 +50,15 @@ import 'package:dr_copilot/src/features/invitations/presentation/pages/create_in
 import 'package:dr_copilot/src/features/invitations/presentation/pages/accept_invitation_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
+import 'package:dr_copilot/src/features/kiosk/presentation/pages/kiosk_check_in_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/user_selection_page.dart';
 import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard_page.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
 import 'package:dr_copilot/src/features/recycle_bin/presentation/pages/recycle_bin_page.dart';
+import 'package:dr_copilot/src/features/inventory/presentation/pages/inventory_page.dart';
+import 'package:dr_copilot/src/features/tasks/presentation/pages/tasks_dashboard_page.dart';
+import 'package:dr_copilot/src/features/tasks/presentation/bloc/tasks_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/shared/presentation/widgets/webview_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -63,6 +69,7 @@ import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart'
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 class RoutingConfig {
   static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -78,7 +85,9 @@ class RoutingConfig {
       ),
       ShellRoute(
         builder: (context, state, child) {
-          return NavigationSide(child: child);
+          return ShowCaseWidget(
+            builder: (context) => NavigationSide(child: child),
+          );
         },
         routes: [
           GoRoute(
@@ -137,6 +146,16 @@ class RoutingConfig {
             builder: (context, state) => const CopilotPage(title: 'Chat'),
           ),
           GoRoute(
+            path: '/settings/kiosk_management',
+            name: 'kiosk_management',
+            builder: (context, state) => const KioskManagementPage(),
+          ),
+          GoRoute(
+            path: '/kiosk',
+            name: 'kiosk',
+            builder: (context, state) => const KioskCheckInPage(),
+          ),
+          GoRoute(
             path: '/team_chat',
             name: 'team_chat',
             builder: (context, state) => const TeamChatListPage(),
@@ -171,6 +190,21 @@ class RoutingConfig {
             path: '/recycle_bin',
             name: 'recycle_bin',
             builder: (context, state) => const RecycleBinPage(),
+          ),
+          GoRoute(
+            path: '/tasks',
+            name: 'tasks',
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<TasksBloc>(),
+                child: const TasksDashboardPage(),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/inventory',
+            name: 'inventory',
+            builder: (context, state) => const InventoryPage(),
           ),
           GoRoute(
             path: '/patients',
@@ -235,7 +269,12 @@ class RoutingConfig {
           GoRoute(
             path: '/charts',
             name: 'charts',
-            builder: (context, state) => const ChartsPage(),
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<ChartsBloc>(),
+                child: const ChartsPage(),
+              );
+            },
           ),
           GoRoute(
             path: '/financials',

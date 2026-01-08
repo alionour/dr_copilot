@@ -215,6 +215,16 @@ enum AppPermission {
   /// Upgrade, downgrade, or cancel the subscription.
   manageSubscription,
 
+  // --- INVENTORY ---
+  /// View the inventory list and stock levels.
+  viewInventory,
+
+  /// Add, edit, or delete inventory items.
+  manageInventory,
+
+  /// Adjust stock quantities (add/remove stock).
+  adjustInventoryStock,
+
   // --- HELP & SUPPORT ---
   /// Access help documentation/FAQ.
   viewHelp,

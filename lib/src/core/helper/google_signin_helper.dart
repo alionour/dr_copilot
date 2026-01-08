@@ -16,8 +16,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/core/services/remote_config_service.dart';
 
-
-
 /// A list of OAuth 2.0 scopes required for Google Sign-In, Calendar, Drive, and Docs API access.
 List<String> get scopes {
   final basicScopes = [

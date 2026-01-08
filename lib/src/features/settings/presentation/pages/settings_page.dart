@@ -4,7 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:dr_copilot/src/features/admin/presentation/pages/admin_migration_page.dart'; // REMOVED
+import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:flutter/foundation.dart'; // For defaultTargetPlatform
+import 'dart:convert'; // For jsonEncode
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,6 +20,39 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     context.read<SettingsBloc>().add(LoadSettingsEvent());
+  }
+
+  Future<void> _openPresentationWindow() async {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.windows &&
+            defaultTargetPlatform != TargetPlatform.linux &&
+            defaultTargetPlatform != TargetPlatform.macOS)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Not supported on this platform')),
+      );
+      return;
+    }
+
+    try {
+      final window = await WindowController.create(WindowConfiguration(
+        arguments: jsonEncode({
+          'args1': 'SubWindow',
+          'args2': 100,
+          'args3': true,
+        }),
+      ));
+
+      // Window sizing/centering must be done by the window itself in 0.3.0+
+      // or via platform channels if needed.
+      await window.show();
+    } catch (e) {
+      debugPrint('Error opening window: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening window: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildSectionHeader(String titleKey) {
@@ -122,7 +157,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/settings/copilot_preferences'),
               ),
+              ListTile(
+                leading: const Icon(Icons.tablet_mac),
+                title: Text('kioskManagement'.tr()),
+                subtitle: const Text('Manage waiting room kiosk links'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => context.push('/settings/kiosk_management'),
+              ),
               _buildSectionHeader('appSettings'),
+              ListTile(
+                leading: const Icon(Icons.tv),
+                title: const Text('Patient Calling Screen'),
+                subtitle: const Text(
+                    'Open the waiting room display window (HDMI/Cast)'),
+                onTap: _openPresentationWindow,
+              ),
               ListTile(
                 leading: const Icon(Icons.notifications_outlined),
                 title: Text('notifications'.tr()),

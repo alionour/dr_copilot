@@ -642,4 +642,69 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
       return Left(ServerFailure(e.toString(), 404));
     }
   }
+
+  /// Streams events within a date range
+  @override
+  Stream<Either<Failure, List<CalendarEventModel>>> streamEventsByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) async* {
+    if (!await _isAuthenticated()) {
+      yield Left(ServerFailure('User not authenticated', 401));
+      return;
+    }
+
+    try {
+      final user = _auth.currentUser;
+      if (clinicId == null) {
+        yield Left(ServerFailure('No clinic ID found', 403));
+        return;
+      }
+      if (user != null) {
+        Query queryRef = _eventsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .where('deletedAt', isNull: true);
+
+        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
+        }
+
+        queryRef = queryRef
+            .where(
+              'startDateTime',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+            )
+            .where(
+              'startDateTime',
+              isLessThanOrEqualTo: Timestamp.fromDate(endDate),
+            )
+            .orderBy('startDateTime', descending: false);
+
+        yield* queryRef.snapshots().map((snapshot) {
+          try {
+            List<CalendarEventModel> events = snapshot.docs
+                .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>?;
+                  if (data == null) {
+                    // Skip invalid docs or log error
+                    return null;
+                  }
+                  return CalendarEventModel.fromJson({...data, 'id': doc.id});
+                })
+                .whereType<CalendarEventModel>()
+                .toList();
+            return Right<Failure, List<CalendarEventModel>>(events);
+          } catch (e) {
+            return Left<Failure, List<CalendarEventModel>>(
+                ServerFailure(e.toString(), 404));
+          }
+        });
+      } else {
+        yield Left(ServerFailure('User not authenticated', 401));
+      }
+    } catch (e) {
+      debugPrint('Error streaming calendar events: $e');
+      yield Left(ServerFailure(e.toString(), 404));
+    }
+  }
 }

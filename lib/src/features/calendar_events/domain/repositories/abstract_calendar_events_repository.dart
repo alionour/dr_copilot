@@ -82,4 +82,10 @@ abstract class AbstractCalendarEventsRepository {
   /// [id] The event ID to delete permanently
   /// Returns void or failure
   Future<Either<Failure, void>> permanentlyDeleteEvent(String id);
+
+  /// Streams events within a date range
+  Stream<Either<Failure, List<CalendarEventModel>>> streamEventsByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  );
 }

@@ -70,6 +70,19 @@ service cloud.firestore {
         allow write: if hasPermission(clinicId, 'manageSettings');
       }
 
+      // Kiosk Tokens
+      match /kiosk_tokens/{tokenId} {
+        // Public read allowed for kiosk validation (security by token entropy)
+        allow read: if true;
+        
+        // Only Admins can create/delete/revoke
+        allow create, delete: if hasPermission(clinicId, 'manageSettings');
+        
+        // Admins can update OR Public can update only 'lastUsedAt' (for check-in tracking)
+        allow update: if hasPermission(clinicId, 'manageSettings') || 
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastUsedAt']));
+      }
+
       // Usage Tracking (QuotaService)
       match /usage_tracking/{docId} {
          // Allow members to read usage (for quota checks)
@@ -188,10 +201,19 @@ service cloud.firestore {
 
     // Calendar
     match /calendar_events/{eventId} {
+       // Allow authenticated staff/admin
        allow read: if hasPermission(resource.data.clinicId, 'viewCalendar');
        allow create: if hasPermission(request.resource.data.clinicId, 'addCalendarEvent');
-       allow update: if hasPermission(resource.data.clinicId, 'editCalendarEvent');
        allow delete: if hasPermission(resource.data.clinicId, 'deleteCalendarEvent');
+       allow update: if hasPermission(resource.data.clinicId, 'editCalendarEvent');
+       
+       // Allow Public Kiosk Check-In
+       // 1. Read: To find the appointment by phone number
+       allow read: if true; 
+       
+       // 2. Update: To mark as 'arrived' (and update timestamp)
+       allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'arrivedAt']) &&
+                        request.resource.data.status == 'arrived';
     }
 
     // Evaluation/Sessions (Standard)
@@ -263,6 +285,11 @@ service cloud.firestore {
     // Default Deny
     match /{document=**} {
       allow read, write: if false;
+    }
+    
+    // Global Kiosk Token Rule (for Collection Group Queries)
+    match /{path=**}/kiosk_tokens/{tokenId} {
+      allow read: if true;
     }
   }
 }

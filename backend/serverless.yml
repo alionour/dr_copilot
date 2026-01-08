@@ -76,3 +76,9 @@ functions:
       - httpApi:
           path: /
           method: GET
+
+  reminders:
+    handler: cron/reminders.handler
+    events:
+      - schedule: rate(1 day) # Runs once a day
+

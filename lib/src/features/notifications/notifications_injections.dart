@@ -20,8 +20,9 @@ void initNotificationsInjections() {
   sl.registerFactory(() => NotificationsBloc(
         useCase: sl(),
         sendBulkUseCase: sl(),
+        inventoryUseCase: sl(),
       ));
-  
+
   sl.registerFactory(() => SendNotificationBloc(
         sendBulkNotificationUseCase: sl(),
       ));
@@ -40,4 +41,3 @@ void initNotificationsInjections() {
     () => NotificationFirebaseApi(),
   );
 }
-

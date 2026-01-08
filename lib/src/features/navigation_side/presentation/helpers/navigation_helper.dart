@@ -25,6 +25,8 @@ class NavigationHelper {
         Destination.staff,
         Destination.invitations,
         Destination.clinicalReports,
+        Destination.inventory,
+        Destination.tasks,
       ],
       'appointments': [Destination.sessions, Destination.evaluations],
       'business': [Destination.financials],
@@ -67,6 +69,8 @@ class NavigationHelper {
 
           // Admin, Doctor, and Staff
           case Destination.patients:
+          case Destination.inventory:
+          case Destination.tasks:
             if (roleLower == 'admin' ||
                 roleLower == 'doctor' ||
                 roleLower == 'staff') {
@@ -106,4 +110,3 @@ class NavigationHelper {
     return allowed;
   }
 }
-

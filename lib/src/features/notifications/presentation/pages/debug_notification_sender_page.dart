@@ -327,6 +327,10 @@ class _DebugNotificationSenderPageState
                             icon = Icons.warning_amber_rounded;
                             color = Colors.red;
                             break;
+                          case NotificationType.task:
+                            icon = Icons.task_alt_rounded;
+                            color = Colors.blueGrey;
+                            break;
                         }
                         // Use translation for enum if possible, or just capitalize
                         return DropdownMenuItem(

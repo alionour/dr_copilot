@@ -38,6 +38,14 @@ enum Destination {
     NavItemModel('clinical_reports', Icons.description_outlined),
     'Manage your clinical reports',
   ),
+  inventory(
+    NavItemModel('inventory', Icons.inventory_2_outlined),
+    'Manage inventory items',
+  ),
+  tasks(
+    NavItemModel('tasks', Icons.task_alt_outlined),
+    'Manage tasks',
+  ),
 
   // Appointments
   sessions(
