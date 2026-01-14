@@ -944,6 +944,10 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows adding, editing, or deleting inventory items.';
       case AppPermission.adjustInventoryStock:
         return 'Allows adjusting stock quantities for inventory items.';
+      case AppPermission.manageWorkingHours:
+        return 'Allows editing working hours and appointment duration/price.';
+      case AppPermission.manageBookingAvailability:
+        return 'Allows managing doctor booking availability.';
     }
   }
 }

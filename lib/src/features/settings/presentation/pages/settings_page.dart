@@ -194,6 +194,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: () => context.push('/settings/subscription'),
               ),
               ListTile(
+                leading: const Icon(Icons.payment_outlined),
+                title: const Text('Payment Gateway'),
+                subtitle: const Text('Configure booking payments'),
+                onTap: () => context.push('/settings/payment_gateway'),
+              ),
+              ListTile(
                 leading: const Icon(Icons.security_outlined),
                 title: Text('security'.tr()),
                 onTap: () => context.push('/settings/security'),

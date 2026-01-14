@@ -192,8 +192,8 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
       if (user != null) {
         final data = event.toJson();
 
-        // Remove id field (Firestore generates it)
-        data.remove('id');
+        // Remove id field (Firestore generates it) - NOT ANYMORE
+        // data.remove('id'); REVERTED: We need to use the ID provided by the client if available.
 
         // Ensure required fields are set
         data['createdBy'] = user.uid;
@@ -205,10 +205,11 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
           data['doctorId'] = user.uid;
         }
 
-        final docRef = await _eventsCollection.add(data);
+        // Use set instead of add to preserve the generated ID
+        await _eventsCollection.doc(event.id).set(data);
 
         final createdEvent = event.copyWith(
-          id: docRef.id,
+          id: event.id,
           createdBy: user.uid,
           createdAt: Timestamp.now(),
           clinicId: clinicId,

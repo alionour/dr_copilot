@@ -109,6 +109,28 @@ class TelemedicinePage extends StatelessWidget {
                     Text('• ${'testCameraAndMicrophone'.tr()}'),
                     Text('• ${'findQuietLocation'.tr()}'),
                     Text('• ${'havePatientRecordsReady'.tr()}'),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.amber),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.amber),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'hostLoginNote'
+                                  .tr(), // Add key to translations later or hardcode for now if strict on keys
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

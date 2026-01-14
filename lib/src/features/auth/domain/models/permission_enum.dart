@@ -231,4 +231,11 @@ enum AppPermission {
 
   /// Contact support or open tickets.
   accessSupport,
+
+  // --- SCHEDULING ---
+  /// Edit working hours and appointment duration/price.
+  manageWorkingHours,
+
+  /// Enable or disable booking availability for doctors.
+  manageBookingAvailability,
 }

@@ -41,6 +41,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId);
+      
       match /{document=**} {
          allow read, write: if isOwner(userId);
       }
@@ -53,8 +54,14 @@ service cloud.firestore {
 
     // Clinics -> Members
     match /clinics/{clinicId} {
-      allow read: if isClinicMember(clinicId);
+      allow read: if true; // Public needed for booking page
       allow write: if hasPermission(clinicId, 'manageSettings');
+      
+      // Public Currency Profiles (Booking System)
+      match /currency_profiles/{profileId} {
+        allow read: if true;
+        allow write: if hasPermission(clinicId, 'manageSettings'); // Only admins can manage currency
+      }
 
 
       match /members/{memberId} {
@@ -161,7 +168,7 @@ service cloud.firestore {
 
     // Doctors
     match /doctors/{doctorId} {
-      allow read: if hasPermission(resource.data.clinicId, 'viewDoctors');
+      allow read: if true; // Public for Booking
       allow create: if hasPermission(request.resource.data.clinicId, 'manageDoctors');
       allow update: if hasPermission(resource.data.clinicId, 'manageDoctors');
       allow delete: if hasPermission(resource.data.clinicId, 'manageDoctors');
@@ -199,7 +206,7 @@ service cloud.firestore {
        }
     }
 
-    // Calendar
+    // Calendar UI & Check-In
     match /calendar_events/{eventId} {
        // Allow authenticated staff/admin
        allow read: if hasPermission(resource.data.clinicId, 'viewCalendar');
@@ -280,6 +287,24 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
       // Allow creation? Usually server-side, but if client creates:
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Telemedicine Meetings
+    match /telemedicine_meetings/{meetingId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Patient Bookings
+    match /patient_bookings/{bookingId} {
+      allow create: if true; // Public access for patients
+      allow read: if true; // Public read for availability check (Compromise)
+      allow update, delete: if isSignedIn(); // Staff management
+    }
+
+    // Clinic Payment Configs
+    match /clinic_payment_configs/{clinicId} {
+      // Only clinic admins can read/write their payment keys
+      allow read, write: if hasPermission(clinicId, 'manageSettings');
     }
 
     // Default Deny

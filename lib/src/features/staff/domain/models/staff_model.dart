@@ -2,6 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/staff/domain/entities/staff.dart';
 
 class StaffModel extends Staff {
+  final Map<String, dynamic>? workingHours;
+  final int? appointmentDuration;
+  final double? consultationPrice;
+
   const StaffModel({
     required super.id,
     required super.name,
@@ -11,6 +15,9 @@ class StaffModel extends Staff {
     required super.clinicId,
     super.createdAt,
     super.updatedAt,
+    this.workingHours,
+    this.appointmentDuration,
+    this.consultationPrice,
   });
 
   factory StaffModel.fromDocument(DocumentSnapshot doc) {
@@ -35,6 +42,9 @@ class StaffModel extends Staff {
       updatedAt: json['updatedAt'] != null
           ? (json['updatedAt'] as Timestamp).toDate()
           : null,
+      workingHours: json['workingHours'] as Map<String, dynamic>?,
+      appointmentDuration: json['appointmentDuration'] as int?,
+      consultationPrice: (json['consultationPrice'] as num?)?.toDouble(),
     );
   }
 
@@ -48,6 +58,9 @@ class StaffModel extends Staff {
       'clinicId': clinicId,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'workingHours': workingHours,
+      'appointmentDuration': appointmentDuration,
+      'consultationPrice': consultationPrice,
     };
   }
 
@@ -61,6 +74,9 @@ class StaffModel extends Staff {
     String? clinicId,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Map<String, dynamic>? workingHours,
+    int? appointmentDuration,
+    double? consultationPrice,
   }) {
     return StaffModel(
       id: id ?? this.id,
@@ -71,7 +87,9 @@ class StaffModel extends Staff {
       clinicId: clinicId ?? this.clinicId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      workingHours: workingHours ?? this.workingHours,
+      appointmentDuration: appointmentDuration ?? this.appointmentDuration,
+      consultationPrice: consultationPrice ?? this.consultationPrice,
     );
   }
 }
-

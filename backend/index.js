@@ -57,10 +57,14 @@ app.get('/admin/errors', (req, res) => {
 const invitationRouter = require('./routes/invitations');
 const notificationRouter = require('./routes/notifications');
 const errorRouter = require('./routes/errors');
+const bookingsRouter = require('./routes/bookings');
+const subscriptionsRouter = require('./routes/subscriptions');
 
 app.use('/invitations', invitationRouter);
 app.use('/notifications', notificationRouter);
 app.use('/errors', errorRouter);
+app.use('/bookings', bookingsRouter);
+app.use('/subscriptions', subscriptionsRouter);
 
 // --- Billing Kill Switch Webhook ---
 // Receives Pub/Sub push messages from Google Cloud Budget Alerts

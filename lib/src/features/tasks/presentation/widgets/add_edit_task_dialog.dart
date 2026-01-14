@@ -103,7 +103,7 @@ class _AddEditTaskDialogState extends State<AddEditTaskDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _priority,
+                initialValue: _priority,
                 decoration: InputDecoration(labelText: 'priority'.tr()),
                 items: ['low', 'medium', 'high', 'urgent']
                     .map((p) => DropdownMenuItem(

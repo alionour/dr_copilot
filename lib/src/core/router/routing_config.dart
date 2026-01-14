@@ -39,6 +39,7 @@ import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart'
 import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/model_selection_page.dart';
 import 'package:dr_copilot/src/features/subscription/presentation/pages/subscription_pricing_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/payment_gateway_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/calendar_settings_page.dart';
 
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
@@ -149,6 +150,11 @@ class RoutingConfig {
             path: '/settings/kiosk_management',
             name: 'kiosk_management',
             builder: (context, state) => const KioskManagementPage(),
+          ),
+          GoRoute(
+            path: '/settings/payment_gateway',
+            name: 'payment_gateway',
+            builder: (context, state) => const PaymentGatewaySettingsPage(),
           ),
           GoRoute(
             path: '/kiosk',

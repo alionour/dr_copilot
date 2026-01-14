@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class ICD10Code {
   final String code;
@@ -34,7 +35,7 @@ class ICD10Service {
       final List<dynamic> data = json.decode(response);
       _codes = data.map((json) => ICD10Code.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading ICD-10 codes: $e');
+      debugPrint('Error loading ICD-10 codes: $e');
       _codes = [];
     }
   }

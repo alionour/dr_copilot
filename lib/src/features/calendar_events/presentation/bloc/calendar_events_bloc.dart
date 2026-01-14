@@ -99,45 +99,38 @@ class CalendarEventsBloc
     AddCalendarEvent event,
     Emitter<CalendarEventsState> emit,
   ) async {
-    emit(CalendarEventsLoading());
-
+    // emit(CalendarEventsLoading()); // Don't block UI with loading
     final result = await useCase.addEvent(event.event);
-
-    result.fold((failure) => emit(CalendarEventsError(failure.message)), (
-      createdEvent,
-    ) {
-      // Reload events after successful creation
-      add(LoadAllEvents());
-    });
+    result.fold(
+      (failure) => emit(CalendarEventsError(failure.message)),
+      (createdEvent) {
+        // Do nothing, Stream will update UI
+      },
+    );
   }
 
   Future<void> _onUpdateCalendarEvent(
     UpdateCalendarEvent event,
     Emitter<CalendarEventsState> emit,
   ) async {
-    emit(CalendarEventsLoading());
-
+    // emit(CalendarEventsLoading());
     final result = await useCase.updateEvent(event.id, event.event);
-
-    result.fold((failure) => emit(CalendarEventsError(failure.message)), (
-      updatedEvent,
-    ) {
-      // Reload events after successful update
-      add(LoadAllEvents());
-    });
+    result.fold(
+      (failure) => emit(CalendarEventsError(failure.message)),
+      (updatedEvent) {
+        // Do nothing, Stream will update UI
+      },
+    );
   }
 
   Future<void> _onDeleteCalendarEvent(
     DeleteCalendarEvent event,
     Emitter<CalendarEventsState> emit,
   ) async {
-    emit(CalendarEventsLoading());
-
+    // emit(CalendarEventsLoading());
     final result = await useCase.deleteEvent(event.id);
-
     result.fold((failure) => emit(CalendarEventsError(failure.message)), (_) {
-      // Reload events after successful deletion
-      add(LoadAllEvents());
+      // Do nothing, Stream will update UI
     });
   }
 

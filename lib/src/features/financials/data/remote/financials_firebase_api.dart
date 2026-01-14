@@ -446,8 +446,8 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
         final data = currencyProfile.toJson();
         data.remove('id'); // Remove id before sending
         final docRef = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
+            .collection('clinics')
+            .doc(clinicId)
             .collection('currency_profiles')
             .add(data);
         final newProfile = currencyProfile.copyWith(id: docRef.id);
@@ -465,11 +465,10 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   Future<Either<Failure, List<CurrencyProfileModel>>>
       fetchCurrencyProfiles() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+      if (clinicId != null) {
         final snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
+            .collection('clinics')
+            .doc(clinicId)
             .collection('currency_profiles')
             .get();
         final profiles = snapshot.docs.map((doc) {
@@ -481,7 +480,7 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
         }).toList();
         return Right(profiles);
       }
-      return Left(ServerFailure('User not authenticated', 401));
+      return Left(ServerFailure('No Clinic ID found', 400));
     } catch (e) {
       debugPrint('Error fetching currency profiles: $e');
       return Left(ServerFailure(e.toString(), 500));
@@ -492,17 +491,16 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   @override
   Future<Either<Failure, void>> deleteCurrencyProfile(String id) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+      if (clinicId != null) {
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
+            .collection('clinics')
+            .doc(clinicId)
             .collection('currency_profiles')
             .doc(id)
             .delete();
         return const Right(null);
       }
-      return Left(ServerFailure('User not authenticated', 401));
+      return Left(ServerFailure('No Clinic ID found', 400));
     } catch (e) {
       debugPrint('Error deleting currency profile: $e');
       return Left(ServerFailure(e.toString(), 500));
@@ -514,17 +512,16 @@ class FinancialsFirebaseApi extends AbstractFinancialApi {
   Future<Either<Failure, CurrencyProfileModel>> updateCurrencyProfile(
       CurrencyProfileModel profile) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+      if (clinicId != null) {
         await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
+            .collection('clinics')
+            .doc(clinicId)
             .collection('currency_profiles')
             .doc(profile.id)
             .update(profile.toJson());
         return Right(profile);
       }
-      return Left(ServerFailure('User not authenticated', 401));
+      return Left(ServerFailure('No Clinic ID found', 400));
     } catch (e) {
       debugPrint('Error updating currency profile: $e');
       return Left(ServerFailure(e.toString(), 500));

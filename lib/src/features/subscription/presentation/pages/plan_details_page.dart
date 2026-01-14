@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:dr_copilot/src/core/services/paddle_service.dart';
+import 'package:dr_copilot/src/core/services/backend_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -12,7 +12,7 @@ class PlanDetailsPage extends StatefulWidget {
   final List<String> features; // Summary features passed from card
   final bool isCurrent;
   final bool
-  isUpgrade; // True if this is an upgrade/downgrade action (not current plan)
+      isUpgrade; // True if this is an upgrade/downgrade action (not current plan)
 
   const PlanDetailsPage({
     super.key,
@@ -53,40 +53,40 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
       }
 
       final planIds = {'Pro': 'pro', 'Elite': 'elite'};
-      // In a real app, map these to your actual Paddle Price IDs
+      // Convert UI title to Plan ID
       final planId = planIds[widget.title] ?? 'pro';
 
-      final checkoutUrl = await PaddleService.createCheckoutSession(
-        planId: planId,
-        clinicId: user.uid,
-        period: widget.isYearly ? 'yearly' : 'monthly',
-      );
+      // Construct Paymob Checkout URL
+      // Should point to the public HTML file we created
+      final baseUrl = BackendService.baseUrl;
+      final checkoutUrl = '$baseUrl/subscription_checkout.html'
+          '?plan=$planId'
+          '&period=${widget.isYearly ? 'yearly' : 'monthly'}'
+          '&userId=${user.uid}'
+          '&email=${user.email ?? ''}'
+          '&clinicId=${user.uid}'; // Assuming clinicId is same as userId (owner)
 
-      if (!mounted) return;
+      final uri = Uri.parse(checkoutUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (checkoutUrl != null) {
-        final uri = Uri.parse(checkoutUrl);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('couldNotLaunchPaymentUrl'.tr())),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Payment page opened. Please verify payment in the app when done.')),
+        );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('failedToCreateCheckoutSession'.tr()),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('couldNotLaunchPaymentUrl'.tr())),
         );
       }
+
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -108,9 +108,8 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final priceText = widget.price == 0
-        ? '\$0'
-        : '\$${widget.price.toStringAsFixed(2)}';
+    final priceText =
+        widget.price == 0 ? '\$0' : '\$${widget.price.toStringAsFixed(2)}';
     final period = widget.isYearly ? '/year' : '/month';
 
     return Scaffold(
@@ -232,16 +231,16 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                   onPressed: widget.isCurrent
                       ? null
                       : (widget.isUpgrade
-                            ? _handleSubscribe
-                            : () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'To downgrade, please manage your subscription in settings.',
-                                    ),
+                          ? _handleSubscribe
+                          : () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'To downgrade, please manage your subscription in settings.',
                                   ),
-                                );
-                              }),
+                                ),
+                              );
+                            }),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
@@ -256,8 +255,8 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                           widget.isCurrent
                               ? 'Current Plan'
                               : (widget.title == 'Free'
-                                    ? 'Downgrade'
-                                    : 'Subscribe Now'),
+                                  ? 'Downgrade'
+                                  : 'Subscribe Now'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -285,4 +284,3 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
     );
   }
 }
-

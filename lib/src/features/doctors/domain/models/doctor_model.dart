@@ -10,6 +10,11 @@ class DoctorModel extends Equatable {
   final String phoneNumber;
   final Timestamp createdAt;
   final Timestamp updatedAt;
+  final Map<String, dynamic>? workingHours;
+  final int? appointmentDuration;
+  final double? consultationPrice;
+  final bool isAvailableForBooking;
+  final String? currencyProfileId;
 
   const DoctorModel({
     required this.id,
@@ -20,6 +25,11 @@ class DoctorModel extends Equatable {
     required this.phoneNumber,
     required this.createdAt,
     required this.updatedAt,
+    this.workingHours,
+    this.appointmentDuration,
+    this.consultationPrice,
+    this.isAvailableForBooking = true,
+    this.currencyProfileId,
   });
 
   DoctorModel copyWith({
@@ -31,6 +41,11 @@ class DoctorModel extends Equatable {
     String? phoneNumber,
     Timestamp? createdAt,
     Timestamp? updatedAt,
+    Map<String, dynamic>? workingHours,
+    int? appointmentDuration,
+    double? consultationPrice,
+    bool? isAvailableForBooking,
+    String? currencyProfileId,
   }) {
     return DoctorModel(
       id: id ?? this.id,
@@ -41,6 +56,12 @@ class DoctorModel extends Equatable {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      workingHours: workingHours ?? this.workingHours,
+      appointmentDuration: appointmentDuration ?? this.appointmentDuration,
+      consultationPrice: consultationPrice ?? this.consultationPrice,
+      isAvailableForBooking:
+          isAvailableForBooking ?? this.isAvailableForBooking,
+      currencyProfileId: currencyProfileId ?? this.currencyProfileId,
     );
   }
 
@@ -54,6 +75,11 @@ class DoctorModel extends Equatable {
       'phoneNumber': phoneNumber,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'workingHours': workingHours,
+      'appointmentDuration': appointmentDuration,
+      'consultationPrice': consultationPrice,
+      'isAvailableForBooking': isAvailableForBooking,
+      'currencyProfileId': currencyProfileId,
     };
   }
 
@@ -68,6 +94,11 @@ class DoctorModel extends Equatable {
       phoneNumber: data['phoneNumber'] as String,
       createdAt: data['createdAt'] as Timestamp,
       updatedAt: data['updatedAt'] as Timestamp,
+      workingHours: data['workingHours'] as Map<String, dynamic>?,
+      appointmentDuration: data['appointmentDuration'] as int?,
+      consultationPrice: (data['consultationPrice'] as num?)?.toDouble(),
+      isAvailableForBooking: data['isAvailableForBooking'] as bool? ?? true,
+      currencyProfileId: data['currencyProfileId'] as String?,
     );
   }
 
@@ -81,6 +112,10 @@ class DoctorModel extends Equatable {
         phoneNumber,
         createdAt,
         updatedAt,
+        workingHours,
+        appointmentDuration,
+        consultationPrice,
+        isAvailableForBooking,
+        currencyProfileId,
       ];
 }
-

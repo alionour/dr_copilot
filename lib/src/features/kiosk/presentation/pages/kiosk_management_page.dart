@@ -226,92 +226,200 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
       appBar: AppBar(
         title: Text('kioskManagement'.tr()),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    Icon(Icons.tablet_mac,
-                        size: 64, color: Colors.blue.shade700),
-                    const SizedBox(height: 16),
-                    Text(
-                      'generateKioskLinkTitle'.tr(),
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'generateKioskLinkDescription'.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _generateKioskLink,
-                      icon: const Icon(Icons.add_link),
-                      label: Text('generateNewLink'.tr()),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
+      body: RefreshIndicator(
+        onRefresh: _loadClinicId,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Remote Booking Section
+              Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.public,
+                                color: Colors.blue, size: 32),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'remoteBooking'.tr(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                Text(
+                                  'shareWithPatients'.tr(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.grey.shade600,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    if (_generatedLink != null) ...[
                       const SizedBox(height: 24),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green),
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.2)),
                         ),
-                        child: Column(
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SelectableText(
-                                    _generatedLink!,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
+                            Expanded(
+                              child: SelectableText(
+                                'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId',
+                                style: TextStyle(
+                                  color: Colors.grey.shade800,
+                                  fontFamily: 'monospace',
                                 ),
-                                IconButton(
-                                  onPressed: () => _showQrCode(_generatedLink!),
-                                  icon: const Icon(Icons.qr_code,
-                                      color: Colors.green),
-                                  tooltip: 'showQrCode'.tr(),
-                                ),
-                                IconButton(
-                                  onPressed: () =>
-                                      _copyToClipboard(_generatedLink!),
-                                  icon: const Icon(Icons.copy),
-                                ),
-                              ],
+                                maxLines: 1,
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'shareThisLinkWithTablet'.tr(),
-                              style: TextStyle(color: Colors.green.shade700),
+                            IconButton(
+                              icon: const Icon(Icons.copy),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(
+                                    text:
+                                        'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId'));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Link copied!')),
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: QrImageView(
+                          data:
+                              'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId',
+                          version: QrVersions.auto,
+                          size: 200.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          'scanToBook'.tr(),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 12),
+                        ),
+                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'activeKioskLinks'.tr(),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
+              const SizedBox(height: 24),
+              // Kiosk Section
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      Icon(Icons.tablet_mac,
+                          size: 64, color: Colors.blue.shade700),
+                      const SizedBox(height: 16),
+                      Text(
+                        'generateKioskLinkTitle'.tr(),
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'generateKioskLinkDescription'.tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _generateKioskLink,
+                        icon: const Icon(Icons.add_link),
+                        label: Text('generateNewLink'.tr()),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                      if (_generatedLink != null) ...[
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: SelectableText(
+                                      _generatedLink!,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () =>
+                                        _showQrCode(_generatedLink!),
+                                    icon: const Icon(Icons.qr_code,
+                                        color: Colors.green),
+                                    tooltip: 'showQrCode'.tr(),
+                                  ),
+                                  IconButton(
+                                    onPressed: () =>
+                                        _copyToClipboard(_generatedLink!),
+                                    icon: const Icon(Icons.copy),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'shareThisLinkWithTablet'.tr(),
+                                style: TextStyle(color: Colors.green.shade700),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'activeKioskLinks'.tr(),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              StreamBuilder<QuerySnapshot>(
                 stream: _firestore
                     .collection('clinics')
                     .doc(_clinicId)
@@ -336,6 +444,8 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                   }
 
                   return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: tokens.length,
                     itemBuilder: (context, index) {
                       final tokenData =
@@ -412,8 +522,8 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
