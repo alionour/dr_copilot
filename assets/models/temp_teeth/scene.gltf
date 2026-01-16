@@ -1,0 +1,423 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3621,
+      "max": [
+        4.377231121063232,
+        21.512807846069336,
+        15.313119888305664
+      ],
+      "min": [
+        -4.371001720428467,
+        16.262365341186523,
+        3.0952324867248535
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 43452,
+      "componentType": 5126,
+      "count": 3621,
+      "max": [
+        0.9989854693412781,
+        0.9999872446060181,
+        0.9998073577880859
+      ],
+      "min": [
+        -0.9980005621910095,
+        -0.9999487996101379,
+        -0.999675989151001
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 3621,
+      "max": [
+        0.9969120025634766,
+        0.996906578540802,
+        0.9997636675834656,
+        1.0
+      ],
+      "min": [
+        -0.9999991059303284,
+        -0.9982489347457886,
+        -0.9999423623085022,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3621,
+      "max": [
+        4.830230236053467,
+        0.9772300124168396
+      ],
+      "min": [
+        4.169710159301758,
+        0.6162800192832947
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 20784,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 86904,
+      "componentType": 5126,
+      "count": 5036,
+      "max": [
+        4.092385768890381,
+        20.88582420349121,
+        14.972599983215332
+      ],
+      "min": [
+        -4.094792366027832,
+        17.333736419677734,
+        6.669278621673584
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 147336,
+      "componentType": 5126,
+      "count": 5036,
+      "max": [
+        0.9998601675033569,
+        0.9998762011528015,
+        0.9992497563362122
+      ],
+      "min": [
+        -0.999965488910675,
+        -0.9999778270721436,
+        -0.9997822642326355
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 57936,
+      "componentType": 5126,
+      "count": 5036,
+      "max": [
+        0.9997996091842651,
+        0.932742714881897,
+        0.999977707862854,
+        1.0
+      ],
+      "min": [
+        -0.9997240304946899,
+        -0.9313492178916931,
+        -0.9999817609786987,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 28968,
+      "componentType": 5126,
+      "count": 5036,
+      "max": [
+        4.967949867248535,
+        0.8149300217628479
+      ],
+      "min": [
+        4.032430171966553,
+        0.01001999992877245
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 83136,
+      "componentType": 5125,
+      "count": 25920,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "Alexander Antipov (https://sketchfab.com/Dessen)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/human-teeth-c4c569f0e08948e2a572007a7a5726f2",
+      "title": "Human teeth"
+    },
+    "generator": "Sketchfab-12.67.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 186816,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 69256,
+      "byteOffset": 186816,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 207768,
+      "byteOffset": 256072,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 138512,
+      "byteOffset": 463840,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 602352,
+      "uri": "scene.bin"
+    }
+  ],
+  "extensionsRequired": [
+    "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "extensionsUsed": [
+    "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "images": [
+    {
+      "uri": "textures/GumsMaterial_diffuse.jpeg"
+    },
+    {
+      "uri": "textures/GumsMaterial_specularGlossiness.jpeg"
+    },
+    {
+      "uri": "textures/GumsMaterial_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "extensions": {
+        "KHR_materials_pbrSpecularGlossiness": {
+          "diffuseFactor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "diffuseTexture": {
+            "index": 0
+          },
+          "glossinessFactor": 1.0,
+          "specularFactor": [
+            0.0809832317,
+            0.0809832317,
+            0.0809832317
+          ],
+          "specularGlossinessTexture": {
+            "index": 1
+          }
+        }
+      },
+      "name": "GumsMaterial",
+      "normalTexture": {
+        "index": 2
+      }
+    },
+    {
+      "doubleSided": true,
+      "extensions": {
+        "KHR_materials_pbrSpecularGlossiness": {
+          "diffuseFactor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "diffuseTexture": {
+            "index": 0
+          },
+          "glossinessFactor": 0.7212271341463415,
+          "specularFactor": [
+            0.06878810975609756,
+            0.06878810975609756,
+            0.06878810975609756
+          ],
+          "specularGlossinessTexture": {
+            "index": 1
+          }
+        }
+      },
+      "name": "TeethMaterial",
+      "normalTexture": {
+        "index": 2
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Gums_GumsMaterial_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3
+          },
+          "indices": 4,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Teeth_TeethMaterial_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 6,
+            "POSITION": 5,
+            "TANGENT": 7,
+            "TEXCOORD_0": 8
+          },
+          "indices": 9,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Teeth.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        6
+      ],
+      "name": "Teeth"
+    },
+    {
+      "children": [
+        5
+      ],
+      "name": "Gums"
+    },
+    {
+      "mesh": 0,
+      "name": "Gums_GumsMaterial_0"
+    },
+    {
+      "children": [
+        7
+      ],
+      "name": "Teeth"
+    },
+    {
+      "mesh": 1,
+      "name": "Teeth_TeethMaterial_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

@@ -164,6 +164,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/settings/kiosk_management'),
               ),
+              ListTile(
+                leading: const Icon(Icons.local_hospital_outlined),
+                title: const Text('Body Chart Marker Types'),
+                subtitle:
+                    const Text('Customize clinical marker types and icons'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => context.push('/settings/marker_types'),
+              ),
               _buildSectionHeader('appSettings'),
               ListTile(
                 leading: const Icon(Icons.tv),

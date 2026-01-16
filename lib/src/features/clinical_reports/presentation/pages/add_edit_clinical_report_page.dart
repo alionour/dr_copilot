@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -18,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 // WebView imports
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/widgets/body_map_widget.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/widgets/body_map_3d_webview_widget.dart';
 
 final getIt = GetIt.instance;
 
@@ -100,6 +102,33 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     }
   }
 
+  // Undo/Redo Stacks
+  final List<List<BodyMarker>> _undoStack = [];
+  final List<List<BodyMarker>> _redoStack = [];
+
+  void _pushToUndo(List<BodyMarker> currentMarkers) {
+    _undoStack.add(List.from(currentMarkers));
+    _redoStack.clear(); // Clear redo stack on new action
+  }
+
+  void _undo(List<BodyMarker> currentMarkers) {
+    if (_undoStack.isEmpty) return;
+    final previousMarkers = _undoStack.removeLast();
+    _redoStack.add(List.from(currentMarkers));
+    context
+        .read<AddEditClinicalReportBloc>()
+        .add(UpdateBodyMarkers(previousMarkers));
+  }
+
+  void _redo(List<BodyMarker> currentMarkers) {
+    if (_redoStack.isEmpty) return;
+    final nextMarkers = _redoStack.removeLast();
+    _undoStack.add(List.from(currentMarkers));
+    context
+        .read<AddEditClinicalReportBloc>()
+        .add(UpdateBodyMarkers(nextMarkers));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AddEditClinicalReportBloc, AddEditClinicalReportState>(
@@ -114,33 +143,6 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
               ),
             ),
           );
-          // Only pop if it was a deletion (reportId null) or we want to close after create?
-          // Usually we stay on page after create to allow editing.
-          // But existing logic popped. Let's keep it if that's what it did.
-          // Wait, the existing logic popped on success.
-          // IF we are creating, we transition to edit mode.
-          // The Bloc emits Success then loads the report.
-          // If we pop, we leave the page.
-          // Existing logic: context.pop().
-          // If I change this, I change behavior.
-          // But with tabs, maybe we want to stay?
-          // The `SaveClinicalReport` handler in Bloc says: emit Success, then add LoadAddEditClinicalReport.
-          // If UI pops on Success, then the Load is useless?
-          // Let's check the Bloc again.
-          // Bloc line 104: emit Success, then add Load.
-          // UI line 117: context.pop().  <-- This means creation closes the page.
-          // This seems wrong if we want to immediately edit.
-          // But I should stick to existing behavior unless I know better.
-          // HOWEVER, for "SaveClinicalReportWithGoogleDoc", it says "Reload to show the editor".
-          // If the page closed, it wouldn't show the editor.
-          // The existing logic pop happens on ANY Success.
-          // I suspect the existing logic was flawed or I misunderstood.
-          // PROPOSAL: Only pop if saving existing report (maybe?) or don't pop?
-          // For now, let's keep existing behavior to avoid regression, BUT...
-          // If I am in "New Report" mode, and I click "Create", I expect to go to "Edit" mode.
-          // If it pops, I go back to list. Then I have to click the report to edit.
-          // That is a valid flow.
-
           context.pop();
         }
         if (state is AddEditClinicalReportError) {
@@ -150,450 +152,566 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         }
       },
       child: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: BlocBuilder<AddEditClinicalReportBloc,
-                AddEditClinicalReportState>(
-              builder: (context, state) {
-                if (state is AddEditClinicalReportLoaded &&
-                    state.report?.googleDocId != null) {
-                  return TextField(
-                    controller: _titleController,
-                    enabled: !state.report!.isFinalized,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Report Title',
-                    ),
-                  );
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      state is AddEditClinicalReportLoaded &&
-                              _selectedPatient != null
-                          ? _selectedPatient!.name
-                          : 'New Clinical Report',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      DateFormat.yMMMd().format(_selectedDate),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade700,
-                          ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            bottom: const TabBar(
-              tabs: [Tab(text: 'Report'), Tab(text: 'Body Map')],
-            ),
-            actions: [
-              BlocBuilder<AddEditClinicalReportBloc,
+        length: 3,
+        child: Builder(builder: (tabContext) {
+          // Use Builder to get tabContext for TabController if needed,
+          // or just rely on DefaultTabController access
+          return Scaffold(
+            appBar: AppBar(
+              title: BlocBuilder<AddEditClinicalReportBloc,
                   AddEditClinicalReportState>(
                 builder: (context, state) {
                   if (state is AddEditClinicalReportLoaded &&
-                      state.report != null &&
-                      !state.report!.isFinalized) {
-                    return IconButton(
-                      icon: const Icon(Icons.check_circle_outline),
-                      tooltip: 'Finalize Report',
-                      onPressed: () => _finalizeReport(state.report!.id),
+                      state.report?.googleDocId != null) {
+                    return TextField(
+                      controller: _titleController,
+                      enabled: !state.report!.isFinalized,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Report Title',
+                      ),
                     );
                   }
-                  return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        state is AddEditClinicalReportLoaded &&
+                                _selectedPatient != null
+                            ? _selectedPatient!.name
+                            : 'New Clinical Report',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        DateFormat.yMMMd().format(_selectedDate),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey.shade700,
+                            ),
+                      ),
+                    ],
+                  );
                 },
               ),
-            ],
-          ),
-          body: BlocBuilder<AddEditClinicalReportBloc,
-              AddEditClinicalReportState>(
-            builder: (context, state) {
-              if (state is AddEditClinicalReportLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (state is AddEditClinicalReportLoaded) {
-                if (!_isLoaded) {
-                  if (state.report != null) {
-                    _titleController.text = state.report!.title;
-                    _selectedDate = state.report!.date;
-                    _selectedPatient = state.patients.firstWhere(
-                      (p) => p.id == state.report!.patientId,
-                      orElse: () => state.patients.first,
-                    );
-                  } else if (widget.patientId != null &&
-                      _selectedPatient == null) {
-                    _selectedPatient = state.patients.firstWhere(
-                      (p) => p.id == widget.patientId,
-                      orElse: () => state.patients.first,
-                    );
-                  }
-                  _isLoaded = true;
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'Report'),
+                  Tab(text: 'Body Map (2D)'),
+                  Tab(text: 'Body Map (3D)'),
+                ],
+              ),
+              actions: [
+                // Undo/Redo Buttons (Only show when report is loaded)
+                BlocBuilder<AddEditClinicalReportBloc,
+                    AddEditClinicalReportState>(
+                  builder: (context, state) {
+                    if (state is AddEditClinicalReportLoaded &&
+                        state.report != null &&
+                        !state.report!.isFinalized) {
+                      return Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.undo),
+                            tooltip: 'Undo (Ctrl+Z)',
+                            onPressed: _undoStack.isNotEmpty
+                                ? () => _undo(state.report!.bodyMapPoints)
+                                : null,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.redo),
+                            tooltip: 'Redo (Ctrl+Y)',
+                            onPressed: _redoStack.isNotEmpty
+                                ? () => _redo(state.report!.bodyMapPoints)
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.check_circle_outline),
+                            tooltip: 'Finalize Report',
+                            onPressed: () => _finalizeReport(state.report!.id),
+                          ),
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
+            body: BlocBuilder<AddEditClinicalReportBloc,
+                AddEditClinicalReportState>(
+              builder: (context, state) {
+                if (state is AddEditClinicalReportLoading) {
+                  return const Center(child: CircularProgressIndicator());
                 }
 
-                return TabBarView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    // Tab 1: Form / WebView
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            if (state.report?.googleDocId == null) ...[
-                              TextFormField(
-                                controller: _titleController,
-                                decoration: InputDecoration(
-                                  labelText: 'clinicalReportTitle'.tr(),
-                                  border: const OutlineInputBorder(),
+                if (state is AddEditClinicalReportLoaded) {
+                  if (!_isLoaded) {
+                    if (state.report != null) {
+                      _titleController.text = state.report!.title;
+                      _selectedDate = state.report!.date;
+                      _selectedPatient = state.patients.firstWhere(
+                        (p) => p.id == state.report!.patientId,
+                        orElse: () => state.patients.first,
+                      );
+                    } else if (widget.patientId != null &&
+                        _selectedPatient == null) {
+                      _selectedPatient = state.patients.firstWhere(
+                        (p) => p.id == widget.patientId,
+                        orElse: () => state.patients.first,
+                      );
+                    }
+                    _isLoaded = true;
+                  }
+
+                  return TabBarView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      // Tab 1: Form / WebView
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              if (state.report?.googleDocId == null) ...[
+                                TextFormField(
+                                  controller: _titleController,
+                                  decoration: InputDecoration(
+                                    labelText: 'clinicalReportTitle'.tr(),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'clinicalReportTitleRequired'.tr();
+                                    }
+                                    return null;
+                                  },
                                 ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'clinicalReportTitleRequired'.tr();
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              DropdownButtonFormField<PatientModel>(
-                                initialValue: _selectedPatient,
-                                decoration: InputDecoration(
-                                  labelText: 'selectPatient'.tr(),
-                                  border: const OutlineInputBorder(),
+                                const SizedBox(height: 16),
+                                DropdownButtonFormField<PatientModel>(
+                                  initialValue: _selectedPatient,
+                                  decoration: InputDecoration(
+                                    labelText: 'selectPatient'.tr(),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  items: state.patients.map((patient) {
+                                    return DropdownMenuItem(
+                                      value: patient,
+                                      child: Text(patient.name),
+                                    );
+                                  }).toList(),
+                                  onChanged: (patient) {
+                                    setState(() {
+                                      _selectedPatient = patient;
+                                    });
+                                  },
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return 'pleaseSelectPatient'.tr();
+                                    }
+                                    return null;
+                                  },
                                 ),
-                                items: state.patients.map((patient) {
-                                  return DropdownMenuItem(
-                                    value: patient,
-                                    child: Text(patient.name),
-                                  );
-                                }).toList(),
-                                onChanged: (patient) {
-                                  setState(() {
-                                    _selectedPatient = patient;
-                                  });
-                                },
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'pleaseSelectPatient'.tr();
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                            if (state.report?.googleDocId != null)
-                              Expanded(
-                                child: Stack(
-                                  children: [
-                                    if (state.report?.googleDocId != null)
-                                      Column(
-                                        children: [
-                                          if (state.report?.isFinalized == true)
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                                vertical: 12,
-                                              ),
-                                              color: Colors.blue.shade100,
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.info_outline,
-                                                    color: Colors.blue.shade900,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Text(
-                                                      'This report is read-only.',
-                                                      style: TextStyle(
-                                                        color: Colors
-                                                            .blue.shade900,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                const SizedBox(height: 16),
+                              ],
+                              if (state.report?.googleDocId != null)
+                                Expanded(
+                                  child: Stack(
+                                    children: [
+                                      if (state.report?.googleDocId != null)
+                                        Column(
+                                          children: [
+                                            if (state.report?.isFinalized ==
+                                                true)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 12,
+                                                ),
+                                                color: Colors.blue.shade100,
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.info_outline,
+                                                      color:
+                                                          Colors.blue.shade900,
+                                                      size: 20,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        'This report is read-only.',
+                                                        style: TextStyle(
+                                                          color: Colors
+                                                              .blue.shade900,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          if (state.report?.isFinalized ==
-                                              false)
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                                vertical: 12,
-                                              ),
-                                              color: Colors.orange.shade100,
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.warning_amber_rounded,
-                                                    color:
-                                                        Colors.orange.shade900,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          'webviewLimitationsWarning'
-                                                              .tr(),
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.orange
-                                                                .shade900,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 4,
-                                                        ),
-                                                        Text(
-                                                          'editingInBrowser'
-                                                              .tr(),
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: Colors.orange
-                                                                .shade900,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  ElevatedButton.icon(
-                                                    onPressed: () async {
-                                                      final url = getIt<
-                                                              GoogleDocsService>()
-                                                          .getEditorUrl(
-                                                        state.report!
-                                                            .googleDocId!,
-                                                        languageCode: context
-                                                            .locale
-                                                            .languageCode,
-                                                      );
-                                                      final uri = Uri.parse(
-                                                        url,
-                                                      );
-                                                      if (await canLaunchUrl(
-                                                        uri,
-                                                      )) {
-                                                        await launchUrl(
-                                                          uri,
-                                                          mode: LaunchMode
-                                                              .externalApplication,
-                                                        );
-                                                      }
-                                                    },
-                                                    icon: const Icon(
-                                                      Icons.open_in_new,
-                                                      size: 16,
-                                                    ),
-                                                    label: Text(
-                                                      'openInBrowser'.tr(),
-                                                    ),
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      backgroundColor: Colors
-                                                          .orange.shade700,
-                                                      foregroundColor:
-                                                          Colors.white,
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 8,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          Expanded(
-                                            child: InAppWebView(
-                                              initialUrlRequest: URLRequest(
-                                                url: WebUri(
-                                                  state.report!.isFinalized
-                                                      ? getIt<GoogleDocsService>()
-                                                          .getPreviewUrl(
-                                                          state.report!
-                                                              .googleDocId!,
-                                                          languageCode: context
-                                                              .locale
-                                                              .languageCode,
-                                                        )
-                                                      : getIt<GoogleDocsService>()
-                                                          .getEditorUrl(
-                                                          state.report!
-                                                              .googleDocId!,
-                                                          languageCode: context
-                                                              .locale
-                                                              .languageCode,
-                                                        ),
+                                                  ],
                                                 ),
                                               ),
-                                              initialSettings:
-                                                  InAppWebViewSettings(
-                                                transparentBackground: false,
-                                                safeBrowsingEnabled: true,
-                                                isInspectable: kDebugMode,
-                                                incognito: false,
-                                                cacheEnabled: true,
-                                                javaScriptCanOpenWindowsAutomatically:
-                                                    true,
-                                                domStorageEnabled: true,
-                                                databaseEnabled: true,
-                                                thirdPartyCookiesEnabled: true,
-                                                sharedCookiesEnabled: true,
-                                                userAgent:
-                                                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                            if (state.report?.isFinalized ==
+                                                false)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 12,
+                                                ),
+                                                color: Colors.orange.shade100,
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .warning_amber_rounded,
+                                                      color: Colors
+                                                          .orange.shade900,
+                                                      size: 20,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            'webviewLimitationsWarning'
+                                                                .tr(),
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              color: Colors
+                                                                  .orange
+                                                                  .shade900,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            'editingInBrowser'
+                                                                .tr(),
+                                                            style: TextStyle(
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Colors
+                                                                  .orange
+                                                                  .shade900,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    ElevatedButton.icon(
+                                                      onPressed: () async {
+                                                        final url = getIt<
+                                                                GoogleDocsService>()
+                                                            .getEditorUrl(
+                                                          state.report!
+                                                              .googleDocId!,
+                                                          languageCode: context
+                                                              .locale
+                                                              .languageCode,
+                                                        );
+                                                        final uri = Uri.parse(
+                                                          url,
+                                                        );
+                                                        if (await canLaunchUrl(
+                                                          uri,
+                                                        )) {
+                                                          await launchUrl(
+                                                            uri,
+                                                            mode: LaunchMode
+                                                                .externalApplication,
+                                                          );
+                                                        }
+                                                      },
+                                                      icon: const Icon(
+                                                        Icons.open_in_new,
+                                                        size: 16,
+                                                      ),
+                                                      label: Text(
+                                                        'openInBrowser'.tr(),
+                                                      ),
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: Colors
+                                                            .orange.shade700,
+                                                        foregroundColor:
+                                                            Colors.white,
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 8,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                              onConsoleMessage: (
-                                                controller,
-                                                consoleMessage,
-                                              ) {
-                                                debugPrint(
-                                                  '[WebView Console] ${consoleMessage.message}',
-                                                );
-                                              },
-                                              onCreateWindow: (
-                                                controller,
-                                                createWindowRequest,
-                                              ) async {
-                                                debugPrint(
-                                                  '[WebView] onCreateWindow requested',
-                                                );
-                                                return true;
-                                              },
+                                            Expanded(
+                                              child: InAppWebView(
+                                                initialUrlRequest: URLRequest(
+                                                  url: WebUri(
+                                                    state.report!.isFinalized
+                                                        ? getIt<GoogleDocsService>()
+                                                            .getPreviewUrl(
+                                                            state.report!
+                                                                .googleDocId!,
+                                                            languageCode: context
+                                                                .locale
+                                                                .languageCode,
+                                                          )
+                                                        : getIt<GoogleDocsService>()
+                                                            .getEditorUrl(
+                                                            state.report!
+                                                                .googleDocId!,
+                                                            languageCode: context
+                                                                .locale
+                                                                .languageCode,
+                                                          ),
+                                                  ),
+                                                ),
+                                                initialSettings:
+                                                    InAppWebViewSettings(
+                                                  transparentBackground: false,
+                                                  safeBrowsingEnabled: true,
+                                                  isInspectable: kDebugMode,
+                                                  incognito: false,
+                                                  cacheEnabled: true,
+                                                  javaScriptCanOpenWindowsAutomatically:
+                                                      true,
+                                                  domStorageEnabled: true,
+                                                  databaseEnabled: true,
+                                                  thirdPartyCookiesEnabled:
+                                                      true,
+                                                  sharedCookiesEnabled: true,
+                                                  userAgent:
+                                                      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                                ),
+                                                onConsoleMessage: (
+                                                  controller,
+                                                  consoleMessage,
+                                                ) {
+                                                  debugPrint(
+                                                    '[WebView Console] ${consoleMessage.message}',
+                                                  );
+                                                },
+                                                onCreateWindow: (
+                                                  controller,
+                                                  createWindowRequest,
+                                                ) async {
+                                                  debugPrint(
+                                                    '[WebView] onCreateWindow requested',
+                                                  );
+                                                  return true;
+                                                },
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      )
-                                    else
-                                      const Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                  ],
-                                ),
-                              )
-                            else
-                              Expanded(
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.description_outlined,
-                                        size: 64,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Fill in the details above and click "Create Report" to start editing',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.copyWith(color: Colors.grey),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 24),
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          if (_formKey.currentState!
-                                              .validate()) {
-                                            final newReport = ClinicalReport(
-                                              id: '',
-                                              patientId: _selectedPatient!.id,
-                                              title: _titleController.text,
-                                              description: '',
-                                              date: _selectedDate,
-                                              googleDocId: null,
-                                              isFinalized: false,
-                                            );
-
-                                            context
-                                                .read<
-                                                    AddEditClinicalReportBloc>()
-                                                .add(
-                                                  SaveClinicalReport(newReport),
-                                                );
-                                          }
-                                        },
-                                        icon: const Icon(Icons.add),
-                                        label: const Text('Create Report'),
-                                        style: ElevatedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 32,
-                                            vertical: 16,
-                                          ),
+                                          ],
+                                        )
+                                      else
+                                        const Center(
+                                          child: CircularProgressIndicator(),
                                         ),
-                                      ),
                                     ],
                                   ),
+                                )
+                              else
+                                Expanded(
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.description_outlined,
+                                          size: 64,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Fill in the details above and click "Create Report" to start editing',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.copyWith(color: Colors.grey),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 24),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              final newReport = ClinicalReport(
+                                                id: '',
+                                                patientId: _selectedPatient!.id,
+                                                title: _titleController.text,
+                                                description: '',
+                                                date: _selectedDate,
+                                                googleDocId: null,
+                                                isFinalized: false,
+                                              );
+
+                                              context
+                                                  .read<
+                                                      AddEditClinicalReportBloc>()
+                                                  .add(
+                                                    SaveClinicalReport(
+                                                        newReport),
+                                                  );
+                                            }
+                                          },
+                                          icon: const Icon(Icons.add),
+                                          label: const Text('Create Report'),
+                                          style: ElevatedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 32,
+                                              vertical: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    // Tab 2: Body Map
-                    if (state.report != null)
-                      BodyMapWidget(
-                        markers: state.report!.bodyMapPoints,
-                        onMarkerAdded: (marker) {
-                          final currentMarkers = List<BodyMarker>.from(
-                            state.report!.bodyMapPoints,
-                          );
-                          currentMarkers.add(marker);
-                          context.read<AddEditClinicalReportBloc>().add(
-                                UpdateBodyMarkers(currentMarkers),
-                              );
-                        },
-                        onMarkerRemoved: (markerId) {
-                          final currentMarkers = List<BodyMarker>.from(
-                            state.report!.bodyMapPoints,
-                          );
-                          currentMarkers.removeWhere((m) => m.id == markerId);
-                          context.read<AddEditClinicalReportBloc>().add(
-                                UpdateBodyMarkers(currentMarkers),
-                              );
-                        },
-                        isReadOnly: state.report!.isFinalized,
-                      )
-                    else
-                      const Center(
-                        child: Text(
-                          'Please create the report first to access the Body Map.',
+                      // Tab 2: Body Map
+                      if (state.report != null)
+                        CallbackShortcuts(
+                          bindings: {
+                            const SingleActivator(LogicalKeyboardKey.keyZ,
+                                    control: true):
+                                () => _undo(state.report!.bodyMapPoints),
+                            const SingleActivator(LogicalKeyboardKey.keyY,
+                                    control: true):
+                                () => _redo(state.report!.bodyMapPoints),
+                            // Mac support for Redo (Cmd+Shift+Z)
+                            const SingleActivator(LogicalKeyboardKey.keyZ,
+                                    control: true, shift: true):
+                                () => _redo(state.report!.bodyMapPoints),
+                          },
+                          child: Focus(
+                            autofocus: true,
+                            child: BodyMapWidget(
+                              markers: state.report!.bodyMapPoints,
+                              onMarkerAdded: (marker) {
+                                final currentMarkers = List<BodyMarker>.from(
+                                  state.report!.bodyMapPoints,
+                                );
+                                _pushToUndo(currentMarkers); // Save state
+                                currentMarkers.add(marker);
+                                context.read<AddEditClinicalReportBloc>().add(
+                                      UpdateBodyMarkers(currentMarkers),
+                                    );
+                              },
+                              onMarkerRemoved: (markerId) {
+                                final currentMarkers = List<BodyMarker>.from(
+                                  state.report!.bodyMapPoints,
+                                );
+                                _pushToUndo(currentMarkers); // Save state
+                                currentMarkers
+                                    .removeWhere((m) => m.id == markerId);
+                                context.read<AddEditClinicalReportBloc>().add(
+                                      UpdateBodyMarkers(currentMarkers),
+                                    );
+                              },
+                              onMarkerUpdated: (updatedMarker) {
+                                final currentMarkers = List<BodyMarker>.from(
+                                  state.report!.bodyMapPoints,
+                                );
+                                final index = currentMarkers.indexWhere(
+                                  (m) => m.id == updatedMarker.id,
+                                );
+                                if (index != -1) {
+                                  _pushToUndo(currentMarkers); // Save state
+                                  currentMarkers[index] = updatedMarker;
+                                  context.read<AddEditClinicalReportBloc>().add(
+                                        UpdateBodyMarkers(currentMarkers),
+                                      );
+                                }
+                              },
+                              isReadOnly: state.report!.isFinalized,
+                            ),
+                          ),
                         ),
-                      ),
-                  ],
-                );
-              }
+                      // Tab 3: Body Map (3D)
+                      if (state.report != null)
+                        BodyMap3DWebViewWidget(
+                          markers: state.report!.bodyMapPoints,
+                          onMarkerAdded: (marker) {
+                            final currentMarkers = List<BodyMarker>.from(
+                              state.report!.bodyMapPoints,
+                            );
+                            // Ensure marker has 3D view set if not already
+                            final m = marker.copyWith(view: '3d');
+                            _pushToUndo(currentMarkers);
+                            currentMarkers.add(m);
+                            context.read<AddEditClinicalReportBloc>().add(
+                                  UpdateBodyMarkers(currentMarkers),
+                                );
+                          },
+                          onMarkerRemoved: (markerId) {
+                            final currentMarkers = List<BodyMarker>.from(
+                              state.report!.bodyMapPoints,
+                            );
+                            _pushToUndo(currentMarkers);
+                            currentMarkers.removeWhere((m) => m.id == markerId);
+                            context.read<AddEditClinicalReportBloc>().add(
+                                  UpdateBodyMarkers(currentMarkers),
+                                );
+                          },
+                          onMarkerUpdated: (updatedMarker) {
+                            final currentMarkers = List<BodyMarker>.from(
+                              state.report!.bodyMapPoints,
+                            );
+                            final index = currentMarkers.indexWhere(
+                              (m) => m.id == updatedMarker.id,
+                            );
+                            if (index != -1) {
+                              _pushToUndo(currentMarkers);
+                              currentMarkers[index] = updatedMarker;
+                              context.read<AddEditClinicalReportBloc>().add(
+                                    UpdateBodyMarkers(currentMarkers),
+                                  );
+                            }
+                          },
+                          isReadOnly: state.report!.isFinalized,
+                        )
+                      else
+                        const Center(
+                          child: Text(
+                            'Please create the report first to access the 3D Body Map.',
+                          ),
+                        ),
+                    ],
+                  );
+                }
 
-              return const Center(child: Text('Something went wrong.'));
-            },
-          ),
-        ),
+                return const Center(child: Text('Something went wrong.'));
+              },
+            ),
+          );
+        }),
       ),
     );
   }
