@@ -40,7 +40,13 @@ app.use((req, res, next) => {
 // --- Routes ---
 // Serve static files from public directory
 const path = require('path');
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+    etag: false,
+    lastModified: false,
+    setHeaders: (res, path) => {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+}));
 
 // Check if Firebase is initialized before loading API routes
 if (admin.apps.length > 0) {

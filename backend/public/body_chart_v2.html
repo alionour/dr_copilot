@@ -47,14 +47,19 @@
             font-size: 11px;
             color: #BBB;
         }
+
+        /* Hide debug panel for production */
+        #debug-panel {
+            display: none !important;
+        }
     </style>
 </head>
 
 <body>
     <div id="container"></div>
-    <!-- DEBUG PANEL -->
+    <!-- DEBUG PANEL (Hidden) -->
     <div id="debug-panel"
-        style="position:fixed; top:10px; left:10px; background:rgba(0,0,0,0.8); color:#0f0; font-family:monospace; padding:10px; border-radius:5px; pointer-events:none; z-index:9999; font-size: 12px; display: block;">
+        style="position:fixed; top:10px; left:10px; background:rgba(0,0,0,0.8); color:#0f0; font-family:monospace; padding:10px; border-radius:5px; pointer-events:none; z-index:9999; font-size: 12px; display: none;">
         [DEBUG DIAGNOSTICS]<br>
         Mode: <span id="debug-mode">select</span><br>
         Meshes Found: <span id="debug-meshes">0</span><br>
@@ -122,25 +127,26 @@
         const markers = {};
 
         // Raycaster for click and hover detection
-        // Raycaster for click and hover detection
         const raycaster = new THREE.Raycaster();
         const tooltip = document.getElementById('tooltip');
         let hoveredMarker = null;
         let selectedMarkerId = null; // Track selected marker for animation
-        let interactionMode = 'select'; // 'select' or 'add'
+        let interactionMode = 'select'; // Default production mode
+
         const mouse = new THREE.Vector2();
 
         // Get model from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const modelName = urlParams.get('model') || 'human_body.glb';
 
-        // Adaptive marker sizing based on model
+        // NOTE: With normalization (scale=1.5), a fixed marker radius works for ALL models.
         const markerSizes = {
             'human_body.glb': 0.05,
-            'human_head.glb': 0.03,
+            'human_head.glb': 0.04,
+            'human_muscles.glb': 0.05,
             'human_skeleton.glb': 0.04,
-            'human_brain.glb': 0.02,
-            'human_teeth_folder/scene.gltf': 0.01
+            'human_brain.glb': 0.03,
+            'human_teeth_folder/scene.gltf': 0.02
         };
         const defaultMarkerRadius = markerSizes[modelName] || 0.05;
 
@@ -151,14 +157,18 @@
             (gltf) => {
                 bodyModel = gltf.scene;
 
-                // Center and scale model
+                // Center model
                 const box = new THREE.Box3().setFromObject(bodyModel);
                 const center = box.getCenter(new THREE.Vector3());
                 bodyModel.position.sub(center);
 
+                // NORMALIZE SCALE
                 const size = box.getSize(new THREE.Vector3());
                 const maxDim = Math.max(size.x, size.y, size.z);
-                const scale = 1.5 / maxDim;
+                const scale = 1.5 / maxDim; // Normalize to ~1.5 units
+
+                bodyModel.scale.setScalar(scale);
+
                 document.getElementById('debug-name').innerText = modelName;
 
                 // Count visible meshes and force DoubleSide
@@ -173,27 +183,27 @@
 
                 scene.add(bodyModel);
 
-                // Frame the model in view
-                const scaledBox = new THREE.Box3().setFromObject(bodyModel);
-                const scaledSize = scaledBox.getSize(new THREE.Vector3());
-                const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+                // Update Camera to fit the NORMALIZED 1.5 unit model
+                const finalBox = new THREE.Box3().setFromObject(bodyModel);
+                const finalSize = finalBox.getSize(new THREE.Vector3());
+                const finalCenter = finalBox.getCenter(new THREE.Vector3());
 
                 // Calculate optimal camera distance
-                const maxSize = Math.max(scaledSize.x, scaledSize.y, scaledSize.z);
+                const maxSize = Math.max(finalSize.x, finalSize.y, finalSize.z);
                 const fitHeightDistance = maxSize / (2 * Math.atan(Math.PI * camera.fov / 360));
                 const fitWidthDistance = fitHeightDistance / camera.aspect;
                 const distance = 1.2 * Math.max(fitHeightDistance, fitWidthDistance);
 
                 // Position camera to look at model
                 camera.position.set(
-                    scaledCenter.x + distance * 0.5,
-                    scaledCenter.y + distance * 0.5,
-                    scaledCenter.z + distance
+                    finalCenter.x + distance * 0.5,
+                    finalCenter.y + distance * 0.5,
+                    finalCenter.z + distance
                 );
-                camera.lookAt(scaledCenter);
+                camera.lookAt(finalCenter);
 
                 // Update orbit controls target
-                orbitControls.target.copy(scaledCenter);
+                orbitControls.target.copy(finalCenter);
                 orbitControls.update();
             },
             undefined,
@@ -249,91 +259,104 @@
 
         window.setInteractionMode = function (mode) {
             interactionMode = mode;
+            // Update visual debug panel
             const deb = document.getElementById('debug-mode');
-            if (deb) deb.innerText = mode;
+            if (deb) {
+                deb.innerText = mode;
+                // document.getElementById('debug-panel').style.backgroundColor = 'rgba(0,0,0,0.8)';
+            }
+            // Update cursor style
+            renderer.domElement.style.cursor = mode === 'add' ? 'crosshair' : 'default';
         };
 
-        // Click handler
+        // Click handler WITH TRACING + GIZMO FIX + ROBUST RAYCASTING
         renderer.domElement.addEventListener('click', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            try {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-            raycaster.setFromCamera(mouse, camera);
+                raycaster.setFromCamera(mouse, camera);
 
-            // Check if clicking transform control first
-            const controlIntersects = raycaster.intersectObjects(transformControl.children, true);
-            if (controlIntersects.length > 0) return;
-
-            // Check for marker clicks
-            const markerObjects = Object.values(markers);
-            const markerIntersects = raycaster.intersectObjects(markerObjects, false);
-
-            if (markerIntersects.length > 0) {
-                const clickedMarker = markerIntersects[0].object;
-                const markerId = clickedMarker.userData.id;
-
-                // Highlight selection immediately
-                setSelectedMarker(markerId);
-
-                // DISABLED: No longer showing gizmo, just select the marker
-                // transformControl.attach(clickedMarker);
-
-                if (window.flutter_inappwebview) {
-                    window.flutter_inappwebview.callHandler('onMarkerSelected', { id: markerId });
-                }
-                return;
-            }
-
-            // ONLY add marker if in 'add' mode
-            if (interactionMode === 'add') {
-                if (!bodyModel) return;
-
-                // Explicitly collect all visible meshes for raycasting
-                const meshes = [];
-                bodyModel.traverse((child) => {
-                    if ((child.isMesh || child.isSkinnedMesh) && child.visible) {
-                        meshes.push(child);
+                // Check if clicking transform control first
+                if (transformControl && transformControl.object && transformControl.children) {
+                    const controlIntersects = raycaster.intersectObjects(transformControl.children, true);
+                    if (controlIntersects.length > 0) {
+                        return;
                     }
-                });
+                }
 
-                const bodyIntersects = raycaster.intersectObjects(meshes, false);
+                // Check for marker clicks
+                const markerObjects = Object.values(markers);
+                const markerIntersects = raycaster.intersectObjects(markerObjects, false);
 
-                if (bodyIntersects.length > 0) {
-                    document.getElementById('debug-hit').innerText = "HIT (" + bodyIntersects[0].object.type + ")";
-                    transformControl.detach();
+                if (markerIntersects.length > 0) {
+                    const clickedMarker = markerIntersects[0].object;
+                    const markerId = clickedMarker.userData.id;
 
-                    const intersection = bodyIntersects[0];
-                    const point = intersection.point;
-                    const normal = intersection.face.normal;
+                    document.getElementById('debug-hit').innerText = "HIT: " + markerId;
 
-                    // Ensure normal is transformed to world space
-                    normal.transformDirection(intersection.object.matrixWorld);
-
-                    const offset = normal.clone().multiplyScalar(defaultMarkerRadius * 0.5);
-                    const finalPosition = point.clone().add(offset);
-
-                    // Add visual feedback immediately
-                    const feedbackGeometry = new THREE.SphereGeometry(defaultMarkerRadius / 2, 8, 8);
-                    const feedbackMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
-                    const feedbackMsg = new THREE.Mesh(feedbackGeometry, feedbackMaterial);
-                    feedbackMsg.position.copy(finalPosition);
-                    scene.add(feedbackMsg);
-                    setTimeout(() => scene.remove(feedbackMsg), 500);
+                    // Highlight selection immediately
+                    setSelectedMarker(markerId);
 
                     if (window.flutter_inappwebview) {
-                        window.flutter_inappwebview.callHandler('onBodyClick', {
-                            x: finalPosition.x,
-                            y: finalPosition.y,
-                            z: finalPosition.z
-                        });
+                        window.flutter_inappwebview.callHandler('onMarkerSelected', { id: markerId });
+                    }
+                    return;
+                }
+
+                // ONLY add marker if in 'add' mode
+                if (interactionMode === 'add') {
+                    if (!bodyModel) {
+                        document.getElementById('debug-hit').innerText = "Err: bodyModel null";
+                        return;
+                    }
+
+                    // ROBUST: Raycast against the entire model hierarchy
+                    const bodyIntersects = raycaster.intersectObject(bodyModel, true); // true = recursive
+
+                    if (bodyIntersects.length > 0) {
+                        document.getElementById('debug-hit').innerText = "HIT (" + bodyIntersects[0].object.type + ")";
+                        transformControl.detach();
+
+                        const intersection = bodyIntersects[0];
+                        const point = intersection.point;
+                        const normal = intersection.face.normal;
+
+                        // Ensure normal is transformed to world space
+                        normal.transformDirection(intersection.object.matrixWorld);
+
+                        // Reduced offset to 0.2 to sit closer to surface
+                        const offset = normal.clone().multiplyScalar(defaultMarkerRadius * 0.2);
+                        const finalPosition = point.clone().add(offset);
+
+                        // Add visual feedback immediately
+                        const feedbackGeometry = new THREE.SphereGeometry(defaultMarkerRadius / 2, 8, 8);
+                        const feedbackMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+                        const feedbackMsg = new THREE.Mesh(feedbackGeometry, feedbackMaterial);
+                        feedbackMsg.position.copy(finalPosition);
+                        scene.add(feedbackMsg);
+                        setTimeout(() => scene.remove(feedbackMsg), 500);
+
+                        if (window.flutter_inappwebview) {
+                            window.flutter_inappwebview.callHandler('onBodyClick', {
+                                x: finalPosition.x,
+                                y: finalPosition.y,
+                                z: finalPosition.z
+                            });
+                        }
+                    } else {
+                        document.getElementById('debug-hit').innerText = "MISS (" + mouse.x.toFixed(2) + ", " + mouse.y.toFixed(2) + ")";
+                    }
+                } else {
+                    // In SELECT mode, clicking body (empty space) deselects
+                    if (window.flutter_inappwebview) {
+                        window.flutter_inappwebview.callHandler('onMarkerDeselected', {});
+                        setSelectedMarker(null);
                     }
                 }
-            } else {
-                // In SELECT mode, clicking body (empty space) deselects
-                if (window.flutter_inappwebview) {
-                    window.flutter_inappwebview.callHandler('onMarkerDeselected', {});
-                    setSelectedMarker(null);
-                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('debug-hit').innerText = "Err: " + e.message;
             }
         });
 
@@ -396,12 +419,6 @@
                     mesh.material.emissive.setHex(0x000000);
                 }
             });
-        };
-
-        window.setInteractionMode = function (mode) {
-            interactionMode = mode;
-            // Update cursor style?
-            renderer.domElement.style.cursor = mode === 'add' ? 'crosshair' : 'default';
         };
 
         function animate() {

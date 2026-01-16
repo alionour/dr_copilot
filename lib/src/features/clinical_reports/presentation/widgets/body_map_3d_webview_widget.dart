@@ -244,9 +244,16 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
     // Sync Interaction Mode to JS on every update to resolve persistence issues
     final currentMode = _currentInteractionMode;
-    _webViewController!.callAsyncJavaScript(
-        functionBody:
-            'if(window.setInteractionMode) window.setInteractionMode("$currentMode");');
+    _webViewController?.evaluateJavascript(source: '''
+      console.log("Dart Sync: Setting mode to $currentMode");
+      if(window.setInteractionMode) {
+        window.setInteractionMode("$currentMode");
+      } else {
+        console.error("CRITICAL: window.setInteractionMode NOT FOUND during sync");
+        const deb = document.getElementById('debug-hit');
+        if(deb) deb.innerText = "API MISSING";
+      }
+    ''');
 
     final markersList = widget.markers
         .where((m) =>
@@ -359,15 +366,40 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                                   ),
                                 ],
                                 selected: {_currentInteractionMode},
-                                onSelectionChanged: (Set<String> newSelection) {
+                                onSelectionChanged:
+                                    (Set<String> newSelection) async {
                                   if (_selectedModel != null) {
+                                    final mode = newSelection.first;
                                     setState(() {
                                       _modelInteractionModes[_selectedModel!] =
-                                          newSelection.first;
+                                          mode;
                                     });
-                                    _webViewController?.callAsyncJavaScript(
-                                        functionBody:
-                                            'window.setInteractionMode("${newSelection.first}");');
+                                    try {
+                                      debugPrint(
+                                          "Setting interaction mode to: $mode");
+                                      await _webViewController
+                                          ?.evaluateJavascript(source: '''
+                                          console.log("Dart Button: Setting mode to $mode");
+                                          if(window.setInteractionMode) {
+                                            window.setInteractionMode("$mode");
+                                          } else {
+                                            console.error("Button Click: function not found");
+                                          }
+                                              ''');
+                                    } catch (e) {
+                                      debugPrint(
+                                          "Error setting interaction mode: $e");
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                "Failed to switch mode: $e"),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
                                   }
                                 },
                                 style: ButtonStyle(
@@ -428,7 +460,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                           InAppWebView(
                             initialUrlRequest: URLRequest(
                               url: WebUri(
-                                  'http://localhost:3000/body_chart_3d.html?model=$_selectedModel&v=${DateTime.now().millisecondsSinceEpoch}'),
+                                  'http://localhost:3000/body_chart_v2.html?model=$_selectedModel&v=${DateTime.now().millisecondsSinceEpoch}'),
                             ),
                             initialSettings: InAppWebViewSettings(
                               isInspectable: true,
@@ -436,14 +468,24 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                               allowsInlineMediaPlayback: true,
                               iframeAllowFullscreen: true,
                               transparentBackground: true,
+                              clearCache: true, // FORCE NEW VERSION
                             ),
+                            onConsoleMessage: (controller, consoleMessage) {
+                              debugPrint(
+                                  "JS_LOG: [${consoleMessage.messageLevel}] ${consoleMessage.message}");
+                            },
                             onWebViewCreated: (controller) {
                               _webViewController = controller;
                               _setupJavaScriptHandler(controller);
                             },
                             onLoadStop: (controller, url) async {
-                              setState(() => _isLoading = false);
-                              _syncMarkersToJS();
+                              // Small delay to ensure JS environment is fully ready
+                              await Future.delayed(
+                                  const Duration(milliseconds: 500));
+                              if (mounted) {
+                                setState(() => _isLoading = false);
+                                _syncMarkersToJS();
+                              }
                             },
                           ),
                           if (_isLoading)
