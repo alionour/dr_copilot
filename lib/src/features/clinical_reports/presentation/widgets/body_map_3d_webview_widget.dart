@@ -12,8 +12,9 @@ class BodyMap3DWebViewWidget extends StatefulWidget {
   final List<BodyMarker> markers;
   final Function(BodyMarker) onMarkerAdded;
   final Function(String) onMarkerRemoved;
-  final Function(BodyMarker)? onMarkerUpdated; // Add this
+  final Function(BodyMarker)? onMarkerUpdated;
   final bool isReadOnly;
+  final String? initialModel; // Add optional initial model
 
   const BodyMap3DWebViewWidget({
     super.key,
@@ -22,6 +23,7 @@ class BodyMap3DWebViewWidget extends StatefulWidget {
     required this.onMarkerRemoved,
     this.onMarkerUpdated,
     this.isReadOnly = false,
+    this.initialModel,
   });
 
   @override
@@ -33,9 +35,17 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
   bool _isLoading = true;
 
   // Model selection state
-  String? _selectedModel; // Null = Show selection screen
-  String?
-      _selectedSpecialty; // Null = Show specialty list, otherwise show models for this specialty
+  String? _selectedModel;
+  String? _selectedSpecialty;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with provided model or null
+    _selectedModel = widget.initialModel;
+  }
+
+  // ... (Mapping and methods same)
 
   // Specialty -> Models mapping with icons and landmarks
   final Map<String, Map<String, dynamic>> _specialties = {

@@ -121,15 +121,19 @@ app.use((error, req, res, next) => {
 module.exports.handler = serverless(app);
 
 // --- Local Development Server ---
-if (require.main === module) {
+if (require.main === module && !process.env.prod) {
     const port = process.env.PORT || 3000;
     app.listen(port, () => {
         console.log(`\n✅ Server running on port ${port}`);
-        if (admin.apps.length === 0) {
-            console.log(`   - 3D View: http://localhost:${port}/body_chart_3d.html`);
-        }
+        console.log(`   - API: http://localhost:${port}/api/users`);
+        console.log(`   - 3D View: http://localhost:${port}/body_chart_v2.html`);
     });
 }
-// Wrap the Express app with serverless-http to make it compatible with AWS Lambda
+
+// --- Firebase Cloud Function Export ---
+const functions = require('firebase-functions');
+exports.api = functions.https.onRequest(app);
+
+// --- AWS Lambda Handler (Keep for compatibility) ---
 module.exports.handler = serverless(app);
 module.exports.app = app; // Export for local testing

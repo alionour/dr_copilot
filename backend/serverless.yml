@@ -21,9 +21,9 @@ provider:
   environment:
     # IMPORTANT: Set these variables in your environment or a .env file
     # Example: export FIREBASE_SERVICE_ACCOUNT=$(cat path/to/your/firebase-service-account.json)
-    FIREBASE_SERVICE_ACCOUNT: ${env:FIREBASE_SERVICE_ACCOUNT}
-    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL}
-    APP_URL: ${env:APP_URL}
+    FIREBASE_SERVICE_ACCOUNT: ${env:FIREBASE_SERVICE_ACCOUNT, ''}
+    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, ''}
+    APP_URL: ${env:APP_URL, ''}
 
   # IAM role for the Lambda function
   # This role grants permissions to send emails via SES and write logs to CloudWatch.
