@@ -263,7 +263,7 @@
             if (interactionMode === 'add') {
                 if (!bodyModel) return;
 
-                const bodyIntersects = raycaster.intersectObjects(bodyModel.children, true);
+                const bodyIntersects = raycaster.intersectObjects([bodyModel], true);
                 if (bodyIntersects.length > 0) {
                     transformControl.detach();
 

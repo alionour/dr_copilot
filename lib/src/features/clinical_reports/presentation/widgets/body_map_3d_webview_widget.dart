@@ -252,10 +252,15 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
             })
         .toList();
 
-    _webViewController!.callAsyncJavaScript(
-      functionBody: 'window.updateMarkers(markers)',
-      arguments: {'markers': markersList},
-    );
+    try {
+      _webViewController!.callAsyncJavaScript(
+        functionBody: 'window.updateMarkers(markers)',
+        arguments: {'markers': markersList},
+      );
+    } catch (e) {
+      // Ignore MissingPluginException - happens on Windows during Hot Restart
+      debugPrint('WebView sync error (safe to ignore on Hot Restart): $e');
+    }
   }
 
   Color _parseColor(String hexColor) {
@@ -851,17 +856,6 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
     );
   }
 
-  void _loadModel(String modelFilename) {
-    if (_webViewController != null) {
-      _webViewController!.loadUrl(
-        urlRequest: URLRequest(
-          url: WebUri(
-              'http://localhost:3000/body_chart_3d.html?model=$modelFilename&v=${DateTime.now().millisecondsSinceEpoch}'),
-        ),
-      );
-    }
-  }
-
   void _setupJavaScriptHandler(InAppWebViewController controller) {
     controller.addJavaScriptHandler(
       handlerName: 'onBodyClick',
@@ -1064,9 +1058,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                         _selectedModel = modelFile;
                         _isLoading = true;
                       });
-                      if (_webViewController != null) {
-                        _loadModel(modelFile);
-                      }
+                      // Removed unsafe _loadModel call - setState triggers rebuild with new URL
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
