@@ -45,7 +45,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         {
           'file': 'human_body.glb',
           'name': 'Full Body (Skin)',
-          'markerScale': 3.0,
+          'markerScale': 0.5,
           'landmarks': [
             'Head',
             'Neck',
@@ -61,7 +61,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         {
           'file': 'human_muscles.glb',
           'name': 'Muscular System',
-          'markerScale': 3.0,
+          'markerScale': 0.5,
           'landmarks': [
             'Trapezius',
             'Deltoid',
@@ -84,7 +84,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         {
           'file': 'human_head.glb',
           'name': 'Head / Brain',
-          'markerScale': 1.0,
+          'markerScale': 0.5,
           'landmarks': [
             'Frontal Lobe',
             'Parietal Lobe',
@@ -106,7 +106,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         {
           'file': 'human_skeleton.glb',
           'name': 'Skeleton',
-          'markerScale': 2.0,
+          'markerScale': 0.5,
           'landmarks': [
             'Cervical (C1-C7)',
             'Thoracic (T1-T12)',
@@ -223,7 +223,13 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
   String? _selectedMarkerId; // Currently selected marker for editing
   bool _showLandmarkList =
       true; // Toggle for landmark list sidebar - DEFAULT OPEN
-  String _interactionMode = 'select'; // 'select' or 'add'
+
+  // Per-model interaction mode state
+  final Map<String, String> _modelInteractionModes = {}; // Defaults to 'select'
+
+  String get _currentInteractionMode => _selectedModel != null
+      ? (_modelInteractionModes[_selectedModel!] ?? 'select')
+      : 'select';
 
   @override
   void didUpdateWidget(covariant BodyMap3DWebViewWidget oldWidget) {
@@ -235,6 +241,12 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
   void _syncMarkersToJS() {
     if (_webViewController == null) return;
+
+    // Sync Interaction Mode to JS on every update to resolve persistence issues
+    final currentMode = _currentInteractionMode;
+    _webViewController!.callAsyncJavaScript(
+        functionBody:
+            'if(window.setInteractionMode) window.setInteractionMode("$currentMode");');
 
     final markersList = widget.markers
         .where((m) =>
@@ -346,14 +358,17 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                                     label: Text('Interactive'),
                                   ),
                                 ],
-                                selected: {_interactionMode},
+                                selected: {_currentInteractionMode},
                                 onSelectionChanged: (Set<String> newSelection) {
-                                  setState(() {
-                                    _interactionMode = newSelection.first;
-                                  });
-                                  _webViewController?.callAsyncJavaScript(
-                                      functionBody:
-                                          'window.setInteractionMode("$_interactionMode");');
+                                  if (_selectedModel != null) {
+                                    setState(() {
+                                      _modelInteractionModes[_selectedModel!] =
+                                          newSelection.first;
+                                    });
+                                    _webViewController?.callAsyncJavaScript(
+                                        functionBody:
+                                            'window.setInteractionMode("${newSelection.first}");');
+                                  }
                                 },
                                 style: ButtonStyle(
                                   visualDensity: VisualDensity.compact,
@@ -892,9 +907,13 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
         // Tell JS to select it (might need slight delay for sync)
         Future.delayed(const Duration(milliseconds: 100), () {
-          controller.callAsyncJavaScript(
-              functionBody:
-                  "window.addMarker(${newMarker.x}, ${newMarker.y}, ${newMarker.z}, '${newMarker.color}', '${newMarker.id}', ${newMarker.scale}); transformControl.attach(scene.getObjectByProperty('userData', {id: '${newMarker.id}'}));");
+          try {
+            controller.callAsyncJavaScript(
+                functionBody:
+                    "window.addMarker(${newMarker.x}, ${newMarker.y}, ${newMarker.z}, '${newMarker.color}', '${newMarker.id}', ${newMarker.scale}); transformControl.attach(scene.getObjectByProperty('userData', {id: '${newMarker.id}'}));");
+          } catch (e) {
+            debugPrint('Error adding marker to JS (likely disposed): $e');
+          }
         });
       },
     );

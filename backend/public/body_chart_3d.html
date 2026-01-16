@@ -52,6 +52,15 @@
 
 <body>
     <div id="container"></div>
+    <!-- DEBUG PANEL -->
+    <div id="debug-panel"
+        style="position:fixed; top:10px; left:10px; background:rgba(0,0,0,0.8); color:#0f0; font-family:monospace; padding:10px; border-radius:5px; pointer-events:none; z-index:9999; font-size: 12px; display: block;">
+        [DEBUG DIAGNOSTICS]<br>
+        Mode: <span id="debug-mode">select</span><br>
+        Meshes Found: <span id="debug-meshes">0</span><br>
+        Model: <span id="debug-name">-</span><br>
+        Last Hit: <span id="debug-hit">None</span>
+    </div>
     <div id="tooltip"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -150,7 +159,17 @@
                 const size = box.getSize(new THREE.Vector3());
                 const maxDim = Math.max(size.x, size.y, size.z);
                 const scale = 1.5 / maxDim;
-                bodyModel.scale.setScalar(scale);
+                document.getElementById('debug-name').innerText = modelName;
+
+                // Count visible meshes and force DoubleSide
+                let meshCount = 0;
+                bodyModel.traverse((child) => {
+                    if (child.isMesh) {
+                        meshCount++;
+                        child.material.side = THREE.DoubleSide; // Fix visibility issues
+                    }
+                });
+                document.getElementById('debug-meshes').innerText = meshCount;
 
                 scene.add(bodyModel);
 
@@ -228,6 +247,12 @@
             `;
         };
 
+        window.setInteractionMode = function (mode) {
+            interactionMode = mode;
+            const deb = document.getElementById('debug-mode');
+            if (deb) deb.innerText = mode;
+        };
+
         // Click handler
         renderer.domElement.addEventListener('click', (event) => {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -263,16 +288,37 @@
             if (interactionMode === 'add') {
                 if (!bodyModel) return;
 
-                const bodyIntersects = raycaster.intersectObjects([bodyModel], true);
+                // Explicitly collect all visible meshes for raycasting
+                const meshes = [];
+                bodyModel.traverse((child) => {
+                    if ((child.isMesh || child.isSkinnedMesh) && child.visible) {
+                        meshes.push(child);
+                    }
+                });
+
+                const bodyIntersects = raycaster.intersectObjects(meshes, false);
+
                 if (bodyIntersects.length > 0) {
+                    document.getElementById('debug-hit').innerText = "HIT (" + bodyIntersects[0].object.type + ")";
                     transformControl.detach();
 
                     const intersection = bodyIntersects[0];
                     const point = intersection.point;
                     const normal = intersection.face.normal;
 
+                    // Ensure normal is transformed to world space
+                    normal.transformDirection(intersection.object.matrixWorld);
+
                     const offset = normal.clone().multiplyScalar(defaultMarkerRadius * 0.5);
                     const finalPosition = point.clone().add(offset);
+
+                    // Add visual feedback immediately
+                    const feedbackGeometry = new THREE.SphereGeometry(defaultMarkerRadius / 2, 8, 8);
+                    const feedbackMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+                    const feedbackMsg = new THREE.Mesh(feedbackGeometry, feedbackMaterial);
+                    feedbackMsg.position.copy(finalPosition);
+                    scene.add(feedbackMsg);
+                    setTimeout(() => scene.remove(feedbackMsg), 500);
 
                     if (window.flutter_inappwebview) {
                         window.flutter_inappwebview.callHandler('onBodyClick', {
