@@ -2,7 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 // List of supported locales
-const locales = [Locale('en', ''), Locale('ar', '')];
+const locales = [
+  Locale('en', ''),
+  Locale('ar', ''),
+  Locale('es', ''),
+  Locale('fr', ''),
+  Locale('de', '')
+];
 
 /// A widget that wraps [child] with EasyLocalization configuration for the app.
 class AppLocalization extends StatelessWidget {
@@ -20,3 +26,4 @@ class AppLocalization extends StatelessWidget {
     );
   }
 }
+

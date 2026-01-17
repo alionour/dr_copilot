@@ -22,27 +22,23 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     on<LoadMorePatients>(_onLoadMorePatients);
     on<GetPatientsByDate>(_onGetPatientsByDate);
     on<GetPatientsCount>(_onGetPatientsCount);
-
-    FirebaseFirestore.instance.collection('patients').snapshots().listen(
-      (snapshot) {
-        if (snapshot.docChanges.isNotEmpty) {
-          add(GetPatients());
-        }
-      },
-    );
   }
 
   Future<void> _onGetPatients(
       GetPatients event, Emitter<PatientsState> emit) async {
     emit(PatientsLoading(state.patients));
-    final failureOrPatients = await _patientsUseCase.getPatients(
-      lastDocumentId: event.lastDocumentID, // Corrected property name
-      limit: event.limit, // Removed unnecessary null check
+    final failureOrTuple = await _patientsUseCase.getPatients(
+      lastDocumentId: event.lastDocumentID,
+      limit: event.limit,
     );
-    emit(failureOrPatients.fold(
+    emit(failureOrTuple.fold(
       (failure) =>
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
-      (patients) => PatientsLoaded(patients),
+      (tuple) {
+        final patients = tuple.value1;
+        final lastDocumentSnapshot = tuple.value2;
+        return PatientsLoaded(patients, lastDocument: lastDocumentSnapshot);
+      },
     ));
   }
 
@@ -54,7 +50,15 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       (failure) =>
           PatientsError(state.patients, message: _mapFailureToMessage(failure)),
       (patient) {
-        final patients = List<PatientModel>.from(state.patients)..add(patient);
+        // Insert the new patient in the correct sorted position (descending by createdAt)
+        final patients = List<PatientModel>.from(state.patients)
+          ..add(patient)
+          ..sort((a, b) {
+            if (a.createdAt == null && b.createdAt == null) return 0;
+            if (a.createdAt == null) return 1;
+            if (b.createdAt == null) return -1;
+            return b.createdAt!.compareTo(a.createdAt!);
+          });
         emit(PatientsSuccess(patients,
             message: 'patientAddedSuccessfully'.tr()));
         return PatientsLoaded(patients);
@@ -119,25 +123,32 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
 
   Future<void> _onLoadMorePatients(
       LoadMorePatients event, Emitter<PatientsState> emit) async {
+    debugPrint(
+        'LoadMorePatients event triggered with lastDocumentId: ${event.lastDocumentId} and limit: ${event.limit}');
     if (state is PatientsLoaded) {
       final currentState = state as PatientsLoaded;
       if (currentState.isLoadingMore) return;
 
-      emit(PatientsLoaded(currentState.patients, isLoadingMore: true));
-      await Future.delayed(Duration(seconds: 1));
-      final result = await _patientsUseCase.getPatients(
+      emit(PatientsLoaded(currentState.patients,
+          isLoadingMore: true,
+          lastDocument:
+              currentState.lastDocument)); // Pass existing lastDocument
+      await Future.delayed(const Duration(seconds: 1));
+      final failureOrTuple = await _patientsUseCase.getPatients(
         lastDocumentId: event.lastDocumentId,
         limit: event.limit,
       );
 
-      result.fold(
+      failureOrTuple.fold(
         (failure) {
           debugPrint(
               'LoadMorePatients failed: ${_mapFailureToMessage(failure)}');
           emit(PatientsError(currentState.patients,
               message: _mapFailureToMessage(failure)));
         },
-        (newPatients) {
+        (tuple) {
+          final newPatients = tuple.value1;
+          final lastDocumentSnapshot = tuple.value2;
           debugPrint(
               'Fetched ${newPatients.length} new patients: ${newPatients.map((p) => p.id).toList()}');
           final updatedPatients = List<PatientModel>.from(currentState.patients)
@@ -146,7 +157,8 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
                     (existingPatient) => existingPatient.id == newPatient.id)));
           debugPrint(
               'Updated patients list contains ${updatedPatients.length} patients.');
-          emit(PatientsLoaded(updatedPatients));
+          emit(PatientsLoaded(updatedPatients,
+              lastDocument: lastDocumentSnapshot)); // Pass new lastDocument
         },
       );
     }
@@ -157,18 +169,26 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     emit(PatientsLoading(state.patients));
 
     final result = await _patientsUseCase.getPatientsByDate(
-      event.date,
+      event.year,
+      event.month,
     );
-    emit(result.fold(
-      (failure) =>
-          PatientsError(state.patients, message: _mapFailureToMessage(failure)),
-      (patients) => PatientsLoaded(patients),
-    ));
+    result.fold(
+      (failure) {
+        debugPrint(
+            'GetPatientsByDate failed: ${_mapFailureToMessage(failure)}');
+        emit(PatientsError(state.patients,
+            message: _mapFailureToMessage(failure)));
+      },
+      (patients) {
+        debugPrint(
+            'Fetched ${patients.length} patients for month ${event.month}/${event.year}');
+        emit(PatientsLoaded(patients));
+      },
+    );
   }
 
   Future<void> _onGetPatientsCount(
       GetPatientsCount event, Emitter<PatientsState> emit) async {
-    emit(PatientsLoading(state.patients));
     final failureOrCount = await _patientsUseCase.getPatientsCount();
     emit(failureOrCount.fold(
       (failure) =>
@@ -190,3 +210,4 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
     }
   }
 }
+

@@ -1,42 +1,490 @@
-import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/add_evaluation_page.dart';
-import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/add_session_page.dart';
-import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
-import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
-import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
-import 'package:dr_copilot/src/features/financials/presentation/pages/add_transaction_page.dart';
-import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
+import 'package:dr_copilot/src/features/auth/presentation/pages/signup_page.dart';
+import 'package:dr_copilot/src/features/charts/presentation/bloc/charts_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
-import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/navigation_side.dart';
+import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/settings_page.dart';
+import 'package:dr_copilot/src/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/copilot_page.dart';
+import 'package:dr_copilot/src/features/patients/presentation/pages/patients_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/sessions_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages/add_session_page.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/evaluations_page.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/presentation/pages/add_evaluation_page.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
+import 'package:dr_copilot/src/features/charts/presentation/pages/charts_page.dart';
+import 'package:dr_copilot/src/features/financials/presentation/pages/financials_page.dart';
+import 'package:dr_copilot/src/features/financials/transactions/presentation/pages/add_transaction_page.dart';
+import 'package:dr_copilot/src/features/kiosk/presentation/pages/kiosk_management_page.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_reports_list_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/add_edit_clinical_report_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/create_clinical_report_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_report_details_page.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/presentation/pages/chatgpt_project_list_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/api_key_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/about_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/privacy_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/notifications_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/security_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/data_storage_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/appearance_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/copilot_preferences_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/export_data_page.dart';
+import 'package:dr_copilot/src/features/auth/presentation/pages/login_page.dart';
+import 'package:dr_copilot/src/features/auth/presentation/pages/account_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/model_selection_page.dart';
+import 'package:dr_copilot/src/features/subscription/presentation/pages/subscription_pricing_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/payment_gateway_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/calendar_settings_page.dart';
+
+import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
+import 'package:dr_copilot/src/features/doctors/presentation/pages/add_edit_doctor_page.dart';
+import 'package:dr_copilot/src/features/staff/presentation/pages/staff_page.dart';
+import 'package:dr_copilot/src/features/staff/presentation/pages/add_edit_staff_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/invitations_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/create_invitation_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/accept_invitation_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
+import 'package:dr_copilot/src/features/kiosk/presentation/pages/kiosk_check_in_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
+import 'package:dr_copilot/src/features/team_chat/presentation/pages/user_selection_page.dart';
+import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard_page.dart';
+import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
+import 'package:dr_copilot/src/features/recycle_bin/presentation/pages/recycle_bin_page.dart';
+import 'package:dr_copilot/src/features/inventory/presentation/pages/inventory_page.dart';
+import 'package:dr_copilot/src/features/tasks/presentation/pages/tasks_dashboard_page.dart';
+import 'package:dr_copilot/src/features/tasks/presentation/bloc/tasks_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/shared/presentation/widgets/webview_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
+import 'package:showcaseview/showcaseview.dart';
 
-/// A configuration class for defining routing settings and behaviors within the application.
-/// 
-/// Use this class to specify and manage route-related options, such as route paths,
-/// navigation rules, and other routing-specific configurations.
 class RoutingConfig {
-  /// A static instance of [GoRouter] used to configure and manage the application's routing.
-  /// 
-  /// This router defines the navigation logic and available routes within the app.
-  /// It should be used throughout the application to handle route transitions and deep linking.
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   static final GoRouter router = GoRouter(
-    /// A builder function that returns the widget to display when a routing error occurs.
-    /// 
-    /// The [context] provides the location in the widget tree, and [state] contains
-    /// information about the current routing state. This builder returns an instance
-    /// of [ErrorRoutePage] to inform the user about the navigation error.
     errorBuilder: (context, state) => const ErrorRoutePage(),
-    /// A list of route configurations used to define the navigation structure of the application.
-    /// Each entry in the list represents a route and its associated settings, such as path, widget,
-    /// and any route-specific guards or parameters.
     routes: [
       GoRoute(
         path: '/',
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return ShowCaseWidget(
+            builder: (context) => NavigationSide(child: child),
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/home',
+            name: 'home',
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/calendar',
+            name: 'calendar',
+            builder: (context, state) => const CalendarPage(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/notifications',
+            name: 'notifications_settings',
+            builder: (context, state) => const NotificationsSettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/security',
+            name: 'security_settings',
+            builder: (context, state) => const SecuritySettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/data_storage',
+            name: 'data_storage_settings',
+            builder: (context, state) => const DataStorageSettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/appearance',
+            name: 'appearance_settings',
+            builder: (context, state) => const AppearanceSettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/copilot_preferences',
+            name: 'copilot_preferences',
+            builder: (context, state) => const CopilotPreferencesPage(),
+          ),
+          GoRoute(
+            path: '/settings/calendar_settings',
+            name: 'calendar_settings',
+            builder: (context, state) => const CalendarSettingsPage(),
+          ),
+          GoRoute(
+            path: '/notifications',
+            name: 'notifications',
+            builder: (context, state) => const NotificationsPage(),
+          ),
+          GoRoute(
+            path: '/chat',
+            name: 'chat',
+            builder: (context, state) => const CopilotPage(title: 'Chat'),
+          ),
+          GoRoute(
+            path: '/settings/kiosk_management',
+            name: 'kiosk_management',
+            builder: (context, state) => const KioskManagementPage(),
+          ),
+          GoRoute(
+            path: '/settings/payment_gateway',
+            name: 'payment_gateway',
+            builder: (context, state) => const PaymentGatewaySettingsPage(),
+          ),
+          GoRoute(
+            path: '/kiosk',
+            name: 'kiosk',
+            builder: (context, state) => const KioskCheckInPage(),
+          ),
+          GoRoute(
+            path: '/team_chat',
+            name: 'team_chat',
+            builder: (context, state) => const TeamChatListPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'start_team_chat',
+                builder: (context, state) => const UserSelectionPage(),
+              ),
+              GoRoute(
+                path: ':conversationId',
+                name: 'team_chat_room',
+                builder: (context, state) {
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
+                  return TeamChatPage(conversationId: conversationId);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/teams',
+            name: 'teams',
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<TeamsBloc>(),
+                child: const TeamsDashboardPage(),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/recycle_bin',
+            name: 'recycle_bin',
+            builder: (context, state) => const RecycleBinPage(),
+          ),
+          GoRoute(
+            path: '/tasks',
+            name: 'tasks',
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<TasksBloc>(),
+                child: const TasksDashboardPage(),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/inventory',
+            name: 'inventory',
+            builder: (context, state) => const InventoryPage(),
+          ),
+          GoRoute(
+            path: '/patients',
+            name: 'patients',
+            builder: (context, state) => const PatientsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_patient',
+                builder: (context, state) => const AddPatientPage(),
+              ),
+              GoRoute(
+                path: 'edit',
+                name: 'edit_patient',
+                builder: (context, state) {
+                  final patient = state.extra as PatientModel;
+                  return AddPatientPage(patient: patient);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/sessions',
+            name: 'sessions',
+            builder: (context, state) => const SessionsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_session',
+                builder: (context, state) => const AddSessionPage(),
+              ),
+              GoRoute(
+                path: 'edit',
+                name: 'edit_session',
+                builder: (context, state) {
+                  final session = state.extra as SessionModel;
+                  return AddSessionPage(session: session);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/evaluations',
+            name: 'evaluations',
+            builder: (context, state) => const EvaluationsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_evaluation',
+                builder: (context, state) => const AddEvaluationPage(),
+              ),
+              GoRoute(
+                path: 'edit',
+                name: 'edit_evaluation',
+                builder: (context, state) {
+                  final evaluation = state.extra as EvaluationModel;
+                  return AddEvaluationPage(evaluation: evaluation);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/charts',
+            name: 'charts',
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<ChartsBloc>(),
+                child: const ChartsPage(),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/financials',
+            name: 'financials',
+            builder: (context, state) => const FinancialsPage(),
+            routes: [
+              GoRoute(
+                path: 'transactions/new',
+                name: 'add_edit_transaction',
+                builder: (context, state) {
+                  final transaction = state.extra as TransactionModel?;
+                  return AddTransactionPage(transaction: transaction);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/clinical_reports',
+            name: 'clinical_reports',
+            builder: (context, state) => const ClinicalReportsListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'create_clinical_report',
+                builder: (context, state) => const CreateClinicalReportPage(),
+              ),
+              GoRoute(
+                path: 'new',
+                name: 'add_clinical_report',
+                builder: (context, state) {
+                  final patientId = state.uri.queryParameters['patientId'];
+                  return AddEditClinicalReportPage(patientId: patientId);
+                },
+              ),
+              GoRoute(
+                path: 'clinical_report_details/:reportId',
+                name: 'clinical_report_details',
+                builder: (context, state) {
+                  final reportId = state.pathParameters['reportId']!;
+                  return ClinicalReportDetailsPage(reportId: reportId);
+                },
+              ),
+              GoRoute(
+                path: ':reportId/edit',
+                name: 'edit_clinical_report',
+                builder: (context, state) {
+                  final reportId = state.pathParameters['reportId']!;
+                  return AddEditClinicalReportPage(reportId: reportId);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/chatgpt_project',
+            name: 'chatgpt_project',
+            builder: (context, state) => const ChatGptProjectListPage(),
+          ),
+          GoRoute(
+            path: '/settings/api_key',
+            name: 'api_key_settings',
+            builder: (context, state) {
+              final from = state.uri.queryParameters['from'];
+              return ApiKeySettingsPage(from: from);
+            },
+          ),
+          GoRoute(
+            path: '/settings/model_selection',
+            name: 'model_selection',
+            builder: (context, state) => const ModelSelectionPage(),
+          ),
+          GoRoute(
+            path: '/settings/export_data',
+            name: 'export_data',
+            builder: (context, state) => const ExportDataPage(),
+          ),
+          GoRoute(
+            path: '/settings/subscription',
+            name: 'subscription',
+            builder: (context, state) => const SubscriptionPricingPage(),
+          ),
+          GoRoute(
+            path: '/doctors',
+            name: 'doctors',
+            builder: (context, state) => const DoctorsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_doctor',
+                builder: (context, state) => const AddEditDoctorPage(),
+              ),
+              GoRoute(
+                path: ':doctorId',
+                name: 'edit_doctor',
+                builder: (context, state) {
+                  final doctorId = state.pathParameters['doctorId'];
+                  return AddEditDoctorPage(doctorId: doctorId);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/staff',
+            name: 'staff',
+            builder: (context, state) => const StaffPage(),
+          ),
+          GoRoute(
+            path: '/staff/add',
+            name: 'add_staff',
+            builder: (context, state) => const AddEditStaffPage(),
+          ),
+          GoRoute(
+            path: '/staff/:staffId',
+            name: 'edit_staff',
+            builder: (context, state) {
+              final staffId = state.pathParameters['staffId'];
+              return AddEditStaffPage(staffId: staffId);
+            },
+          ),
+          GoRoute(
+            path: '/invitations',
+            name: 'invitations',
+            builder: (context, state) {
+              return FutureBuilder<Either<Failure, UserModel?>>(
+                future: sl<AuthUseCase>().getCurrentUser(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  final user =
+                      snapshot.data?.fold((failure) => null, (user) => user);
+
+                  final clinicId = user?.primaryClinicId;
+                  if (clinicId == null || clinicId.isEmpty) {
+                    return Scaffold(
+                      appBar: AppBar(title: Text('invitations'.tr())),
+                      body: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.warning_amber_rounded,
+                                  size: 80, color: Colors.orange),
+                              const SizedBox(height: 24),
+                              Text(
+                                'No clinic assigned',
+                                style: Theme.of(context).textTheme.titleLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'You need to be assigned to a clinic to view invitations. Please contact your administrator.',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return InvitationsPage(clinicId: clinicId);
+                },
+              );
+            },
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'create-invitation',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>;
+                  final clinicId = extra['clinicId'] as String;
+                  final currentUserId = extra['currentUserId'] as String;
+
+                  return BlocProvider.value(
+                    value: sl<InvitationBloc>(),
+                    child: CreateInvitationPage(
+                      clinicId: clinicId,
+                      currentUserId: currentUserId,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/help_support',
+            name: 'help_support',
+            builder: (context, state) => const HelpSupportPage(),
+          ),
+          GoRoute(
+            path: '/about',
+            name: 'about',
+            builder: (context, state) => const AboutPage(),
+          ),
+          GoRoute(
+            path: '/privacy',
+            name: 'privacy',
+            builder: (context, state) => const PrivacyPage(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/account',
@@ -44,126 +492,47 @@ class RoutingConfig {
         builder: (context, state) => const AccountPage(),
       ),
       GoRoute(
-        path: '/home',
-        name: 'home',
-        builder: (context, state) => const HomePage(),
+        path: '/accept-invitation',
+        name: 'accept-invitation',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'];
+          if (token == null || token.isEmpty) {
+            return const ErrorRoutePage();
+          }
+          return AcceptInvitationPage(token: token);
+        },
       ),
       GoRoute(
-        path: '/patients/new',
-        name: '/patients/new',
-        builder: (context, state) => const AddPatientPage(),
+        path: '/signup',
+        name: 'signup',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return SignupPage(
+            invitationToken: extra?['invitationToken'] as String?,
+            email: extra?['email'] as String?,
+            name: extra?['name'] as String?,
+            clinicName: extra?['clinicName'] as String?,
+            clinicId: extra?['clinicId'] as String?,
+            role: extra?['role'] as String?,
+          );
+        },
       ),
       GoRoute(
-        path: '/sessions/new',
-        name: '/sessions/new',
-        builder: (context, state) => const AddSessionPage(),
-      ),
-      GoRoute(
-        path: '/evaluations/new',
-        name: '/evaluations/new',
-        builder: (context, state) => const AddEvaluationPage(),
-      ),
-      GoRoute(
-        path: '/events/new',
-        name: '/events/new',
-        builder: (context, state) => const AddCalendarEventPage(),
-      ),
-      GoRoute(
-        path: '/about',
-        name: 'about',
-        builder: (context, state) => const AboutPage(),
-      ),
-      GoRoute(
-        path: '/help_support',
-        name: 'help_support',
-        builder: (context, state) => const HelpSupportPage(),
-      ),
-      GoRoute(
-        path: '/privacy',
-        name: 'privacy',
-        builder: (context, state) => const PrivacyPage(),
-      ),
-      GoRoute(
-        path: '/add_transaction',
-        name: 'add_transaction',
-        builder: (context, state) => const AddTransactionPage(),
+        path: '/webview',
+        name: 'webview',
+        builder: (context, state) {
+          final title = state.uri.queryParameters['title'] ?? 'Web View';
+          final url = state.uri.queryParameters['url'];
+          if (url == null) {
+            return const ErrorRoutePage();
+          }
+          return WebViewScreen(title: title, url: url);
+        },
       ),
     ],
   );
-
-  /// Returns the [GoRoute] that matches the given [path], or `null` if no match is found.
-  ///
-  /// [path]: The route path to search for.
-  ///
-  /// Returns a [GoRoute] if a matching route exists, otherwise returns `null`.
-  GoRoute? getRoute(String path) {
-    switch (path) {
-      case '/':
-        return GoRoute(
-            path: '/',
-            name: 'login',
-            builder: (context, state) => const LoginPage());
-      case '/home':
-        return GoRoute(
-            path: '/home',
-            name: 'home',
-            builder: (context, state) => const HomePage());
-      case '/sessions/new':
-        return GoRoute(
-            path: '/sessions/new',
-            name: '/sessions/new',
-            builder: (context, state) => const AddSessionPage());
-      case '/evaluations/new':
-        return GoRoute(
-            path: '/evaluations/new',
-            name: '/evaluations/new',
-            builder: (context, state) => const AddEvaluationPage());
-      case '/events/new':
-        return GoRoute(
-            path: '/events/new',
-            name: '/events/new',
-            builder: (context, state) => const AddCalendarEventPage());
-      case '/patients/new':
-        return GoRoute(
-            path: '/patients/new',
-            name: '/patients/new',
-            builder: (context, state) => const AddPatientPage());
-      case '/about':
-        return GoRoute(
-            path: '/about',
-            name: 'about',
-            builder: (context, state) => const AboutPage());
-      case '/help_support':
-        return GoRoute(
-            path: '/help_support',
-            name: 'help_support',
-            builder: (context, state) => const HelpSupportPage());
-      case '/privacy':
-        return GoRoute(
-            path: '/privacy',
-            name: 'privacy',
-            builder: (context, state) => const PrivacyPage());
-      case '/add_transaction':
-        return GoRoute(
-            path: '/add_transaction',
-            name: '/add_transaction',
-            builder: (context, state) => const AddTransactionPage());
-      case '/account':
-        return GoRoute(
-            path: '/account',
-            name: 'account',
-            builder: (context, state) => const AccountPage());
-
-      default:
-        return null;
-    }
-  }
 }
 
-/// A [StatelessWidget] that represents a page displayed when a routing error occurs.
-/// 
-/// Typically used to show an error message or fallback UI when navigation fails
-/// or an invalid route is accessed within the application.
 class ErrorRoutePage extends StatelessWidget {
   const ErrorRoutePage({super.key});
 
@@ -171,11 +540,11 @@ class ErrorRoutePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('errorPageTitle'.tr()), // Example: "Page Not Found"
+        title: Text('errorPageTitle'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(); // Navigate back to the previous page
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -185,25 +554,19 @@ class ErrorRoutePage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.red,
-              ),
+              const Icon(Icons.error_outline, size: 80, color: Colors.red),
               const SizedBox(height: 16),
               Text(
-                'errorPageMessage'
-                    .tr(), // Example: "The page you are looking for does not exist."
+                'errorPageMessage'.tr(),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate back to the home page
-                  Navigator.of(context).pushReplacementNamed('/home');
+                  context.go('/home');
                 },
-                child: Text('goToHome'.tr()), // Example: "Go to Home"
+                child: Text('goToHome'.tr()),
               ),
             ],
           ),

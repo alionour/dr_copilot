@@ -20,8 +20,6 @@ class NavigateUpEvent extends NavigationEvent {}
 
 class NavigateDownEvent extends NavigationEvent {}
 
-class GetUserData extends NavigationEvent {}
-
 class ChangeFocusEvent extends NavigationEvent {
   final bool isFocused;
   const ChangeFocusEvent(this.isFocused);
@@ -30,36 +28,20 @@ class ChangeFocusEvent extends NavigationEvent {
   List<Object?> get props => [isFocused];
 }
 
-/// Model for navigation items.
-class NavItemModel {
-  final String title;
-  final IconData icon;
+class UserChanged extends NavigationEvent {
+  final UserModel? user;
+  const UserChanged(this.user);
 
-  const NavItemModel(this.title, this.icon);
+  @override
+  List<Object?> get props => [user];
 }
 
-/// Enum representing different navigation destinations.
-enum Destination {
-  copilot(
-      NavItemModel('copilot', Icons.dashboard_outlined), 'Navigate to Copilot'),
-  calendar(NavItemModel('calendar', Icons.calendar_month_outlined),
-      'View your calendar'),
-  settings(NavItemModel('settings', Icons.settings_suggest_outlined),
-      'Adjust your settings'),
-  notifications(NavItemModel('notifications', Icons.notifications_on_outlined),
-      'View notifications'),
-  chat(NavItemModel('chat', Icons.chat_outlined), 'Open chat'),
-  patients(NavItemModel('patients', Icons.people), 'Manage your patients'),
-  sessions(
-      NavItemModel('sessions', Icons.schedule_outlined), 'View your sessions'),
-  evaluations(NavItemModel('evaluations', Icons.assessment_outlined),
-      'View evaluations'),
-  charts(
-      NavItemModel('charts', Icons.area_chart_outlined), 'Navigate to Charts'),
-  financials(NavItemModel('financials', Icons.attach_money_outlined),
-      'Manage your financials');
+class DestinationsUpdated extends NavigationEvent {
+  final Map<String, List<Destination>> destinations;
+  const DestinationsUpdated(this.destinations);
 
-  final NavItemModel model;
-  final String message; // Tooltip or explanation for the destination
-  const Destination(this.model, this.message);
+  @override
+  List<Object?> get props => [destinations];
 }
+
+

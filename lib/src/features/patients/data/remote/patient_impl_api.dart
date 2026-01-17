@@ -82,3 +82,4 @@ class PatientImplApi implements AbstractPatientApi {
     }
   }
 }
+

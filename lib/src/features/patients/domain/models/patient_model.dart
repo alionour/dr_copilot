@@ -11,7 +11,8 @@ class PatientModel {
   final int? age;
   final String? gender;
   final String? address;
-  final String userId;
+  final String ownerId;
+  final String clinicId;
   final String? phoneNumber;
   final String? alternativePhoneNumber;
   final String? treatingDoctor;
@@ -37,7 +38,8 @@ class PatientModel {
     this.age,
     this.gender,
     this.address,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     this.phoneNumber,
     this.alternativePhoneNumber,
     this.treatingDoctor,
@@ -64,7 +66,8 @@ class PatientModel {
     int? age,
     String? gender,
     String? address,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? phoneNumber,
     String? alternativePhoneNumber,
     String? treatingDoctor,
@@ -82,7 +85,8 @@ class PatientModel {
       age: age ?? this.age,
       gender: gender ?? this.gender,
       address: address ?? this.address,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       alternativePhoneNumber:
           alternativePhoneNumber ?? this.alternativePhoneNumber,
@@ -119,3 +123,4 @@ class TimestampConverter implements JsonConverter<Timestamp?, dynamic> {
   @override
   dynamic toJson(Timestamp? object) => object;
 }
+

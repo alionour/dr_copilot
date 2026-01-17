@@ -1,11 +1,15 @@
 import 'package:dr_copilot/src/features/appointments/sessions/domain/models/session_model.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/bloc/sessions_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/presentation/widgets/session_list_item.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 class SessionsPage extends StatefulWidget {
   const SessionsPage({super.key});
@@ -48,16 +52,19 @@ class _SessionsPageState extends State<SessionsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    // Only trigger when scrolling down and near the end
+    if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.reverse &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<SessionsBloc>().state;
       if (state is SessionsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
           _canLoadMore = false;
-          context.read<SessionsBloc>().add(LoadMoreSessions(
-                lastDocumentId: state.sessions.last.id,
-                limit: 20,
-              ));
+          context.read<SessionsBloc>().add(
+                LoadMoreSessions(
+                    lastDocumentId: state.sessions.last.id, limit: 20),
+              );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -68,41 +75,49 @@ class _SessionsPageState extends State<SessionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
+    final isMobile = ScreenSizeHelper.isSmall(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Expanded(
-              child: Focus(
-                focusNode: _searchFocusNode,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'searchSessions'.tr(),
-                    prefixIcon: Icon(Icons.search,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: BorderSide(
+            if (!(isMobile && _showFilters))
+              Expanded(
+                child: Focus(
+                  focusNode: _searchFocusNode,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'searchSessions'.tr(),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
                           color: Theme.of(context).colorScheme.primary,
-                          width: 0.3),
+                          width: 0.3,
+                        ),
+                      ),
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    hintStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    onChanged: (newQuery) {
+                      setState(() {
+                        query = newQuery;
+                        _selectedIndex = 0; // Reset selection on new query
+                      });
+                      context.read<SessionsBloc>().add(
+                            SearchSessions(name: query),
+                          ); // Trigger search event
+                    },
+                    onSubmitted: (_) {
+                      _listFocusNode.requestFocus();
+                    },
                   ),
-                  onChanged: (newQuery) {
-                    setState(() {
-                      query = newQuery;
-                      _selectedIndex = 0; // Reset selection on new query
-                    });
-                    context.read<SessionsBloc>().add(
-                        SearchSessions(name: query)); // Trigger search event
-                  },
-                  onSubmitted: (_) {
-                    _listFocusNode.requestFocus();
-                  },
                 ),
               ),
-            ),
             // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -122,27 +137,28 @@ class _SessionsPageState extends State<SessionsPage> {
                 //   color: Theme.of(context)
                 //       .colorScheme
                 //       .primary
-                //       .withOpacity(0.3), // Adjusted color to be less intense
+                //       .withValues(alpha: 0.3), // Adjusted color to be less intense
                 //   width: 0.3, // Made the border thinner
                 // ),
                 borderRadius: BorderRadius.circular(12.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withValues(alpha: 0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.filter_alt),
+                    icon: const Icon(Icons.filter_alt_outlined),
                     tooltip: 'toggleFilters'.tr(),
                     onPressed: () {
                       setState(() {
@@ -178,9 +194,9 @@ class _SessionsPageState extends State<SessionsPage> {
                           });
                           if (!context.mounted) return;
 
-                          context
-                              .read<SessionsBloc>()
-                              .add(GetSessionsByDate(date: selectedDate));
+                          context.read<SessionsBloc>().add(
+                                GetSessionsByDate(date: selectedDate),
+                              );
                         }
                       },
                     ),
@@ -188,6 +204,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 ],
               ),
             ),
+            if (navMenuButton != null) navMenuButton,
           ],
         ),
       ),
@@ -196,27 +213,30 @@ class _SessionsPageState extends State<SessionsPage> {
           if (state is SessionsSuccess) {
             final message = state.message;
             if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             }
           } else if (state is SessionsError) {
             final message = state.message;
             if (message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             }
-          } 
+          } else if (state is SessionsCountLoaded) {
+            setState(() {
+              _firestoreSessionsCount = state.count;
+            });
+          }
         },
         child: BlocBuilder<SessionsBloc, SessionsState>(
           builder: (context, state) {
             if (state is SessionsLoading) {
               return Shimmer.fromColors(
-                baseColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                baseColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 highlightColor: Theme.of(context).colorScheme.surface,
                 child: ListView.builder(
                   itemCount: 10,
@@ -230,22 +250,20 @@ class _SessionsPageState extends State<SessionsPage> {
                 ),
               );
             } else if (state is SessionsLoaded ||
-                state is SessionsLoadingMore) {
-              final sessions = state is SessionsLoaded
+                state is SessionsLoadingMore ||
+                state is SessionsCountLoaded) {
+              final sessions = (state is SessionsLoaded)
                   ? state.sessions
-                  : (state as SessionsLoadingMore).sessions;
+                  : (state is SessionsLoadingMore)
+                      ? state.sessions
+                      : <SessionModel>[];
 
-              if (sessions.isEmpty) {
-                return Center(
-                  child: Text('noSessionsMatch'.tr()),
-                );
-              }
-
-              // Group sessions by creation date
               final groupedSessions = <String, List<SessionModel>>{};
               for (var session in sessions) {
-                final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(session.startDateTime.toDate());
+                final creationDate = session.startDateTime
+                    .toDate()
+                    .toIso8601String()
+                    .split('T')[0];
                 groupedSessions
                     .putIfAbsent(creationDate, () => [])
                     .add(session);
@@ -260,11 +278,14 @@ class _SessionsPageState extends State<SessionsPage> {
                   // Add a label to show the total number of sessions (like patients_page)
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Icon(Icons.assignment, size: 20, color: Colors.blue),
+                        Icon(Icons.assignment_outlined,
+                            size: 20, color: Colors.blue),
                         const SizedBox(width: 4),
                         Text(
                           '${sessions.length} ',
@@ -275,12 +296,13 @@ class _SessionsPageState extends State<SessionsPage> {
                                   ),
                         ),
                         Text(
-                          'sessionsLoaded'.tr(),
+                          'loaded'.tr(),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         if (_firestoreSessionsCount != null) ...[
                           const SizedBox(width: 16),
-                          Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
+                          Icon(Icons.cloud_outlined,
+                              size: 18, color: Colors.deepPurple),
                           const SizedBox(width: 2),
                           Text(
                             '$_firestoreSessionsCount',
@@ -293,10 +315,10 @@ class _SessionsPageState extends State<SessionsPage> {
                                 ),
                           ),
                           Text(
-                            ' ${'storedSessions'.tr()} ',
+                            ' ${'stored'.tr()} ',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                        ]
+                        ],
                       ],
                     ),
                   ),
@@ -314,11 +336,14 @@ class _SessionsPageState extends State<SessionsPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
+                                vertical: 8.0,
+                                horizontal: 16.0,
+                              ),
                               child: Text(
                                 _getDateLabel(dateKey),
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
                               ),
                             ),
                             ...sessionsForDate.map((session) {
@@ -339,8 +364,9 @@ class _SessionsPageState extends State<SessionsPage> {
                   if (state is SessionsLoaded && state.isLoadingMore ||
                       state is SessionsLoadingMore)
                     Shimmer.fromColors(
-                      baseColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      baseColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       highlightColor: Theme.of(context).colorScheme.surface,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -361,7 +387,14 @@ class _SessionsPageState extends State<SessionsPage> {
 
               return Center(child: Text('Error: ${state.message}'));
             }
-            return Center(child: Text('noSessionsFound'.tr()));
+            return EmptyStateWidget(
+              message: 'noSessionsFound'.tr(),
+              title: 'noSessions'.tr(),
+              actionLabel: 'addSession'.tr(),
+              onActionPressed: () {
+                context.push('/sessions/new');
+              },
+            );
           },
         ),
       ),
@@ -405,13 +438,16 @@ class _SessionsPageState extends State<SessionsPage> {
       if (parsedDate.year == today.year &&
           parsedDate.month == today.month &&
           parsedDate.day == today.day) {
-        return 'Today';
+        return 'today'.tr();
       } else if (parsedDate.year == yesterday.year &&
           parsedDate.month == yesterday.month &&
           parsedDate.day == yesterday.day) {
-        return 'Yesterday';
+        return 'yesterday'.tr();
       }
     }
-    return dateKey;
+    return DateFormat(
+      'EEEE, MMMM dd, yyyy',
+      context.locale.toString(),
+    ).format(parsedDate ?? DateTime.now());
   }
 }

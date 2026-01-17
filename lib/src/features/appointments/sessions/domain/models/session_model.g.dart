@@ -12,16 +12,17 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       price: (json['price'] as num).toDouble(),
       startDateTime: const TimestampConverter().fromJson(json['startDateTime']),
       endDateTime: const TimestampConverter().fromJson(json['endDateTime']),
-      sessionType:
-          $enumDecodeNullable(_$SessionTypeEnumMap, json['sessionType']),
-      userId: json['userId'] as String,
+      sessionType: json['sessionType'] as String?,
+      ownerId: json['ownerId'] as String,
+      clinicId: json['clinicId'] as String,
       createdBy: json['createdBy'] as String,
       patientName: json['patientName'] as String?,
       updatedBy: json['updatedBy'] as String?,
       deletedBy: json['deletedBy'] as String?,
       deletedAt: const NullableTimestampConverter().fromJson(json['deletedAt']),
-      createdAt: const NullableTimestampConverter().fromJson(json['createdAt']),
+      createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
+      doctorId: json['doctorId'] as String?,
     );
 
 Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
@@ -32,23 +33,17 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'startDateTime':
           const TimestampConverter().toJson(instance.startDateTime),
       'endDateTime': const TimestampConverter().toJson(instance.endDateTime),
-      'sessionType': _$SessionTypeEnumMap[instance.sessionType],
-      'userId': instance.userId,
+      'sessionType': instance.sessionType,
+      'ownerId': instance.ownerId,
+      'clinicId': instance.clinicId,
       'createdBy': instance.createdBy,
       'patientName': instance.patientName,
       'updatedBy': instance.updatedBy,
       'deletedBy': instance.deletedBy,
       'deletedAt':
           const NullableTimestampConverter().toJson(instance.deletedAt),
-      'createdAt':
-          const NullableTimestampConverter().toJson(instance.createdAt),
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'updatedAt':
           const NullableTimestampConverter().toJson(instance.updatedAt),
+      'doctorId': instance.doctorId,
     };
-
-const _$SessionTypeEnumMap = {
-  SessionType.pediatricIntensive: 'pediatricIntensive',
-  SessionType.adultIntensive: 'adultIntensive',
-  SessionType.standard: 'standard',
-  SessionType.traction: 'traction',
-};

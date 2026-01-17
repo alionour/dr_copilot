@@ -1,0 +1,161 @@
+name: Deploy Windows (Store & ZIP)
+
+on:
+  push:
+    tags:
+      - 'v*'            # Triggers all workflows
+      - 'windows-v*'    # Triggers only Windows
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-msix:
+    name: Build MSIX
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\Pub\Cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Cache Nuget packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.config', '**/*.vcxproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run Screenshot Tests (Validation)
+        run: |
+          flutter test integration_test/dashboard_screenshot_test.dart -d windows
+          flutter test integration_test/team_chat_screenshot_test.dart -d windows
+          flutter test integration_test/copilot_screenshot_test.dart -d windows
+          flutter test integration_test/calendar_screenshot_test.dart -d windows
+          flutter test integration_test/patients_screenshot_test.dart -d windows
+
+      - name: Get build number from commit count
+        id: build_number
+        run: |
+          $build_number = git rev-list --count HEAD
+          echo "build_number=$build_number" >> $env:GITHUB_OUTPUT
+          Write-Host "Build number: $build_number"
+
+      - name: Update version in pubspec.yaml
+        run: |
+          $build_number = "${{ steps.build_number.outputs.build_number }}"
+          # Read pubspec
+          $content = Get-Content pubspec.yaml -Raw
+          # Extract version
+          if ($content -match 'version:\s*([^\+]+)') {
+            $base_version = $matches[1].Trim()
+            $new_version_line = "version: $base_version.$build_number"
+            $content = $content -replace 'version:.*', $new_version_line
+            Set-Content pubspec.yaml $content
+            Write-Host "Updated pubspec version to $base_version.$build_number"
+          }
+
+      - name: Create MSIX Config
+        run: echo "Configuring MSIX..."
+
+      - name: Build MSIX
+        run: flutter pub run msix:create --store
+
+      - name: Locate Build Output
+        id: locate_build
+        run: |
+          if (Test-Path "build/windows/x64/runner/Release") {
+            echo "RELEASE_PATH=build/windows/x64/runner/Release" >> $env:GITHUB_ENV
+          } elseif (Test-Path "build/windows/runner/Release") {
+            echo "RELEASE_PATH=build/windows/runner/Release" >> $env:GITHUB_ENV
+          } else {
+            Write-Error "Could not find Release directory!"
+          }
+
+      - name: Upload MSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: msix-package
+          path: ${{ env.RELEASE_PATH }}/*.msix
+          retention-days: 1
+
+      - name: Create Windows ZIP Archive
+        run: |
+          $releasePath = "${{ env.RELEASE_PATH }}"
+          Write-Host "Zipping from $releasePath"
+          cd $releasePath
+          powershell Compress-Archive -Path * -DestinationPath "../../../../dr_copilot-windows-${{ github.ref_name }}.zip" -Force
+          cd ../../../..
+
+      - name: Upload ZIP to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dr_copilot-windows-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: false
+
+  publish-store:
+    name: Publish to Store
+    needs: build-msix
+    runs-on: windows-latest
+    steps:
+      - name: Download MSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: msix-package
+          path: dist
+
+      - name: Setup MSStore CLI
+        uses: microsoft/setup-msstore-cli@v1
+
+      - name: Authenticate with Microsoft Store
+        run: msstore reconfigure --tenantId ${{ secrets.MSSTORE_TENANT_ID }} --sellerId ${{ secrets.MSSTORE_SELLER_ID }} --clientId ${{ secrets.MSSTORE_CLIENT_ID }} --clientSecret ${{ secrets.MSSTORE_CLIENT_SECRET }}
+
+      - name: Publish to Microsoft Store
+        run: |
+          # 1. Get current submission
+          $appId = "${{ secrets.MSSTORE_APP_ID }}"
+          Write-Host "Fetching submission for App ID: $appId"
+          msstore submission get --appId $appId > submission.json
+          
+          # 2. Update metadata using our script
+          # Note: We point to the Android metadata folder
+          ./scripts/update_windows_metadata.ps1 -SubmissionJsonPath "submission.json" -MetadataBasePath "android/fastlane/metadata/android"
+          
+          # 3. Publish the updated submission (including the binary)
+          $msixPath = Get-ChildItem -Path dist/ -Filter *.msix | Select-Object -First 1 -ExpandProperty FullName
+          Write-Host "Publishing $msixPath with updated metadata..."
+          
+          # We use `msstore submission update` to push the JSON changes + the new package
+          # Note: The CLI command might vary slightly for combined update + package. 
+          # A common pattern is to update submission with JSON, then upload package. 
+          # Or `msstore publish` might take --body. 
+          # Let's try updating the submission object first, then publishing.
+          
+          msstore submission update --appId $appId --body "submission.json"
+          
+          # Finally publish the package if the above didn't handle it, or use `msstore publish` which is higher level.
+          # `msstore publish` technically replaces the "submission update" for simple cases.
+          # If we want to be safe and simple, we run the update above, THEN publish the package.
+          
+          msstore publish "$msixPath" --appId $appId --verbose

@@ -1,49 +1,130 @@
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+
+import 'package:flutter/services.dart' show rootBundle;
+
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
-    as g_sign_in_all;
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:googleapis/calendar/v3.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+
+import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:universal_io/io.dart' as io;
-import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
 
-/// A list of OAuth 2.0 scopes required for Google Sign-In and Google Calendar API access.
-///
-/// Includes basic user profile information (`profile`, `email`, `openid`) and various
-/// Google Calendar API scopes for different levels of access:
-/// - [CalendarApi.calendarScope]: Full access to the user's calendar.
-/// - [CalendarApi.calendarEventsScope]: Manage the user's calendar events.
-/// - [CalendarApi.calendarReadonlyScope]: Read-only access to the user's calendar.
-/// - [CalendarApi.calendarEventsReadonlyScope]: Read-only access to the user's calendar events.
-/// - [CalendarApi.calendarSettingsReadonlyScope]: Read-only access to the user's calendar settings.
-final scopes = [
-  'profile',
-  'email',
-  'openid',
-  CalendarApi.calendarScope,
-  CalendarApi.calendarEventsScope,
-  CalendarApi.calendarReadonlyScope,
-  CalendarApi.calendarEventsReadonlyScope,
-  CalendarApi.calendarSettingsReadonlyScope
-];
+/// A list of OAuth 2.0 scopes required for Google Sign-In, Calendar, Drive, and Docs API access.
+List<String> get scopes {
+  final basicScopes = [
+    'profile',
+    'email',
+    'openid',
+  ];
+
+  final sensitiveScopes = [
+    CalendarApi.calendarScope,
+    CalendarApi.calendarEventsScope,
+    CalendarApi.calendarReadonlyScope,
+    CalendarApi.calendarEventsReadonlyScope,
+    CalendarApi.calendarSettingsReadonlyScope,
+    // Downgrade to drive.file to avoid CASA security assessment
+    drive.DriveApi.driveFileScope,
+  ];
+
+  try {
+    final remoteConfig = sl<RemoteConfigService>();
+    if (remoteConfig.enableSensitiveScopes) {
+      return [...basicScopes, ...sensitiveScopes];
+    }
+  } catch (e) {
+    debugPrint('Error fetching remote config for scopes: $e');
+  }
+
+  return basicScopes;
+}
 
 /// Custom AuthClient for using a saved access token with Google APIs
 class AuthClient extends BaseClient {
   final String accessToken;
   final Client _inner = Client();
-  AuthClient(this.accessToken);
+  final Future<String?> Function()? refreshTokenCallback;
+  AuthClient(this.accessToken, {this.refreshTokenCallback});
+
   @override
-  Future<StreamedResponse> send(BaseRequest request) {
-    request.headers['Authorization'] = 'Bearer $accessToken';
-    return _inner.send(request);
+  Future<StreamedResponse> send(BaseRequest request) async {
+    String token = accessToken;
+    request.headers['Authorization'] = 'Bearer $token';
+    StreamedResponse response = await _inner.send(request);
+    // If unauthorized, try to refresh token and retry once
+    if (response.statusCode == 401 && refreshTokenCallback != null) {
+      debugPrint('[AuthClient] 401 received, attempting to refresh token...');
+      final newToken = await refreshTokenCallback!();
+      debugPrint('[AuthClient] Token after refresh: $newToken');
+      if (newToken != null && newToken != token) {
+        // Clone the request for retry
+        debugPrint('[AuthClient] Cloning request and retrying with new token.');
+        final clonedRequest = _cloneRequest(request);
+        clonedRequest.headers['Authorization'] = 'Bearer $newToken';
+        return _inner.send(clonedRequest);
+      } else {
+        debugPrint('[AuthClient] Token refresh failed or token unchanged.');
+      }
+    }
+    return response;
+  }
+
+  /// Helper to clone a BaseRequest (supports Request and MultipartRequest)
+  BaseRequest _cloneRequest(BaseRequest request) {
+    if (request is Request) {
+      final cloned = Request(request.method, request.url);
+      cloned.headers.addAll(request.headers);
+      cloned.followRedirects = request.followRedirects;
+      cloned.maxRedirects = request.maxRedirects;
+      cloned.persistentConnection = request.persistentConnection;
+      if (request.bodyBytes.isNotEmpty) {
+        cloned.bodyBytes = request.bodyBytes;
+      }
+      return cloned;
+    } else if (request is MultipartRequest) {
+      final cloned = MultipartRequest(request.method, request.url);
+      cloned.headers.addAll(request.headers);
+      cloned.fields.addAll(request.fields);
+      cloned.files.addAll(request.files);
+      cloned.followRedirects = request.followRedirects;
+      cloned.maxRedirects = request.maxRedirects;
+      cloned.persistentConnection = request.persistentConnection;
+      return cloned;
+    } else {
+      // Fallback for internal implementations like RequestImpl or generic BaseRequests
+      // We assume it's a standard request. For GET/HEAD/DELETE, body is typically empty.
+      // If it has a body and we can't read it (BaseRequest doesn't expose it), we might lose it,
+      // but retrying with partial data is better than crashing.
+      debugPrint(
+        '[AuthClient] _cloneRequest handling generic/unknown request type: ${request.runtimeType}',
+      );
+      final cloned = Request(request.method, request.url);
+      cloned.headers.addAll(request.headers);
+      cloned.followRedirects = request.followRedirects;
+      cloned.maxRedirects = request.maxRedirects;
+      cloned.persistentConnection = request.persistentConnection;
+
+      // Try to cast to Request to get bodyBytes if it matches the interface
+      if (request is Request) {
+        cloned.bodyBytes = request.bodyBytes;
+      }
+
+      return cloned;
+    }
   }
 }
 
 /// Helper class for Google Sign-In.
 class GoogleSignInHelper {
   static final GoogleSignInHelper _instance = GoogleSignInHelper._internal();
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   /// Factory constructor to return the singleton instance.
   factory GoogleSignInHelper() => _instance;
@@ -52,68 +133,50 @@ class GoogleSignInHelper {
   GoogleSignInHelper._internal() {
     _googleSignIn.onCurrentUserChanged.listen((account) async {
       _client = await _googleSignIn.authenticatedClient();
-      debugPrint('User signed in: $account'); // Add this line for debugging
+      debugPrint('User signed in: $account');
     });
   }
 
-  /// Initializes a [GoogleSignIn] instance for all platforms using the provided parameters.
-  ///
-  /// The parameters are retrieved from environment variables:
-  /// - `WEB_CLIENT_ID`: The OAuth 2.0 client ID for web.
-  /// - `WEB_CLIENT_SECRET`: The OAuth 2.0 client secret for web.
-  /// - `WEB_REDIRECT_PORT`: The port used for the redirect URI.
-  /// - `scopes`: The list of OAuth scopes to request.
-  ///
-  /// Make sure the redirect URI matches the one registered in the Google API Console.
-  final g_sign_in_all.GoogleSignIn _googleSignInAllPlatforms =
-      g_sign_in_all.GoogleSignIn(
-    params: g_sign_in_all.GoogleSignInParams(
-        clientId: Platform.environment['WEB_CLIENT_ID']!,
-        clientSecret: Platform.environment['WEB_CLIENT_SECRET']!,
-        redirectPort: int.parse(Platform.environment['WEB_REDIRECT_PORT']!),
-        scopes: scopes
-        // Ensure this matches the registered redirect URI
-        ),
-  );
+  static const _webClientId = String.fromEnvironment('WEB_CLIENT_ID');
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-      clientId: Platform.environment['WEB_CLIENT_ID']!, scopes: scopes);
+  /// Getter for the standard Google Sign-In instance.
+  GoogleSignIn get _googleSignIn {
+    return GoogleSignIn(clientId: kIsWeb ? _webClientId : null, scopes: scopes);
+  }
+
   Client? _client;
 
   /// Ensures the authenticated client is initialized and returns it.
   Future<Client?> ensureClientInitialized() async {
     try {
       if (_client == null) {
-        // Try to restore from saved authentication first
-        final prefs = await SharedPreferences.getInstance();
-        final accessToken = prefs.getString('auth_access_token');
+        // Try to sign in silently first
+        GoogleSignInAccount? currentUser = await _googleSignIn.signInSilently();
         debugPrint(
-            'Trying saved auth: accessToken=${accessToken?.substring(0, 8)}...');
-        if (accessToken != null) {
-          _client = AuthClient(accessToken);
-          debugPrint('Initialized _client from saved tokens: $_client');
-          // Optionally: test the token with a lightweight API call and refresh if 401
-          return _client;
-        }
-        // Fallback to sign-in flows
-        if (io.Platform.isWindows || io.Platform.isLinux) {
-          final credentials = await _googleSignInAllPlatforms.signInOnline();
-          if (credentials != null) {
-            _client = await _googleSignInAllPlatforms.authenticatedClient;
-            debugPrint('Initialized _client for all platforms: $_client');
-          } else {
-            debugPrint('No credentials returned from signInAllPlatforms.');
-          }
-        } else {
-          if (_googleSignIn.currentUser == null) {
-            await _googleSignIn.signInSilently();
-            debugPrint('Called signInSilently for GoogleSignIn.');
-          }
+          'Called signInSilently for GoogleSignIn. Current user: $currentUser',
+        );
+
+        if (currentUser != null) {
           _client = await _googleSignIn.authenticatedClient();
-          debugPrint('Initialized _client for GoogleSignIn: $_client');
+          debugPrint('Initialized _client from silent sign-in: $_client');
+        } else if (io.Platform.isWindows || io.Platform.isLinux) {
+          // Desktop specific silent sign-in check could go here if we stored tokens
+          // For now, we rely on the caller to initiate interactive sign-in if needed
+          debugPrint('Desktop: Silent sign-in not fully implemented yet.');
+        } else {
+          // For other platforms (Android, iOS, Web)
+          currentUser = await _googleSignIn.signIn();
+          debugPrint(
+            'Called interactive signIn for GoogleSignIn. Current user: $currentUser',
+          );
+
+          if (currentUser != null) {
+            _client = await _googleSignIn.authenticatedClient();
+            debugPrint(
+              'Initialized _client from interactive sign-in: $_client',
+            );
+          }
         }
-      } else {
-        debugPrint('_client already initialized: $_client');
       }
     } catch (e, stack) {
       debugPrint('Error initializing _client: $e\n$stack');
@@ -122,50 +185,33 @@ class GoogleSignInHelper {
     return _client;
   }
 
-  /// Asynchronous getter for the client (may be null if not initialized).
   Future<Client?> get client async {
     if (_client == null) {
       await ensureClientInitialized();
     }
-    // print client when access it
     debugPrint('Accessing client: $_client');
     return _client;
   }
 
-  /// Signs out the currently authenticated user from Google Sign-In.
-  ///
-  /// This method revokes the user's authentication credentials and disconnects
-  /// the application from the user's Google account. After calling this method,
-  /// the user will need to sign in again to access Google-protected resources.
-  ///
-  /// Throws an [Exception] if the sign-out process fails.
   Future<void> signOut() async {
     if (io.Platform.isWindows || io.Platform.isLinux) {
-      await _googleSignInAllPlatforms.signOut();
+      // Clear stored tokens for desktop
+      await secureStorage.delete(key: 'desktop_auth_access_token');
+      await secureStorage.delete(key: 'desktop_auth_refresh_token');
+      _client = null;
     } else {
       await _googleSignIn.signOut();
     }
-    debugPrint('User signed out'); // Add this line for debugging
+    debugPrint('User signed out');
   }
 
-  /// A stream that emits the current [GoogleSignInAccount] whenever the authentication
-  /// state changes. Emits `null` if the user signs out or is not authenticated.
-  ///
-  /// Listen to this stream to be notified when the user's sign-in state changes.
   Stream<GoogleSignInAccount?> get onAuthStateChanged =>
       _googleSignIn.onCurrentUserChanged;
 
-  /// Initiates the Google sign-in process.
-  ///
-  /// Returns a [GoogleSignInAccount] if the sign-in is successful, or `null` if the user cancels
-  /// the sign-in or an error occurs.
-  ///
-  /// Throws an exception if the sign-in process fails unexpectedly.
   Future<GoogleSignInAccount?> signIn() async {
     try {
       final account = await _googleSignIn.signIn();
-      debugPrint('User signed in: $account'); // Add this line for debugging
-
+      debugPrint('User signed in: $account');
       return account;
     } catch (error) {
       debugPrint('Sign in error: $error');
@@ -173,34 +219,227 @@ class GoogleSignInHelper {
     }
   }
 
-  /// Signs in the user using the all-platforms Google Sign-In method.
-  /// Returns a [GoogleSignInCredentials] object if the sign-in is successful,
-  /// or `null` if the sign-in fails or is cancelled by the user.
-  ///
-  /// Throws an exception if an unexpected error occurs during the sign-in process.
-  Future<g_sign_in_all.GoogleSignInCredentials?> signInAllPlatforms() async {
+  Future<Map<String, String>> _loadCredentials() async {
+    String? clientId;
+    String? clientSecret;
+    String? redirectPortStr;
+
+    // 1. Try loading from assets (Production/bundled)
     try {
-      g_sign_in_all.GoogleSignInCredentials? credentials =
-          await _googleSignInAllPlatforms.signInOnline();
-      if (credentials != null) {
-        _client = await _googleSignInAllPlatforms.authenticatedClient;
+      final jsonString =
+          await rootBundle.loadString('assets/google_credentials.json');
+      final jsonMap = jsonDecode(jsonString);
+      if (jsonMap is Map<String, dynamic>) {
+        clientId = jsonMap['WEB_CLIENT_ID'] as String?;
+        clientSecret = jsonMap['WEB_CLIENT_SECRET'] as String?;
+        redirectPortStr = jsonMap['WEB_REDIRECT_PORT'] as String?;
+      }
+    } catch (e) {
+      debugPrint('Could not load assets/google_credentials.json: $e');
+    }
+
+    // 2. Fallback to compile-time variables (Build args)
+    if (clientId == null || clientSecret == null || redirectPortStr == null) {
+      const envClientId = String.fromEnvironment('WEB_CLIENT_ID');
+      const envClientSecret = String.fromEnvironment('WEB_CLIENT_SECRET');
+      const envRedirectPort = String.fromEnvironment('WEB_REDIRECT_PORT');
+
+      if (envClientId.isNotEmpty) clientId = envClientId;
+      if (envClientSecret.isNotEmpty) clientSecret = envClientSecret;
+      if (envRedirectPort.isNotEmpty) redirectPortStr = envRedirectPort;
+    }
+
+    // 3. Fallback to runtime environment (Dev/Doppler)
+    if (clientId == null || clientSecret == null || redirectPortStr == null) {
+      final envClientId = io.Platform.environment['WEB_CLIENT_ID'];
+      final envClientSecret = io.Platform.environment['WEB_CLIENT_SECRET'];
+      final envRedirectPort = io.Platform.environment['WEB_REDIRECT_PORT'];
+
+      if (envClientId != null) clientId = envClientId;
+      if (envClientSecret != null) clientSecret = envClientSecret;
+      if (envRedirectPort != null) redirectPortStr = envRedirectPort;
+    }
+
+    return {
+      if (clientId != null) 'WEB_CLIENT_ID': clientId,
+      if (clientSecret != null) 'WEB_CLIENT_SECRET': clientSecret,
+      if (redirectPortStr != null) 'WEB_REDIRECT_PORT': redirectPortStr,
+    };
+  }
+
+  /// Signs in the user using a custom loopback flow for Desktop.
+  Future<DesktopAuthResult?> signInAllPlatforms() async {
+    if (!io.Platform.isWindows && !io.Platform.isLinux) {
+      throw UnsupportedError('This method is for desktop only.');
+    }
+
+    try {
+      final creds = await _loadCredentials();
+      final clientId = creds['WEB_CLIENT_ID'];
+      final clientSecret = creds['WEB_CLIENT_SECRET'];
+      final redirectPortStr = creds['WEB_REDIRECT_PORT'];
+
+      if (clientId == null || clientSecret == null || redirectPortStr == null) {
+        final errorMsg = 'Missing Credentials:\n'
+            'C-ID: ${clientId ?? "NULL"}\n'
+            'C-Secret: ${clientSecret ?? "NULL"}\n'
+            'Port: ${redirectPortStr ?? "NULL"}';
+        debugPrint(errorMsg);
+        throw Exception(errorMsg);
       }
 
-      debugPrint('User signed in: $credentials'); // Add this line for debugging
-      return credentials;
+      int redirectPort;
+      try {
+        redirectPort = int.parse(redirectPortStr);
+      } catch (e) {
+        throw Exception('Invalid port string: $redirectPortStr');
+      }
+
+      // 1. Create a local server
+      io.HttpServer server;
+      try {
+        server = await io.HttpServer.bind(
+          io.InternetAddress.loopbackIPv4,
+          redirectPort,
+        );
+      } catch (e) {
+        throw Exception('Could not bind to port $redirectPort: $e');
+      }
+
+      final redirectUri = 'http://localhost:${server.port}';
+      debugPrint('Listening on $redirectUri');
+
+      // 2. Construct the OAuth URL
+      final authUrl = Uri.https('accounts.google.com', '/o/oauth2/v2/auth', {
+        'client_id': clientId,
+        'redirect_uri': redirectUri,
+        'response_type': 'code',
+        'scope': scopes.join(' '),
+        'access_type': 'offline', // Important for refresh token
+        'prompt':
+            'consent', // Forces refresh_token to be returned even on re-auth
+      });
+
+      // 3. Launch the URL
+      try {
+        if (await canLaunchUrl(authUrl)) {
+          await launchUrl(authUrl);
+        } else {
+          throw 'Could not launch URL';
+        }
+      } catch (e) {
+        await server.close();
+        throw Exception('Failed to launch auth URL: $e');
+      }
+
+      // 4. Listen for the redirect
+      String? authCode;
+      await for (final request in server) {
+        final code = request.uri.queryParameters['code'];
+        if (code != null) {
+          authCode = code;
+
+          // 5. Serve the custom success page
+          try {
+            final htmlContent = await rootBundle.loadString(
+              'assets/html/success_login.html',
+            );
+            request.response
+              ..statusCode = io.HttpStatus.ok
+              ..headers.contentType = io.ContentType.html
+              ..write(htmlContent);
+          } catch (e) {
+            debugPrint('Error loading success page: $e');
+            request.response
+              ..statusCode = io.HttpStatus.ok
+              ..headers.contentType = io.ContentType.html
+              ..write(
+                '<html><body><h1>Login Successful</h1><p>You can close this window.</p></body></html>',
+              );
+          }
+
+          await request.response.close();
+          break; // Stop listening after receiving the code
+        } else {
+          request.response
+            ..statusCode = io.HttpStatus.badRequest
+            ..write('Missing authorization code');
+          await request.response.close();
+        }
+      }
+      await server.close();
+
+      if (authCode == null) return null;
+
+      // 6. Exchange code for tokens
+      final tokenResponse = await http.post(
+        Uri.https('oauth2.googleapis.com', '/token'),
+        body: {
+          'client_id': clientId,
+          'client_secret': clientSecret,
+          'code': authCode,
+          'grant_type': 'authorization_code',
+          'redirect_uri': redirectUri,
+        },
+      );
+
+      if (tokenResponse.statusCode == 200) {
+        final tokenData = jsonDecode(tokenResponse.body);
+        final accessToken = tokenData['access_token'];
+        final idToken = tokenData['id_token'];
+        final refreshToken = tokenData['refresh_token'];
+
+        // Store tokens securely
+        if (accessToken != null) {
+          await secureStorage.write(
+            key: 'desktop_auth_access_token',
+            value: accessToken,
+          );
+        }
+        if (idToken != null) {
+          await secureStorage.write(
+            key: 'desktop_auth_id_token',
+            value: idToken,
+          );
+        }
+        if (refreshToken != null) {
+          await secureStorage.write(
+            key: 'desktop_auth_refresh_token',
+            value: refreshToken,
+          );
+        }
+
+        // Create a client
+        _client = AuthClient(
+          accessToken,
+          refreshTokenCallback: () async {
+            debugPrint('[Desktop] Token expired, refreshing...');
+            final newToken = await refreshAccessToken();
+            if (newToken != null) {
+              debugPrint('[Desktop] Token refreshed successfully');
+            } else {
+              debugPrint('[Desktop] Token refresh failed');
+            }
+            return newToken;
+          },
+        );
+
+        return DesktopAuthResult(accessToken: accessToken, idToken: idToken);
+      } else {
+        debugPrint('Failed to exchange token: ${tokenResponse.body}');
+        return null;
+      }
     } catch (error) {
-      debugPrint('Sign in error: $error');
-      return null;
+      debugPrint('Desktop sign in error: $error');
+      // Re-throw so caller can handle it
+      throw Exception('Sign-In Failed: $error');
     }
   }
 
-  /// Asynchronously retrieves the current user's Google ID token.
-  ///
-  /// Returns a [String] containing the ID token if the user is signed in,
-  /// or `null` if no user is currently authenticated.
-  ///
-  /// This token can be used to authenticate requests to your backend server.
   Future<String?> get idToken async {
+    if (io.Platform.isWindows || io.Platform.isLinux) {
+      return await secureStorage.read(key: 'desktop_auth_id_token');
+    }
     final account = _googleSignIn.currentUser;
     if (account == null) {
       return null;
@@ -209,55 +448,169 @@ class GoogleSignInHelper {
     return auth.idToken;
   }
 
-  /// Asynchronously retrieves the current Google access token, if available.
-  ///
-  /// Returns a [String] containing the access token, or `null` if no token is available.
-  ///
-  /// This getter is typically used to authenticate requests to Google APIs on behalf of the user.
   Future<String?> get accessToken async {
+    if (io.Platform.isWindows || io.Platform.isLinux) {
+      return await secureStorage.read(key: 'desktop_auth_access_token');
+    }
     final account = _googleSignIn.currentUser;
     if (account == null) {
       return null;
     }
-    final auth = await account.authentication;
+    final GoogleSignInAuthentication auth = await account.authentication;
     return auth.accessToken;
   }
 
-  /// Refreshes the Google Sign-In access token.
-  ///
-  /// Returns a [String] containing the new access token if successful,
-  /// or `null` if the token could not be refreshed.
-  ///
-  /// Throws an exception if an error occurs during the refresh process.
   Future<String?> refreshAccessToken() async {
-    try {
-      /// Attempts to retrieve the current user's Google access token.
-      ///
-      /// If no user is currently signed in, logs a message and returns `null`.
-      /// If the access token is `null`, attempts to silently re-sign in and refresh the token.
-      /// Logs the refreshed access token if successful, and returns it.
-      /// If the access token is still valid, logs and returns it.
-      /// In case of any errors during the process, logs the error and returns `null`.
-      final account = _googleSignIn.currentUser;
-      if (account == null) {
-        debugPrint('No user is currently signed in.');
+    if (io.Platform.isWindows || io.Platform.isLinux) {
+      try {
+        debugPrint('[Desktop] Attempting to refresh access token...');
+
+        final refreshToken = await secureStorage.read(
+          key: 'desktop_auth_refresh_token',
+        );
+        if (refreshToken == null) {
+          debugPrint(
+            '[Desktop] No refresh token found. User needs to sign in again.',
+          );
+          return null;
+        }
+
+        final creds = await _loadCredentials();
+        final clientId = creds['WEB_CLIENT_ID'];
+        final clientSecret = creds['WEB_CLIENT_SECRET'];
+
+        if (clientId == null || clientSecret == null) {
+          debugPrint('[Desktop] OAuth credentials not found.');
+          return null;
+        }
+
+        final response = await http.post(
+          Uri.https('oauth2.googleapis.com', '/token'),
+          body: {
+            'client_id': clientId,
+            'client_secret': clientSecret,
+            'refresh_token': refreshToken,
+            'grant_type': 'refresh_token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final tokenData = jsonDecode(response.body);
+          final newAccessToken = tokenData['access_token'];
+
+          if (newAccessToken != null) {
+            // Store the new access token
+            await secureStorage.write(
+              key: 'desktop_auth_access_token',
+              value: newAccessToken,
+            );
+
+            // Update the client with the new token
+            _client = AuthClient(
+              newAccessToken,
+              refreshTokenCallback: () async {
+                debugPrint('[Desktop] Token expired, refreshing...');
+                final token = await refreshAccessToken();
+                if (token != null) {
+                  debugPrint('[Desktop] Token refreshed successfully');
+                } else {
+                  debugPrint('[Desktop] Token refresh failed');
+                }
+                return token;
+              },
+            );
+
+            debugPrint('[Desktop] Access token refreshed successfully');
+            return newAccessToken;
+          }
+        } else {
+          debugPrint(
+            '[Desktop] Token refresh failed: ${response.statusCode} ${response.body}',
+          );
+          // If refresh token is invalid/expired, clear stored tokens
+          await secureStorage.delete(key: 'desktop_auth_access_token');
+          await secureStorage.delete(key: 'desktop_auth_refresh_token');
+          await secureStorage.delete(key: 'desktop_auth_id_token');
+        }
+        return null;
+      } catch (error) {
+        debugPrint('[Desktop] Error refreshing access token: $error');
         return null;
       }
+    }
 
-      final auth = await account.authentication;
-      if (auth.accessToken == null) {
-        debugPrint('Access token is null, attempting to refresh.');
-        await _googleSignIn.signInSilently();
-        final refreshedAuth = await account.authentication;
-        debugPrint('Access token refreshed: ${refreshedAuth.accessToken}');
-        return refreshedAuth.accessToken;
+    // Mobile/Web platforms
+    try {
+      debugPrint('refreshAccessToken: Attempting to refresh token.');
+      GoogleSignInAccount? account = _googleSignIn.currentUser;
+      if (account == null) {
+        debugPrint(
+          'refreshAccessToken: No user is currently signed in. Attempting silent sign-in.',
+        );
+        account = await _googleSignIn.signInSilently();
+        if (account == null) {
+          debugPrint(
+            'refreshAccessToken: Silent sign-in failed. Cannot refresh token.',
+          );
+          return null;
+        }
       }
-
-      debugPrint('Access token is still valid: ${auth.accessToken}');
+      final GoogleSignInAuthentication auth = await account.authentication;
       return auth.accessToken;
     } catch (error) {
-      debugPrint('Error refreshing access token: $error');
+      debugPrint('refreshAccessToken: Error refreshing access token: $error');
       return null;
     }
   }
+
+  /// Restores the client from storage (Desktop only) without user interaction.
+  Future<Client?> restoreClientFromStorage() async {
+    if (!io.Platform.isWindows && !io.Platform.isLinux) {
+      return null;
+    }
+
+    try {
+      final accessToken = await secureStorage.read(
+        key: 'desktop_auth_access_token',
+      );
+      final refreshToken = await secureStorage.read(
+        key: 'desktop_auth_refresh_token',
+      );
+
+      if (accessToken != null && refreshToken != null) {
+        debugPrint(
+          '[Desktop] Restoring client from storage with existing tokens.',
+        );
+        _client = AuthClient(
+          accessToken,
+          refreshTokenCallback: () async {
+            debugPrint('[Desktop] Token expired, refreshing...');
+            final token = await refreshAccessToken();
+            if (token != null) {
+              debugPrint('[Desktop] Token refreshed successfully');
+            } else {
+              debugPrint('[Desktop] Token refresh failed');
+            }
+            return token;
+          },
+        );
+        return _client;
+      } else {
+        debugPrint('[Desktop] No tokens found in storage to restore.');
+      }
+    } catch (e) {
+      debugPrint('[Desktop] Error restoring client from storage: $e');
+    }
+    return null;
+  }
+}
+
+class DesktopAuthResult {
+  final String? accessToken;
+  final String? idToken;
+
+  DesktopAuthResult({this.accessToken, this.idToken});
+
+  // Add compatibility getters if needed to match GoogleAuthentication
+  String? get token => idToken;
 }

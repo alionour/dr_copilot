@@ -1,0 +1,84 @@
+# serverless.yml
+
+# Service name - used for the CloudFormation stack name
+service: dr-copilot-backend
+
+# Framework version constraint
+frameworkVersion: '3'
+
+# Plugins
+plugins:
+  - serverless-esbuild
+
+# Provider configuration (AWS)
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: prod # Default stage
+  region: us-east-1 # Default region, can be overridden
+
+  # Environment variables that will be available to your function
+  environment:
+    # IMPORTANT: Set these variables in your environment or a .env file
+    # Example: export FIREBASE_SERVICE_ACCOUNT=$(cat path/to/your/firebase-service-account.json)
+    FIREBASE_SERVICE_ACCOUNT: ${env:FIREBASE_SERVICE_ACCOUNT, ''}
+    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, ''}
+    APP_URL: ${env:APP_URL, ''}
+
+  # IAM role for the Lambda function
+  # This role grants permissions to send emails via SES and write logs to CloudWatch.
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "logs:CreateLogGroup"
+            - "logs:CreateLogStream"
+            - "logs:PutLogEvents"
+          Resource: "arn:aws:logs:*:*:*"
+        - Effect: "Allow"
+          Action:
+            - "ses:SendEmail"
+            - "ses:SendRawEmail"
+          Resource: "*" # You can restrict this to a specific SES identity ARN for better security
+
+# Packaging configuration
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+    - '!package-lock.json'
+    - '!.env*'
+    - '!*.md'
+    - 'public/**' # Include public folder with HTML files
+
+# Esbuild configuration
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    external:
+      - '@aws-sdk/*'
+      - 'stripe'
+    packager: npm
+    platform: node
+    target: node18
+
+# Function definition
+functions:
+  api:
+    handler: index.handler # Points to the handler export in index.js
+    # Events that trigger this function
+    events:
+      - httpApi: # Using the simpler, cheaper HTTP API gateway
+          path: /{proxy+} # Catches all requests
+          method: '*'
+      - httpApi:
+          path: /
+          method: GET
+
+  reminders:
+    handler: cron/reminders.handler
+    events:
+      - schedule: rate(1 day) # Runs once a day
+

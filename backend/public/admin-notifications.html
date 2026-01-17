@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Copilot - Admin Notifications Dashboard</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card h1 {
+            color: #1e3c72;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .login-card p {
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .google-signin-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .google-signin-btn:hover {
+            background: #3367D6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
+        }
+
+        .google-signin-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left h1 {
+            color: #1e3c72;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .btn-signout {
+            padding: 8px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-signout:hover {
+            background: #dc2626;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .material-icons {
+            color: #1e3c72;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: #ef4444;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-primary {
+            padding: 14px 30px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: #2a5298;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-read {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-unread {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-system {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-alert {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-message {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        /* Loading & Messages */
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #1e3c72;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state .material-icons {
+            font-size: 80px;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 10px 8px;
+            }
+        }
+
+        .access-denied {
+            display: none;
+            text-align: center;
+            padding: 100px 20px;
+            color: white;
+        }
+
+        .access-denied.active {
+            display: block;
+        }
+
+        .access-denied .material-icons {
+            font-size: 100px;
+            color: #ef4444;
+            margin-bottom: 30px;
+        }
+
+        .access-denied h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .access-denied p {
+            font-size: 18px;
+            color: #cbd5e0;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <h1>🏥 Dr. Copilot</h1>
+            <p>Admin Notifications Dashboard</p>
+
+            <div id="loginMessage"></div>
+
+            <button id="googleSigninBtn" class="google-signin-btn">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="white"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="white"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="white"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="white"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Access Denied Screen -->
+    <div id="accessDenied" class="access-denied">
+        <span class="material-icons">block</span>
+        <h2>Access Denied</h2>
+        <p>You are not authorized to access this dashboard.</p>
+        <p style="font-size: 14px;">Please contact the system administrator if you believe this is an error.</p>
+        <button onclick="location.reload()" class="btn-primary" style="margin-top: 30px;">
+            <span class="material-icons">refresh</span>
+            Try Again
+        </button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>📣 Notifications Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="User">
+                    <span id="userEmail" class="user-email"></span>
+                </div>
+                <button id="signoutBtn" class="btn-signout">Sign Out</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Send Notification Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="material-icons">send</span>
+                    Send Notification
+                </h2>
+
+                <div id="sendMessage"></div>
+
+                <form id="notificationForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Title <span class="required">*</span></label>
+                            <input type="text" id="titleInput" class="form-input" placeholder="Enter notification title"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type <span class="required">*</span></label>
+                            <select id="typeSelect" class="form-select" required>
+                                <option value="system">System</option>
+                                <option value="alert">Alert</option>
+                                <option value="message">Message</option>
+                                <option value="reminder">Reminder</option>
+                                <option value="payment">Payment</option>
+                                <option value="report">Report</option>
+                                <option value="appointment">Appointment</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Message <span class="required">*</span></label>
+                        <textarea id="messageInput" class="form-textarea" placeholder="Enter notification message"
+                            required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Target <span class="required">*</span></label>
+                            <select id="targetSelect" class="form-select" required>
+                                <option value="all_users">All Users</option>
+                                <option value="all_clinic_owners">All Clinic Owners</option>
+                                <option value="all_doctors">All Doctors</option>
+                                <option value="all_staff">All Staff</option>
+                                <option value="specific_user">Specific User</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="specificUserGroup" style="display: none;">
+                            <label class="form-label">User Email</label>
+                            <input type="email" id="specificUserEmail" class="form-input"
+                                placeholder="user@example.com">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Action URL (Optional)</label>
+                        <input type="text" id="actionUrlInput" class="form-input" placeholder="/appointments">
+                    </div>
+
+                    <button type="submit" id="sendBtn" class="btn-primary">
+                        <span class="material-icons">send</span>
+                        Send Notification
+                    </button>
+                </form>
+            </section>
+
+            <!-- Notifications History Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="material-icons">history</span>
+                    Recent Notifications
+                </h2>
+
+                <div id="historyLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading notifications...</p>
+                </div>
+
+                <div id="historyContent" style="display: none;">
+                    <div class="table-container">
+                        <table id="notificationsTable">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Title</th>
+                                    <th>Message</th>
+                                    <th>Type</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notificationsBody">
+                                <!-- Notifications will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <span class="material-icons">notifications_none</span>
+                        <h3>No notifications yet</h3>
+                        <p>Send your first notification using the form above</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6APKuTlDJP9gGT9usJGj1Ub1Eev592PU",
+            authDomain: "drcopilot-bfc9e.firebaseapp.com",
+            projectId: "drcopilot-bfc9e",
+            storageBucket: "drcopilot-bfc9e.firebasestorage.app",
+            messagingSenderId: "253522261255",
+            appId: "1:253522261255:web:b0c3541bbd0e1da51001a2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const BACKEND_URL = window.location.origin;
+
+        let currentUser = null;
+        let notificationsListener = null;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const accessDenied = document.getElementById('accessDenied');
+        const dashboard = document.getElementById('dashboard');
+        const googleSigninBtn = document.getElementById('googleSigninBtn');
+        const signoutBtn = document.getElementById('signoutBtn');
+        const notificationForm = document.getElementById('notificationForm');
+        const targetSelect = document.getElementById('targetSelect');
+        const specificUserGroup = document.getElementById('specificUserGroup');
+
+        // Show/hide specific user email input
+        targetSelect.addEventListener('change', () => {
+            specificUserGroup.style.display = targetSelect.value === 'specific_user' ? 'block' : 'none';
+        });
+
+        // Google Sign-In
+        googleSigninBtn.addEventListener('click', async () => {
+            googleSigninBtn.disabled = true;
+            googleSigninBtn.textContent = 'Signing in...';
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                showLoginMessage('Sign-in failed. Please try again.', 'error');
+                googleSigninBtn.disabled = false;
+                googleSigninBtn.innerHTML = '<svg class="google-icon" viewBox="0 0 24 24"><path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google';
+            }
+        });
+
+        // Sign Out
+        signoutBtn.addEventListener('click', async () => {
+            await auth.signOut();
+            location.reload();
+        });
+
+        // Auth State Observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                await checkAdminAccess(user);
+            } else {
+                showScreen('login');
+            }
+        });
+
+        // Check if user is admin
+        async function checkAdminAccess(user) {
+            try {
+                const adminDoc = await db.collection('appAdmins').doc(user.email).get();
+
+                if (adminDoc.exists) {
+                    // User is admin
+                    showDashboard(user);
+                    loadNotifications();
+                } else {
+                    // Not an admin
+                    showScreen('denied');
+                }
+            } catch (error) {
+                console.error('Error checking admin access:', error);
+                showLoginMessage('Error verifying access. Please try again.', 'error');
+                await auth.signOut();
+            }
+        }
+
+        // Show Dashboard
+        function showDashboard(user) {
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userAvatar').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || user.email);
+            showScreen('dashboard');
+        }
+
+        // Show Screen
+        function showScreen(screen) {
+            loginScreen.style.display = 'none';
+            accessDenied.classList.remove('active');
+            dashboard.classList.remove('active');
+
+            if (screen === 'login') {
+                loginScreen.style.display = 'flex';
+            } else if (screen === 'denied') {
+                accessDenied.classList.add('active');
+            } else if (screen === 'dashboard') {
+                dashboard.classList.add('active');
+            }
+        }
+
+        // Show Login Message
+        function showLoginMessage(message, type) {
+            const messageDiv = document.getElementById('loginMessage');
+            messageDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => messageDiv.innerHTML = '', 5000);
+        }
+
+        // Show Send Message
+        function showSendMessage(message, type) {
+            const messageDiv = document.getElementById('sendMessage');
+            messageDiv.innerHTML = `<div class="alert alert-${type}"><span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span> ${message}</div>`;
+            setTimeout(() => messageDiv.innerHTML = '', 5000);
+        }
+
+        // Send Notification Form
+        notificationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Sending...';
+
+            try {
+                const title = document.getElementById('titleInput').value;
+                const message = document.getElementById('messageInput').value;
+                const type = document.getElementById('typeSelect').value;
+                const target = targetSelect.value;
+                const actionUrl = document.getElementById('actionUrlInput').value || '/notifications';
+                const specificEmail = document.getElementById('specificUserEmail').value;
+
+                // Get target users
+                const targetUsers = await getTargetUsers(target, specificEmail);
+
+                if (targetUsers.length === 0) {
+                    showSendMessage('No users found matching the target criteria', 'error');
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<span class="material-icons">send</span> Send Notification';
+                    return;
+                }
+
+                // Create notifications in Firestore and send FCM
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const userId of targetUsers) {
+                    try {
+                        // Create notification document
+                        const notificationRef = db.collection('notifications').doc();
+                        await notificationRef.set({
+                            id: notificationRef.id,
+                            userId: userId,
+                            title: title,
+                            message: message,
+                            type: type,
+                            isRead: false,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            actionUrl: actionUrl,
+                            metadata: {
+                                sentBy: currentUser.email,
+                                sentAt: new Date().toISOString()
+                            },
+                            sender: {
+                                type: 'programmer',
+                                senderId: currentUser.uid,
+                                senderName: currentUser.displayName || currentUser.email
+                            },
+                            target: {
+                                type: target,
+                                targetRoles: null,
+                                ownerId: null,
+                                clinicIds: null
+                            }
+                        });
+
+                        // Send FCM push notification via backend
+                        try {
+                            await fetch(`${BACKEND_URL}/notifications`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    userId: userId,
+                                    title: title,
+                                    message: message,
+                                    type: type,
+                                    actionUrl: actionUrl,
+                                    notificationId: notificationRef.id
+                                })
+                            });
+                        } catch (fcmError) {
+                            console.error('FCM error for user', userId, fcmError);
+                            // Continue even if FCM fails
+                        }
+
+                        successCount++;
+                    } catch (error) {
+                        console.error('Error sending to user', userId, error);
+                        errorCount++;
+                    }
+                }
+
+                showSendMessage(`✅ Notification sent to ${successCount} user(s)${errorCount > 0 ? ` (${errorCount} failed)` : ''}`, 'success');
+                notificationForm.reset();
+
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                showSendMessage('Failed to send notification. Please try again.', 'error');
+            }
+
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<span class="material-icons">send</span> Send Notification';
+        });
+
+        // Get Target Users
+        async function getTargetUsers(target, specificEmail) {
+            try {
+                if (target === 'specific_user') {
+                    if (!specificEmail) return [];
+                    const userQuery = await db.collection('users').where('email', '==', specificEmail).get();
+                    return userQuery.docs.map(doc => doc.id);
+                }
+
+                if (target === 'all_users') {
+                    const usersQuery = await db.collection('users').get();
+                    return usersQuery.docs.map(doc => doc.id);
+                }
+
+                if (target === 'all_clinic_owners') {
+                    const usersQuery = await db.collection('users').where('roles', 'array-contains', 'admin').get();
+                    return usersQuery.docs.map(doc => doc.id);
+                }
+
+                if (target === 'all_doctors') {
+                    const usersQuery = await db.collection('users').where('roles', 'array-contains', 'doctor').get();
+                    return usersQuery.docs.map(doc => doc.id);
+                }
+
+                if (target === 'all_staff') {
+                    const usersQuery = await db.collection('users').where('roles', 'array-contains', 'staff').get();
+                    return usersQuery.docs.map(doc => doc.id);
+                }
+
+                return [];
+            } catch (error) {
+                console.error('Error getting target users:', error);
+                return [];
+            }
+        }
+
+        // Load Notifications
+        function loadNotifications() {
+            const historyLoading = document.getElementById('historyLoading');
+            const historyContent = document.getElementById('historyContent');
+
+            historyLoading.style.display = 'block';
+            historyContent.style.display = 'none';
+
+            // Listen to notifications in real-time
+            notificationsListener = db.collection('notifications')
+                .orderBy('createdAt', 'desc')
+                .limit(50)
+                .onSnapshot(async (snapshot) => {
+                    historyLoading.style.display = 'none';
+                    historyContent.style.display = 'block';
+
+                    const tbody = document.getElementById('notificationsBody');
+                    const emptyState = document.getElementById('emptyState');
+
+                    if (snapshot.empty) {
+                        tbody.innerHTML = '';
+                        emptyState.style.display = 'block';
+                        return;
+                    }
+
+                    emptyState.style.display = 'none';
+
+                    // Get user data for displaying names
+                    const userIds = [...new Set(snapshot.docs.map(doc => doc.data().userId))];
+                    const usersMap = {};
+
+                    for (const userId of userIds) {
+                        try {
+                            const userDoc = await db.collection('users').doc(userId).get();
+                            if (userDoc.exists) {
+                                usersMap[userId] = userDoc.data();
+                            }
+                        } catch (e) {
+                            console.error('Error fetching user:', e);
+                        }
+                    }
+
+                    tbody.innerHTML = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        const user = usersMap[data.userId] || {};
+                        const timestamp = data.createdAt ? data.createdAt.toDate() : new Date();
+
+                        return `
+                            <tr>
+                                <td>${formatDate(timestamp)}</td>
+                                <td><strong>${escapeHtml(data.title)}</strong></td>
+                                <td>${escapeHtml(data.message.substring(0, 60))}${data.message.length > 60 ? '...' : ''}</td>
+                                <td><span class="badge badge-${data.type}">${data.type}</span></td>
+                                <td>${user.email || data.userId}</td>
+                                <td><span class="badge badge-${data.isRead ? 'read' : 'unread'}">${data.isRead ? 'Read' : 'Unread'}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }, (error) => {
+                    console.error('Error loading notifications:', error);
+                    historyLoading.innerHTML = '<div class="alert alert-error">Failed to load notifications</div>';
+                });
+        }
+
+        // Format Date
+        function formatDate(date) {
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (days > 0) return date.toLocaleDateString();
+            if (hours > 0) return `${hours}h ago`;
+            if (minutes > 0) return `${minutes}m ago`;
+            return 'Just now';
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (notificationsListener) {
+                notificationsListener();
+            }
+        });
+    </script>
+</body>
+
+</html>

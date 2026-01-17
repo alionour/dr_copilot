@@ -2,10 +2,20 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "type": "shell",
+            "label": "flutter-analyze",
+            "command": "flutter analyze",
+            "group": "build",
+            "problemMatcher": [
+                "$dart-analyze"
+            ]
+        },
+        {
             "label": "doppler-run",
             "type": "shell",
-            "command": "doppler run -- flutter run -d windows",
+            "command": "doppler run -- flutter run",
             "problemMatcher": []
-        }
+        },
+
     ]
 }

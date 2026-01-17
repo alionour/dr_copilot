@@ -1,0 +1,296 @@
+# Flutter CI workflow for building and testing on all major platforms.
+#
+# This workflow runs on push and pull request to main/master branches.
+# It builds and tests for Android, iOS, web, Windows, Linux, and macOS.
+#
+# Enhanced with caching, coverage reporting, and artifact uploads.
+
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # Ubuntu job: Analyze, test, and build for web
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      
+      # Set up the Flutter SDK with caching
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      
+      # Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      # Install Dart and Flutter dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run static code analysis (lints, errors)
+      - name: Analyze
+        run: flutter analyze
+      
+      # Run all unit and widget tests with coverage
+      - name: Run tests
+        run: flutter test --coverage
+      
+      # Upload coverage reports
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+      
+      # Build the web app (output in build/web)
+      - name: Build web
+        run: flutter build web --release
+      
+      # Upload web build artifact
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web/
+          retention-days: 7
+
+  # Windows job: Analyze, test, and build for Windows
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      
+      # Set up the Flutter SDK with caching
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      
+      # Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            ~\AppData\Local\Pub\Cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      
+      # Build the Windows app (output in build/windows)
+      - name: Build Windows
+        run: flutter build windows --release
+      
+      # Upload Windows build artifact
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/windows/x64/runner/Release/
+          retention-days: 7
+
+  # Linux job: Analyze, test, and build for Linux
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      
+      # Set up the Flutter SDK with caching
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      
+      # Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      
+      # Build the Linux app (output in build/linux)
+      - name: Build Linux
+        run: flutter build linux --release
+      
+      # Upload Linux build artifact
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: build/linux/x64/release/bundle/
+          retention-days: 7
+
+  # Android job: Analyze, test, and build APK and AppBundle
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      
+      # Set up the Flutter SDK with caching
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      
+      # Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      
+      # Build the Android APK (output in build/app/outputs/apk)
+      - name: Build Android APK
+        run: flutter build apk --release
+      
+      # Build the Android AppBundle (output in build/app/outputs/bundle)
+      - name: Build Android AppBundle
+        run: flutter build appbundle --release
+
+  # iOS job: Analyze, test, and build for iOS (no code signing)
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      
+      # Set up the Flutter SDK with caching
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      
+      # Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      
+      # Build the iOS app (output in build/ios, no code signing for CI)
+      - name: Build iOS
+        run: flutter build ios --no-codesign
+
+  # macOS job: Analyze, test, and build for macOS
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v4
+      
+      # Set up the Flutter SDK with caching
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      
+      # Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run static code analysis
+      - name: Analyze
+        run: flutter analyze
+      
+      # Run all tests
+      - name: Run tests
+        run: flutter test
+      
+      # Build the macOS app (output in build/macos)
+      - name: Build macOS
+        run: flutter build macos --release

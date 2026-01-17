@@ -1,5 +1,8 @@
 // Import necessary packages
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,11 +12,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
+  final PatientModel? patient;
   // Constructor for AddPatientPage
-  const AddPatientPage({super.key});
+  const AddPatientPage({super.key, this.patient});
 
   @override
   State<AddPatientPage> createState() => _AddPatientPageState();
@@ -44,10 +50,23 @@ class _AddPatientPageState extends State<AddPatientPage> {
   final _occupationFocusNode = FocusNode();
 
   String _selectedGender = 'Male';
+  String? _selectedClinicId;
 
   @override
   void initState() {
     super.initState();
+    if (widget.patient != null) {
+      _nameController.text = widget.patient!.name;
+      _ageController.text = widget.patient!.age?.toString() ?? '';
+      _addressController.text = widget.patient!.address ?? '';
+      _phoneNumberController.text = widget.patient!.phoneNumber ?? '';
+      _alternativePhoneNumberController.text =
+          widget.patient!.alternativePhoneNumber ?? '';
+      _treatingDoctorController.text = widget.patient!.treatingDoctor ?? '';
+      _occupationController.text = widget.patient!.occupation ?? '';
+      _selectedGender = widget.patient!.gender ?? 'Male';
+      _selectedClinicId = widget.patient!.clinicId;
+    }
     // Request focus to the name field when the page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_nameFocusNode);
@@ -59,11 +78,13 @@ class _AddPatientPageState extends State<AddPatientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('addPatient'.tr()),
+        title: Text(
+          widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr(),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
       ),
@@ -81,10 +102,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
             setState(() {
               _selectedGender = 'Male';
             });
+            if (context.mounted) context.pop();
           } else if (state is PatientsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            debugPrint('SnackBar Error: ${state.message}');
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: LayoutBuilder(
@@ -107,6 +130,46 @@ class _AddPatientPageState extends State<AddPatientPage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // Clinic selection dropdown
+                            Consumer<OwnerNotifier>(
+                              builder: (context, ownerNotifier, _) {
+                                final clinics = ownerNotifier.clinics;
+                                if (clinics.isEmpty) {
+                                  return const SizedBox();
+                                }
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    DropdownButtonFormField<String>(
+                                      initialValue: _selectedClinicId ??
+                                          ownerNotifier.clinicId,
+                                      decoration: InputDecoration(
+                                        labelText: 'clinic'.tr(),
+                                        border: const OutlineInputBorder(),
+                                      ),
+                                      items: clinics.map((clinic) {
+                                        return DropdownMenuItem<String>(
+                                          value: clinic.id,
+                                          child: Text(clinic.name),
+                                        );
+                                      }).toList(),
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          _selectedClinicId = newValue;
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'selectClinic'.tr();
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 16.0),
+                                  ],
+                                );
+                              },
+                            ),
                             TextFormField(
                               controller: _nameController,
                               focusNode: _nameFocusNode,
@@ -121,8 +184,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 return null;
                               },
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_ageFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_ageFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -148,8 +212,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 return null;
                               },
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_addressFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_addressFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -167,8 +232,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 return null;
                               },
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_phoneNumberFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_phoneNumberFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -191,7 +257,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               },
                               onFieldSubmitted: (_) {
                                 FocusScope.of(context).requestFocus(
-                                    _alternativePhoneNumberFocusNode);
+                                  _alternativePhoneNumberFocusNode,
+                                );
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -207,8 +274,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_treatingDoctorFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_treatingDoctorFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -220,8 +288,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 border: const OutlineInputBorder(),
                               ),
                               onFieldSubmitted: (_) {
-                                FocusScope.of(context)
-                                    .requestFocus(_occupationFocusNode);
+                                FocusScope.of(
+                                  context,
+                                ).requestFocus(_occupationFocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -252,7 +321,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               child: ToggleButtons(
                                 isSelected: [
                                   _selectedGender == 'Male',
-                                  _selectedGender == 'Female'
+                                  _selectedGender == 'Female',
                                 ],
                                 onPressed: (index) {
                                   setState(() {
@@ -266,27 +335,27 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8.0),
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         const Icon(Icons.male, size: 20),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'male'.tr(),
-                                        ),
+                                        Text('male'.tr()),
                                       ],
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8.0),
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         const Icon(Icons.female, size: 20),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'female'.tr(),
-                                        ),
+                                        Text('female'.tr()),
                                       ],
                                     ),
                                   ),
@@ -298,7 +367,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _submitForm,
-                                child: Text('addPatient'.tr()),
+                                child: Text(
+                                  widget.patient != null
+                                      ? 'saveChanges'.tr()
+                                      : 'addPatient'.tr(),
+                                ),
                               ),
                             ),
                           ],
@@ -316,21 +389,42 @@ class _AddPatientPageState extends State<AddPatientPage> {
   }
 
   // Method to submit the form
-  void _submitForm() {
+  Future<void> _submitForm() async {
     // Validate the form
     if (_formKey.currentState!.validate()) {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      // Check if the user is authenticated
-      if (userId != null) {
+      final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+      final ownerId = ownerNotifier.ownerId;
+      final clinicId = _selectedClinicId ?? ownerNotifier.clinicId;
+
+      // Check if the user is authenticated and clinic/owner are available
+      if (userId != null && ownerId != null && clinicId != null) {
+        // Subscription Check: Only when adding a new patient
+        if (widget.patient == null) {
+          final subscriptionService = sl<SubscriptionService>();
+          final canAdd = await subscriptionService.checkEntityLimit(
+            clinicId,
+            LimitType.patients,
+          );
+
+          if (!canAdd) {
+            if (mounted) {
+              _showUpgradeDialog(context, 'patientLimitReached'.tr());
+            }
+            return;
+          }
+        }
+
         const uuid = Uuid();
         final patientModel = PatientModel(
           id: uuid.v4(), // Generate a unique ID
           name: _nameController.text,
           age: int.tryParse(_ageController.text),
-          createdAt: Timestamp.now(),
+          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
           gender: _selectedGender,
           address: _addressController.text,
-          userId: userId, // Get userId from AuthBloc
+          ownerId: ownerId,
+          clinicId: clinicId,
           phoneNumber: _phoneNumberController.text.isNotEmpty
               ? _phoneNumberController.text
               : null,
@@ -345,13 +439,52 @@ class _AddPatientPageState extends State<AddPatientPage> {
               ? _occupationController.text
               : null,
         );
-        BlocProvider.of<PatientsBloc>(context).add(AddPatient(patientModel));
+        if (widget.patient != null) {
+          if (mounted) {
+            BlocProvider.of<PatientsBloc>(context).add(
+              UpdatePatient(
+                widget.patient!.id,
+                patientModel.copyWith(id: widget.patient!.id),
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            BlocProvider.of<PatientsBloc>(context)
+                .add(AddPatient(patientModel));
+          }
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('userIdCannotBeNull'.tr())),
-        );
+        final message = 'userIdCannotBeNull'.tr();
+        debugPrint('SnackBar Error: $message');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     }
+  }
+
+  void _showUpgradeDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('upgradeRequired'.tr()),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text('cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.pop();
+              context.push('/settings/subscription');
+            },
+            child: Text('upgrade'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   // Dispose method to release resources

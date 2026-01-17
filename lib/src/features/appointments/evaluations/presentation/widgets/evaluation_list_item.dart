@@ -1,17 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class EvaluationListItem extends StatefulWidget {
-  final VoidCallback onTap;
   final EvaluationModel evaluationModel;
-  const EvaluationListItem(
-      {super.key, required this.onTap, required this.evaluationModel});
+  final VoidCallback onTap;
+
+  const EvaluationListItem({
+    super.key,
+    required this.evaluationModel,
+    required this.onTap,
+  });
 
   @override
   State<EvaluationListItem> createState() => _EvaluationListItemState();
@@ -19,178 +22,130 @@ class EvaluationListItem extends StatefulWidget {
 
 class _EvaluationListItemState extends State<EvaluationListItem> {
   bool _isExpanded = false;
-  bool _isEditing = false; // Track if the row is in editing mode
-  final Map<String, String> _updatedValues = {}; // Store updated field values
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final dateFormat = DateFormat('MMM dd, yyyy');
+    final timeFormat = DateFormat('hh:mm a');
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      elevation: 2,
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       child: Column(
         children: [
-          GestureDetector(
+          InkWell(
             onTap: () {
-              debugPrint('Tile tapped: ${widget.evaluationModel.patientName}');
               setState(() {
-                _isExpanded = !_isExpanded; // Toggle the expanded state
+                _isExpanded = !_isExpanded;
               });
-              widget.onTap(); // Trigger the onTap callback
+              widget.onTap();
             },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.0),
-                color: Theme.of(context).colorScheme.surface,
-              ),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.blueAccent,
-                  child: Text(
-                    widget.evaluationModel.patientName[0],
-                    style: GoogleFonts.robotoSlab(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+            borderRadius: BorderRadius.circular(16.0),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: colorScheme.tertiaryContainer,
+                    child: Text(
+                      widget.evaluationModel.patientName.isNotEmpty
+                          ? widget.evaluationModel.patientName[0].toUpperCase()
+                          : '?',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onTertiaryContainer,
+                      ),
                     ),
                   ),
-                ),
-                title: Text(
-                  widget.evaluationModel.patientName,
-                  style: GoogleFonts.robotoSlab(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.evaluationModel.patientName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${dateFormat.format(widget.evaluationModel.startDateTime.toDate())} • ${timeFormat.format(widget.evaluationModel.startDateTime.toDate())}',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  'tapToViewDetails'.tr(),
-                  style: GoogleFonts.robotoSlab(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-                trailing: Icon(
-                  _isExpanded ? Icons.expand_less : Icons.expand_more,
-                ),
+                ],
               ),
             ),
           ),
           if (_isExpanded)
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    padding: const EdgeInsets.all(12.0),
-                    child: Table(
-                      columnWidths: const {
-                        0: IntrinsicColumnWidth(),
-                        1: FlexColumnWidth(),
-                      },
-                      border: TableBorder.all(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        width: 0.3,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      children: [
-                        _buildEditableTableRow(
-                          context,
-                          label: 'name'.tr(),
-                          value: widget.evaluationModel.patientName,
-                          fieldKey: 'patientName',
-                        ),
-                        _buildEditableTableRow(
-                          context,
-                          label: 'startTime'.tr(),
-                          value: widget.evaluationModel.startDateTime
-                              .toDate()
-                              .toLocal()
-                              .toString(),
-                          fieldKey: 'startDateTime',
-                        ),
-                        _buildEditableTableRow(
-                          context,
-                          label: 'endTime'.tr(),
-                          value: widget.evaluationModel.endDateTime
-                              .toDate()
-                              .toLocal()
-                              .toString(),
-                          fieldKey: 'endDateTime',
-                        ),
-                        _buildEditableTableRow(
-                          context,
-                          label: 'price'.tr(),
-                          value:
-                              widget.evaluationModel.price.toStringAsFixed(2),
-                          fieldKey: 'price',
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
-                      ],
+                  const Divider(),
+                  _buildDetailRow(
+                    context,
+                    Icons.timer_outlined,
+                    'duration'.tr(),
+                    _calculateDuration(
+                      widget.evaluationModel.startDateTime,
+                      widget.evaluationModel.endDateTime,
                     ),
                   ),
-                  const SizedBox(height: 16.0),
+                  _buildDetailRow(
+                    context,
+                    Icons.attach_money_outlined,
+                    'price'.tr(),
+                    widget.evaluationModel.price.toStringAsFixed(2),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed:
-                              _isEditing ? _submitChanges : _enableEditing,
-                          icon: Icon(
-                            _isEditing ? Icons.save : Icons.edit,
-                            color: Colors.white, // Ensure icon color is visible
-                          ),
-                          label: Text(
-                            _isEditing ? 'save'.tr() : 'edit'.tr(),
-                            style: const TextStyle(
-                                color: Colors
-                                    .white), // Ensure text color is visible
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.green, // Set edit button color to green
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          context.pushNamed(
+                            'edit_evaluation',
+                            extra: widget.evaluationModel,
+                          );
+                        },
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text('edit'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary),
                         ),
                       ),
-                      const SizedBox(width: 8.0),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            context.read<EvaluationsBloc>().add(
-                                DeleteEvaluation(widget.evaluationModel.id));
-                            debugPrint(
-                                'Dispatched DeleteEvaluation event for ID: ${widget.evaluationModel.id}');
-                          },
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.white, // Ensure icon color is visible
-                          ),
-                          label: Text(
-                            'delete'.tr(),
-                            style: TextStyle(
-                                color: Colors
-                                    .white), // Ensure text color is visible
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () => _showDeleteConfirmation(context),
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: Text('delete'.tr()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error),
                         ),
                       ),
                     ],
@@ -203,222 +158,126 @@ class _EvaluationListItemState extends State<EvaluationListItem> {
     );
   }
 
-  TableRow _buildEditableTableRow(BuildContext context,
-      {required String label,
-      required String value,
-      required String fieldKey,
-      TextInputType? keyboardType,
-      List<TextInputFormatter>? inputFormatters}) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-              vertical: 8.0, horizontal: 12.0), // Consistent padding
-          child: SizedBox(
-            height: 30,
-            child: Container(
-              alignment: AlignmentDirectional
-                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
-              child: Text(
-                label,
-                style: GoogleFonts.robotoSlab(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.primary,
+  Widget _buildDetailRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-              vertical: 8.0, horizontal: 12.0), // Consistent padding
-          child: SizedBox(
-            height: 30,
-            child: Container(
-              alignment: AlignmentDirectional
-                  .centerStart, // Use AlignmentDirectional for RTL/LTR support
-              child: (fieldKey == 'startDateTime' || fieldKey == 'endDateTime')
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            readOnly:
-                                !_isEditing, // Enable editing when _isEditing is true
-                            decoration: InputDecoration(
-                              hintText: fieldKey == 'startDateTime'
-                                  ? 'selectStartDate'.tr()
-                                  : 'selectEndDate'.tr(),
-                              suffixIcon:
-                                  const Icon(Icons.calendar_month_outlined),
-                              border: const OutlineInputBorder(),
-                            ),
-                            controller: TextEditingController(
-                              text: DateFormat('yyyy-MM-dd').format(
-                                DateTime.parse(
-                                    _updatedValues[fieldKey] ?? value),
-                              ),
-                            ),
-                            onTap: _isEditing
-                                ? () async {
-                                    final date = await showDatePicker(
-                                      context: context,
-                                      initialDate: DateTime.parse(value),
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2100),
-                                    );
-                                    if (date != null) {
-                                      final existingDate = DateTime.parse(
-                                        _updatedValues[fieldKey] ?? value,
-                                      );
-                                      final updatedDateTime = DateTime(
-                                        date.year,
-                                        date.month,
-                                        date.day,
-                                        existingDate.hour,
-                                        existingDate.minute,
-                                      );
-                                      setState(() {
-                                        _updatedValues[fieldKey] =
-                                            updatedDateTime.toIso8601String();
-                                      });
-                                    }
-                                  }
-                                : null,
-                            style: GoogleFonts.robotoSlab(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        Expanded(
-                          child: TextFormField(
-                            readOnly:
-                                !_isEditing, // Enable editing when _isEditing is true
-                            decoration: InputDecoration(
-                              hintText: fieldKey == 'startDateTime'
-                                  ? 'selectStartTime'.tr()
-                                  : 'selectEndTime'.tr(),
-                              suffixIcon:
-                                  const Icon(Icons.access_time_filled_outlined),
-                              border: const OutlineInputBorder(),
-                            ),
-                            controller: TextEditingController(
-                              text: DateFormat('HH:mm').format(
-                                DateTime.parse(
-                                    _updatedValues[fieldKey] ?? value),
-                              ),
-                            ),
-                            onTap: _isEditing
-                                ? () async {
-                                    final time = await showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay.fromDateTime(
-                                        DateTime.parse(value),
-                                      ),
-                                    );
-                                    if (time != null) {
-                                      final existingDate = DateTime.parse(
-                                        _updatedValues[fieldKey] ?? value,
-                                      );
-                                      final updatedDateTime = DateTime(
-                                        existingDate.year,
-                                        existingDate.month,
-                                        existingDate.day,
-                                        time.hour,
-                                        time.minute,
-                                      );
-                                      setState(() {
-                                        _updatedValues[fieldKey] =
-                                            updatedDateTime.toIso8601String();
-                                      });
-                                    }
-                                  }
-                                : null,
-                            style: GoogleFonts.robotoSlab(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : _isEditing
-                      ? TextField(
-                          controller: TextEditingController(text: value),
-                          onChanged: (newValue) {
-                            _updatedValues[fieldKey] = newValue;
-                          },
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                          ),
-                          style: GoogleFonts.robotoSlab(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 14,
-                          ),
-                        )
-                      : Text(
-                          value,
-                          style: GoogleFonts.robotoSlab(
-                            fontSize: 16,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  void _enableEditing() {
-    setState(() {
-      _isEditing = true; // Enable editing mode
-    });
+  String _calculateDuration(dynamic start, dynamic end) {
+    final startTime = start.toDate();
+    final endTime = end.toDate();
+    final duration = endTime.difference(startTime);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    } else {
+      return '${minutes}m';
+    }
   }
 
-  void _submitChanges() {
-    if (_updatedValues.isNotEmpty) {
-      final updatedEvaluationModel = widget.evaluationModel.copyWith(
-        patientName:
-            _updatedValues['patientName'] ?? widget.evaluationModel.patientName,
-        price: double.tryParse(_updatedValues['price'] ?? '') ??
-            widget.evaluationModel.price,
-        updatedAt: Timestamp.now(),
-        startDateTime: _updatedValues['startDateTime'] != null
-            ? Timestamp.fromDate(
-                DateTime.parse(_updatedValues['startDateTime']!))
-            : widget.evaluationModel.startDateTime,
-        endDateTime: _updatedValues['endDateTime'] != null
-            ? Timestamp.fromDate(DateTime.parse(_updatedValues['endDateTime']!))
-            : widget.evaluationModel.endDateTime,
-      );
+  Future<void> _showDeleteConfirmation(BuildContext context) async {
+    bool deleteInvoiceAndTransaction = true;
+    final result = await showDialog<_DeleteEvaluationDialogResult>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('deleteEvaluationTitle'.tr()),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('deleteEvaluationConfirm'.tr()),
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    value: deleteInvoiceAndTransaction,
+                    onChanged: (val) {
+                      setState(() {
+                        deleteInvoiceAndTransaction = val ?? true;
+                      });
+                    },
+                    title: Text(
+                      'deleteCorrespondingInvoiceAndTransaction'.tr(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('cancel'.tr()),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(
+                      _DeleteEvaluationDialogResult(
+                        deleteEvaluationAndTransaction:
+                            deleteInvoiceAndTransaction,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    foregroundColor: Theme.of(context).colorScheme.onError,
+                  ),
+                  child: Text('delete'.tr()),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
 
-      try {
-        context.read<EvaluationsBloc>().add(UpdateEvaluation(
-            widget.evaluationModel.id, updatedEvaluationModel));
-        debugPrint(
-            'Dispatched UpdateEvaluation event with updated evaluation: $updatedEvaluationModel');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('evaluationUpdated')),
-        );
-        setState(() {
-          _isEditing = false; // Exit editing mode
-        });
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.toString().contains('Unauthorized')
-                  ? 'notAuthorized'.tr()
-                  : 'unexpectedError'.tr(),
-            ),
-          ),
-        );
-      }
+    if (result != null && context.mounted) {
+      // Assuming the bloc event only takes ID for now based on previous file content
+      context.read<EvaluationsBloc>().add(
+        DeleteEvaluation(widget.evaluationModel.id),
+      );
     }
   }
 }
+
+class _DeleteEvaluationDialogResult {
+  final bool deleteEvaluationAndTransaction;
+  _DeleteEvaluationDialogResult({required this.deleteEvaluationAndTransaction});
+}
+

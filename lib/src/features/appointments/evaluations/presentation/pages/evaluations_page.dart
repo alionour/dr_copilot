@@ -1,11 +1,15 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/bloc/evaluations_bloc.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/presentation/widgets/evaluation_list_item.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
@@ -27,16 +31,12 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
   bool _canLoadMore = true; // Add a flag to control loading more evaluations
   int? _firestoreEvaluationsCount;
 
-  void _dispatchGetEvaluationsCount() {
-    context.read<EvaluationsBloc>().add(const GetEvaluationsCount());
-  }
-
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     context.read<EvaluationsBloc>().add(const GetEvaluations());
-    _dispatchGetEvaluationsCount();
+    context.read<EvaluationsBloc>().add(const GetEvaluationsCount());
   }
 
   @override
@@ -48,16 +48,21 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    // Only trigger when scrolling down and near the end
+    if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.reverse &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<EvaluationsBloc>().state;
       if (state is EvaluationsLoaded && !state.isLoadingMore) {
         if (_canLoadMore) {
           _canLoadMore = false;
-          context.read<EvaluationsBloc>().add(LoadMoreEvaluations(
-                lastDocumentId: state.evaluations.last.id,
-                limit: 20,
-              ));
+          context.read<EvaluationsBloc>().add(
+                LoadMoreEvaluations(
+                  lastDocumentId: state.evaluations.last.id,
+                  limit: 20,
+                ),
+              );
           Future.delayed(const Duration(seconds: 1), () {
             _canLoadMore = true;
           });
@@ -68,41 +73,49 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
+    final isMobile = ScreenSizeHelper.isSmall(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Expanded(
-              child: Focus(
-                focusNode: _searchFocusNode,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'searchEvaluations'.tr(),
-                    prefixIcon: Icon(Icons.search,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: BorderSide(
+            if (!(isMobile && _showFilters))
+              Expanded(
+                child: Focus(
+                  focusNode: _searchFocusNode,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'searchEvaluations'.tr(),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
                           color: Theme.of(context).colorScheme.primary,
-                          width: 0.3),
+                          width: 0.3,
+                        ),
+                      ),
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    hintStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    onChanged: (newQuery) {
+                      setState(() {
+                        query = newQuery;
+                        _selectedIndex = 0; // Reset selection on new query
+                      });
+                      context.read<EvaluationsBloc>().add(
+                            SearchEvaluations(name: query),
+                          ); // Trigger search event
+                    },
+                    onSubmitted: (_) {
+                      _listFocusNode.requestFocus();
+                    },
                   ),
-                  onChanged: (newQuery) {
-                    setState(() {
-                      query = newQuery;
-                      _selectedIndex = 0; // Reset selection on new query
-                    });
-                    context.read<EvaluationsBloc>().add(
-                        SearchEvaluations(name: query)); // Trigger search event
-                  },
-                  onSubmitted: (_) {
-                    _listFocusNode.requestFocus();
-                  },
                 ),
               ),
-            ),
             // Update the refresh button to clear all filters
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -122,27 +135,28 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 //   color: Theme.of(context)
                 //       .colorScheme
                 //       .primary
-                //       .withOpacity(0.3), // Adjusted color to be less intense
+                //       .withValues(alpha: 0.3), // Adjusted color to be less intense
                 //   width: 0.3, // Made the border thinner
                 // ),
                 borderRadius: BorderRadius.circular(12.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withValues(alpha: 0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.2),
                     blurRadius: 8.0,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.filter_alt),
+                    icon: const Icon(Icons.filter_alt_outlined),
                     tooltip: 'toggleFilters'.tr(),
                     onPressed: () {
                       setState(() {
@@ -178,9 +192,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           });
                           if (!context.mounted) return;
 
-                          context
-                              .read<EvaluationsBloc>()
-                              .add(GetEvaluationsByDate(date: selectedDate));
+                          context.read<EvaluationsBloc>().add(
+                                GetEvaluationsByDate(date: selectedDate),
+                              );
                         }
                       },
                     ),
@@ -188,6 +202,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 ],
               ),
             ),
+            if (navMenuButton != null) navMenuButton,
           ],
         ),
       ),
@@ -203,8 +218,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
           builder: (context, state) {
             if (state is EvaluationsLoading) {
               return Shimmer.fromColors(
-                baseColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                baseColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 highlightColor: Theme.of(context).colorScheme.surface,
                 child: ListView.builder(
                   itemCount: 10,
@@ -218,28 +234,25 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 ),
               );
             } else if (state is EvaluationsLoaded ||
-                state is EvaluationsLoadingMore) {
-              final evaluations = state is EvaluationsLoaded
+                state is EvaluationsLoadingMore ||
+                state is EvaluationsCountLoaded) {
+              final evaluations = (state is EvaluationsLoaded)
                   ? state.evaluations
-                  : (state as EvaluationsLoadingMore).evaluations;
+                  : (state is EvaluationsLoadingMore)
+                      ? state.evaluations
+                      : <EvaluationModel>[];
 
-              if (evaluations.isEmpty) {
-                return Center(
-                  child: Text('noEvaluationsMatch'.tr()),
-                );
-              }
-
-              // Group evaluations by creation date
               final groupedEvaluations = <String, List<EvaluationModel>>{};
               for (var evaluation in evaluations) {
-                final creationDate = DateFormat('yyyy-MM-dd')
-                    .format(evaluation.startDateTime.toDate());
+                final creationDate = evaluation.startDateTime
+                    .toDate()
+                    .toIso8601String()
+                    .split('T')[0];
                 groupedEvaluations
                     .putIfAbsent(creationDate, () => [])
                     .add(evaluation);
               }
 
-              // Sort grouped evaluations by date in descending order
               final sortedGroupedEvaluations = groupedEvaluations.entries
                   .toList()
                 ..sort((a, b) => b.key.compareTo(a.key));
@@ -248,11 +261,14 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Icon(Icons.assignment, size: 20, color: Colors.blue),
+                        Icon(Icons.assignment_outlined,
+                            size: 20, color: Colors.blue),
                         const SizedBox(width: 4),
                         Text(
                           '${evaluations.length} ',
@@ -263,28 +279,35 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                   ),
                         ),
                         Text(
-                          'evaluationsLoaded'.tr(),
+                          'loaded'.tr(),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        if (_firestoreEvaluationsCount != null) ...[
-                          const SizedBox(width: 16),
-                          Icon(Icons.cloud, size: 18, color: Colors.deepPurple),
-                          const SizedBox(width: 2),
-                          Text(
-                            '$_firestoreEvaluationsCount',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
-                                ),
+                        if (_firestoreEvaluationsCount != null)
+                          Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              Icon(
+                                Icons.cloud_outlined,
+                                size: 18,
+                                color: Colors.deepPurple,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                '$_firestoreEvaluationsCount',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurple,
+                                    ),
+                              ),
+                              Text(
+                                ' ${'stored'.tr()} ',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
                           ),
-                          Text(
-                            ' ${'storedEvaluations'.tr()} ',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ]
                       ],
                     ),
                   ),
@@ -302,11 +325,14 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
+                                vertical: 8.0,
+                                horizontal: 16.0,
+                              ),
                               child: Text(
                                 _getDateLabel(dateKey),
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
                               ),
                             ),
                             ...evaluationsForDate.map((evaluation) {
@@ -314,8 +340,9 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                                 evaluationModel: evaluation,
                                 onTap: () {
                                   setState(() {
-                                    _selectedIndex =
-                                        evaluations.indexOf(evaluation);
+                                    _selectedIndex = evaluations.indexOf(
+                                      evaluation,
+                                    );
                                   });
                                 },
                               );
@@ -325,13 +352,39 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                       },
                     ),
                   ),
+                  if (state is EvaluationsLoaded && state.isLoadingMore ||
+                      state is EvaluationsLoadingMore)
+                    Shimmer.fromColors(
+                      baseColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      highlightColor: Theme.of(context).colorScheme.surface,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          height: 50.0,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               );
             } else if (state is EvaluationsError) {
               debugPrint('Error: ${state.message}');
               return Center(child: Text('Error: ${state.message}'));
             }
-            return Center(child: Text('noEvaluations'.tr()));
+            return EmptyStateWidget(
+              message: 'noEvaluations'.tr(),
+              title: 'noEvaluationsFound'.tr(),
+              actionLabel: 'addEvaluation'.tr(),
+              onActionPressed: () {
+                context.push('/evaluations/new');
+              },
+            );
           },
         ),
       ),
@@ -373,13 +426,16 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
     if (parsedDate.year == today.year &&
         parsedDate.month == today.month &&
         parsedDate.day == today.day) {
-      return 'Today';
+      return 'today'.tr();
     } else if (parsedDate.year == today.year &&
         parsedDate.month == today.month &&
         parsedDate.day == today.day - 1) {
-      return 'Yesterday';
+      return 'yesterday'.tr();
     } else {
-      return DateFormat('MMMM dd, yyyy').format(parsedDate);
+      return DateFormat(
+        'EEEE, MMMM dd, yyyy',
+        context.locale.toString(),
+      ).format(parsedDate);
     }
   }
 }

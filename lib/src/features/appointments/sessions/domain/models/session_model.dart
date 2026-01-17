@@ -3,17 +3,29 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'session_model.g.dart';
 
-/// Enum for session types
-enum SessionType {
-  pediatricIntensive('Pediatric Intensive', 100.0),
-  adultIntensive('Adult Intensive', 150.0),
-  standard('Standard', 120.0),
-  traction('Traction', 150.0);
+/// Class for session type presets
+class SessionTypePresets {
+  static const String pediatricIntensive = 'Pediatric Intensive';
+  static const String adultIntensive = 'Adult Intensive';
+  static const String standard = 'Standard';
+  static const String traction = 'Traction';
+  static const String custom = 'Custom';
 
-  final String text;
-  final double basePrice;
+  static const List<String> values = [
+    pediatricIntensive,
+    adultIntensive,
+    standard,
+    traction,
+    custom,
+  ];
 
-  const SessionType(this.text, this.basePrice);
+  static const Map<String, double> basePrices = {
+    pediatricIntensive: 100.0,
+    adultIntensive: 150.0,
+    standard: 120.0,
+    traction: 150.0,
+    custom: 0.0,
+  };
 }
 
 class TimestampConverter implements JsonConverter<Timestamp, dynamic> {
@@ -70,8 +82,9 @@ class SessionModel {
   @TimestampConverter()
   final Timestamp endDateTime;
 
-  final SessionType? sessionType;
-  final String userId;
+  final String? sessionType;
+  final String ownerId;
+  final String clinicId;
   final String createdBy;
   final String? patientName;
   final String? updatedBy;
@@ -80,11 +93,13 @@ class SessionModel {
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
 
-  @NullableTimestampConverter()
-  final Timestamp? createdAt;
+  @TimestampConverter()
+  final Timestamp createdAt;
 
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
+
+  final String? doctorId;
 
   SessionModel({
     required this.id,
@@ -93,14 +108,16 @@ class SessionModel {
     required this.startDateTime,
     required this.endDateTime,
     this.sessionType,
-    required this.userId,
+    required this.ownerId,
+    required this.clinicId,
     required this.createdBy,
     this.patientName,
     this.updatedBy,
     this.deletedBy,
     this.deletedAt,
-    this.createdAt,
+    required this.createdAt,
     this.updatedAt,
+    this.doctorId,
   });
 
   factory SessionModel.fromJson(Map<String, dynamic> json) =>
@@ -114,8 +131,9 @@ class SessionModel {
     double? price,
     Timestamp? startDateTime,
     Timestamp? endDateTime,
-    SessionType? sessionType,
-    String? userId,
+    String? sessionType,
+    String? ownerId,
+    String? clinicId,
     String? createdBy,
     String? patientName,
     String? updatedBy,
@@ -123,6 +141,7 @@ class SessionModel {
     Timestamp? deletedAt,
     Timestamp? createdAt,
     Timestamp? updatedAt,
+    String? doctorId,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -131,7 +150,8 @@ class SessionModel {
       startDateTime: startDateTime ?? this.startDateTime,
       endDateTime: endDateTime ?? this.endDateTime,
       sessionType: sessionType ?? this.sessionType,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       createdBy: createdBy ?? this.createdBy,
       patientName: patientName ?? this.patientName,
       updatedBy: updatedBy ?? this.updatedBy,
@@ -139,6 +159,8 @@ class SessionModel {
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      doctorId: doctorId ?? this.doctorId,
     );
   }
 }
+

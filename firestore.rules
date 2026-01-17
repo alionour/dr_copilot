@@ -1,0 +1,320 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Check if the user is a member of the clinic
+    function isClinicMember(clinicId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid));
+    }
+
+    // Check strict granular permission
+    // This requires reading the member document.
+    // We assume the member document has a 'permissions' array field.
+    function hasPermission(clinicId, permission) {
+      // 1. Must be signed in
+      // 2. Must be a member
+      // 3. Must have specific permission OR be the Owner (role == 'owner')
+      // Note: We use get() to fetch the member data.
+      let memberPath = /databases/$(database)/documents/clinics/$(clinicId)/members/$(request.auth.uid);
+      let memberData = get(memberPath).data;
+      
+      return isSignedIn() && 
+             exists(memberPath) && (
+               memberData.role == 'owner' || 
+               (memberData.permissions is list && memberData.permissions.hasAny([permission]))
+             );
+    }
+    
+    // --- Collection Rules ---
+
+    // Users & Owners
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+      
+      match /{document=**} {
+         allow read, write: if isOwner(userId);
+      }
+
+      // Usage Tracking (Daily Limits)
+      match /usage_tracking/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Clinics -> Members
+    match /clinics/{clinicId} {
+      allow read: if true; // Public needed for booking page
+      allow write: if hasPermission(clinicId, 'manageSettings');
+      
+      // Public Currency Profiles (Booking System)
+      match /currency_profiles/{profileId} {
+        allow read: if true;
+        allow write: if hasPermission(clinicId, 'manageSettings'); // Only admins can manage currency
+      }
+
+
+      match /members/{memberId} {
+        allow read: if isClinicMember(clinicId);
+        // Only admins/owners with manageStaff permission can write members
+        allow write: if hasPermission(clinicId, 'manageStaff');
+      }
+
+      
+      // Clinic Settings (Missing Rule Fix)
+      match /settings/{settingId} {
+        allow read: if isClinicMember(clinicId);
+        allow write: if hasPermission(clinicId, 'manageSettings');
+      }
+
+      // Kiosk Tokens
+      match /kiosk_tokens/{tokenId} {
+        // Public read allowed for kiosk validation (security by token entropy)
+        allow read: if true;
+        
+        // Only Admins can create/delete/revoke
+        allow create, delete: if hasPermission(clinicId, 'manageSettings');
+        
+        // Admins can update OR Public can update only 'lastUsedAt' (for check-in tracking)
+        allow update: if hasPermission(clinicId, 'manageSettings') || 
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastUsedAt']));
+      }
+
+      // Usage Tracking (QuotaService)
+      match /usage_tracking/{docId} {
+         // Allow members to read usage (for quota checks)
+         allow read: if isClinicMember(clinicId) || 
+                        get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerId == request.auth.uid;
+         
+         // Allow members/owners to WRITE usage (increment counters)
+         allow write: if isClinicMember(clinicId) || 
+                         get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerId == request.auth.uid;
+      }
+      
+       // Patients (subcollection style if used)
+      match /patients/{patientId} {
+        allow read: if hasPermission(clinicId, 'viewAllPatients') || hasPermission(clinicId, 'viewOwnPatients');
+        allow create: if hasPermission(clinicId, 'createPatient');
+        allow update: if hasPermission(clinicId, 'updatePatient');
+        allow delete: if hasPermission(clinicId, 'deletePatient');
+      }
+    }
+
+    // Global Patients (Root Collection)
+    match /patients/{patientId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewAllPatients') || hasPermission(resource.data.clinicId, 'viewOwnPatients');
+      allow create: if hasPermission(request.resource.data.clinicId, 'createPatient');
+      allow update: if hasPermission(resource.data.clinicId, 'updatePatient');
+      allow delete: if hasPermission(resource.data.clinicId, 'deletePatient');
+    }
+
+    // Medical Files
+    // Assoc with Patient? Assuming top-level or subcollection. 
+    // If top level, it needs clinicId field.
+    // If subcollection of patient, it inherits rules? No, Firestore rules don't inherit.
+    // Assuming structure: /medical_files/{fileId} with clinicId field.
+    match /medical_files/{fileId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewMedicalFiles');
+      allow create: if hasPermission(request.resource.data.clinicId, 'addMedicalFile');
+      allow update: if hasPermission(resource.data.clinicId, 'editMedicalFile');
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteMedicalFile');
+    }
+
+    // Medications
+    match /medications/{medId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewMedications');
+      allow create: if hasPermission(request.resource.data.clinicId, 'addMedication');
+      allow update: if hasPermission(resource.data.clinicId, 'editMedication');
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteMedication');
+    }
+
+    // Financials (Invoices, Bills)
+    match /invoices/{invoiceId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewFinancials');
+      allow create: if hasPermission(request.resource.data.clinicId, 'addFinancialEntry');
+      allow update: if hasPermission(resource.data.clinicId, 'editFinancialEntry');
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteFinancialEntry');
+    }
+    match /bills/{billId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewFinancials');
+      allow create: if hasPermission(request.resource.data.clinicId, 'addFinancialEntry');
+      allow update: if hasPermission(resource.data.clinicId, 'editFinancialEntry');
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteFinancialEntry');
+    }
+    match /transactions/{txnId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewFinancials');
+      allow create: if hasPermission(request.resource.data.clinicId, 'addFinancialEntry');
+      allow update: if hasPermission(resource.data.clinicId, 'editFinancialEntry');
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteFinancialEntry');
+    }
+
+    // Clinical Reports
+    match /clinical_reports/{reportId} {
+      allow read: if hasPermission(resource.data.clinicId, 'viewClinicalReports');
+      allow create: if hasPermission(request.resource.data.clinicId, 'addClinicalReport');
+      allow update: if hasPermission(resource.data.clinicId, 'editClinicalReport');
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteClinicalReport');
+    }
+
+    // Doctors
+    match /doctors/{doctorId} {
+      allow read: if true; // Public for Booking
+      allow create: if hasPermission(request.resource.data.clinicId, 'manageDoctors');
+      allow update: if hasPermission(resource.data.clinicId, 'manageDoctors');
+      allow delete: if hasPermission(resource.data.clinicId, 'manageDoctors');
+    }
+
+    // Invitations
+    match /user_invitations/{inviteId} {
+      // Create/Send
+      allow create: if hasPermission(request.resource.data.clinicId, 'sendInvitation');
+      // Revoke/Delete
+      allow delete: if hasPermission(resource.data.clinicId, 'revokeInvitation');
+      // View/List
+      allow read: if hasPermission(resource.data.clinicId, 'viewInvitations');
+      // Allow user see their own invites by email
+      allow read: if isSignedIn() && resource.data.email == request.auth.token.email;
+    }
+
+    // Staff
+    match /staff/{staffId} {
+      allow read: if isClinicMember(resource.data.clinicId); // Public to clinic usually
+      allow create: if hasPermission(request.resource.data.clinicId, 'manageStaff');
+      allow update: if hasPermission(resource.data.clinicId, 'manageStaff');
+      allow delete: if hasPermission(resource.data.clinicId, 'manageStaff');
+    }
+
+    // Team/Chat
+    match /team_conversations/{chatId} {
+       // DEBUGGING: PUBLIC ACCESS
+       allow create: if true; 
+       allow read, update, delete: if true;
+       
+       match /messages/{msgId} {
+          // DEBUGGING: PUBLIC ACCESS
+          allow read, write: if true;
+       }
+    }
+
+    // Calendar UI & Check-In
+    match /calendar_events/{eventId} {
+       // Allow authenticated staff/admin
+       allow read: if hasPermission(resource.data.clinicId, 'viewCalendar');
+       allow create: if hasPermission(request.resource.data.clinicId, 'addCalendarEvent');
+       allow delete: if hasPermission(resource.data.clinicId, 'deleteCalendarEvent');
+       allow update: if hasPermission(resource.data.clinicId, 'editCalendarEvent');
+       
+       // Allow Public Kiosk Check-In
+       // 1. Read: To find the appointment by phone number
+       allow read: if true; 
+       
+       // 2. Update: To mark as 'arrived' (and update timestamp)
+       allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'arrivedAt']) &&
+                        request.resource.data.status == 'arrived';
+    }
+
+    // Evaluation/Sessions (Standard)
+    match /sessions/{sessionId} {
+       allow read: if hasPermission(resource.data.clinicId, 'viewAllSessions');
+       allow create: if hasPermission(request.resource.data.clinicId, 'createSession');
+       allow update: if hasPermission(resource.data.clinicId, 'createSession');
+       allow delete: if hasPermission(resource.data.clinicId, 'createSession');
+    }
+    match /evaluations/{evalId} {
+       allow read: if hasPermission(resource.data.clinicId, 'viewAllEvaluations');
+       allow create: if hasPermission(request.resource.data.clinicId, 'createEvaluation');
+       allow update: if hasPermission(resource.data.clinicId, 'createEvaluation');
+       allow delete: if hasPermission(resource.data.clinicId, 'createEvaluation');
+    }
+
+    // Specific fallback for Recycle Bin? 
+    // Recycle bin items usually stay in their original collection with a 'deleted' flag 
+    // OR move to a separate collection.
+    // If separate:
+    match /recycle_bin/{itemId} {
+       allow read: if hasPermission(resource.data.clinicId, 'viewRecycleBin');
+       allow delete: if hasPermission(resource.data.clinicId, 'permanentDeleteRecycleBinItem'); // Permanent delete
+       allow update: if hasPermission(resource.data.clinicId, 'restoreRecycleBinItem'); // Restore (often involves move or flag update)
+    }
+
+    // AI Copilot Conversations (Chat History)
+    match /conversations/{conversationId} {
+       // Users can read/write their own conversations
+       allow read, write: if isSignedIn() && resource.data.userId == request.auth.uid;
+       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+       
+       // Messages subcollection
+       match /messages/{messageId} {
+          allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+          allow read, update, delete: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+       }
+    }
+
+    // Teams Collection (Custom Teams)
+    match /custom_teams/{teamId} {
+       allow read: if isClinicMember(resource.data.clinicId);
+       allow create: if hasPermission(request.resource.data.clinicId, 'createTeam');
+       allow update: if hasPermission(resource.data.clinicId, 'manageTeams');
+       allow delete: if hasPermission(resource.data.clinicId, 'archiveTeam');
+    }
+
+    // Direct Messages (UnifiedChatRepository dependency)
+    match /direct_messages/{msgId} {
+       // logic: 
+       // 1. Allow Create if user is a participant
+       // 2. Allow Read/Update/Delete if user is a participant
+       // 3. Allow Read if resource == null (to let the app check existence without PermissionError)
+       
+       allow create: if request.auth != null; // Simplified create for now (should check participants)
+       allow read: if request.auth != null && (resource == null || request.auth.uid in resource.data.participantIds);
+       allow update, delete: if request.auth.uid in resource.data.participantIds;
+    }
+
+    // Notifications (Missing Rule Fix)
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Allow users to delete/update their own notifications (e.g. mark as read)
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Allow creation? Usually server-side, but if client creates:
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Telemedicine Meetings
+    match /telemedicine_meetings/{meetingId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Patient Bookings
+    match /patient_bookings/{bookingId} {
+      allow create: if true; // Public access for patients
+      allow read: if true; // Public read for availability check (Compromise)
+      allow update, delete: if isSignedIn(); // Staff management
+    }
+
+    // Clinic Payment Configs
+    match /clinic_payment_configs/{clinicId} {
+      // Only clinic admins can read/write their payment keys
+      allow read, write: if hasPermission(clinicId, 'manageSettings');
+    }
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Global Kiosk Token Rule (for Collection Group Queries)
+    match /{path=**}/kiosk_tokens/{tokenId} {
+      allow read: if true;
+    }
+  }
+}

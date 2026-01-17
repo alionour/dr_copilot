@@ -1,5 +1,7 @@
 import 'package:dr_copilot/src/features/auth/data/remote/auth_firebase_api.dart';
 import 'package:dr_copilot/src/features/auth/data/repositories/auth_repositories_impl.dart';
+import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -20,6 +22,9 @@ void initAuthInjections() {
   // Use cases
   sl.registerLazySingleton(() => AuthUseCase(sl<AbstractAuthRepository>()));
 
+  // Services
+  sl.registerLazySingleton(() => PermissionService());
+
   // Repository (register as abstract type for flexibility)
   sl.registerLazySingleton<AbstractAuthRepository>(
     () => AuthRepositoryImpl(sl<AuthFirebaseApi>()),
@@ -27,6 +32,6 @@ void initAuthInjections() {
 
   // Data sources
   sl.registerLazySingleton<AuthFirebaseApi>(
-    () => AuthFirebaseApi(),
+    () => AuthFirebaseApi(FirebaseAuth.instance),
   );
 }

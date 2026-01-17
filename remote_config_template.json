@@ -1,0 +1,25 @@
+{
+  "parameters": {
+    "signup_enabled": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "description": "Allow or block new user signups",
+      "valueType": "BOOLEAN"
+    },
+    "max_allowed_users": {
+      "defaultValue": {
+        "value": "100"
+      },
+      "description": "Maximum number of users allowed",
+      "valueType": "NUMBER"
+    },
+    "enable_sensitive_scopes": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "description": "Enable sensitive scopes (Calendar/Drive) for verified app versions",
+      "valueType": "BOOLEAN"
+    }
+  }
+}

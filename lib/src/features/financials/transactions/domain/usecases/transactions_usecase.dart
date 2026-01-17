@@ -1,0 +1,135 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dr_copilot/src/core/error/failures.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
+import '../repositories/abstract_financials_repository.dart';
+
+/// Use case for managing financial transactions.
+class TransactionsUseCase {
+  final AbstractTransactionsRepository repository;
+
+  /// Constructor for [TransactionsUseCase].
+  TransactionsUseCase(this.repository);
+
+  /// Fetches all transactions.
+  Future<Either<Failure, List<TransactionModel>>> getTransactions({
+    required String clinicId, // Added clinicId
+    String? lastDocumentId, // Corrected parameter name
+    int? limit = 20,
+  }) {
+    return repository.getTransactions(
+      clinicId: clinicId, // Pass clinicId
+      lastDocumentId: lastDocumentId,
+      limit: limit ?? 20,
+    );
+  }
+
+  /// Adds a new transaction.
+  Future<Either<Failure, void>> addTransaction(TransactionModel transaction) {
+    return repository.addTransaction(transaction);
+  }
+
+  /// Updates an existing transaction.
+  Future<Either<Failure, TransactionModel>> updateTransaction(
+      String id, TransactionModel transactionModel) async {
+    return await repository.updateTransaction(id, transactionModel);
+  }
+
+  /// Deletes a transaction by its ID.
+  Future<Either<Failure, void>> deleteTransaction(String id) {
+    return repository.deleteTransaction(id);
+  }
+
+  /// Searches transactions based on criteria.
+  Future<Either<Failure, List<TransactionModel>>> searchTransactions(
+      {required String clinicId, String? description}) async {
+    return await repository.searchTransactions(
+        clinicId: clinicId, description: description);
+  }
+
+  /// Gets transactions by a specific date.
+  Future<Either<Failure, List<TransactionModel>>> getTransactionsByDate(
+      String clinicId, DateTime date,
+      {String? lastDocumentID, int limit = 20}) async {
+    return await repository.getTransactionsByDate(clinicId, date,
+        lastDocumentID: lastDocumentID, limit: limit);
+  }
+
+  /// Returns the count of transactions as an [int] or a [Failure] in case of an error.
+  Future<Either<Failure, int>> getTransactionsCount(String clinicId) async {
+    return await repository.getTransactionsCount(clinicId);
+  }
+
+  /// Returns the total revenue (inwards) for a given year.
+  Future<Either<Failure, double>> getTotalRevenueForYear(
+      String clinicId, int year) async {
+    return await repository.getTotalRevenueForYear(clinicId, year);
+  }
+
+  /// Returns the total expenses (outwards) for a given year.
+  Future<Either<Failure, double>> getTotalExpensesForYear(
+      String clinicId, int year) async {
+    return await repository.getTotalExpensesForYear(clinicId, year);
+  }
+
+  /// Returns the total revenue (inwards) for a given month and year.
+  Future<Either<Failure, double>> getTotalRevenueForMonth(
+      String clinicId, int year, int month) async {
+    return await repository.getTotalRevenueForMonth(clinicId, year, month);
+  }
+
+  /// Returns the total expenses (outwards) for a given month and year.
+  Future<Either<Failure, double>> getTotalExpensesForMonth(
+      String clinicId, int year, int month) async {
+    return await repository.getTotalExpensesForMonth(clinicId, year, month);
+  }
+
+  /// Returns the total for a given direction (inwards/outwards) and optional source.
+  Future<Either<Failure, double>> getTotalByDirectionAndSource({
+    required String clinicId, // Added clinicId
+    required TransactionDirection direction,
+    TransactionSource? source,
+    int? year,
+    int? month,
+  }) async {
+    return await repository.getTotalByDirectionAndSource(
+      clinicId: clinicId, // Pass clinicId
+      direction: direction,
+      source: source,
+      year: year,
+      month: month,
+    );
+  }
+
+  /// Validates the provided reference ID and fetches the corresponding
+  /// document snapshot from the remote data source.
+  ///
+  /// This method checks if the given [referenceId] is valid and attempts
+  /// to retrieve the associated document. If the operation is successful,
+  /// it returns a [DocumentSnapshot] wrapped in a [Right]. If there is a
+  /// failure, it returns a [Failure] wrapped in a [Left].
+  ///
+  /// - Parameters:
+  ///   - referenceId: The unique identifier of the reference to validate
+  ///     and fetch.
+  ///
+  /// - Returns: A [Future] containing an [Either] with a [Failure] on the
+  ///   left side if an error occurs, or a [DocumentSnapshot?] on the right
+  ///   side if the operation is successful.
+  Future<Either<Failure, DocumentSnapshot?>> validateAndFetchReferenceId({
+    required String referenceId,
+    required TransactionSource transactionSource,
+  }) {
+    return repository.validateAndFetchReferenceId(
+      referenceId: referenceId,
+      transactionSource: transactionSource,
+    );
+  }
+
+  /// Deletes a transaction by its reference ID.
+  Future<Either<Failure, void>> deleteTransactionByReferenceId(
+      String clinicId, String referenceId) async {
+    return await repository.deleteTransactionByReferenceId(
+        clinicId, referenceId);
+  }
+}

@@ -78,7 +78,7 @@ class SessionsSuccess extends SessionsState {
 /// State representing that a session type has been detected.
 class SessionTypeDetected extends SessionsState {
   /// The detected session type.
-  final SessionType sessionType;
+  final String sessionType;
 
   /// Creates a state with the detected [sessionType].
   const SessionTypeDetected(this.sessionType) : super(const []);
@@ -97,5 +97,5 @@ class SessionsCountLoaded extends SessionsState {
 
   @override
   List<Object?> get props => [count, sessions];
-
 }
+

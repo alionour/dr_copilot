@@ -43,4 +43,55 @@ class EvaluationsUseCase {
       DateTime date) async {
     return await repository.getEvaluationsByDate(date);
   }
+
+  /// Gets a single evaluation by its ID.
+  Future<Either<Failure, EvaluationModel>> getEvaluationById(String id) async {
+    return await repository.getEvaluationById(id);
+  }
+
+  /// Gets all evaluations without pagination.
+  Future<Either<Failure, List<EvaluationModel>>> getAllEvaluations() async {
+    return await repository.getAllEvaluations();
+  }
+
+  /// Retrieves the total count of evaluations.
+  ///
+  /// Returns a [Future] that completes with an [Either] containing a [Failure]
+  /// if an error occurs, or an [int] representing the number of evaluations
+  /// on success.
+  Future<Either<Failure, int>> getEvaluationsCount() async {
+    return await repository.getEvaluationsCount();
+  }
+
+  /// Gets the count of evaluations for a specific month and year.
+  Future<Either<Failure, int>> getEvaluationsCountForMonth(
+      {required int year, required int month}) async {
+    return await repository.getEvaluationsCountForMonth(
+        year: year, month: month);
+  }
+
+  /// Gets the count of evaluations for a specific year.
+  Future<Either<Failure, int>> getEvaluationsCountForYear(
+      {required int year}) async {
+    return await repository.getEvaluationsCountForYear(year: year);
+  }
+
+  /// Sums the total price of all evaluations in a specific month for the authenticated user.
+  Future<Either<Failure, double>> sumEvaluationCostsForMonth(
+      {required int year, required int month}) async {
+    return await repository.sumEvaluationCostsForMonth(
+        year: year, month: month);
+  }
+
+  /// Sums the total price of all evaluations in a specific year for the authenticated user.
+  Future<Either<Failure, double>> sumEvaluationCostsForYear(
+      {required int year}) async {
+    return await repository.sumEvaluationCostsForYear(year: year);
+  }
+
+  /// Sums the total price of all evaluations for the authenticated user (all time).
+  Future<Either<Failure, double>> sumAllEvaluationCostsForUser() async {
+    return await repository.sumAllEvaluationCostsForUser();
+  }
 }
+

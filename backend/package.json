@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "serve-3d": "node simple_server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.936.0",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^6.0.0",
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^126.0.0",
+    "serverless-http": "^4.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.0",
+    "serverless": "^3.40.0",
+    "serverless-esbuild": "^1.56.0"
+  },
+  "engines": {
+    "node": "18"
+  }
+}

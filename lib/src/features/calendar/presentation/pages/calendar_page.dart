@@ -1,234 +1,189 @@
-import 'package:dr_copilot/src/features/calendar/presentation/bloc/calendar_bloc.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_event_details_page.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/widgets/calendar_view.dart';
+import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
+import 'package:dr_copilot/src/features/calendar_events/presentation/bloc/calendar_events_bloc.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:googleapis/calendar/v3.dart' as google_calendar;
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart' as sf;
+import 'dart:ui';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({
-    super.key,
-  });
+  const CalendarPage({super.key});
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  List<DateTime> _visibleDates = [];
-  CalendarView _calendarView = CalendarView.month; // Default view
+  sf.CalendarView _currentView = sf.CalendarView.day;
+  final sf.CalendarController _calendarController = sf.CalendarController();
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  Future<void> _refreshCalendarEvents(BuildContext context) async {
-    if (_visibleDates.isNotEmpty) {
-      final startDate = _visibleDates.first;
-      final endDate = _visibleDates.last;
-      BlocProvider.of<CalendarBloc>(context)
-          .add(GetCalendarEventsForRange(startDate, endDate));
-    }
+  Widget _buildBeautifulLoadingIndicator() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 30,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      backgroundColor:
+                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'loading'.tr(),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).hintColor,
+                          letterSpacing: 0.5,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _navigateToAddEvent(BuildContext context) async {
-    final result = await context.push<Map<String, dynamic>>('/events/new');
-    if (result != null) {
-      final newEvent = result['event'] as google_calendar.Event;
-      final calendarId = result['calendar'] as String;
-      if (!context.mounted) return;
-      BlocProvider.of<CalendarBloc>(context)
-          .add(AddCalendarEvent(newEvent, calendarId));
+    final result = await Navigator.of(context).push<CalendarEventModel>(
+      MaterialPageRoute(builder: (_) => const AddCalendarEventPage()),
+    );
+    if (result != null && context.mounted) {
+      context.read<CalendarEventsBloc>().add(AddCalendarEvent(result));
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CalendarBloc(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('calendarTitle'.tr()),
-          centerTitle: true,
-          actions: [
-            DropdownButtonHideUnderline(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12), // Circular borders
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: DropdownButton<CalendarView>(
-                  value: _calendarView,
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                  dropdownColor: Theme.of(context).colorScheme.surface,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 16,
-                  ),
-                  onChanged: (CalendarView? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        debugPrint(
-                            'Selected calendar view: $newValue'); // Debugging
-                        _calendarView = newValue;
-                      });
-                    }
-                  },
-                  items: <CalendarView>[
-                    CalendarView.day,
-                    CalendarView.week,
-                    CalendarView.workWeek,
-                    CalendarView.month,
-                    CalendarView.timelineDay,
-                    CalendarView.timelineWeek,
-                    CalendarView.timelineWorkWeek,
-                    CalendarView.timelineMonth,
-                  ].map<DropdownMenuItem<CalendarView>>((CalendarView value) {
-                    return DropdownMenuItem<CalendarView>(
-                      value: value,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                              'calendarView.${value.toString().split('.').last}'
-                                  .tr()),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-        floatingActionButton: BlocBuilder<CalendarBloc, CalendarState>(
-          builder: (context, state) {
-            return FloatingActionButton(
-              onPressed: () {
-                _navigateToAddEvent(context);
-              },
-              tooltip: 'addEventTooltip'.tr(),
-              child: const Icon(Icons.add),
+  Future<void> _navigateToEditEvent(
+    BuildContext context,
+    CalendarEventModel event,
+  ) async {
+    final result = await Navigator.of(context).push<CalendarEventModel>(
+      MaterialPageRoute(
+        builder: (_) => AddCalendarEventPage(eventToEdit: event),
+      ),
+    );
+    if (result != null && context.mounted) {
+      if (result.id.isNotEmpty) {
+        context.read<CalendarEventsBloc>().add(
+              UpdateCalendarEvent(result.id, result),
             );
-          },
-        ),
-        body: Builder(
-          builder: (context) {
-            return BlocBuilder<CalendarBloc, CalendarState>(
-              builder: (context, state) {
-                List<google_calendar.Event> events = [];
-                Map<String, Color> calendarColors = {};
-                if (state is CalendarEventsLoaded) {
-                  events = state.events;
-                  calendarColors = state.calendarColors;
-                }
-                return RefreshIndicator(
-                  onRefresh: () => _refreshCalendarEvents(context),
-                  child: SfCalendar(
-                    key:
-                        ValueKey(_calendarView), // Force rebuild on view change
-                    view: _calendarView, // Ensure this is bound to the state
-                    dataSource:
-                        GoogleCalendarDataSource(events, calendarColors),
-                    allowAppointmentResize: true,
-                    allowDragAndDrop: true,
-                    onViewChanged: (ViewChangedDetails details) {
-                      _visibleDates = details.visibleDates;
-                      final startDate = details.visibleDates.first;
-                      final endDate = details.visibleDates.last;
-                      debugPrint(
-                          'View changed: StartDate=$startDate, EndDate=$endDate'); // Debugging
-                      BlocProvider.of<CalendarBloc>(context)
-                          .add(GetCalendarEventsForRange(startDate, endDate));
-                    },
-                    monthViewSettings: const MonthViewSettings(
-                        appointmentDisplayMode:
-                            MonthAppointmentDisplayMode.appointment),
-                  ),
-                );
-              },
-            );
-          },
+      } else {
+        context.read<CalendarEventsBloc>().add(AddCalendarEvent(result));
+      }
+    }
+  }
+
+  void _deleteEvent(BuildContext context, CalendarEventModel event) {
+    context.read<CalendarEventsBloc>().add(DeleteCalendarEvent(event.id));
+  }
+
+  void _showEventDetails(BuildContext context, CalendarEventModel event) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CalendarEventDetailsPage(
+          event: event,
+          onDelete: (e) => _deleteEvent(context, e),
+          onEdit: (e) => _navigateToEditEvent(context, e),
         ),
       ),
     );
   }
-}
-
-class GoogleCalendarDataSource extends CalendarDataSource {
-  final Map<String, Color> calendarColors;
-
-  GoogleCalendarDataSource(
-      List<google_calendar.Event> source, this.calendarColors) {
-    appointments = source;
-  }
 
   @override
-  DateTime getStartTime(int index) {
-    return appointments![index].start?.dateTime ?? DateTime.now();
-  }
+  Widget build(BuildContext context) {
+    final navMenuButton = NavMenuButtonProvider.of(context);
 
-  @override
-  DateTime getEndTime(int index) {
-    return appointments![index].end?.dateTime ?? DateTime.now();
-  }
+    return BlocProvider<CalendarEventsBloc>(
+      create: (context) => sl<CalendarEventsBloc>(),
+      child: BlocConsumer<CalendarEventsBloc, CalendarEventsState>(
+        listener: (context, state) {
+          if (state is CalendarEventsError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
+        builder: (context, state) {
+          List<CalendarEventModel> events = [];
+          if (state is CalendarEventsLoaded) {
+            events = state.events;
+          }
 
-  @override
-  String getSubject(int index) {
-    return appointments![index].summary ?? '';
-  }
+          return BlocBuilder<SettingsBloc, SettingsState>(
+            builder: (context, settingsState) {
+              final allDays = [1, 2, 3, 4, 5, 6, 7];
+              final workingDays = settingsState.workingDays;
+              final nonWorkingDays =
+                  allDays.where((d) => !workingDays.contains(d)).toList();
 
-  @override
-  String getLocation(int index) {
-    return appointments![index].location ?? '';
-  }
-
-  @override
-  String getNotes(int index) {
-    return appointments![index].description ?? '';
-  }
-
-  @override
-  bool isAllDay(int index) {
-    return appointments![index].start?.dateTime == null;
-  }
-
-  @override
-  Color getColor(int index) {
-    final eventColorId = appointments![index].colorId;
-    if (eventColorId != null) {
-      return _getGoogleCalendarColor(eventColorId);
-    }
-    final calendarId = appointments![index].organizer?.email;
-    if (calendarId != null && calendarColors.containsKey(calendarId)) {
-      return calendarColors[calendarId]!;
-    }
-    return Colors.blue;
-  }
-
-  Color _getGoogleCalendarColor(String colorId) {
-    const colorMap = {
-      '1': Color(0xFF7986CB),
-      '2': Color(0xFF33B679),
-      '3': Color(0xFF8E24AA),
-      '4': Color(0xFFE67C73),
-      '5': Color(0xFFF6BF26),
-      '6': Color(0xFFF4511E),
-      '7': Color(0xFF039BE5),
-      '8': Color(0xFFD50000),
-      '9': Color(0xFF616161),
-      '10': Color(0xFF3F51B5),
-      '11': Color(0xFF0B8043),
-      '12': Color(0xFF3E2723),
-    };
-    return colorMap[colorId] ?? Colors.blue;
+              return Stack(
+                children: [
+                  CalendarView(
+                    events: events,
+                    currentView: _currentView,
+                    controller: _calendarController,
+                    navMenuButton: navMenuButton,
+                    nonWorkingDays: nonWorkingDays,
+                    onViewChanged: (newView) {
+                      setState(() {
+                        _currentView = newView;
+                        _calendarController.view = newView;
+                      });
+                    },
+                    onDateRangeChanged: (start, end) {
+                      context.read<CalendarEventsBloc>().add(
+                            StreamEventsByDateRange(start, end),
+                          );
+                    },
+                    onEventTap: (event) => _showEventDetails(context, event),
+                    onAddEvent: () => _navigateToAddEvent(context),
+                  ),
+                  if (state is CalendarEventsLoading)
+                    _buildBeautifulLoadingIndicator(),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }

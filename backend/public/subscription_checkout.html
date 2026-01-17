@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Copilot Subscription</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f4f7fa;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="statusCard">
+        <div id="loader" class="loader hidden"></div>
+        <div id="content">
+            <h1>Processing...</h1>
+            <p>Please wait while we initialize your payment.</p>
+        </div>
+    </div>
+
+    <iframe id="paymobFrame" class="iframe-container hidden"></iframe>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // 1. Check for Callback (Success/Fail)
+            if (urlParams.has('success') || urlParams.has('id')) {
+                const success = urlParams.get('success') === 'true';
+                const id = urlParams.get('id');
+
+                if (success) {
+                    await verifyPayment(id);
+                } else {
+                    showError('Payment Failed', 'The transaction was declined or cancelled.');
+                }
+                return;
+            }
+
+            // 2. Check for Initiation (Plan, User)
+            const planId = urlParams.get('plan'); // pro, elite
+            const period = urlParams.get('period'); // monthly, yearly
+            const userId = urlParams.get('userId');
+            const userEmail = urlParams.get('email');
+            const clinicId = urlParams.get('clinicId');
+
+            if (planId && userId) {
+                await initiatePayment(planId, period, userId, userEmail, clinicId);
+            } else {
+                showError('Invalid Request', 'Missing plan or user information.');
+            }
+        });
+
+        async function initiatePayment(planId, period, userId, email, clinicId) {
+            showLoader('Initializing Payment...');
+            try {
+                const response = await fetch(`${API_BASE}/subscriptions/initiate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ planId, period, userId, email, clinicId })
+                });
+
+                const data = await response.json();
+
+                if (data.iframeUrl) {
+                    // Show Iframe
+                    document.getElementById('statusCard').classList.add('hidden');
+                    const iframe = document.getElementById('paymobFrame');
+                    iframe.src = data.iframeUrl;
+                    iframe.classList.remove('hidden');
+                } else {
+                    throw new Error(data.error || 'Failed to get payment URL');
+                }
+
+            } catch (e) {
+                showError('Setup Error', e.message);
+            }
+        }
+
+        async function verifyPayment(transactionId) {
+            showLoader('Verifying Payment...');
+            try {
+                const response = await fetch(`${API_BASE}/subscriptions/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transactionId })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess();
+                } else {
+                    throw new Error(data.error || 'Verification failed');
+                }
+            } catch (e) {
+                showError('Verification Failed', e.message);
+            }
+        }
+
+        function showLoader(msg) {
+            document.getElementById('content').innerHTML = `<h2>${msg}</h2>`;
+            document.getElementById('loader').classList.remove('hidden');
+        }
+
+        function showSuccess() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('content').innerHTML = `
+                <div style="font-size: 60px;">✅</div>
+                <h1 class="success">Plan Upgraded!</h1>
+                <p>Your subscription is now active.</p>
+                <p>You can close this window and return to Dr. Copilot.</p>
+            `;
+        }
+
+        function showError(title, msg) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('content').innerHTML = `
+                <div style="font-size: 60px;">❌</div>
+                <h1 class="error">${title}</h1>
+                <p>${msg}</p>
+                 <button onclick="window.history.back()" style="padding:10px 20px; background:#ddd; border:none; cursor:pointer;">Go Back</button>
+            `;
+        }
+    </script>
+</body>
+
+</html>

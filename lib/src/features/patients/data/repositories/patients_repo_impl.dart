@@ -12,7 +12,8 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
 
   /// Fetches a list of patients with pagination.
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatients({
+  Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>>
+      getPatients({
     String? lastDocumentId,
     int? limit,
   }) {
@@ -61,10 +62,42 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
     return api.getPatientsCount();
   }
 
+  /// Gets a single patient by their ID.
+  @override
+  Future<Either<Failure, PatientModel>> getPatientById(String id) {
+    return api.getPatientById(id);
+  }
+
+  /// Gets all patients without pagination.
+  @override
+  Future<Either<Failure, List<PatientModel>>> getAllPatients() {
+    return api.getAllPatients();
+  }
+
   /// Fetches patients by a specific date.
   @override
-  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(DateTime date,
+  Future<Either<Failure, List<PatientModel>>> getPatientsByDate(
+      int year, int month,
       {DocumentSnapshot? lastDocument, int limit = 20}) {
-    return api.getPatientsByDate(date, lastDocument: lastDocument, limit: limit);
+    return api.getPatientsByDate(year, month,
+        lastDocument: lastDocument, limit: limit);
+  }
+
+  /// Gets all deleted patients (where deletedAt is not null).
+  @override
+  Future<Either<Failure, List<PatientModel>>> getDeletedPatients() {
+    return api.getDeletedPatients();
+  }
+
+  /// Restores a deleted patient by setting deletedAt to null.
+  @override
+  Future<Either<Failure, void>> restorePatient(String id) {
+    return api.restorePatient(id);
+  }
+
+  /// Permanently deletes a patient from Firestore.
+  @override
+  Future<Either<Failure, void>> permanentlyDeletePatient(String id) {
+    return api.permanentlyDeletePatient(id);
   }
 }

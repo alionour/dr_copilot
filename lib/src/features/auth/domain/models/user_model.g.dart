@@ -7,29 +7,25 @@ part of 'user_model.dart';
 // **************************************************************************
 
 UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
-      uid: json['id'] as String,
-      displayName: json['displayName'] as String?,
+      uid: json['uid'] as String,
       email: json['email'] as String?,
-      emailVerified: json['emailVerified'] as bool?,
-      isAnonymous: json['isAnonymous'] as bool?,
-      metadata: json['metadata'],
-      phoneNumber: json['phoneNumber'] as String?,
+      displayName: json['displayName'] as String?,
       photoURL: json['photoURL'] as String?,
-      providerData: json['providerData'] as List<dynamic>?,
-      refreshToken: json['refreshToken'] as String?,
-      tenantId: json['tenantId'] as String?,
+      clinics: (json['clinics'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
+      primaryClinicId: json['primaryClinicId'] as String?,
+      clinicIds: (json['clinicIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
-      'id': instance.uid,
-      'displayName': instance.displayName,
+      'uid': instance.uid,
       'email': instance.email,
-      'emailVerified': instance.emailVerified,
-      'isAnonymous': instance.isAnonymous,
-      'metadata': instance.metadata,
-      'phoneNumber': instance.phoneNumber,
+      'displayName': instance.displayName,
       'photoURL': instance.photoURL,
-      'providerData': instance.providerData,
-      'refreshToken': instance.refreshToken,
-      'tenantId': instance.tenantId,
+      'clinics': instance.clinics,
+      'primaryClinicId': instance.primaryClinicId,
+      'clinicIds': instance.clinicIds,
     };

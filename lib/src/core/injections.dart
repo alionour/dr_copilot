@@ -1,20 +1,56 @@
 import 'package:dr_copilot/src/features/appointments/evaluations/evaluations_injections.dart';
 import 'package:dr_copilot/src/features/appointments/sessions/sessions_injections.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
+import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/features/auth/auth_injections.dart';
+import 'package:dr_copilot/src/core/services/services_injections.dart';
+import 'package:dr_copilot/src/core/services/remote_config_service.dart';
+import 'package:dr_copilot/src/features/calendar/calendar_injections.dart';
+import 'package:dr_copilot/src/features/calendar_events/calendar_events_injections.dart';
+import 'package:dr_copilot/src/features/copilot_chat/copilot_injections.dart';
+import 'package:dr_copilot/src/features/clinical_reports/clinical_reports_injections.dart';
+import 'package:dr_copilot/src/features/chatgpt_project/chatgpt_project_injections.dart';
 import 'package:dr_copilot/src/features/financials/financials_injections.dart';
+import 'package:dr_copilot/src/features/notifications/notifications_injections.dart';
+import 'package:dr_copilot/src/features/invitations/invitations_injections.dart';
+import 'package:dr_copilot/src/features/team_chat/team_chat_injections.dart';
+import 'package:dr_copilot/src/features/support_chat/support_chat_injections.dart';
+import 'package:dr_copilot/src/features/teams/teams_injections.dart';
+import 'package:dr_copilot/src/features/recycle_bin/presentation/bloc/recycle_bin_bloc.dart';
+import 'package:dr_copilot/src/features/inventory/inventory_injections.dart';
+import 'package:dr_copilot/src/features/tasks/tasks_injections.dart';
+import 'package:dr_copilot/src/features/charts/charts_injections.dart';
+
+import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
+import 'package:dr_copilot/src/features/settings/settings_injections.dart';
 import 'package:get_it/get_it.dart';
 import 'package:dr_copilot/src/core/network/network_info.dart';
 import 'package:dr_copilot/src/features/patients/patients_injections.dart';
+import 'package:dr_copilot/src/features/doctors/doctors_injections.dart';
+import 'package:dr_copilot/src/features/staff/staff_injections.dart';
+import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/abstract_speech_recognition_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/speech_recognition_service.dart';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/native_speech_recognition_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
+
+import 'package:dr_copilot/src/core/services/biometric_auth_service.dart';
+import 'package:dr_copilot/src/features/medical_files/data/repositories/medical_file_repository.dart';
+import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
+import 'package:dr_copilot/src/features/medications/data/repositories/medication_repository.dart';
+import 'package:dr_copilot/src/features/medications/presentation/bloc/medication_bloc.dart';
 
 // Import other feature injection files as needed
 /// Initializes dependency injection for the application using GetIt.
-/// 
+///
 /// This function registers core and feature-specific dependencies as lazy singletons.
-/// 
+///
 /// - Registers [NetworkInfo] implementation as a singleton.
 /// - Initializes dependency injections for Patients, Evaluations, Financials, and Sessions features.
 /// - Extend this function to add more feature injection initializations as the app grows.
-/// 
+///
 /// Usage:
 /// ```dart
 /// await initInjections();
@@ -23,43 +59,51 @@ import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 final sl = GetIt.instance;
 
 Future<void> initInjections() async {
-  
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => BiometricAuthService());
+  sl.registerLazySingleton(() => RemoteConfigService());
+  initServicesInjections();
 
-  // Features
+  // Features (order matters due to dependencies)
   /// Initializes the dependency injections related to patients.
-  /// 
+  ///
   /// This function sets up all necessary services and dependencies required
   /// for patient-related features within the application. It should be called
   /// during the application's initialization phase to ensure that all patient
   /// services are properly registered and available for use.
   initPatientsInjections();
-  
-  /// Initializes the dependency injections required for the evaluations feature/module.
-  /// 
-  /// This function sets up all necessary services, repositories, and other dependencies
-  /// related to evaluations, ensuring they are available for use throughout the application.
-  /// 
-  /// Typically called during the application's startup or initialization phase.
-  initEvaluationsInjections();
-  
-  /// Initializes the dependency injections related to financial modules or services.
-  /// 
-  /// This function should be called to set up all necessary dependencies required
-  /// for financial features within the application.
-  initFinancialsInjections();
-  
+  initDoctorsInjections();
+  initStaffInjections();
+
+  /// Initializes the dependency injections required for calendar events.
+  initCalendarEventsInjections();
+
   /// Initializes the dependency injections required for session management.
-  /// 
+  ///
   /// This function sets up all necessary services and dependencies related to
   /// user sessions, ensuring they are available throughout the application.
   /// Call this during the application's initialization phase.
-  initSessionsInjections();  
+  initSessionsInjections();
 
+  /// Initializes the dependency injections required for the evaluations feature/module.
+  ///
+  /// This function sets up all necessary services, repositories, and other dependencies
+  /// related to evaluations, ensuring they are available for use throughout the application.
+  ///
+  /// Typically called during the application's startup or initialization phase.
+  initEvaluationsInjections();
+
+  /// Initializes the dependency injections related to financial modules or services.
+  ///
+  /// This function should be called to set up all necessary dependencies required
+  /// for financial features within the application. Must be called after sessions
+  /// and evaluations as it depends on their use cases.
+  initFinancialsInjections();
 
   /// Initializes the dependency injections required for authentication features.
-  /// 
+  ///
   /// This function sets up and registers all necessary services, repositories,
   /// and providers related to authentication in the application's dependency
   /// injection system. It should be called during the application's startup
@@ -67,4 +111,82 @@ Future<void> initInjections() async {
   /// throughout the app.
   initAuthInjections();
 
+  /// Initializes the dependency injections required for the navigation side feature.
+  ///
+  /// This function sets up all necessary services and dependencies related to
+  /// navigation and side menu functionality, ensuring they are available throughout
+  /// the application. Call this during the application's initialization phase.
+  initNavigationSideInjections();
+
+  /// Initializes the dependency injections required for the copilot chat feature.
+  ///
+  /// This function sets up all necessary services and dependencies related to
+  /// AI chat functionality, ensuring they are available throughout the application.
+  /// Call this during the application's initialization phase.
+  initCopilotInjections();
+
+  // Subscription Services
+  sl.registerLazySingleton(() => QuotaService());
+  sl.registerLazySingleton(() => SubscriptionService(quotaService: sl()));
+
+  // Register Speech Recognition Services
+  // Native service for Arabic and multilingual support
+  sl.registerLazySingleton<NativeSpeechRecognitionService>(
+    () => NativeSpeechRecognitionService(),
+  );
+
+  // Deepgram service for English (high quality)
+  sl.registerLazySingleton<SpeechRecognitionService>(
+    () => SpeechRecognitionService(deepgramApiKey: ApiKeyHelper.deepgramKey),
+  );
+
+  // Hybrid service that routes based on language
+  sl.registerLazySingleton<AbstractSpeechRecognitionService>(
+    () => HybridSpeechRecognitionService(
+      nativeService: sl<NativeSpeechRecognitionService>(),
+      deepgramService: sl<SpeechRecognitionService>(),
+    ),
+  );
+
+  /// Initializes the dependency injections required for the settings feature.
+  ///
+  /// This function sets up all necessary services and dependencies related to
+  /// application settings, ensuring they are available throughout the application.
+  /// Call this during the application's initialization phase.
+  initSettingsInjections();
+
+  /// Initializes the dependency injections required for the calendar feature.
+  ///
+  /// This function sets up all necessary services and dependencies related to
+  /// calendar functionality, ensuring they are available throughout the application.
+  /// Call this during the application's initialization phase.
+  initCalendarInjections();
+  initClinicalReportsInjections();
+  initChatGptProjectInjections();
+  initNotificationsInjections();
+  initInvitationsInjections();
+  initTeamChatInjections();
+  initSupportChatInjections();
+  initTeamsInjections();
+  initInventoryInjections();
+  initTasksInjections();
+  initChartsInjections();
+
+  // Medical Files
+  sl.registerLazySingleton(() => MedicalFileRepository());
+  sl.registerFactory(() => MedicalFileBloc(sl()));
+
+  // Medications
+  sl.registerLazySingleton(() => MedicationRepository());
+  sl.registerFactory(() => MedicationBloc(sl()));
+
+  // Recycle Bin
+  sl.registerFactory(
+    () => RecycleBinBloc(
+      evaluationsRepository: sl(),
+      sessionsRepository: sl(),
+      patientsRepository: sl(),
+      calendarEventsRepository: sl(),
+    ),
+  );
 }

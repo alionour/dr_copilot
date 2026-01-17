@@ -1,7 +1,7 @@
 part of 'auth_bloc.dart';
 
 /// An abstract base class representing the authentication state in the application.
-/// 
+///
 /// This class extends [Equatable] to enable value-based equality comparison for its subclasses.
 /// All authentication state classes should inherit from [AuthState].
 abstract class AuthState extends Equatable {
@@ -12,7 +12,7 @@ abstract class AuthState extends Equatable {
 }
 
 /// Represents the initial state of the authentication process.
-/// 
+///
 /// This state is typically used when the authentication flow has just started
 /// and no actions have been performed yet.
 class AuthInitial extends AuthState {
@@ -25,7 +25,7 @@ class AuthInitial extends AuthState {
 }
 
 /// Represents the state when a user has successfully signed in.
-/// 
+///
 /// This state can be used to trigger UI updates or logic that should occur
 /// after authentication is complete.
 class AuthSignedOut extends AuthState {
@@ -38,7 +38,7 @@ class AuthSignedOut extends AuthState {
 }
 
 /// Represents an authentication error state.
-/// 
+///
 /// This state is emitted when an error occurs during the authentication process.
 /// It can be used to display error messages or handle authentication failures in the UI.
 class AuthError extends AuthState {
@@ -46,30 +46,29 @@ class AuthError extends AuthState {
   /// displaying error or status information to the user.
   final String? message;
 
-  const AuthError({ this.message});
+  const AuthError({this.message});
 
   @override
   List<Object?> get props => [message];
 }
 
-/// Represents the state when a user has successfully signed in.
-///
-/// This state can be used to trigger UI updates or logic that should occur
-/// after authentication is complete.
 class AuthSignedIn extends AuthState {
-  
-  /// An optional message that provides additional information about the authentication state.
-  /// 
-  /// This can be used to convey error messages, status updates, or other relevant details.
-  /// If no message is available, this value will be `null`.
-  final String? message;
-  /// The unique identifier of the user, or `null` if the user is not authenticated.
-  final String? userId;
+  final String message;
+  final UserModel? user;
 
-  /// State emitted when the user is successfully signed in.
-  /// This state indicates that the user has been authenticated and can access protected resources.
-  const AuthSignedIn({required this.message, this.userId});
+  const AuthSignedIn({required this.message, this.user});
 
   @override
-  List<Object?> get props => [message, userId];
+  List<Object?> get props => [message, user];
 }
+
+/// Represents the state when an authentication process is in progress.
+///
+/// This state is typically used to show a loading indicator in the UI.
+class AuthLoading extends AuthState {
+  const AuthLoading();
+
+  @override
+  List<Object> get props => [];
+}
+

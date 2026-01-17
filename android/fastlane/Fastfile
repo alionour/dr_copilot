@@ -1,0 +1,38 @@
+default_platform(:android)
+
+platform :android do
+  desc "Capture screenshots"
+  lane :capture_screenshots do
+    # This runs the Flutter integration test and stores screenshots in fastlane/metadata/android
+    # The screenshots are expected to be saved in build/app/outputs/repo/screenshots or similar
+    # But standard 'capture_android_screenshots' uses native instrumentation tests.
+    
+    # Since we use 'integration_test' package, we usually run:
+    # flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screenshot_generator_test.dart
+    
+    # However, 'integration_test' in recent Flutter versions supports 'flutter test integration_test/...'
+    # For screenshots, we need to ensure the device saves them where we can pull them.
+    # We will assume the GitHub Action handles the test execution and file movement.
+    # This lane will primarily be used to UPLOAD them if they exist.
+    
+    supply(
+      track: "internal",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
+    )
+  end
+
+  desc "Upload metadata to Google Play"
+  lane :upload_metadata do
+    supply(
+      track: "internal",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_images: true, 
+      skip_upload_screenshots: true
+    )
+  end
+end

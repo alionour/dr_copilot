@@ -50,3 +50,4 @@ class _ChipTabBarState extends State<ChipTabBar> {
     );
   }
 }
+

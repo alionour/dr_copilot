@@ -1,18 +1,26 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dartz/dartz.dart';
 import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/models/evaluation_model.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/invoice_model.dart';
+import 'package:dr_copilot/src/features/financials/domain/usecases/financials_usecase.dart';
+import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'evaluations_event.dart';
 part 'evaluations_state.dart';
 
 class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
   final EvaluationsUseCase _evaluationsUseCase;
+  final FinancialsUseCase _financialsUseCase;
 
-  EvaluationsBloc(this._evaluationsUseCase)
+  EvaluationsBloc(this._evaluationsUseCase, this._financialsUseCase)
       : super(const EvaluationsInitial([])) {
     on<GetEvaluations>(_onGetEvaluations);
     on<AddEvaluation>(_onAddEvaluation);
@@ -22,6 +30,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     on<GetEvaluationsByDate>(_onGetEvaluationsByDate);
     on<LoadMoreEvaluations>(_onLoadMoreEvaluations);
     on<GetEvaluationsCount>(_onGetEvaluationsCount);
+    on<AddInvoice>(_onAddInvoice);
+    on<AddTransaction>(_onAddTransaction);
   }
 
   void _onGetEvaluations(
@@ -43,17 +53,46 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     emit(EvaluationsLoading(state.evaluations));
     final failureOrEvaluation =
         await _evaluationsUseCase.addEvaluation(event.model);
-    emit(failureOrEvaluation.fold(
-      (failure) => EvaluationsError(state.evaluations,
-          message: _mapFailureToMessage(failure)),
-      (addedEvaluation) {
+    await failureOrEvaluation.fold(
+      (failure) {
+        emit(EvaluationsError(state.evaluations,
+            message: _mapFailureToMessage(failure)));
+      },
+      (addedEvaluation) async {
         debugPrint('Add successful: $addedEvaluation');
-        final evaluations = state.evaluations..add(addedEvaluation);
+        // Insert the new evaluation in the correct sorted position (descending by startDateTime)
+        final evaluations = List<EvaluationModel>.from(state.evaluations)
+          ..add(addedEvaluation)
+          ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         emit(EvaluationsSuccess(evaluations,
             message: 'evaluationAddedSuccessfully'.tr()));
-        return EvaluationsLoaded(evaluations);
+        emit(EvaluationsLoaded(evaluations));
+
+        // After evaluation is added, create the invoice with referenceId = evaluationId
+        final invoice = InvoiceModel(
+          id: const Uuid().v4(),
+          customerId: addedEvaluation.patientId,
+          amount: addedEvaluation.price,
+          createdAt: addedEvaluation.createdAt,
+          createdBy: addedEvaluation.createdBy,
+          title: 'Evaluation Invoice',
+          description:
+              'Invoice for evaluation with ${addedEvaluation.patientName} at ${addedEvaluation.startDateTime.toDate()}',
+          currencyProfileId: event.currencyProfileId,
+          issuedAt: addedEvaluation.createdAt,
+          dueDate: Timestamp.fromDate(addedEvaluation.startDateTime
+              .toDate()
+              .add(const Duration(days: 30))),
+          ownerId: addedEvaluation.ownerId,
+          clinicId: addedEvaluation.clinicId,
+          customerType: CustomerType.patient,
+          source: InvoiceSource.evaluations,
+          status: event.invoiceStatus,
+          referenceId: addedEvaluation.id,
+        );
+        add(AddInvoice(invoice));
       },
-    ));
+    );
   }
 
   void _onUpdateEvaluation(
@@ -80,17 +119,52 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
   Future<void> _onDeleteEvaluation(
       DeleteEvaluation event, Emitter<EvaluationsState> emit) async {
     emit(EvaluationsLoading(state.evaluations));
+    // Always delete the evaluation itself
     final failureOrEvaluation =
         await _evaluationsUseCase.deleteEvaluation(event.evaluationId);
-    emit(failureOrEvaluation.fold(
-        (failure) => EvaluationsError(state.evaluations,
-            message: _mapFailureToMessage(failure)), (deletedEvaluation) {
-      debugPrint('Delete successful: ${event.evaluationId}');
-      final evaluations = state.evaluations
-        ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
-      emit(EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr()));
-      return EvaluationsLoaded(evaluations);
-    }));
+    await failureOrEvaluation.fold(
+      (failure) {
+        emit(EvaluationsError(state.evaluations,
+            message: _mapFailureToMessage(failure)));
+        return;
+      },
+      (deletedEvaluation) async {
+        debugPrint('Delete successful: ${event.evaluationId}');
+        var evaluations = List<EvaluationModel>.from(state.evaluations)
+          ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
+        emit(
+            EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr()));
+        emit(EvaluationsLoaded(evaluations));
+
+        // If requested, also delete the corresponding invoice and transactions
+        if (event.deleteInvoiceAndTransaction) {
+          final failureOrInvoice = await _financialsUseCase
+              .deleteInvoiceByReferenceId(event.evaluationId);
+          return failureOrInvoice.fold(
+            (failure) {
+              return EvaluationsError(state.evaluations,
+                  message: _mapFailureToMessage(failure));
+            },
+            (deletedInvoice) async {
+              debugPrint('Invoice Delete successful: ${event.evaluationId}');
+              // Now delete the transaction associated with this invoice/session
+              final failureOrTransaction = await _financialsUseCase
+                  .deleteTransactionByReferenceId(event.evaluationId);
+              return failureOrTransaction.fold(
+                (failure) => EvaluationsError(state.evaluations,
+                    message: _mapFailureToMessage(failure)),
+                (deletedTransaction) {
+                  debugPrint(
+                      'Transaction Delete successful: ${event.evaluationId}');
+                  return EvaluationsSuccess(state.evaluations,
+                      message: 'invoiceAndTransactionDeleted'.tr());
+                },
+              );
+            },
+          );
+        }
+      },
+    );
   }
 
   Future<void> _onSearchEvaluations(
@@ -155,11 +229,94 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   Future<void> _onGetEvaluationsCount(
       GetEvaluationsCount event, Emitter<EvaluationsState> emit) async {
+    debugPrint('Fetching evaluations count...');
     final result = await _evaluationsUseCase.repository.getEvaluationsCount();
     result.fold(
       (failure) =>
           emit(EvaluationsError(state.evaluations, message: failure.message)),
-      (count) => emit(EvaluationsCountLoaded(count, state.evaluations)),
+      (evaluationCount) =>
+          emit(EvaluationsCountLoaded(evaluationCount, state.evaluations)),
+    );
+    debugPrint('Evaluations count: $result');
+  }
+
+  void _onAddInvoice(AddInvoice event, Emitter<EvaluationsState> emit) async {
+    try {
+      final failureOrInvoice =
+          await _financialsUseCase.addInvoice(invoice: event.invoice);
+      failureOrInvoice.fold(
+          (failure) => emit(EvaluationsError(state.evaluations,
+              message: _mapFailureToMessage(failure))), (invoice) {
+        emit(EvaluationsSuccess(state.evaluations,
+            message: 'invoiceAddedSuccessfully'.tr()));
+        if (invoice.status == InvoiceStatus.paid) {
+          final transaction = TransactionModel(
+            id: const Uuid().v4(),
+            currencyProfileId: invoice.currencyProfileId,
+            transactionSource: TransactionSource.invoice,
+            direction:
+                TransactionDirection.fromSource(TransactionSource.invoice),
+            status: TransactionStatus.completed,
+            transactionDate: invoice.createdAt,
+            referenceId: invoice.id,
+            ownerId: invoice.ownerId,
+            clinicId: invoice.clinicId,
+            amount: invoice.amount,
+            createdAt: invoice.createdAt,
+            createdBy: invoice.createdBy,
+            description: 'Full payment for invoice ${invoice.id}',
+          );
+
+          add(AddTransaction(transaction));
+        } else if (invoice.status == InvoiceStatus.partiallyPaid) {
+          final partialPaymentAmount = event.partialAmount ?? 0.0;
+          if (partialPaymentAmount > 0) {
+            final transaction = TransactionModel(
+              id: const Uuid().v4(),
+              currencyProfileId: invoice.currencyProfileId,
+              transactionSource: TransactionSource.invoice,
+              direction:
+                  TransactionDirection.fromSource(TransactionSource.invoice),
+              status: TransactionStatus.completed,
+              transactionDate: invoice.createdAt,
+              referenceId: invoice.id,
+              ownerId: invoice.ownerId,
+              clinicId: invoice.clinicId,
+              amount: invoice.amount,
+              createdAt: invoice.createdAt,
+              createdBy: invoice.createdBy,
+              description: 'Partial payment for invoice ${invoice.id}',
+            );
+            add(AddTransaction(transaction));
+          }
+        }
+      });
+    } catch (e) {
+      emit(EvaluationsError(state.evaluations,
+          message: 'failedToAddInvoice'.tr()));
+    }
+  }
+
+  void _onAddTransaction(
+      AddTransaction event, Emitter<EvaluationsState> emit) async {
+    try {
+      await _financialsUseCase.addTransaction(transaction: event.transaction);
+      emit(EvaluationsSuccess(state.evaluations,
+          message: 'transactionAddedSuccessfully'.tr()));
+      emit(EvaluationsLoaded(state.evaluations));
+    } catch (e) {
+      emit(EvaluationsError(state.evaluations,
+          message: 'failedToAddTransaction'.tr()));
+    }
+  }
+
+  /// Fetches the currency profiles
+  Future<Either<Failure, List<CurrencyProfileModel>>>
+      getCurrencyProfiles() async {
+    final failureOrProfiles = await _financialsUseCase.fetchCurrencyProfiles();
+    return failureOrProfiles.fold(
+      (failure) => Left(ServerFailure(_mapFailureToMessage(failure), 404)),
+      (profiles) => Right(profiles),
     );
   }
 
@@ -174,3 +331,4 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     }
   }
 }
+

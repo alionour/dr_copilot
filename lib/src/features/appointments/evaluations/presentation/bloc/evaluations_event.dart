@@ -28,11 +28,14 @@ class SearchEvaluations extends EvaluationsEvent {
 
 class AddEvaluation extends EvaluationsEvent {
   final EvaluationModel model;
+  final InvoiceStatus invoiceStatus;
+  final String currencyProfileId;
 
-  const AddEvaluation(this.model);
+  const AddEvaluation(this.model,
+      {required this.invoiceStatus, required this.currencyProfileId});
 
   @override
-  List<Object> get props => [model];
+  List<Object> get props => [model, invoiceStatus, currencyProfileId];
 }
 
 class UpdateEvaluation extends EvaluationsEvent {
@@ -47,11 +50,13 @@ class UpdateEvaluation extends EvaluationsEvent {
 
 class DeleteEvaluation extends EvaluationsEvent {
   final String evaluationId;
+  final bool deleteInvoiceAndTransaction;
 
-  const DeleteEvaluation(this.evaluationId);
+  const DeleteEvaluation(this.evaluationId,
+      {this.deleteInvoiceAndTransaction = false});
 
   @override
-  List<Object> get props => [evaluationId];
+  List<Object> get props => [evaluationId, deleteInvoiceAndTransaction];
 }
 
 class GetEvaluationsByDate extends EvaluationsEvent {
@@ -79,3 +84,35 @@ class GetEvaluationsCount extends EvaluationsEvent {
   @override
   List<Object?> get props => [];
 }
+
+/// Event to add an invoice in the sessions feature.
+///
+/// This event is part of the `SessionsEvent` hierarchy and is used to trigger
+/// the addition of a new invoice within the appointments or sessions context.
+class AddInvoice extends EvaluationsEvent {
+  final InvoiceModel invoice;
+
+  final double? partialAmount;
+
+  /// Constructor for the [AddInvoice] event.
+  /// Takes an [InvoiceModel] object as a parameter.
+  const AddInvoice(this.invoice, {this.partialAmount});
+
+  @override
+  List<Object?> get props => [invoice];
+}
+
+/// Event to add a transaction in the sessions feature.
+///
+/// This event is part of the `SessionsEvent` hierarchy and is used to
+/// trigger the addition of a new transaction within the appointments
+/// sessions context.
+class AddTransaction extends EvaluationsEvent {
+  final TransactionModel transaction;
+
+  const AddTransaction(this.transaction);
+
+  @override
+  List<Object?> get props => [transaction];
+}
+

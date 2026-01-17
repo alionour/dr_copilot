@@ -58,19 +58,22 @@ class EvaluationModel {
   @TimestampConverter()
   final Timestamp endDateTime;
 
-  final String userId;
-  final String? createdBy;
+  final String ownerId;
+  final String clinicId;
+  final String createdBy;
   final String? updatedBy;
   final String? deletedBy;
 
-  @NullableTimestampConverter()
-  final Timestamp? createdAt;
+  @TimestampConverter()
+  final Timestamp createdAt;
 
   @NullableTimestampConverter()
   final Timestamp? updatedAt;
 
   @NullableTimestampConverter()
   final Timestamp? deletedAt;
+
+  final String? doctorId;
 
   EvaluationModel({
     required this.id,
@@ -79,13 +82,15 @@ class EvaluationModel {
     required this.price,
     required this.startDateTime,
     required this.endDateTime,
-    required this.userId,
-    this.createdBy,
+    required this.ownerId,
+    required this.clinicId,
+    required this.createdBy,
     this.updatedBy,
     this.deletedBy,
-    this.createdAt,
+    required this.createdAt,
     this.updatedAt,
     this.deletedAt,
+    this.doctorId,
   });
 
   factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
@@ -100,13 +105,15 @@ class EvaluationModel {
     double? price,
     Timestamp? startDateTime,
     Timestamp? endDateTime,
-    String? userId,
+    String? ownerId,
+    String? clinicId,
     String? createdBy,
     String? updatedBy,
     String? deletedBy,
     Timestamp? createdAt,
     Timestamp? updatedAt,
     Timestamp? deletedAt,
+    String? doctorId,
   }) {
     return EvaluationModel(
       id: id ?? this.id,
@@ -115,13 +122,16 @@ class EvaluationModel {
       price: price ?? this.price,
       startDateTime: startDateTime ?? this.startDateTime,
       endDateTime: endDateTime ?? this.endDateTime,
-      userId: userId ?? this.userId,
+      ownerId: ownerId ?? this.ownerId,
+      clinicId: clinicId ?? this.clinicId,
       createdBy: createdBy ?? this.createdBy,
       updatedBy: updatedBy ?? this.updatedBy,
       deletedBy: deletedBy ?? this.deletedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      doctorId: doctorId ?? this.doctorId,
     );
   }
 }
+
