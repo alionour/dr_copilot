@@ -32,12 +32,10 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
   final GlobalKey _imageKey = GlobalKey();
   String _currentView = 'front';
 
-  static const List<String> views = ['front', 'back', 'left', 'right'];
   static const Map<String, String> viewTitles = {
     'front': 'Front',
     'back': 'Back',
-    'left': 'Left Side',
-    'right': 'Right Side',
+    'lateral': 'Lateral',
   };
 
   // Marker type configurations with colors
@@ -48,25 +46,6 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
     'scar': {'label': 'Scar', 'color': '#616161', 'icon': Icons.linear_scale},
     'other': {'label': 'Other', 'color': '#1976D2', 'icon': Icons.location_on},
   };
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
-        setState(() {
-          _currentView = views[_tabController.index];
-        });
-      }
-    });
-
-    // Initialize pulse animation
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
-  }
 
   @override
   void dispose() {
@@ -83,12 +62,62 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
   String? _selectedMarkerId;
   bool _showLandmarkList = true;
 
+  // Model Selection
+  String _selectedModel = 'skin';
+  final Map<String, String> _models = {
+    'skin': 'Skin (Standard)',
+    'skeleton': 'Skeleton',
+    'muscles': 'Muscles',
+    'head': 'Head / Brain',
+    'teeth': 'Teeth',
+  };
+
+  // Views configuration per model
+  static const Map<String, List<String>> _modelViews = {
+    'skin': ['front', 'back', 'lateral'],
+    'skeleton': ['front', 'back', 'lateral'],
+    'muscles': ['front', 'back', 'lateral'],
+    'head': ['lateral'],
+    'teeth': ['front'],
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _initTabController();
+
+    // Initialize pulse animation
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+  }
+
+  void _initTabController() {
+    final availableViews = _modelViews[_selectedModel] ?? ['front'];
+    _tabController = TabController(length: availableViews.length, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {
+          _currentView = availableViews[_tabController.index];
+        });
+      }
+    });
+
+    // Ensure current view is valid for new model, else reset to first available
+    if (!availableViews.contains(_currentView)) {
+      _currentView = availableViews.first;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final availableViews = _modelViews[_selectedModel] ?? ['front'];
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left Side: Landmark List (toggleable)
+        // ... (Leading Drawer unchanged)
         if (_showLandmarkList)
           Container(
             width: 280,
@@ -104,46 +133,95 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
           flex: 3,
           child: Column(
             children: [
-              // View Selection Tabs
+              // Top Bar: Model & View Selection
               Container(
-                color: Theme.of(context).primaryColor.withOpacity(0.05),
-                child: Row(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                        icon: Icon(
-                          _showLandmarkList ? Icons.list : Icons.list_outlined,
-                          color: _showLandmarkList
-                              ? Theme.of(context).primaryColor
-                              : null,
+                    // Model Selector
+                    Row(
+                      children: [
+                        const SizedBox(width: 8),
+                        Text('Model:',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 12),
+                        DropdownButton<String>(
+                          value: _selectedModel,
+                          underline: const SizedBox(),
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontSize: 15),
+                          onChanged: (value) {
+                            if (value != null && value != _selectedModel) {
+                              setState(() {
+                                _selectedModel = value;
+                                _selectedMarkerId = null;
+                                _tabController.dispose();
+                                _initTabController();
+                              });
+                            }
+                          },
+                          items: _models.entries
+                              .map((e) => DropdownMenuItem(
+                                    value: e.key,
+                                    child: Text(e.value),
+                                  ))
+                              .toList(),
                         ),
-                        onPressed: () {
-                          setState(
-                              () => _showLandmarkList = !_showLandmarkList);
-                        },
-                        tooltip: 'Toggle Landmark List'),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: false,
-                        labelColor: Theme.of(context).primaryColor,
-                        unselectedLabelColor: Colors.grey,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        onTap: (index) {
-                          setState(() {
-                            _currentView = views[index];
-                            // Clear selection when changing view to avoid confusion
-                            _selectedMarkerId = null;
-                          });
-                        },
-                        tabs: const [
-                          Tab(
-                              text: 'Front',
-                              icon: Icon(Icons.accessibility_new)),
-                          Tab(text: 'Back', icon: Icon(Icons.accessibility)),
-                          Tab(text: 'Left', icon: Icon(Icons.arrow_back)),
-                          Tab(text: 'Right', icon: Icon(Icons.arrow_forward)),
-                        ],
-                      ),
+                        // ... (Spacer and icon buttons unchanged)
+                        const Spacer(),
+                        IconButton(
+                            icon: Icon(
+                              _showLandmarkList
+                                  ? Icons.list
+                                  : Icons.list_outlined,
+                              color: _showLandmarkList
+                                  ? Theme.of(context).primaryColor
+                                  : null,
+                            ),
+                            onPressed: () {
+                              setState(
+                                  () => _showLandmarkList = !_showLandmarkList);
+                            },
+                            tooltip: 'Toggle Landmark List'),
+                      ],
+                    ),
+                    const Divider(height: 1),
+                    // View Selector (Dynamic)
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: false,
+                      labelColor: Theme.of(context).primaryColor,
+                      unselectedLabelColor: Colors.grey,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      onTap: (index) {
+                        setState(() {
+                          _currentView = availableViews[index];
+                          _selectedMarkerId = null;
+                        });
+                      },
+                      tabs: availableViews.map((view) {
+                        IconData icon;
+                        switch (view) {
+                          case 'front':
+                            icon = Icons.accessibility_new;
+                            break;
+                          case 'back':
+                            icon = Icons.accessibility;
+                            break;
+                          case 'lateral':
+                            icon = Icons.directions_walk;
+                            break;
+                          default:
+                            icon = Icons.image;
+                        }
+                        return Tab(
+                            text: viewTitles[view] ?? view, icon: Icon(icon));
+                      }).toList(),
                     ),
                   ],
                 ),
@@ -161,12 +239,9 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                   child: TabBarView(
                     controller: _tabController,
                     physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildViewWidget('front'),
-                      _buildViewWidget('back'),
-                      _buildViewWidget('left'),
-                      _buildViewWidget('right'),
-                    ],
+                    children: availableViews
+                        .map((view) => _buildViewWidget(view))
+                        .toList(),
                   ),
                 ),
               ),
@@ -189,8 +264,13 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
   }
 
   Widget _buildLandmarkList() {
-    final markers2d =
-        widget.markers.where((m) => views.contains(m.view)).toList();
+    final availableViews = _modelViews[_selectedModel] ?? ['front'];
+
+    final markers2d = widget.markers.where((m) {
+      final matchesModel = m.modelId == _selectedModel ||
+          (m.modelId == null && _selectedModel == 'skin');
+      return matchesModel && availableViews.contains(m.view);
+    }).toList();
 
     return Column(
       children: [
@@ -253,15 +333,15 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                       ),
                       selected: isSelected,
                       selectedTileColor:
-                          Theme.of(context).primaryColor.withOpacity(0.1),
+                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       onTap: () {
                         setState(() {
                           _selectedMarkerId = marker.id;
                           // Also switch view to the marker's view if needed
-                          if (views.contains(marker.view)) {
+                          if (availableViews.contains(marker.view)) {
                             _currentView = marker.view;
                             _tabController
-                                .animateTo(views.indexOf(marker.view));
+                                .animateTo(availableViews.indexOf(marker.view));
                           }
                         });
                       },
@@ -306,7 +386,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
         // Header
         Container(
           padding: const EdgeInsets.all(16),
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -387,7 +467,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                       );
                       if (newColor != null) {
                         final colorHex =
-                            '#${newColor.value.toRadixString(16).substring(2).toUpperCase()}';
+                            '#${newColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
                         _updateMarker(marker.copyWith(color: colorHex));
                       }
                     },
@@ -464,7 +544,25 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
   }
 
   Widget _buildViewWidget(String view) {
-    final viewMarkers = widget.markers.where((m) => m.view == view).toList();
+    // Filter markers by view AND model
+    final viewMarkers = widget.markers.where((m) {
+      final matchesView = m.view == view;
+      final matchesModel = m.modelId == _selectedModel ||
+          (m.modelId == null && _selectedModel == 'skin');
+      return matchesView && matchesModel;
+    }).toList();
+
+    // Construct image path based on model
+    // e.g. body_chart_front.png (skin)
+    // e.g. body_chart_skeleton_front.png
+    String imagePath;
+    if (_selectedModel == 'skin') {
+      imagePath = 'assets/png/body_chart_$view.png';
+    } else {
+      // Use standard naming: body_chart_skeleton_front.png
+      // Note: We might not have back/left/right for all models, will rely on errorBuilder
+      imagePath = 'assets/png/body_chart_${_selectedModel}_$view.png';
+    }
 
     return Center(
       child: InteractiveViewer(
@@ -480,12 +578,23 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                   key: view == _currentView ? _imageKey : null,
                   constraints: const BoxConstraints(maxHeight: 600),
                   child: Image.asset(
-                    'assets/png/body_chart_$view.png',
+                    imagePath,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        'assets/png/body_chart_template.png',
-                        fit: BoxFit.contain,
+                      // Fallback to Main Template or Placeholder text
+                      return Container(
+                        height: 400,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.image_not_supported,
+                                size: 64, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            Text('View not available for $_selectedModel',
+                                style: const TextStyle(color: Colors.grey)),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -515,8 +624,9 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: _parseColor(marker.color)
-                                            .withOpacity(
-                                                1.0 - _pulseController.value),
+                                            .withValues(
+                                                alpha: 1.0 -
+                                                    _pulseController.value),
                                         width: 4 * _pulseController.value,
                                       ),
                                     ),
@@ -577,6 +687,9 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
       type: 'pain', // Default
       timestamp: DateTime.now(),
       view: _currentView,
+      modelId: _selectedModel == 'skin'
+          ? null
+          : _selectedModel, // Standardize null for legacy skin
     );
 
     // Add it immediately

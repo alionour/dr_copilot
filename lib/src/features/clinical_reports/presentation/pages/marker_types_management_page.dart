@@ -162,13 +162,15 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
       try {
         await _service.deleteCustomType(widget.clinicId, type.id);
         _loadTypes();
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text('Deleted')));
+        }
       } catch (e) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
       }
     }
   }
@@ -225,7 +227,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
   Color _parseColor(String hex) =>
       Color(int.parse('FF${hex.replaceAll('#', '')}', radix: 16));
   String _colorToHex(Color c) =>
-      '#${c.value.toRadixString(16).substring(2).toUpperCase()}';
+      '#${c.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
 
   @override
   Widget build(BuildContext context) {
@@ -350,9 +352,10 @@ class _AddEditDialogState extends State<_AddEditDialog> {
             content: Text(widget.existing == null ? 'Added' : 'Updated')));
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 }

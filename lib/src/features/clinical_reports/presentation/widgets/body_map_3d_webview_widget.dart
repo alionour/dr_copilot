@@ -599,7 +599,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                               style: const TextStyle(fontSize: 11)),
                       selected: isSelected,
                       selectedTileColor:
-                          Theme.of(context).primaryColor.withOpacity(0.1),
+                          Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       onTap: () {
                         setState(() => _selectedMarkerId = marker.id);
                         _webViewController?.callAsyncJavaScript(
@@ -645,7 +645,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         // Header
         Container(
           padding: const EdgeInsets.all(16),
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -733,7 +733,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                       );
                       if (newColor != null) {
                         final colorHex =
-                            '#${newColor.value.toRadixString(16).substring(2).toUpperCase()}';
+                            '#${newColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
                         _updateMarker(marker.copyWith(color: colorHex));
                       }
                     },
