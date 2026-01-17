@@ -1,0 +1,366 @@
+[
+    {
+        "code": "E11.9",
+        "description": "Type 2 diabetes mellitus without complications"
+    },
+    {
+        "code": "I10",
+        "description": "Essential (primary) hypertension"
+    },
+    {
+        "code": "E78.5",
+        "description": "Hyperlipidemia, unspecified"
+    },
+    {
+        "code": "M54.5",
+        "description": "Low back pain"
+    },
+    {
+        "code": "J06.9",
+        "description": "Acute upper respiratory infection, unspecified"
+    },
+    {
+        "code": "R51",
+        "description": "Headache"
+    },
+    {
+        "code": "E66.9",
+        "description": "Obesity, unspecified"
+    },
+    {
+        "code": "J45.909",
+        "description": "Unspecified asthma, uncomplicated"
+    },
+    {
+        "code": "F41.9",
+        "description": "Anxiety disorder, unspecified"
+    },
+    {
+        "code": "K21.9",
+        "description": "Gastro-esophageal reflux disease without esophagitis"
+    },
+    {
+        "code": "M79.3",
+        "description": "Panniculitis, unspecified"
+    },
+    {
+        "code": "R50.9",
+        "description": "Fever, unspecified"
+    },
+    {
+        "code": "N39.0",
+        "description": "Urinary tract infection, site not specified"
+    },
+    {
+        "code": "J02.9",
+        "description": "Acute pharyngitis, unspecified"
+    },
+    {
+        "code": "R10.9",
+        "description": "Unspecified abdominal pain"
+    },
+    {
+        "code": "E11.65",
+        "description": "Type 2 diabetes mellitus with hyperglycemia"
+    },
+    {
+        "code": "I25.10",
+        "description": "Atherosclerotic heart disease of native coronary artery without angina pectoris"
+    },
+    {
+        "code": "E03.9",
+        "description": "Hypothyroidism, unspecified"
+    },
+    {
+        "code": "M25.50",
+        "description": "Pain in unspecified joint"
+    },
+    {
+        "code": "F32.9",
+        "description": "Major depressive disorder, single episode, unspecified"
+    },
+    {
+        "code": "K59.00",
+        "description": "Constipation, unspecified"
+    },
+    {
+        "code": "R06.02",
+        "description": "Shortness of breath"
+    },
+    {
+        "code": "M62.81",
+        "description": "Muscle weakness (generalized)"
+    },
+    {
+        "code": "R05",
+        "description": "Cough"
+    },
+    {
+        "code": "H52.13",
+        "description": "Myopia, bilateral"
+    },
+    {
+        "code": "E11.22",
+        "description": "Type 2 diabetes mellitus with diabetic chronic kidney disease"
+    },
+    {
+        "code": "I50.9",
+        "description": "Heart failure, unspecified"
+    },
+    {
+        "code": "K29.70",
+        "description": "Gastritis, unspecified, without bleeding"
+    },
+    {
+        "code": "J44.0",
+        "description": "Chronic obstructive pulmonary disease with acute lower respiratory infection"
+    },
+    {
+        "code": "N18.3",
+        "description": "Chronic kidney disease, stage 3 (moderate)"
+    },
+    {
+        "code": "Z79.4",
+        "description": "Long term (current) use of insulin"
+    },
+    {
+        "code": "E55.9",
+        "description": "Vitamin D deficiency, unspecified"
+    },
+    {
+        "code": "D64.9",
+        "description": "Anemia, unspecified"
+    },
+    {
+        "code": "M17.11",
+        "description": "Unilateral primary osteoarthritis, right knee"
+    },
+    {
+        "code": "G43.909",
+        "description": "Migraine, unspecified, not intractable, without status migrainosus"
+    },
+    {
+        "code": "F33.1",
+        "description": "Major depressive disorder, recurrent, moderate"
+    },
+    {
+        "code": "Z00.00",
+        "description": "Encounter for general adult medical examination without abnormal findings"
+    },
+    {
+        "code": "Z23",
+        "description": "Encounter for immunization"
+    },
+    {
+        "code": "R42",
+        "description": "Dizziness and giddiness"
+    },
+    {
+        "code": "M19.90",
+        "description": "Unspecified osteoarthritis, unspecified site"
+    },
+    {
+        "code": "E11.40",
+        "description": "Type 2 diabetes mellitus with diabetic neuropathy, unspecified"
+    },
+    {
+        "code": "F17.210",
+        "description": "Nicotine dependence, cigarettes, uncomplicated"
+    },
+    {
+        "code": "G47.00",
+        "description": "Insomnia, unspecified"
+    },
+    {
+        "code": "K76.0",
+        "description": "Fatty (change of) liver, not elsewhere classified"
+    },
+    {
+        "code": "R63.4",
+        "description": "Abnormal weight loss"
+    },
+    {
+        "code": "N95.1",
+        "description": "Menopausal and female climacteric states"
+    },
+    {
+        "code": "M81.0",
+        "description": "Age-related osteoporosis without current pathological fracture"
+    },
+    {
+        "code": "F10.20",
+        "description": "Alcohol dependence, uncomplicated"
+    },
+    {
+        "code": "I73.9",
+        "description": "Peripheral vascular disease, unspecified"
+    },
+    {
+        "code": "E11.69",
+        "description": "Type 2 diabetes mellitus with other specified complication"
+    },
+    {
+        "code": "J18.9",
+        "description": "Pneumonia, unspecified organism"
+    },
+    {
+        "code": "M54.2",
+        "description": "Cervicalgia (neck pain)"
+    },
+    {
+        "code": "R11.0",
+        "description": "Nausea"
+    },
+    {
+        "code": "R11.2",
+        "description": "Nausea with vomiting, unspecified"
+    },
+    {
+        "code": "L50.9",
+        "description": "Urticaria, unspecified"
+    },
+    {
+        "code": "K92.1",
+        "description": "Melena (bloody stool)"
+    },
+    {
+        "code": "N40.0",
+        "description": "Benign prostatic hyperplasia without lower urinary tract symptoms"
+    },
+    {
+        "code": "H10.9",
+        "description": "Conjunctivitis, unspecified"
+    },
+    {
+        "code": "J00",
+        "description": "Acute nasopharyngitis (common cold)"
+    },
+    {
+        "code": "B34.9",
+        "description": "Viral infection, unspecified"
+    },
+    {
+        "code": "A09",
+        "description": "Infectious gastroenteritis and colitis, unspecified"
+    },
+    {
+        "code": "G89.29",
+        "description": "Other chronic pain"
+    },
+    {
+        "code": "I11.9",
+        "description": "Hypertensive heart disease without heart failure"
+    },
+    {
+        "code": "M16.9",
+        "description": "Osteoarthritis of hip, unspecified"
+    },
+    {
+        "code": "S93.40",
+        "description": "Sprain of unspecified ligament of ankle"
+    },
+    {
+        "code": "T14.90",
+        "description": "Injury, unspecified"
+    },
+    {
+        "code": "Z12.11",
+        "description": "Encounter for screening for malignant neoplasm of colon"
+    },
+    {
+        "code": "Z79.01",
+        "description": "Long term (current) use of anticoagulants"
+    },
+    {
+        "code": "C61",
+        "description": "Malignant neoplasm of prostate"
+    },
+    {
+        "code": "C50.919",
+        "description": "Malignant neoplasm of unspecified site of unspecified female breast"
+    },
+    {
+        "code": "C18.9",
+        "description": "Malignant neoplasm of colon, unspecified"
+    },
+    {
+        "code": "J96.90",
+        "description": "Respiratory failure, unspecified, unspecified whether with hypoxia or hypercapnia"
+    },
+    {
+        "code": "N20.0",
+        "description": "Calculus of kidney"
+    },
+    {
+        "code": "K80.20",
+        "description": "Calculus of gallbladder without cholecystitis without obstruction"
+    },
+    {
+        "code": "I48.91",
+        "description": "Unspecified atrial fibrillation"
+    },
+    {
+        "code": "I63.9",
+        "description": "Cerebral infarction, unspecified"
+    },
+    {
+        "code": "G20",
+        "description": "Parkinson's disease"
+    },
+    {
+        "code": "G30.9",
+        "description": "Alzheimer's disease, unspecified"
+    },
+    {
+        "code": "F03.90",
+        "description": "Unspecified dementia without behavioral disturbance"
+    },
+    {
+        "code": "N52.9",
+        "description": "Male erectile dysfunction, unspecified"
+    },
+    {
+        "code": "L70.0",
+        "description": "Acne vulgaris"
+    },
+    {
+        "code": "L20.9",
+        "description": "Atopic dermatitis, unspecified"
+    },
+    {
+        "code": "L30.9",
+        "description": "Dermatitis, unspecified"
+    },
+    {
+        "code": "H61.20",
+        "description": "Impacted cerumen, unspecified ear"
+    },
+    {
+        "code": "H66.90",
+        "description": "Otitis media, unspecified, unspecified ear"
+    },
+    {
+        "code": "R19.00",
+        "description": "Intra-abdominal and pelvic swelling, mass and lump, unspecified site"
+    },
+    {
+        "code": "N76.0",
+        "description": "Acute vaginitis"
+    },
+    {
+        "code": "N73.9",
+        "description": "Female pelvic inflammatory disease, unspecified"
+    },
+    {
+        "code": "N92.0",
+        "description": "Excessive and frequent menstruation with regular cycle"
+    },
+    {
+        "code": "N94.6",
+        "description": "Dysmenorrhea, unspecified"
+    },
+    {
+        "code": "O09.90",
+        "description": "Supervision of high risk pregnancy, unspecified, unspecified trimester"
+    }
+]

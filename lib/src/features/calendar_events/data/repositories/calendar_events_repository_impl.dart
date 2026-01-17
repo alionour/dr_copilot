@@ -89,4 +89,12 @@ class CalendarEventsRepositoryImpl extends AbstractCalendarEventsRepository {
   Future<Either<Failure, void>> permanentlyDeleteEvent(String id) {
     return firebaseApi.permanentlyDeleteEvent(id);
   }
+
+  @override
+  Stream<Either<Failure, List<CalendarEventModel>>> streamEventsByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return firebaseApi.streamEventsByDateRange(startDate, endDate);
+  }
 }

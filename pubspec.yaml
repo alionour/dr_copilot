@@ -17,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.4+1
+version: 1.0.6+1
 
 environment:
   sdk: '>=3.5.0 <5.0.0'
@@ -53,7 +53,7 @@ dependencies:
   googleapis_auth: ^2.0.0
   googleapis: ^15.0.0
   google_sign_in: ^6.2.2
-  flutter_svg: ^2.0.17
+  flutter_svg: ^2.2.3
   url_launcher: ^6.3.1
   webview_flutter: ^4.7.0
   webview_flutter_android: ^4.10.1
@@ -115,6 +115,15 @@ dependencies:
   timeago: ^3.7.1
   in_app_purchase: ^3.2.3
   firebase_remote_config: ^6.1.3
+  desktop_multi_window: ^0.3.0
+  window_manager: ^0.5.1
+  video_player: ^2.10.1
+  video_player_win: ^3.2.2
+  showcaseview: ^3.0.0
+  qr_flutter: ^4.1.0
+  flutter_colorpicker: ^1.1.0
+  flutter_cube: ^0.1.1
+  webview_windows: ^0.4.0
 
 dependency_overrides:
   speech_to_text_windows:
@@ -168,7 +177,11 @@ flutter:
     - assets/icon.svg
     - assets/icon.png
     - assets/translations/
+    - assets/data/
+    - assets/png/
+    - assets/models/
     - assets/html/
+    - assets/png/
     - assets/google_credentials.json
     - shorebird.yaml
   #   - images/a_dot_ham.jpeg
@@ -215,8 +228,7 @@ msix_config:
   publisher_display_name: على نورالدين السيد حسانين
   identity_name: A038805C.Dr.Copilot
   publisher: CN=B8C022D6-3210-47E4-86DC-449784967308
-  msix_version: 1.0.4.0
+  msix_version: 1.0.6.0
   logo_path: assets/icon.png
   store: true
   capabilities: internetClient,privateNetworkClientServer
-

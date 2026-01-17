@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/app/notifiers/owner_notifier.dart';
 
 class NotificationsSettingsPage extends StatefulWidget {
   const NotificationsSettingsPage({super.key});
@@ -11,7 +13,6 @@ class NotificationsSettingsPage extends StatefulWidget {
 }
 
 class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   bool _emailNotifications = true;
   bool _pushNotifications = true;
   bool _appointmentReminders = true;
@@ -24,22 +25,67 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
   }
 
   Future<void> _loadSettings() async {
-    final email = await _secureStorage.read(key: 'emailNotifications');
-    final push = await _secureStorage.read(key: 'pushNotifications');
-    final reminders = await _secureStorage.read(key: 'appointmentReminders');
+    final ownerNotifier = context.read<OwnerNotifier>();
+    final clinicId = ownerNotifier.clinicId;
+
+    if (clinicId != null) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('clinics')
+            .doc(clinicId)
+            .get();
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>;
+          final notifications = data['notifications'] as Map<String, dynamic>?;
+          if (mounted) {
+            setState(() {
+              _emailNotifications = notifications?['email'] ?? true;
+              _pushNotifications = notifications?['push'] ?? true;
+              _appointmentReminders = notifications?['reminders'] ?? true;
+              _isLoading = false;
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error loading notification settings: $e');
+      }
+    }
 
     if (mounted) {
       setState(() {
-        _emailNotifications = email == null ? true : email == 'true';
-        _pushNotifications = push == null ? true : push == 'true';
-        _appointmentReminders = reminders == null ? true : reminders == 'true';
         _isLoading = false;
       });
     }
   }
 
   Future<void> _updateSetting(String key, bool value) async {
-    await _secureStorage.write(key: key, value: value.toString());
+    final ownerNotifier = context.read<OwnerNotifier>();
+    final clinicId = ownerNotifier.clinicId;
+
+    if (clinicId != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('clinics')
+            .doc(clinicId)
+            .set({
+          'notifications': {
+            key: value,
+            // Preserve other values
+            if (key != 'email') 'email': _emailNotifications,
+            if (key != 'push') 'push': _pushNotifications,
+            if (key != 'reminders') 'reminders': _appointmentReminders,
+          }
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('Error updating notification setting: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error saving setting: $e')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -59,7 +105,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                     setState(() {
                       _emailNotifications = value;
                     });
-                    _updateSetting('emailNotifications', value);
+                    _updateSetting('email', value);
                   },
                 ),
                 SwitchListTile(
@@ -69,17 +115,20 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                     setState(() {
                       _pushNotifications = value;
                     });
-                    _updateSetting('pushNotifications', value);
+                    _updateSetting('push', value);
                   },
                 ),
                 SwitchListTile(
                   title: const Text('appointmentReminders').tr(),
+                  subtitle: const Text(
+                          'Automatically send email reminders to patients 24 hours before appointment')
+                      .tr(),
                   value: _appointmentReminders,
                   onChanged: (value) {
                     setState(() {
                       _appointmentReminders = value;
                     });
-                    _updateSetting('appointmentReminders', value);
+                    _updateSetting('reminders', value);
                   },
                 ),
               ],
@@ -87,4 +136,3 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
     );
   }
 }
-

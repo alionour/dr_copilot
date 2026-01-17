@@ -30,12 +30,14 @@ class NotificationListItem extends StatelessWidget {
       case NotificationType.report:
         return Icons.description_outlined;
       case NotificationType.alert:
-        return Icons.warning_amber_outlined;
+        return Icons.warning_rounded;
+      case NotificationType.task:
+        return Icons.task_alt_rounded;
     }
   }
 
   Color _getColorForType(NotificationType type) {
-    switch (type) {
+    switch (notification.type) {
       case NotificationType.appointment:
         return Colors.blue;
       case NotificationType.message:
@@ -50,6 +52,8 @@ class NotificationListItem extends StatelessWidget {
         return Colors.teal;
       case NotificationType.alert:
         return Colors.red;
+      case NotificationType.task:
+        return Colors.indigo;
     }
   }
 
@@ -136,15 +140,15 @@ class NotificationListItem extends StatelessWidget {
                       Expanded(
                         child: Text(
                           notification.title,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: notification.isRead
-                                    ? FontWeight.w600
-                                    : FontWeight.bold,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.titleMedium?.color,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: notification.isRead
+                                        ? FontWeight.w600
+                                        : FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium?.color,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -167,11 +171,11 @@ class NotificationListItem extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                      height: 1.5,
-                    ),
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                          height: 1.5,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -185,8 +189,8 @@ class NotificationListItem extends StatelessWidget {
                       Text(
                         _formatTime(notification.createdAt),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).hintColor,
-                        ),
+                              color: Theme.of(context).hintColor,
+                            ),
                       ),
                       const Spacer(),
                       if (!notification.isRead && onMarkAsRead != null)
@@ -209,7 +213,9 @@ class NotificationListItem extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   'markAsRead'.tr(),
-                                  style: Theme.of(context).textTheme.labelSmall
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
                                       ?.copyWith(
                                         color: Theme.of(
                                           context,
@@ -232,4 +238,3 @@ class NotificationListItem extends StatelessWidget {
     );
   }
 }
-

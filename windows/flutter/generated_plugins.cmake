@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   cloud_firestore
   connectivity_plus
+  desktop_multi_window
   firebase_auth
   firebase_core
   firebase_storage
@@ -15,9 +16,13 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_auth_windows
   permission_handler_windows
   record_windows
+  screen_retriever_windows
   share_plus
   speech_to_text_windows
   url_launcher_windows
+  video_player_win
+  webview_windows
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

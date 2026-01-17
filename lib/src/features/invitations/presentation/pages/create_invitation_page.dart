@@ -936,6 +936,18 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows archiving teams to remove them from active view.';
       case AppPermission.unarchiveTeam:
         return 'Allows restoring archived teams.';
+
+      // Inventory
+      case AppPermission.viewInventory:
+        return 'Allows viewing inventory items and stock levels.';
+      case AppPermission.manageInventory:
+        return 'Allows adding, editing, or deleting inventory items.';
+      case AppPermission.adjustInventoryStock:
+        return 'Allows adjusting stock quantities for inventory items.';
+      case AppPermission.manageWorkingHours:
+        return 'Allows editing working hours and appointment duration/price.';
+      case AppPermission.manageBookingAvailability:
+        return 'Allows managing doctor booking availability.';
     }
   }
 }

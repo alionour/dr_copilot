@@ -1,13 +1,14 @@
 import 'package:dr_copilot/src/core/injections.dart';
-import 'package:dr_copilot/src/features/calendar/presentation/widgets/calendar_view.dart'; // Import dumb view
+import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/pages/calendar_event_details_page.dart';
+import 'package:dr_copilot/src/features/calendar/presentation/widgets/calendar_view.dart';
 import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
 import 'package:dr_copilot/src/features/calendar_events/presentation/bloc/calendar_events_bloc.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
+import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:dr_copilot/src/features/calendar/presentation/pages/add_calendar_event_page.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart' as sf;
 import 'dart:ui';
 
@@ -19,7 +20,6 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  // Page manages the state variables that drive the view
   sf.CalendarView _currentView = sf.CalendarView.day;
   final sf.CalendarController _calendarController = sf.CalendarController();
 
@@ -27,16 +27,14 @@ class _CalendarPageState extends State<CalendarPage> {
     return Positioned.fill(
       child: Stack(
         children: [
-          // Backdrop blur
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withValues(alpha: 0.05), // Subtle dark tint
+                color: Colors.black.withValues(alpha: 0.05),
               ),
             ),
           ),
-          // Loading Card
           Center(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -118,72 +116,13 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _showEventDetails(BuildContext context, CalendarEventModel event) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(event.title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${'type'.tr()}: ${'eventType.${event.eventType}'.tr()}'),
-            if (event.description != null)
-              Text('${'description'.tr()}: ${event.description}'),
-            const SizedBox(height: 8),
-            Text(
-              '${'startDateTime'.tr()}: ${DateFormat('yyyy-MM-dd HH:mm').format(event.startDateTime.toDate())}',
-            ),
-            Text(
-              '${'endDateTime'.tr()}: ${DateFormat('yyyy-MM-dd HH:mm').format(event.endDateTime.toDate())}',
-            ),
-          ],
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CalendarEventDetailsPage(
+          event: event,
+          onDelete: (e) => _deleteEvent(context, e),
+          onEdit: (e) => _navigateToEditEvent(context, e),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Verify Delete
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('deleteEvent'.tr()),
-                  content: Text('deleteReportConfirmation'.tr()),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('cancel'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        _deleteEvent(context, event);
-                        Navigator.of(context).pop(); // dialog
-                        Navigator.of(context).pop(); // details
-                      },
-                      child: Text('delete'.tr(),
-                          style: const TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
-            },
-            child: Text(
-              'delete'.tr(),
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _navigateToEditEvent(context, event);
-            },
-            child: Text('edit'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'close'.tr(),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -210,7 +149,6 @@ class _CalendarPageState extends State<CalendarPage> {
 
           return BlocBuilder<SettingsBloc, SettingsState>(
             builder: (context, settingsState) {
-              // Calculate non working days
               final allDays = [1, 2, 3, 4, 5, 6, 7];
               final workingDays = settingsState.workingDays;
               final nonWorkingDays =
@@ -232,7 +170,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     },
                     onDateRangeChanged: (start, end) {
                       context.read<CalendarEventsBloc>().add(
-                            LoadEventsByDateRange(start, end),
+                            StreamEventsByDateRange(start, end),
                           );
                     },
                     onEventTap: (event) => _showEventDetails(context, event),

@@ -476,6 +476,18 @@ class AddEditClinicalReportBloc
         },
       );
     });
+
+    on<UpdateBodyMarkers>((event, emit) {
+      if (state is AddEditClinicalReportLoaded) {
+        final currentState = state as AddEditClinicalReportLoaded;
+        if (currentState.report != null) {
+          final updatedReport = currentState.report!.copyWith(
+            bodyMapPoints: event.markers,
+          );
+          emit(currentState.copyWith(report: updatedReport));
+          add(AutoSaveClinicalReport(updatedReport));
+        }
+      }
+    });
   }
 }
-

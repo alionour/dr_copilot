@@ -3,6 +3,11 @@ import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/bloc/doctors_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
+import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
+import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +29,22 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
 
   final _emailController = TextEditingController();
   final _phoneNumberController = TextEditingController();
+  final _appointmentDurationController = TextEditingController();
+  final _consultationPriceController = TextEditingController();
+
+  bool _canEditSchedule = false;
+  bool _canManageBookingAvailability = false;
+  bool _isAvailableForBooking = true;
+  String? _selectedCurrencyProfileId;
+  Map<String, Map<String, dynamic>> _workingHours = {
+    'monday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'tuesday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'wednesday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'thursday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'friday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'saturday': {'active': false, 'start': '10:00', 'end': '14:00'},
+    'sunday': {'active': false, 'start': '10:00', 'end': '14:00'},
+  };
 
   static const List<String> _specialties = [
     'General Practice',
@@ -71,6 +92,25 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
               _selectedClinicId)); // Fetch doctors for the specific clinic
     }
     _selectedSpecialty = _initialDoctor?.specialty;
+
+    // Check permissions
+    try {
+      _canEditSchedule = sl<PermissionService>()
+          .hasPermissionSync(AppPermission.manageWorkingHours);
+      _canManageBookingAvailability = sl<PermissionService>()
+          .hasPermissionSync(AppPermission.manageBookingAvailability);
+    } catch (e) {
+      debugPrint('Permission check failed: $e');
+      _canEditSchedule = false;
+      _canManageBookingAvailability = false;
+    }
+
+    // Fetch currency profiles
+    context.read<FinancialsBloc>().add(FetchCurrencyProfiles());
+
+    if (_initialDoctor != null) {
+      _loadScheduleFromDoctor(_initialDoctor!);
+    }
   }
 
   @override
@@ -79,6 +119,8 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
 
     _emailController.dispose();
     _phoneNumberController.dispose();
+    _appointmentDurationController.dispose();
+    _consultationPriceController.dispose();
     super.dispose();
   }
 
@@ -108,6 +150,11 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
         clinicId: _selectedClinicId!,
         createdAt: isEditing ? _initialDoctor!.createdAt : now,
         updatedAt: now,
+        workingHours: _workingHours,
+        appointmentDuration: int.tryParse(_appointmentDurationController.text),
+        consultationPrice: double.tryParse(_consultationPriceController.text),
+        isAvailableForBooking: _isAvailableForBooking,
+        currencyProfileId: _selectedCurrencyProfileId,
       );
 
       if (isEditing) {
@@ -144,6 +191,9 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
               _emailController.text = doctor.email;
               _phoneNumberController.text = doctor.phoneNumber;
               _selectedClinicId = doctor.clinicId;
+              _isAvailableForBooking = doctor.isAvailableForBooking;
+              _selectedCurrencyProfileId = doctor.currencyProfileId;
+              _loadScheduleFromDoctor(doctor);
             });
           } else if (state is DoctorsSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -182,6 +232,17 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
+                        if (_canManageBookingAvailability)
+                          SwitchListTile(
+                            title: Text('availableForBooking'.tr()),
+                            subtitle: Text('availableForBookingDesc'.tr()),
+                            value: _isAvailableForBooking,
+                            onChanged: (val) {
+                              setState(() {
+                                _isAvailableForBooking = val;
+                              });
+                            },
+                          ),
                         DropdownButtonFormField<String>(
                           initialValue: _selectedClinicId,
                           decoration: InputDecoration(
@@ -286,6 +347,180 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                           },
                         ),
                         const SizedBox(height: 16.0),
+
+                        // Schedule Section
+                        if (_canEditSchedule) ...[
+                          Text(
+                            'workingHours'.tr(),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _appointmentDurationController,
+                                  decoration: InputDecoration(
+                                    labelText: 'appointmentDurationMin'.tr(),
+                                    border: const OutlineInputBorder(),
+                                    suffixText: 'min',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlocBuilder<FinancialsBloc,
+                                    FinancialsState>(
+                                  builder: (context, state) {
+                                    // Default to clinic currency if no profile selected or profiles loaded
+                                    final profiles = state.currencyProfiles;
+                                    return Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: TextFormField(
+                                            controller:
+                                                _consultationPriceController,
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  'consultationPrice'.tr(),
+                                              border:
+                                                  const OutlineInputBorder(),
+                                              suffixText: _selectedCurrencyProfileId !=
+                                                      null
+                                                  ? profiles
+                                                      .firstWhere(
+                                                          (p) =>
+                                                              p.id ==
+                                                              _selectedCurrencyProfileId,
+                                                          orElse: () =>
+                                                              CurrencyProfileModel(
+                                                                  id: '',
+                                                                  currency: '',
+                                                                  name: '',
+                                                                  createdAt:
+                                                                      Timestamp
+                                                                          .now(),
+                                                                  createdBy:
+                                                                      ''))
+                                                      .currency
+                                                  : '',
+                                            ),
+                                            keyboardType: const TextInputType
+                                                .numberWithOptions(
+                                                decimal: true),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        SizedBox(
+                                          width: 100,
+                                          child:
+                                              DropdownButtonFormField<String>(
+                                            initialValue:
+                                                _selectedCurrencyProfileId,
+                                            isExpanded: true,
+                                            decoration: InputDecoration(
+                                              labelText: 'currency'.tr(),
+                                              border:
+                                                  const OutlineInputBorder(),
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 16),
+                                            ),
+                                            items: profiles.map((profile) {
+                                              return DropdownMenuItem<String>(
+                                                value: profile.id,
+                                                child: Text(
+                                                  profile.currency,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              );
+                                            }).toList(),
+                                            onChanged: (val) {
+                                              setState(() {
+                                                _selectedCurrencyProfileId =
+                                                    val;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ..._workingHours.keys.map((day) {
+                            final schedule = _workingHours[day]!;
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Switch(
+                                          value: schedule['active'],
+                                          onChanged: (val) {
+                                            setState(() {
+                                              schedule['active'] = val;
+                                            });
+                                          },
+                                        ),
+                                        Text(day.tr()),
+                                        const Spacer(),
+                                        if (schedule['active']) ...[
+                                          TextButton(
+                                            onPressed: () async {
+                                              final time = await showTimePicker(
+                                                context: context,
+                                                initialTime: _parseTime(
+                                                    schedule['start']),
+                                              );
+                                              if (time != null) {
+                                                setState(() {
+                                                  schedule['start'] =
+                                                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                                                });
+                                              }
+                                            },
+                                            child: Text(schedule['start']),
+                                          ),
+                                          const Text('-'),
+                                          TextButton(
+                                            onPressed: () async {
+                                              final time = await showTimePicker(
+                                                context: context,
+                                                initialTime:
+                                                    _parseTime(schedule['end']),
+                                              );
+                                              if (time != null) {
+                                                setState(() {
+                                                  schedule['end'] =
+                                                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                                                });
+                                              }
+                                            },
+                                            child: Text(schedule['end']),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 16.0),
+                        ],
+                        const SizedBox(height: 16.0),
                         SizedBox(
                           width: double.infinity,
                           child: BlocBuilder<DoctorsBloc, DoctorsState>(
@@ -312,5 +547,25 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
         ),
       ),
     );
+  }
+
+  void _loadScheduleFromDoctor(DoctorModel doctor) {
+    if (doctor.workingHours != null) {
+      _workingHours = Map<String, Map<String, dynamic>>.from(
+          doctor.workingHours!.map(
+              (key, value) => MapEntry(key, Map<String, dynamic>.from(value))));
+    }
+    if (doctor.appointmentDuration != null) {
+      _appointmentDurationController.text =
+          doctor.appointmentDuration.toString();
+    }
+    if (doctor.consultationPrice != null) {
+      _consultationPriceController.text = doctor.consultationPrice.toString();
+    }
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 }

@@ -23,5 +23,22 @@
   },
   "remoteconfig": {
     "template": "remote_config_template.json"
+  },
+  "functions": {
+    "source": "backend"
+  },
+  "hosting": {
+    "public": "backend/public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "function": "api"
+      }
+    ]
   }
 }

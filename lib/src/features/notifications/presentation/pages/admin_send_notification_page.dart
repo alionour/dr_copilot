@@ -452,6 +452,8 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         return 'report'.tr();
       case NotificationType.alert:
         return 'alert'.tr();
+      case NotificationType.task:
+        return 'task'.tr();
     }
   }
 

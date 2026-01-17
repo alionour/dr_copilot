@@ -53,6 +53,19 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
   String? _selectedClinicId;
   StaffModel? _initialStaff;
 
+  final _appointmentDurationController = TextEditingController(text: '30');
+
+  // Default schedule: Mon-Fri 9-5
+  Map<String, Map<String, dynamic>> _workingHours = {
+    'monday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'tuesday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'wednesday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'thursday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'friday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'saturday': {'active': false, 'start': '10:00', 'end': '14:00'},
+    'sunday': {'active': false, 'start': '10:00', 'end': '14:00'},
+  };
+
   bool get isEditing => widget.staffId != null;
 
   @override
@@ -88,6 +101,17 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         _emailController.text = staff.email;
         _phoneNumberController.text = staff.phoneNumber ?? '';
         _selectedClinicId = staff.clinicId;
+        if (staff.workingHours != null) {
+          _workingHours = Map<String, Map<String, dynamic>>.from(
+            staff.workingHours!.map(
+              (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
+            ),
+          );
+        }
+        if (staff.appointmentDuration != null) {
+          _appointmentDurationController.text =
+              staff.appointmentDuration.toString();
+        }
       }
     }
     _selectedRole = _initialStaff?.role;
@@ -98,6 +122,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneNumberController.dispose();
+    _appointmentDurationController.dispose();
     super.dispose();
   }
 
@@ -129,6 +154,8 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         clinicId: _selectedClinicId!,
         createdAt: isEditing ? _initialStaff!.createdAt : now,
         updatedAt: now,
+        workingHours: _workingHours,
+        appointmentDuration: int.tryParse(_appointmentDurationController.text),
       );
 
       if (isEditing) {
@@ -137,6 +164,11 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         context.read<StaffBloc>().add(AddStaff(staff));
       }
     }
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
   @override
@@ -309,6 +341,94 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                             return null;
                           },
                         ),
+                        const SizedBox(height: 16.0),
+
+                        // Schedule Section
+                        Text(
+                          'workingHours'.tr(),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _appointmentDurationController,
+                          decoration: InputDecoration(
+                            labelText: 'appointmentDurationMin'.tr(),
+                            border: const OutlineInputBorder(),
+                            suffixText: 'min',
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (int.tryParse(value) == null) {
+                                return 'invalidNumber'.tr();
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        ..._workingHours.keys.map((day) {
+                          final schedule = _workingHours[day]!;
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Switch(
+                                        value: schedule['active'],
+                                        onChanged: (val) {
+                                          setState(() {
+                                            schedule['active'] = val;
+                                          });
+                                        },
+                                      ),
+                                      Text(day.tr()),
+                                      const Spacer(),
+                                      if (schedule['active']) ...[
+                                        TextButton(
+                                          onPressed: () async {
+                                            final time = await showTimePicker(
+                                              context: context,
+                                              initialTime:
+                                                  _parseTime(schedule['start']),
+                                            );
+                                            if (time != null) {
+                                              setState(() {
+                                                schedule['start'] =
+                                                    '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                                              });
+                                            }
+                                          },
+                                          child: Text(schedule['start']),
+                                        ),
+                                        const Text('-'),
+                                        TextButton(
+                                          onPressed: () async {
+                                            final time = await showTimePicker(
+                                              context: context,
+                                              initialTime:
+                                                  _parseTime(schedule['end']),
+                                            );
+                                            if (time != null) {
+                                              setState(() {
+                                                schedule['end'] =
+                                                    '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                                              });
+                                            }
+                                          },
+                                          child: Text(schedule['end']),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 16.0),
                         SizedBox(
                           width: double.infinity,

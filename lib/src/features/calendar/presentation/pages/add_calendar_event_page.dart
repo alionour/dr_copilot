@@ -4,6 +4,8 @@ import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_e
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/features/telemedicine/domain/models/telemedicine_meeting.dart';
 
 class AddCalendarEventPage extends StatefulWidget {
   final CalendarEventModel? eventToEdit;
@@ -143,8 +145,35 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
 
       final clinicId = OwnerNotifier().clinicId;
 
+      // Generate ID if new to link Telemedicine Meeting
+      final String eventId = widget.eventToEdit?.id.isNotEmpty == true
+          ? widget.eventToEdit!.id
+          : const Uuid().v4();
+
+      // Create Mock Telemedicine Meeting
+      if (_selectedEventType == 'meeting' ||
+          _selectedEventType == 'appointment') {
+        final meetingId = const Uuid().v4();
+        final meeting = TelemedicineMeeting(
+          id: meetingId,
+          appointmentId: eventId,
+          roomId: meetingId,
+          meetingLink: 'https://meet.jit.si/${clinicId}_$meetingId',
+          doctorId: user.uid,
+          patientId: 'patient_mock',
+          scheduledTime: startDateTime,
+          status: 'scheduled',
+          platform: 'jitsi',
+        );
+
+        FirebaseFirestore.instance
+            .collection('telemedicine_meetings')
+            .doc(meetingId)
+            .set(meeting.toJson());
+      }
+
       final newEvent = CalendarEventModel(
-        id: widget.eventToEdit?.id ?? '', // Preserve ID if editing
+        id: eventId,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim().isEmpty
             ? null

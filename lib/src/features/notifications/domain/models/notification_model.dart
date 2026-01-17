@@ -98,6 +98,8 @@ enum NotificationType {
   report,
   @JsonValue('alert')
   alert,
+  @JsonValue('task')
+  task,
 }
 
 enum NotificationSenderType {
@@ -168,4 +170,3 @@ class NotificationTarget {
 
   Map<String, dynamic> toJson() => _$NotificationTargetToJson(this);
 }
-

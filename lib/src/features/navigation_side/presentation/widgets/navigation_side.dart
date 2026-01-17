@@ -13,6 +13,12 @@ import 'package:dr_copilot/src/features/navigation_side/domain/entities/destinat
 import 'package:dr_copilot/src/features/navigation_side/presentation/helpers/navigation_helper.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:dr_copilot/src/core/services/feature_discovery_service.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/calendar_events/presentation/bloc/calendar_events_bloc.dart';
+
+import 'package:dr_copilot/src/features/presentation/domain/services/presentation_service.dart';
 
 /// A widget that provides a side navigation menu and displays the selected page.
 class NavigationSide extends StatefulWidget {
@@ -31,6 +37,27 @@ class _NavigationSideState extends State<NavigationSide> {
   final SideMenuController _sideMenuController = SideMenuController();
   OwnerNotifier? _ownerNotifier;
 
+  // Feature discovery showcase keys - Core Operations
+  final GlobalKey _copilotKey = GlobalKey();
+  final GlobalKey _calendarKey = GlobalKey();
+
+  // Management
+  final GlobalKey _patientsKey = GlobalKey();
+  final GlobalKey _doctorsKey = GlobalKey();
+  final GlobalKey _clinicalReportsKey = GlobalKey();
+
+  // Business
+  final GlobalKey _financialsKey = GlobalKey();
+
+  // Utilities
+  final GlobalKey _notificationsKey = GlobalKey();
+  final GlobalKey _settingsKey = GlobalKey();
+
+  // Team Collaboration
+  final GlobalKey _teamsKey = GlobalKey();
+
+  final PresentationService _presentationService = PresentationService();
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -47,6 +74,8 @@ class _NavigationSideState extends State<NavigationSide> {
   void initState() {
     super.initState();
     _checkSwipeHint();
+
+    // Start streaming calendar events for today
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _navigationFocusNode.requestFocus();
@@ -58,7 +87,16 @@ class _NavigationSideState extends State<NavigationSide> {
         context.read<NavigationBloc>().add(UserChanged(authState.user));
       }
 
+      // Dispatch stream event for today's schedule
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      context.read<CalendarEventsBloc>().add(
+            StreamEventsByDateRange(startOfDay, endOfDay),
+          );
+
       _updateDestinations();
+      _checkAndShowFeatureDiscovery();
     });
   }
 
@@ -87,6 +125,37 @@ class _NavigationSideState extends State<NavigationSide> {
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_seen_swipe_hint', true);
+  }
+
+  Future<void> _checkAndShowFeatureDiscovery() async {
+    if (!mounted) return;
+
+    final featureDiscoveryService =
+        await sl.getAsync<FeatureDiscoveryService>();
+    final shouldShow = await featureDiscoveryService.shouldShowDiscovery();
+
+    if (shouldShow && mounted) {
+      // Wait a bit for the UI to settle
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+
+      final showcaseKeys = [
+        _copilotKey,
+        _calendarKey,
+        _patientsKey,
+        _doctorsKey,
+        _clinicalReportsKey,
+        _financialsKey,
+        _notificationsKey,
+        _settingsKey,
+        _teamsKey,
+      ].where((key) => key.currentContext != null).toList();
+
+      if (showcaseKeys.isNotEmpty) {
+        ShowCaseWidget.of(context).startShowCase(showcaseKeys);
+        await featureDiscoveryService.markDiscoveryAsSeen();
+      }
+    }
   }
 
   void _toggleMobileNav() {
@@ -153,6 +222,7 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.clinicalReports: '/clinical_reports',
     Destination.chatGptProject: '/chatgpt_project',
     Destination.recycleBin: '/recycle_bin',
+    Destination.tasks: '/tasks',
   };
 
   @override
@@ -173,6 +243,13 @@ class _NavigationSideState extends State<NavigationSide> {
           listenWhen: (previous, current) => previous.user != current.user,
           listener: (context, state) {
             _updateDestinations();
+          },
+        ),
+        BlocListener<CalendarEventsBloc, CalendarEventsState>(
+          listener: (context, state) {
+            if (state is CalendarEventsLoaded) {
+              _presentationService.updateSchedule(state.events);
+            }
           },
         ),
       ],
@@ -448,21 +525,90 @@ class _NavigationSideState extends State<NavigationSide> {
                                     ),
                                   ),
                                 ...destinations.map(
-                                  (e) => SideMenuItemDataTile(
-                                    isSelected: state.destination == e,
-                                    onTap: () {
-                                      context.go(destinationToRoute[e]!);
-                                      if (onItemTap != null) onItemTap();
-                                    },
-                                    title: tr(e.model.title),
-                                    tooltip: e.message,
-                                    icon: Icon(
+                                  (e) {
+                                    GlobalKey? showcaseKey;
+                                    String? description;
+
+                                    // Assign showcase keys to features
+                                    if (e == Destination.copilot) {
+                                      showcaseKey = _copilotKey;
+                                      description =
+                                          'Your AI medical assistant - get help with diagnoses, treatment plans, and medical questions.';
+                                    } else if (e == Destination.calendar) {
+                                      showcaseKey = _calendarKey;
+                                      description =
+                                          'View and manage your appointments and schedule.';
+                                    } else if (e == Destination.patients) {
+                                      showcaseKey = _patientsKey;
+                                      description =
+                                          'Access and manage patient records, medical history, and contact information.';
+                                    } else if (e == Destination.doctors) {
+                                      showcaseKey = _doctorsKey;
+                                      description =
+                                          'Manage doctor profiles, specializations, and assignments.';
+                                    } else if (e ==
+                                        Destination.clinicalReports) {
+                                      showcaseKey = _clinicalReportsKey;
+                                      description =
+                                          'Create and manage clinical reports, medical documentation, and patient evaluations.';
+                                    } else if (e == Destination.financials) {
+                                      showcaseKey = _financialsKey;
+                                      description =
+                                          'Track income, expenses, transactions, and financial analytics.';
+                                    } else if (e == Destination.notifications) {
+                                      showcaseKey = _notificationsKey;
+                                      description =
+                                          'Stay updated with important alerts, reminders, and system notifications.';
+                                    } else if (e == Destination.settings) {
+                                      showcaseKey = _settingsKey;
+                                      description =
+                                          'Customize app preferences, theme, notifications, and account settings.';
+                                    } else if (e == Destination.teams) {
+                                      showcaseKey = _teamsKey;
+                                      description =
+                                          'Collaborate with your team, manage roles, and coordinate patient care.';
+                                    }
+
+                                    final icon = Icon(
                                       e.model.icon,
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.primary,
-                                    ),
-                                  ),
+                                    );
+
+                                    return SideMenuItemDataTile(
+                                      isSelected: state.destination == e,
+                                      onTap: () {
+                                        final route = destinationToRoute[e];
+                                        if (route != null) {
+                                          context.go(route);
+                                        }
+                                        if (onItemTap != null) onItemTap();
+                                      },
+                                      title: tr(e.model.title),
+                                      tooltip: e.message,
+                                      icon: showcaseKey != null &&
+                                              description != null
+                                          ? Showcase(
+                                              key: showcaseKey,
+                                              description: description,
+                                              targetPadding:
+                                                  const EdgeInsets.only(
+                                                top: 8,
+                                                bottom: 8,
+                                                left: 8,
+                                                right:
+                                                    180, // Extend to cover label
+                                              ),
+                                              targetBorderRadius:
+                                                  BorderRadius.circular(12),
+                                              tooltipBorderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: icon,
+                                            )
+                                          : icon,
+                                    );
+                                  },
                                 ),
                               ];
                             })

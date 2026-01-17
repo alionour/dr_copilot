@@ -210,6 +210,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
       case NotificationType.payment:
         title = 'paymentUpdate'.tr();
         break;
+      case NotificationType.task:
+        title = 'taskUpdate'.tr();
+        break;
     }
 
     // Resolve Action URL
@@ -346,7 +349,13 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                         value: type,
                         child: Text(type.name),
                       );
-                    }).toList(),
+                    }).toList()
+                      ..add(
+                        DropdownMenuItem(
+                          value: NotificationType.task,
+                          child: Text('task'.tr()),
+                        ),
+                      ),
                     onChanged: (value) {
                       setState(() {
                         _selectedType = value!;

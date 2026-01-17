@@ -99,6 +99,8 @@ class ClinicalReportFirebaseApi {
         'clinicId': clinicId,
         'createdBy': user.uid,
         'updatedAt': FieldValue.serverTimestamp(),
+        'bodyMapPoints':
+            reportToSave.bodyMapPoints.map((e) => e.toJson()).toList(),
       };
 
       await _reportsCollection
@@ -327,6 +329,10 @@ class ClinicalReportFirebaseApi {
           ? (data['finalizedAt'] as Timestamp).toDate()
           : null,
       finalizedBy: data['finalizedBy'] as String?,
+      bodyMapPoints: (data['bodyMapPoints'] as List<dynamic>?)
+              ?.map((e) => BodyMarker.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 

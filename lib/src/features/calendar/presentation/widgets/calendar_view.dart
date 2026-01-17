@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/booking/presentation/pages/booking_management_page.dart';
 import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_event_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +63,17 @@ class _CalendarViewState extends State<CalendarView> {
         ),
         leading: const Icon(Icons.calendar_month_outlined),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assignment_ind),
+            tooltip: 'bookingRequests'.tr(),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const BookingManagementPage(),
+                ),
+              );
+            },
+          ),
           if (widget.navMenuButton != null) widget.navMenuButton!,
           IconButton(
             icon: const Icon(Icons.add),

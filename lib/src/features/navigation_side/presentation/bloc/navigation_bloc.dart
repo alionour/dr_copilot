@@ -8,14 +8,14 @@ part 'navigation_state.dart';
 
 class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   NavigationBloc()
-    : super(
-        const NavigationState(
-          null,
-          Destination.copilot,
-          true,
-          allowedDestinations: {},
-        ),
-      ) {
+      : super(
+          const NavigationState(
+            null,
+            Destination.copilot,
+            true,
+            allowedDestinations: {},
+          ),
+        ) {
     on<NavigateToEvent>(navigateTo);
     on<NavigateUpEvent>(navigateUp);
     on<NavigateDownEvent>(navigateDown);
@@ -94,12 +94,17 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.recycleBin:
         emit(state.copyWith(destination: Destination.recycleBin));
         break;
+      case Destination.inventory:
+        emit(state.copyWith(destination: Destination.inventory));
+        break;
+      case Destination.tasks:
+        emit(state.copyWith(destination: Destination.tasks));
+        break;
     }
   }
 
   void navigateUp(NavigateUpEvent event, Emitter emit) {
-    final newIndex =
-        (state.selectedIndex - 1 + Destination.values.length) %
+    final newIndex = (state.selectedIndex - 1 + Destination.values.length) %
         Destination.values.length;
     emit(
       state.copyWith(
@@ -123,4 +128,3 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     emit(state.copyWith(isNavigationFocused: event.isFocused));
   }
 }
-

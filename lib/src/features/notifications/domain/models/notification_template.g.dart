@@ -42,4 +42,5 @@ const _$NotificationTypeEnumMap = {
   NotificationType.payment: 'payment',
   NotificationType.report: 'report',
   NotificationType.alert: 'alert',
+  NotificationType.task: 'task',
 };

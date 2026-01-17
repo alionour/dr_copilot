@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:dr_copilot/src/core/services/paddle_service.dart';
+import 'package:dr_copilot/src/core/services/backend_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class SubscriptionPricingPage extends StatefulWidget {
@@ -37,37 +37,33 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
       // Map plan names to IDs
       final planIds = {'Pro': 'pro', 'Elite': 'elite'};
 
-      // Create checkout session
-      final checkoutUrl = await PaddleService.createCheckoutSession(
-        planId: planIds[planTitle] ?? 'pro',
-        clinicId: user.uid,
-        period: _isYearly ? 'yearly' : 'monthly',
-      );
+      // Construct Paymob Checkout URL
+      final baseUrl = BackendService.baseUrl;
+      final checkoutUrl = '$baseUrl/subscription_checkout.html'
+          '?plan=${planIds[planTitle] ?? 'pro'}'
+          '&period=${_isYearly ? 'yearly' : 'monthly'}'
+          '&userId=${user.uid}'
+          '&email=${user.email ?? ''}'
+          '&clinicId=${user.uid}';
 
       if (!mounted) return;
       Navigator.pop(context); // Close loading
 
-      if (checkoutUrl != null) {
-        // Launch checkout URL
-        final uri = Uri.parse(checkoutUrl);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not open payment page')),
-            );
-          }
+      final uri = Uri.parse(checkoutUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'Payment page opened. Please verify payment in the app when done.')),
+          );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Failed to create checkout session. Please try again.',
-              ),
-              backgroundColor: Colors.red,
-            ),
+            const SnackBar(content: Text('Could not open payment page')),
           );
         }
       }

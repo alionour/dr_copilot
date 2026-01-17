@@ -215,10 +215,27 @@ enum AppPermission {
   /// Upgrade, downgrade, or cancel the subscription.
   manageSubscription,
 
+  // --- INVENTORY ---
+  /// View the inventory list and stock levels.
+  viewInventory,
+
+  /// Add, edit, or delete inventory items.
+  manageInventory,
+
+  /// Adjust stock quantities (add/remove stock).
+  adjustInventoryStock,
+
   // --- HELP & SUPPORT ---
   /// Access help documentation/FAQ.
   viewHelp,
 
   /// Contact support or open tickets.
   accessSupport,
+
+  // --- SCHEDULING ---
+  /// Edit working hours and appointment duration/price.
+  manageWorkingHours,
+
+  /// Enable or disable booking availability for doctors.
+  manageBookingAvailability,
 }
