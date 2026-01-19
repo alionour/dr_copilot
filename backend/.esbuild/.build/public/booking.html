@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book an Appointment - Dr. Copilot</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #0056D2;
+            /* Paymob Blue-ish or generic medical blue */
+            --secondary: #00A3E0;
+            --surface: #ffffff;
+            --background: #f4f7fa;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --error: #dc3545;
+            --success: #28a745;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .container {
+            background: var(--surface);
+            padding: 48px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease-out forwards;
+            min-height: 600px;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-sub);
+            margin-bottom: 32px;
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: var(--error);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        /* Doctor Cards */
+        .doctor-card {
+            border: 2px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .doctor-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 86, 210, 0.1);
+        }
+
+        .doctor-card.selected {
+            border-color: var(--primary);
+            background: rgba(0, 86, 210, 0.05);
+        }
+
+        .doctor-info h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .doctor-info p {
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+
+        .doctor-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e4e8;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+
+        button.submit-btn:hover {
+            background: #0044a6;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 86, 210, 0.2);
+        }
+
+        /* Iframe Container */
+        .iframe-container {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 12px;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="mainContainer">
+        <div id="errorBanner" class="error-message"></div>
+        <div id="configWarning" class="error-message"
+            style="display:none; background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+            ⚠️ <strong>Notice:</strong> Online payment is currently unavailable. Please contact the clinic directly to
+            complete your booking.
+        </div>
+
+        <!-- Step 1: Select Doctor -->
+        <div id="step1" class="step active">
+            <h1>📅 Book an Appointment</h1>
+            <p class="subtitle">Select a doctor to continue</p>
+            <div id="doctorsList"></div>
+        </div>
+
+        <!-- Step 2: Patient Details -->
+        <div id="step2" class="step">
+            <h1>📝 Your Details</h1>
+            <p class="subtitle">Please provide your contact information</p>
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="example@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" placeholder="+201234567890" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reason">Reason for Visit</label>
+                <textarea id="reason" rows="3" placeholder="Briefly describe your symptoms..." required></textarea>
+            </div>
+
+            <button class="submit-btn" onclick="initiatePayment()">
+                Proceed to Payment
+            </button>
+            <button class="submit-btn" onclick="backToStep1()"
+                style="background: transparent; color: var(--text-sub); margin-top: 8px;">
+                Back
+            </button>
+        </div>
+
+        <!-- Step 3: Payment (Iframe) -->
+        <div id="step3" class="step">
+            <h1>💳 Payment</h1>
+            <p class="subtitle">Complete your payment securely with Paymob</p>
+            <iframe id="paymobFrame" class="iframe-container" src=""></iframe>
+        </div>
+
+        <!-- Step 4: Success/Callback Handler (Optional if using redirect) -->
+        <!-- Paymob usually redirects to a callback URL. Ideally this page handles the callback. -->
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6APKuTlDJP9gGT9usJGj1Ub1Eev592PU",
+            authDomain: "drcopilot-bfc9e.firebaseapp.com",
+            projectId: "drcopilot-bfc9e",
+            storageBucket: "drcopilot-bfc9e.firebasestorage.app",
+            messagingSenderId: "253522261255",
+            appId: "1:253522261255:web:b0c3541bbd0e1da51001a2"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        let clinicId = null;
+        let selectedDoctor = null;
+        let currencyProfiles = [];
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            clinicId = urlParams.get('clinicId');
+
+            // Check for Paymob Callback parameters
+            const success = urlParams.get('success');
+            const pending = urlParams.get('pending');
+            const id = urlParams.get('id'); // Paymob Transaction ID
+
+            if (success === 'true' || success === 'true') {
+                handlePaymentCallback(true, id);
+                return;
+            } else if (success === 'false') {
+                handlePaymentCallback(false, id);
+                return;
+            }
+
+            if (!clinicId) {
+                showError("Missing Clinic ID. Please use the valid link provided by your clinic.");
+                return;
+            }
+
+            await checkPaymentStatus();
+            await loadDoctors();
+        });
+
+        async function checkPaymentStatus() {
+            try {
+                const res = await fetch(`/bookings/payment-status?clinicId=${clinicId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!data.configured) {
+                        const banner = document.getElementById('configWarning');
+                        banner.style.display = 'block';
+                        // Disable booking?
+                        const submitBtn = document.querySelector('#step2 .submit-btn');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerText = 'Payment Not Configured';
+                            submitBtn.style.backgroundColor = '#ccc';
+                            submitBtn.style.cursor = 'not-allowed';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to check payment status', e);
+            }
+        }
+
+        async function loadDoctors() {
+            try {
+                // Fetch currency profiles
+                const profilesSnapshot = await db.collection('clinics')
+                    .doc(clinicId)
+                    .collection('currency_profiles')
+                    .get();
+
+                currencyProfiles = profilesSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Fetch doctors
+                const doctorsSnapshot = await db.collection('doctors')
+                    .where('clinicId', '==', clinicId)
+                    .where('isAvailableForBooking', '==', true)
+                    .get();
+
+                const doctorsList = document.getElementById('doctorsList');
+                doctorsList.innerHTML = '';
+
+                if (doctorsSnapshot.empty) {
+                    doctorsList.innerHTML = '<p style="text-align: center; color: var(--text-sub);">No doctors available for booking.</p>';
+                    return;
+                }
+
+                doctorsSnapshot.forEach(doc => {
+                    const doctor = { id: doc.id, ...doc.data() };
+                    if (!doctor.consultationPrice) return;
+
+                    let currency = 'EGP';
+                    if (doctor.currencyProfileId) {
+                        const profile = currencyProfiles.find(p => p.id === doctor.currencyProfileId);
+                        if (profile) currency = profile.currency;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'doctor-card';
+                    card.onclick = () => selectDoctor(doctor, currency);
+
+                    card.innerHTML = `
+                        <div class="doctor-info">
+                            <h3>${doctor.name}</h3>
+                            <p>${doctor.specialty}</p>
+                        </div>
+                        <div class="doctor-price">
+                            ${currency} ${doctor.consultationPrice}
+                        </div>
+                    `;
+                    doctorsList.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to load doctors.');
+            }
+        }
+
+        function selectDoctor(doctor, currency) {
+            selectedDoctor = { ...doctor, currency };
+            showStep('step2');
+        }
+
+        function backToStep1() {
+            showStep('step1');
+        }
+
+        function showStep(stepId) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        async function initiatePayment() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+
+            if (!name || !email || !phone || !reason) {
+                showError('Please fill in all fields.');
+                return;
+            }
+
+            try {
+                const submitBtn = document.querySelector('#step2 .submit-btn');
+                submitBtn.innerText = 'Processing...';
+                submitBtn.disabled = true;
+
+                // Save booking intent to LocalStorage (to recover after redirect/callback if needed)
+                localStorage.setItem('pendingBooking', JSON.stringify({
+                    clinicId,
+                    doctorId: selectedDoctor.id,
+                    doctorName: selectedDoctor.name,
+                    patientName: name,
+                    patientEmail: email,
+                    patientPhone: phone,
+                    reason,
+                    consultationPrice: selectedDoctor.consultationPrice,
+                    currencyCode: selectedDoctor.currency
+                }));
+
+                const response = await fetch('/bookings/initiate-transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: selectedDoctor.consultationPrice,
+                        currencyCode: selectedDoctor.currency,
+                        customerEmail: email,
+                        customerName: name,
+                        customerPhone: phone,
+                        customerName: name,
+                        customerPhone: phone,
+                        doctorId: selectedDoctor.id,
+                        clinicId: clinicId
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'backend error');
+                }
+
+                const data = await response.json();
+
+                // Show Iframe
+                const iframe = document.getElementById('paymobFrame');
+                iframe.src = data.iframeUrl;
+                showStep('step3');
+
+            } catch (error) {
+                console.error(error);
+                showError('Payment initiation failed: ' + error.message);
+                const submitBtn = document.querySelector('#step2 .submit-btn');
+                submitBtn.innerText = 'Proceed to Payment';
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function handlePaymentCallback(success, transactionId) {
+            // Hide all steps, show status
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            const container = document.getElementById('mainContainer');
+
+            if (success) {
+                container.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 80px; margin-bottom: 20px;">✅</div>
+                        <h1>Payment Successful!</h1>
+                        <p class="subtitle">Transaction ID: ${transactionId}</p>
+                        <p>Your appointment has been booked. You will be contacted shortly.</p>
+                        <a href="/" class="submit-btn" style="text-decoration:none; display:inline-block; width:auto; padding: 10px 30px;">Home</a>
+                    </div>
+                `;
+
+                // Retrieve pending booking data
+                const pendingData = localStorage.getItem('pendingBooking');
+                if (pendingData) {
+                    const booking = JSON.parse(pendingData);
+                    // Save to Firestore
+                    await db.collection('patient_bookings').add({
+                        ...booking,
+                        status: 'paid',
+                        paymobTransactionId: transactionId,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        source: 'web_booking'
+                    });
+                    localStorage.removeItem('pendingBooking');
+                }
+
+            } else {
+                container.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 80px; margin-bottom: 20px;">❌</div>
+                        <h1>Payment Failed</h1>
+                        <p class="subtitle">Transaction ID: ${transactionId}</p>
+                        <p>Please try again or contact support.</p>
+                        <button onclick="location.href=location.pathname + '?clinicId=${clinicId || ''}'" class="submit-btn">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        function showError(msg) {
+            const banner = document.getElementById('errorBanner');
+            banner.innerText = msg;
+            banner.style.display = 'block';
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+
+</html>

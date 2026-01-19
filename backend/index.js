@@ -65,6 +65,18 @@ if (admin.apps.length > 0) {
         res.sendFile(path.join(__dirname, 'public', 'error-dashboard.html'));
     });
 
+    // 3D Model Routes (Redirects for cleaner URLs)
+    // Adding controls=false to hide the model selector bar by default for these specific routes
+    app.get('/3d/body', (req, res) => res.redirect('/body_chart_3d.html?model=body&controls=false'));
+    app.get('/3d/muscles', (req, res) => res.redirect('/body_chart_3d.html?model=muscles&controls=false'));
+    app.get('/3d/skeleton', (req, res) => res.redirect('/body_chart_3d.html?model=skeleton&controls=false'));
+    app.get('/3d/head', (req, res) => res.redirect('/body_chart_3d.html?model=head&controls=false'));
+    // Updated Teeth Routes
+    app.get('/3d/teeth_types', (req, res) => res.redirect('/body_chart_3d.html?model=teeth_types&controls=false'));
+    app.get('/3d/upper_teeth', (req, res) => res.redirect('/body_chart_3d.html?model=upper_teeth&controls=false'));
+    app.get('/3d/lower_teeth', (req, res) => res.redirect('/body_chart_3d.html?model=lower_teeth&controls=false'));
+    app.get('/3d/teeth', (req, res) => res.redirect('/body_chart_3d.html?model=teeth&controls=false'));
+
     // API routes
     try {
         const invitationRouter = require('./routes/invitations');

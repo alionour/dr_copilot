@@ -164,9 +164,90 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
             'Third Molar (Wisdom)'
           ],
         },
+        {
+          'file': 'types_of_human_teeth.glb',
+          'name': 'Teeth Types',
+          'markerScale': 0.3,
+          'landmarks': [
+            'Incisors',
+            'Canines',
+            'Premolars',
+            'Molars',
+          ],
+        },
+        {
+          'file': 'upper_teeth.glb',
+          'name': 'Upper Teeth',
+          'markerScale': 0.2,
+          'landmarks': [
+            'Right 3rd Molar (1)',
+            'Right 2nd Molar (2)',
+            'Right 1st Molar (3)',
+            'Right 2nd Premolar (4)',
+            'Right 1st Premolar (5)',
+            'Right Canine (6)',
+            'Right Lateral Incisor (7)',
+            'Right Central Incisor (8)',
+            'Left Central Incisor (9)',
+            'Left Lateral Incisor (10)',
+            'Left Canine (11)',
+            'Left 1st Premolar (12)',
+            'Left 2nd Premolar (13)',
+            'Left 1st Molar (14)',
+            'Left 2nd Molar (15)',
+            'Left 3rd Molar (16)',
+          ],
+        },
+        {
+          'file': 'lower_teeth.glb', // Virtual file key for lower view
+          'name': 'Lower Teeth',
+          'markerScale': 0.2,
+          'landmarks': [
+            'Left 3rd Molar (17)',
+            'Left 2nd Molar (18)',
+            'Left 1st Molar (19)',
+            'Left 2nd Premolar (20)',
+            'Left 1st Premolar (21)',
+            'Left Canine (22)',
+            'Left Lateral Incisor (23)',
+            'Left Central Incisor (24)',
+            'Right Central Incisor (25)',
+            'Right Lateral Incisor (26)',
+            'Right Canine (27)',
+            'Right 1st Premolar (28)',
+            'Right 2nd Premolar (29)',
+            'Right 1st Molar (30)',
+            'Right 2nd Molar (31)',
+            'Right 3rd Molar (32)',
+          ],
+        },
       ],
     },
   };
+
+  String _mapModelKey(String? filename) {
+    if (filename == null) return 'body';
+    switch (filename) {
+      case 'human_body.glb':
+        return 'body';
+      case 'human_muscles.glb':
+        return 'muscles';
+      case 'human_skeleton.glb':
+        return 'skeleton';
+      case 'human_head.glb':
+        return 'head';
+      case 'types_of_human_teeth.glb':
+        return 'teeth_types';
+      case 'upper_teeth.glb':
+        return 'upper_teeth';
+      case 'lower_teeth.glb':
+        return 'lower_teeth';
+      case 'human_teeth.glb':
+        return 'teeth';
+      default:
+        return 'body';
+    }
+  }
 
   Map<String, dynamic>? _getModelData(String? modelFile) {
     if (modelFile == null) return null;
@@ -232,7 +313,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
   String? _selectedMarkerId; // Currently selected marker for editing
   bool _showLandmarkList =
-      true; // Toggle for landmark list sidebar - DEFAULT OPEN
+      false; // Toggle for landmark list sidebar - DEFAULT CLOSED
 
   // Per-model interaction mode state
   final Map<String, String> _modelInteractionModes = {}; // Defaults to 'select'
@@ -331,6 +412,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
               ? _buildModelSelectionScreen()
               : Column(
                   children: [
+                    // Always show toggle button row, even in read-only
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 8.0),
@@ -339,7 +421,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                         children: [
                           Row(
                             children: [
-                              // Toggle landmark list button
+                              // Toggle landmark list button (Available in Read-Only)
                               IconButton(
                                 icon: Icon(
                                   _showLandmarkList
@@ -355,87 +437,90 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                                 },
                                 tooltip: 'Toggle Landmark List',
                               ),
+                              const SizedBox(width: 8),
                               const Text(
-                                'Option A: WebView 3D',
+                                '3D Interactive Map',
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(width: 16),
-                              // Mode Toggle
-                              SegmentedButton<String>(
-                                segments: const [
-                                  ButtonSegment(
-                                    value: 'select',
-                                    icon: Icon(Icons.touch_app),
-                                    label: Text('Selection'),
-                                  ),
-                                  ButtonSegment(
-                                    value: 'add',
-                                    icon: Icon(Icons.add_location_alt),
-                                    label: Text('Interactive'),
-                                  ),
-                                ],
-                                selected: {_currentInteractionMode},
-                                onSelectionChanged:
-                                    (Set<String> newSelection) async {
-                                  if (_selectedModel != null) {
-                                    final mode = newSelection.first;
-                                    setState(() {
-                                      _modelInteractionModes[_selectedModel!] =
-                                          mode;
-                                    });
-                                    try {
-                                      debugPrint(
-                                          "Setting interaction mode to: $mode");
-                                      await _webViewController
-                                          ?.evaluateJavascript(source: '''
-                                          console.log("Dart Button: Setting mode to $mode");
-                                          if(window.setInteractionMode) {
-                                            window.setInteractionMode("$mode");
-                                          } else {
-                                            console.error("Button Click: function not found");
-                                          }
-                                              ''');
-                                    } catch (e) {
-                                      debugPrint(
-                                          "Error setting interaction mode: $e");
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "Failed to switch mode: $e"),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  }
-                                },
-                                style: ButtonStyle(
-                                  visualDensity: VisualDensity.compact,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                              ),
                             ],
                           ),
-                          // Change Model Button (Replaces Dropdown)
-                          Row(
-                            children: [
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.grid_view),
-                                label: const Text('Change Model'),
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedModel = null;
-                                    _selectedMarkerId = null;
-                                  });
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              // Quick Landmark Button
-                              if (!widget.isReadOnly)
+
+                          // Other controls (Only for Edit Mode)
+                          if (!widget.isReadOnly)
+                            Row(
+                              children: [
+                                // Mode Toggle
+                                SegmentedButton<String>(
+                                  segments: const [
+                                    ButtonSegment(
+                                      value: 'select',
+                                      icon: Icon(Icons.touch_app),
+                                      label: Text('Selection'),
+                                    ),
+                                    ButtonSegment(
+                                      value: 'add',
+                                      icon: Icon(Icons.add_location_alt),
+                                      label: Text('Interactive'),
+                                    ),
+                                  ],
+                                  selected: {_currentInteractionMode},
+                                  onSelectionChanged:
+                                      (Set<String> newSelection) async {
+                                    if (_selectedModel != null) {
+                                      final mode = newSelection.first;
+                                      setState(() {
+                                        _modelInteractionModes[
+                                            _selectedModel!] = mode;
+                                      });
+                                      try {
+                                        debugPrint(
+                                            "Setting interaction mode to: $mode");
+                                        await _webViewController
+                                            ?.evaluateJavascript(source: '''
+                                            console.log("Dart Button: Setting mode to $mode");
+                                            if(window.setInteractionMode) {
+                                              window.setInteractionMode("$mode");
+                                            } else {
+                                              console.error("Button Click: function not found");
+                                            }
+                                                ''');
+                                      } catch (e) {
+                                        debugPrint(
+                                            "Error setting interaction mode: $e");
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  "Failed to switch mode: $e"),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                                  style: ButtonStyle(
+                                    visualDensity: VisualDensity.compact,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ),
+                                const SizedBox(width: 16), // Added space
+                                // Change Model Button (Replaces Dropdown)
+                                OutlinedButton.icon(
+                                  icon: const Icon(Icons.grid_view),
+                                  label: const Text('Change Model'),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedModel = null;
+                                      _selectedMarkerId = null;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                // Quick Landmark Button
                                 PopupMenuButton<String>(
                                   icon: const Icon(Icons.bookmark_add_outlined),
                                   tooltip: 'Add Quick Landmark',
@@ -459,8 +544,8 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                                     }).toList();
                                   },
                                 ),
-                            ],
-                          ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -470,7 +555,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                           InAppWebView(
                             initialUrlRequest: URLRequest(
                               url: WebUri(
-                                  'http://localhost:3000/body_chart_v2.html?model=$_selectedModel&v=${DateTime.now().millisecondsSinceEpoch}'),
+                                  'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/3d/${_mapModelKey(_selectedModel)}'),
                             ),
                             initialSettings: InAppWebViewSettings(
                               isInspectable: true,
@@ -897,10 +982,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
     // Update in JS
     _webViewController?.callAsyncJavaScript(
-      functionBody: '''
-        const marker = scene.getObjectByProperty('userData', {id: '$markerId'});
-        if (marker) marker.scale.setScalar($newScale);
-      ''',
+      functionBody: 'window.setMarkerScale("$markerId", $newScale)',
     );
   }
 
@@ -914,12 +996,8 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
     // Update in JS
     _webViewController?.callAsyncJavaScript(
-      functionBody: '''
-        const marker = scene.getObjectByProperty('userData', {id: '$markerId'});
-        if (marker) {
-          marker.position.set($newX, $newY, $newZ);
-        }
-      ''',
+      functionBody:
+          'window.setMarkerPosition("$markerId", $newX, $newY, $newZ)',
     );
   }
 
@@ -962,7 +1040,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
           try {
             controller.callAsyncJavaScript(
                 functionBody:
-                    "window.addMarker(${newMarker.x}, ${newMarker.y}, ${newMarker.z}, '${newMarker.color}', '${newMarker.id}', ${newMarker.scale}); transformControl.attach(scene.getObjectByProperty('userData', {id: '${newMarker.id}'}));");
+                    "window.addMarker(${newMarker.x}, ${newMarker.y}, ${newMarker.z}, '${newMarker.color}', '${newMarker.id}', ${newMarker.scale}); window.setSelectedMarker('${newMarker.id}');");
           } catch (e) {
             debugPrint('Error adding marker to JS (likely disposed): $e');
           }

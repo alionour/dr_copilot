@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Body Chart</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
+            font-size: 1.2rem;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 20px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            background: #e0e0e0;
+            font-weight: bold;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        button.active {
+            background: #2196F3;
+            color: white;
+        }
+
+        button:hover:not(.active) {
+            background: #d0d0d0;
+        }
+    </style>
+    <!-- Import Map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="loading">Loading 3D Model...</div>
+    <div id="canvas-container"></div>
+    <div class="controls" id="model-controls">
+        <!-- Buttons will be generated via JS -->
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { TransformControls } from 'three/addons/controls/TransformControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // Enable Three.js file caching
+        THREE.Cache.enabled = true;
+
+        // Configuration
+        const S3_BASE_URL = 'https://dr-copilot-3d-models.s3.us-east-1.amazonaws.com/models/';
+        // markerScale: Adjusts the default marker size relative to the model features
+        // backgroundColor: Scene background color for this model (hex)
+        const models = {
+
+            'body': {
+                name: 'Full Body', file: 'human_body.glb', scale: 0.7, y: -0.8,
+                cameraPosition: { x: 0, y: 0.6, z: 4.5 },
+                targetPosition: { x: 0, y: 0.6, z: 0 },
+                markerScale: 2.3,
+                backgroundColor: 0xd3d3d3
+            },
+            'muscles': {
+                name: 'Muscles', file: 'human_muscles.glb', scale: 0.7, y: -0.8,
+                cameraPosition: { x: 0, y: 6.60, z: 66 },
+                targetPosition: { x: 0, y: -6.60, z: 0 },
+                markerScale: 25,
+                backgroundColor: 0xd3d3d3
+            },
+            'skeleton': {
+                name: 'Skeleton', file: 'human_skeleton.glb', scale: 0.7, y: -0.8,
+                cameraPosition: { x: 0, y: 0, z: 700 },
+                targetPosition: { x: 0, y: 0, z: 0 },
+                markerScale: 100.0,
+                backgroundColor: 0xd3d3d3
+            },
+            'head': {
+                name: 'Head & Neck', file: 'human_head.glb', scale: 1.2, y: -0.2,
+                cameraPosition: { x: 219, y: 56, z: 28 },
+                targetPosition: { x: 0, y: 0, z: 0 },
+                markerScale: 20.0,
+                backgroundColor: 0xd3d3d3
+            },
+            'teeth_types': {
+                name: 'Teeth Types', file: 'types_of_human_teeth.glb', scale: 3.0, y: 0,
+                cameraPosition: { x: 0, y: 90, z: 525 },
+                targetPosition: { x: 0, y: 90, z: 0 },
+                markerScale: 100.0,
+                backgroundColor: 0xd3d3d3 
+            },
+            'upper_teeth': {
+                name: 'Upper Teeth', file: 'upper_teeth.glb', scale: 3.0, y: 0,
+                cameraPosition: { x: 0, y: -3.80, z: 5 },
+                targetPosition: { x: 0, y: -3.80, z: 0 },
+                markerScale: 12.0,
+                backgroundColor: 0xd3d3d3,
+                rotation: { x: 0, y: 0, z: 0 }
+            },
+            'lower_teeth': {
+                name: 'Lower Teeth', file: 'upper_teeth.glb', scale: 3.0, y: 0,
+                cameraPosition: { x: 0, y: 3.60, z: 5.5 },
+                targetPosition: { x: 0, y: 3.6, z: 0 },
+                markerScale: 12.0,
+                backgroundColor: 0xd3d3d3,
+                rotation: { x: Math.PI, y: 0, z: 0 }
+            },
+            'teeth': {
+                name: 'Teeth', file: 'human_teeth.glb', scale: 3.0, y: 0,
+                cameraPosition: { x: -0.36, y: 54.43, z: 48.49 },
+                targetPosition: { x: 0, y: 55.20, z: 0 },
+                markerScale: 20.0,
+                backgroundColor: 0xd3d3d3
+            }
+        };
+
+        // State
+        let currentModel = null;
+        let currentModelKey = 'body'; // Track active model
+        let scene, camera, renderer, controls, loader, transformControl;
+        let interactionMode = 'select'; // 'select' or 'add'
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const markersGroup = new THREE.Group(); // Moved up for scope visibility
+
+        // Init
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            scene.add(markersGroup);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 5);
+            scene.add(camera); // Required to attach lights to camera
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Lighting - Balanced illumination
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // Reduced from 4.0
+            scene.add(ambientLight);
+
+            // Camera-attached light (Headlamp) - Key Light
+            const camLight = new THREE.DirectionalLight(0xffffff, 1); // Reduced from 2.5
+            camLight.position.set(2, 2, 5);
+            camera.add(camLight);
+
+            // Camera-attached light (Fill) - Fill Light
+            const fillLight = new THREE.DirectionalLight(0xffffff, 1.0); // Reduced from 1.5
+            fillLight.position.set(-2, -2, 5);
+            camera.add(fillLight);
+
+            // Camera-attached PointLight for omnidirectional lighting
+            const pointLight = new THREE.PointLight(0xffffff, 1.0, 0); // Reduced from 2.0
+            camera.add(pointLight);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            loader = new GLTFLoader();
+
+            // Transform Controls (Existing logic)
+            transformControl = new TransformControls(camera, renderer.domElement);
+            transformControl.addEventListener('dragging-changed', function (event) { controls.enabled = !event.value; });
+            transformControl.addEventListener('objectChange', function () {
+                if (transformControl.object && window.flutter_inappwebview) {
+                    const obj = transformControl.object;
+                    window.flutter_inappwebview.callHandler('onMarkerTransformed', {
+                        id: obj.userData.id, x: obj.position.x, y: obj.position.y, z: obj.position.z, scale: obj.scale.x
+                    });
+                }
+            });
+            scene.add(transformControl);
+
+            // --- CAMERA CONTROLS UI ---
+            // Create container
+            const camCtrls = document.createElement('div');
+            camCtrls.id = 'controls';
+            camCtrls.innerHTML = `
+            <div class="control-row">
+                <div class="d-pad">
+                    <button class="up" onmousedown="startMove(0, 0, -1)" onmouseup="stopMove()" onmouseleave="stopMove()" ontouchstart="startMove(0, 0, -1)" ontouchend="stopMove()">▲</button>
+                    <button class="left" onmousedown="startMove(-1, 0, 0)" onmouseup="stopMove()" onmouseleave="stopMove()" ontouchstart="startMove(-1, 0, 0)" ontouchend="stopMove()">◀</button>
+                    <button class="right" onmousedown="startMove(1, 0, 0)" onmouseup="stopMove()" onmouseleave="stopMove()" ontouchstart="startMove(1, 0, 0)" ontouchend="stopMove()">▶</button>
+                    <button class="down" onmousedown="startMove(0, 0, 1)" onmouseup="stopMove()" onmouseleave="stopMove()" ontouchstart="startMove(0, 0, 1)" ontouchend="stopMove()">▼</button>
+                </div>
+                <div class="zoom-controls">
+                    <button onmousedown="startMove(0, 1, 0)" onmouseup="stopMove()" onmouseleave="stopMove()" ontouchstart="startMove(0, 1, 0)" ontouchend="stopMove()">+</button>
+                    <button onmousedown="startMove(0, -1, 0)" onmouseup="stopMove()" onmouseleave="stopMove()" ontouchstart="startMove(0, -1, 0)" ontouchend="stopMove()">-</button>
+                    <button onclick="resetCamera()" class="reset-btn">⟳</button>
+                </div>
+            </div>
+            <!-- Marker Scale Controls -->
+            <div class="control-row" style="margin-top: 5px; justify-content: center; gap: 5px;">
+                <span style="font-size: 12px; color: #666;">Marker:</span>
+                <button onclick="adjustMarkerScale(0.1)" style="width: 30px; height: 30px;">M+</button>
+                <button onclick="adjustMarkerScale(-0.1)" style="width: 30px; height: 30px;">M-</button>
+            </div>
+        `;
+            document.body.appendChild(camCtrls);
+
+            // Styles for controls
+            const style = document.createElement('style');
+            style.textContent = `
+                #controls {
+                    position: absolute;
+                    bottom: 20px;
+                    right: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 10px;
+                    background: rgba(255,255,255,0.8);
+                    padding: 10px;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                }
+                .d-pad { display: flex; flex-direction: column; align-items: center; }
+                .d-pad-row { display: flex; gap: 5px; }
+                .d-pad button, .zoom-btns button {
+                    width: 30px; height: 30px;
+                    border: 1px solid #ccc; border-radius: 5px;
+                    background: white; cursor: pointer;
+                    font-size: 14px; display: flex; justify-content: center; align-items: center;
+                }
+                .d-pad button:hover, .zoom-btns button:hover { background: #eee; }
+                .zoom-btns { display: flex; gap: 5px; }
+            `;
+            document.head.appendChild(style);
+
+            // Logic (Controls)
+            const PAN_SPEED = 0.2;
+            window.moveInterval = null;
+
+            window.startMove = function(dx, dy, dz) {
+                if (window.moveInterval) clearInterval(window.moveInterval);
+                const action = () => {
+                    // Dynamic speed based on distance (Zoom level)
+                    // At Z=4.5 (Body), speed ~0.2. At Z=700 (Skeleton), speed ~20.
+                    // Heuristic: Distance / 20 ensures reasonable speed
+                    const distance = camera.position.distanceTo(controls.target);
+                    const speed = Math.max(0.1, distance / 20);
+
+                    // dx: Pan X
+                    if (dx !== 0) {
+                        controls.target.x += dx * speed;
+                        camera.position.x += dx * speed;
+                    }
+                    // dz: Pan Y (screen up/down)
+                    if (dz !== 0) {
+                        controls.target.y -= dz * speed; 
+                        camera.position.y -= dz * speed;
+                    }
+                    // dy: Zoom 
+                    if (dy !== 0) {
+                         camera.translateZ(-dy * speed);
+                    }
+                };
+                action();
+                window.moveInterval = setInterval(action, 50);
+            };
+
+            window.stopMove = function() {
+                if (window.moveInterval) clearInterval(window.moveInterval);
+            };
+
+            window.resetCamera = function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const modelKey = urlParams.get('model') || 'body';
+                const config = models[modelKey];
+
+                if (config) {
+                    controls.reset();
+                    if (config.cameraPosition) camera.position.set(config.cameraPosition.x, config.cameraPosition.y, config.cameraPosition.z);
+                    if (config.targetPosition) controls.target.set(config.targetPosition.x, config.targetPosition.y, config.targetPosition.z);
+                    controls.update();
+                }
+            };;
+
+            // Existing UI/Logic
+            const controlsDiv = document.getElementById('model-controls');
+            Object.keys(models).forEach((key, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = models[key].name;
+                btn.onclick = () => loadModel(key);
+                if (index === 0) btn.classList.add('active'); // Default active styling
+                btn.dataset.model = key;
+                controlsDiv.appendChild(btn);
+            });
+
+            // ... (Rest of existing init logic, URL params, etc.)
+            const urlParams = new URLSearchParams(window.location.search);
+            const requestedModel = urlParams.get('model');
+            const showControls = urlParams.get('controls') !== 'false';
+
+            if (!showControls) {
+                const controlsEl = document.getElementById('model-controls');
+                if (controlsEl) controlsEl.style.display = 'none';
+            }
+
+            if (models[requestedModel]) {
+                loadModel(requestedModel);
+            } else {
+                loadModel('body');
+            }
+
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        function loadModel(key) {
+            currentModelKey = key; // Update active key
+            const config = models[key];
+            if (!config) return;
+
+            // Update Background Color if specified
+            if (config.backgroundColor !== undefined) {
+                scene.background = new THREE.Color(config.backgroundColor);
+            } else {
+                scene.background = new THREE.Color(0xf0f0f0); // Default light gray
+            }
+
+            // Update Camera if specified
+            if (config.cameraPosition) {
+                camera.position.set(config.cameraPosition.x, config.cameraPosition.y, config.cameraPosition.z);
+            } else {
+                camera.position.set(0, 0, 5);
+            }
+
+            if (config.targetPosition) {
+                controls.target.set(config.targetPosition.x, config.targetPosition.y, config.targetPosition.z);
+            } else {
+                controls.target.set(0, 0, 0);
+            }
+            controls.update();
+
+            // UI Update
+            document.querySelectorAll('button').forEach(b => {
+                b.classList.toggle('active', b.dataset.model === key);
+            });
+
+            // Show loading
+            const loading = document.getElementById('loading');
+            loading.style.opacity = '1';
+            loading.innerText = `Loading ${config.name}...`;
+
+            // Clear previous model
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.geometry.dispose();
+                        if (child.material.map) child.material.map.dispose();
+                        child.material.dispose();
+                    }
+                });
+                currentModel = null;
+            }
+
+            // Load new model
+            const url = S3_BASE_URL + config.file;
+            loader.load(
+                url,
+                (gltf) => {
+                    currentModel = gltf.scene;
+
+                    // Debug: Log materials
+                    console.log(`Loading ${config.name}:`, {
+                        animations: gltf.animations?.length || 0,
+                        materials: gltf.scene.children.length
+                    });
+
+                    // Traverse and ensure materials are properly configured
+                    currentModel.traverse((child) => {
+                        if (child.isMesh) {
+                            console.log('Mesh found:', child.name, {
+                                hasMaterial: !!child.material,
+                                materialType: child.material?.type,
+                                hasMap: !!child.material?.map,
+                                hasColor: !!child.material?.color
+                            });
+
+                            // Force material properties for visibility
+                            if (child.material) {
+                                // Ensure textures use correct color space
+                                if (child.material.map) {
+                                    child.material.map.colorSpace = THREE.SRGBColorSpace;
+                                    child.material.map.needsUpdate = true;
+                                }
+
+                                // Ensure material renders
+                                child.material.needsUpdate = true;
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                            }
+                        }
+                    });
+
+                    // Reset position/scale
+                    currentModel.position.set(0, config.y, 0);
+                    currentModel.scale.set(config.scale, config.scale, config.scale);
+
+                    // Apply rotation if specified
+                    if (config.rotation) {
+                        currentModel.rotation.x = config.rotation.x || 0;
+                        currentModel.rotation.y = config.rotation.y || 0;
+                        currentModel.rotation.z = config.rotation.z || 0;
+                    }
+
+                    // Auto-center (optional refinement)
+                    const box = new THREE.Box3().setFromObject(currentModel);
+                    const center = box.getCenter(new THREE.Vector3());
+                    currentModel.position.x += (currentModel.position.x - center.x);
+                    currentModel.position.z += (currentModel.position.z - center.z);
+
+                    scene.add(currentModel);
+
+                    loading.style.opacity = '0';
+                    console.log(`Loaded ${config.name}`);
+                },
+                (xhr) => {
+                    const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    if (xhr.total > 0) loading.innerText = `Loading ${config.name} ${percent}%`;
+                },
+                (error) => {
+                    console.error('An error happened', error);
+                    loading.innerText = 'Error loading model';
+                }
+            );
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Debug Overlay
+        const debugDiv = document.createElement('div');
+        debugDiv.style.cssText = 'position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.5);color:#0f0;padding:5px;pointer-events:none;white-space:pre;font-family:monospace;z-index:9999';
+        document.body.appendChild(debugDiv);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+
+            // Update Debug
+            if (camera && controls) {
+                const currentConfig = models[currentModelKey];
+                const scale = currentConfig ? currentConfig.markerScale : 'N/A';
+                debugDiv.innerText = `Cam: ${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}\nTgt: ${controls.target.x.toFixed(2)}, ${controls.target.y.toFixed(2)}, ${controls.target.z.toFixed(2)}\nMarker Scale: ${scale}`;
+            }
+        }
+
+        // Initialize
+        init();
+
+        // --- Global API for Flutter ---
+
+        window.setInteractionMode = function (mode) {
+            console.log('Mode set to:', mode);
+            interactionMode = mode;
+            if (mode === 'add') {
+                transformControl.detach(); // Stop editing when switching to add
+            }
+        };
+
+        window.setSelectedMarker = function (id) {
+            if (!id) {
+                transformControl.detach();
+                return;
+            }
+            const marker = markersGroup.children.find(c => c.userData.id === id);
+            if (marker) {
+                transformControl.attach(marker);
+            } else {
+                transformControl.detach();
+            }
+        };
+
+        window.addMarker = function (x, y, z, color, id, scale) {
+            // Apply Model-Specific Marker Scaling
+            let baseScale = 1.0;
+            if (models[currentModelKey] && models[currentModelKey].markerScale) {
+                baseScale = models[currentModelKey].markerScale;
+            }
+            // Use the scale passed from Flutter (usually 1.0) multiplied by our config
+            const finalScale = (scale || 1.0) * baseScale;
+
+            const geometry = new THREE.SphereGeometry(0.05, 32, 32);
+            // Make markers emissive on dark backgrounds for visibility
+            const emissiveColor = (currentModelKey === 'skeleton') ? 0x440000 : 0x000000;
+            const material = new THREE.MeshStandardMaterial({
+                color: color || 0xff0000,
+                emissive: emissiveColor,
+                roughness: 0.5,
+                metalness: 0.5
+            });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(x, y, z);
+            sphere.scale.setScalar(finalScale);
+
+            sphere.userData = { id: id, label: 'Marker', scale: scale || 1.0 };
+            markersGroup.add(sphere);
+            return sphere;
+        };
+
+        window.updateTooltip = function (type, label, notes, date) {
+            // Optional: Implement HTML overlay tooltip logic here
+            console.log("Tooltip update:", label);
+        };
+
+        window.setMarkerScale = function (id, scale) {
+            const marker = markersGroup.children.find(c => c.userData.id === id);
+            if (marker) {
+                marker.scale.setScalar(scale);
+                // If selected, transform controls will auto-update because they listen to the object
+            }
+        };
+
+        window.setMarkerPosition = function (id, x, y, z) {
+            const marker = markersGroup.children.find(c => c.userData.id === id);
+            if (marker) {
+                marker.position.set(x, y, z);
+            }
+        };
+
+        window.adjustMarkerScale = function(delta) {
+             if (models[currentModelKey]) {
+                let currentScale = models[currentModelKey].markerScale || 1.0;
+                let newScale = parseFloat((currentScale + delta).toFixed(2));
+                if (newScale < 0.1) newScale = 0.1;
+                
+                models[currentModelKey].markerScale = newScale;
+                console.log(`Updated Marker Scale for ${currentModelKey}: ${newScale}`);
+                
+                // Update existing markers immediately
+                const baseScale = newScale;
+                markersGroup.children.forEach(marker => {
+                    // Assuming individual marker scale is 1.0, or we preserve it.
+                    // Ideally we'd know the original 'scale' param passed to addMarker.
+                    // For simply visualizing size, setting all to new baseScale is fine for debugging.
+                    const individualScale = marker.userData.scale || 1.0;
+                    marker.scale.setScalar(individualScale * baseScale);
+                });
+            }
+        };
+
+        window.updateMarkers = function (markers) {
+            console.log('Received markers:', markers);
+
+            // Clear existing but preserve manually transformed ones if we were better at syncing
+            // For now, full rebuild is safest for sync
+            transformControl.detach();
+            while (markersGroup.children.length > 0) {
+                const child = markersGroup.children[0];
+                child.geometry.dispose();
+                child.material.dispose();
+                markersGroup.remove(child);
+            }
+
+            // Add new markers
+            markers.forEach(m => {
+                window.addMarker(m.x, m.y, m.z, m.color, m.id, m.scale);
+            });
+        };
+
+        // Click Handler for interactivity
+        window.addEventListener('click', (event) => {
+            // Ignore if clicking on UI controls
+            if (event.target.closest('#model-controls') || event.target.closest('button')) return;
+
+            // Calculate mouse position
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            // 1. Check Marker Intersection first (Higher priority)
+            const markerIntersects = raycaster.intersectObjects(markersGroup.children);
+            if (markerIntersects.length > 0) {
+                const object = markerIntersects[0].object;
+                const markerId = object.userData.id;
+                console.log('Clicked marker:', markerId);
+
+                if (window.flutter_inappwebview) {
+                    window.flutter_inappwebview.callHandler('onMarkerSelected', { id: markerId });
+                }
+                transformControl.attach(object);
+                return;
+            }
+
+            // 2. Check Body Intersection
+            if (currentModel) {
+                const bodyIntersects = raycaster.intersectObject(currentModel, true); // Recursive for child meshes
+                if (bodyIntersects.length > 0) {
+                    const point = bodyIntersects[0].point;
+
+                    if (interactionMode === 'add') {
+                        console.log('Body Add Click:', point);
+                        if (window.flutter_inappwebview) {
+                            window.flutter_inappwebview.callHandler('onBodyClick', {
+                                x: point.x,
+                                y: point.y,
+                                z: point.z
+                            });
+                        }
+                    } else {
+                        // Select mode: Clicking body (empty space) means deselect
+                        console.log('Body Select Click (Deselect)');
+                        transformControl.detach();
+                        if (window.flutter_inappwebview) {
+                            window.flutter_inappwebview.callHandler('onMarkerDeselected');
+                        }
+                    }
+                    return;
+                }
+            }
+
+            // 3. Background Click
+            transformControl.detach();
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('onMarkerDeselected');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Dr Copilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #60a5fa);
+        }
+
+        .version-tag {
+            display: inline-block;
+            background-color: rgba(37, 99, 235, 0.1);
+            color: #60a5fa;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 1.125rem;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            cursor: pointer;
+            border: none;
+            gap: 0.75rem;
+        }
+
+        .download-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        .download-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .other-platforms {
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .platform-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .platform-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: var(--border);
+        }
+
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #release-notes {
+            text-align: left;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #release-notes h1,
+        #release-notes h2,
+        #release-notes h3 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #release-notes ul {
+            padding-left: 1.5rem;
+        }
+
+        .detecting-text {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Dr Copilot</h1>
+        <p class="subtitle">The AI Assistant for Healthcare Professionals</p>
+
+        <div class="card">
+            <div id="loading-state">
+                <div class="loader"></div>
+                <p class="detecting-text">Fetching latest version...</p>
+            </div>
+
+            <div id="download-content" class="hidden">
+                <div class="version-tag" id="version-tag">v0.0.0</div>
+                <h2 style="margin-bottom: 1.5rem; font-weight: 500;">Download for <span id="platform-name"
+                        style="color: var(--primary);">Your Device</span></h2>
+
+                <a href="#" id="primary-download-btn" class="download-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Download Now
+                </a>
+
+                <div id="release-notes"></div>
+            </div>
+
+            <div id="error-state" class="hidden">
+                <p style="color: #ef4444;">Unable to fetch release info.</p>
+                <a href="https://github.com/alionour33/dr_copilot/releases" target="_blank"
+                    style="color: var(--primary); margin-top: 0.5rem; display: inline-block;">View on GitHub</a>
+            </div>
+        </div>
+
+        <div class="other-platforms hidden" id="other-platforms">
+            <a href="#" id="windows-link" class="platform-link hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
+                </svg>
+                Windows
+            </a>
+            <a href="#" id="linux-link" class="platform-link hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12.031 0C5.396 0 0 5.373 0 12c0 5.302 3.438 9.8 8.205 11.385.602.111.82-.261.82-.58 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.419-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.921.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.298 24 12c0-6.627-5.373-12-12.031-12z" />
+                </svg>
+                Linux (AppImage)
+            </a>
+            <a href="#" id="android-link" class="platform-link hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.0745 13.8533 7.5317 12 7.5317s-3.5902.5428-5.1362 1.418L4.8416 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396" />
+                </svg>
+                Android (APK)
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const REPO_OWNER = 'alionour33';
+        const REPO_NAME = 'dr_copilot';
+        const API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
+
+        async function fetchLatestRelease() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Failed to fetch release');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('error-state').classList.remove('hidden');
+                return null;
+            }
+        }
+
+        function getPlatform() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (userAgent.includes('android')) return 'android';
+            if (userAgent.includes('win')) return 'windows';
+            if (userAgent.includes('linux')) return 'linux';
+            return 'unknown';
+        }
+
+        function findAsset(assets, platform) {
+            if (platform === 'windows') return assets.find(a => a.name.endsWith('.zip'));
+            if (platform === 'linux') return assets.find(a => a.name.endsWith('.AppImage'));
+            if (platform === 'android') return assets.find(a => a.name.includes('arm64-v8a') && a.name.endsWith('.apk')) || assets.find(a => a.name.endsWith('.apk'));
+            return null;
+        }
+
+        function setupLinks(release) {
+            const platform = getPlatform();
+            const assets = release.assets;
+
+            const platformNames = {
+                'windows': 'Windows',
+                'linux': 'Linux',
+                'android': 'Android',
+                'unknown': 'your device'
+            };
+
+            // Update UI
+            document.getElementById('version-tag').textContent = release.tag_name;
+            document.getElementById('platform-name').textContent = platformNames[platform];
+            document.getElementById('release-notes').innerHTML = marked.parse(release.body || 'No release notes available.');
+
+            // Setup primary button
+            const primaryAsset = findAsset(assets, platform);
+            const primaryBtn = document.getElementById('primary-download-btn');
+
+            if (primaryAsset) {
+                primaryBtn.href = primaryAsset.browser_download_url;
+            } else {
+                primaryBtn.textContent = 'View All Downloads';
+                primaryBtn.href = release.html_url;
+            }
+
+            // Setup other links
+            const winAsset = findAsset(assets, 'windows');
+            const linuxAsset = findAsset(assets, 'linux');
+            const androidAsset = findAsset(assets, 'android');
+
+            if (winAsset) {
+                const link = document.getElementById('windows-link');
+                link.href = winAsset.browser_download_url;
+                link.classList.remove('hidden');
+            }
+            if (linuxAsset) {
+                const link = document.getElementById('linux-link');
+                link.href = linuxAsset.browser_download_url;
+                link.classList.remove('hidden');
+            }
+            if (androidAsset) {
+                const link = document.getElementById('android-link');
+                link.href = androidAsset.browser_download_url;
+                link.classList.remove('hidden');
+            }
+
+            document.getElementById('other-platforms').classList.remove('hidden');
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('download-content').classList.remove('hidden');
+        }
+
+        // Init
+        fetchLatestRelease().then(release => {
+            if (release) setupLinks(release);
+        });
+    </script>
+</body>
+
+</html>

@@ -50,7 +50,8 @@ package:
     - '!package-lock.json'
     - '!.env*'
     - '!*.md'
-    - 'public/**' # Include public folder with HTML files
+    - 'public/**' # Include public files first
+    - '!public/models/**' # Then exclude models (must be after include)
 
 # Esbuild configuration
 custom:
