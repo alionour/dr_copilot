@@ -163,45 +163,54 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
               if (_loadingMembers)
                 const LinearProgressIndicator()
               else
-                DropdownButtonFormField<String>(
-                  value: _assignedToUserId,
+                InputDecorator(
                   decoration: InputDecoration(
                     labelText: 'assignTo'.tr(),
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.person),
                   ),
-                  hint: Text('selectTeamMember'.tr()),
-                  items: [
-                    DropdownMenuItem<String>(
-                      value: null,
-                      child: Text('unassigned'.tr()),
-                    ),
-                    ..._teamMembers.map((member) {
-                      return DropdownMenuItem<String>(
-                        value: member['id'],
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 12,
-                              child: Text(member['name']![0].toUpperCase()),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                '${member['name']} (${member['role']})',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _assignedToUserId,
+                      isExpanded: true,
+                      hint: Text('selectTeamMember'.tr()),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('unassigned'.tr()),
                         ),
-                      );
-                    }).toList(),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _assignedToUserId = value;
-                    });
-                  },
+                        ..._teamMembers.map((member) {
+                          return DropdownMenuItem<String?>(
+                            value: member['id'],
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 12,
+                                  child: Text(
+                                    member['name']!.isNotEmpty
+                                        ? member['name']![0].toUpperCase()
+                                        : '?',
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '${member['name']} (${member['role']})',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _assignedToUserId = value;
+                        });
+                      },
+                    ),
+                  ),
                 ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
