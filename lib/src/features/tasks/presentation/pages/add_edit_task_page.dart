@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/app/notifiers/owner_notifier.dart';
 import '../../domain/models/task_model.dart';
@@ -22,6 +23,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   late TextEditingController _descriptionController;
   late String _priority;
   DateTime? _dueDate;
+  String? _assignedToUserId;
+  List<Map<String, String>> _teamMembers = [];
+  bool _loadingMembers = true;
 
   @override
   void initState() {
@@ -31,6 +35,47 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         TextEditingController(text: widget.task?.description ?? '');
     _priority = widget.task?.priority ?? 'medium';
     _dueDate = widget.task?.dueDate;
+    _assignedToUserId = widget.task?.assignedToUserId;
+    _loadTeamMembers();
+  }
+
+  Future<void> _loadTeamMembers() async {
+    final ownerNotifier = context.read<OwnerNotifier>();
+    final clinicId = ownerNotifier.clinicId;
+
+    if (clinicId == null) {
+      setState(() => _loadingMembers = false);
+      return;
+    }
+
+    try {
+      final membersSnapshot = await FirebaseFirestore.instance
+          .collection('clinics')
+          .doc(clinicId)
+          .collection('members')
+          .get();
+
+      final members = <Map<String, String>>[];
+
+      for (var doc in membersSnapshot.docs) {
+        final data = doc.data();
+        members.add({
+          'id': doc.id,
+          'name': data['displayName'] as String? ??
+              data['email'] as String? ??
+              'Unknown',
+          'role': data['role'] as String? ?? 'staff',
+        });
+      }
+
+      setState(() {
+        _teamMembers = members;
+        _loadingMembers = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading team members: $e');
+      setState(() => _loadingMembers = false);
+    }
   }
 
   @override
@@ -55,7 +100,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         clinicId: clinicId,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        assignedToUserId: userId, // assigning to self by default for now
+        assignedToUserId:
+            _assignedToUserId ?? userId, // Use selected user or self
         assignedByUserId: userId,
         status: widget.task?.status ?? 'pending',
         priority: _priority,
@@ -112,6 +158,51 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 ),
                 maxLines: 3,
               ),
+              const SizedBox(height: 16),
+              // Team Member Assignment Dropdown
+              if (_loadingMembers)
+                const LinearProgressIndicator()
+              else
+                DropdownButtonFormField<String>(
+                  value: _assignedToUserId,
+                  decoration: InputDecoration(
+                    labelText: 'assignTo'.tr(),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.person),
+                  ),
+                  hint: Text('selectTeamMember'.tr()),
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('unassigned'.tr()),
+                    ),
+                    ..._teamMembers.map((member) {
+                      return DropdownMenuItem<String>(
+                        value: member['id'],
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              child: Text(member['name']![0].toUpperCase()),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${member['name']} (${member['role']})',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _assignedToUserId = value;
+                    });
+                  },
+                ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _priority,
