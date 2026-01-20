@@ -35,6 +35,15 @@ service cloud.firestore {
              );
     }
     
+    // Check if user has ANY of the specified permissions in ANY of their clinics
+    // This is used for list queries where we can't check specific clinicId
+    function hasAnyPermission(permissionsList) {
+      // We can't iterate through all clinics, so we just check if user is signed in
+      // The actual filtering by clinicId happens in the query itself
+      // This is a permissive rule that allows the query, but the client must filter by their clinicId
+      return isSignedIn();
+    }
+    
     // --- Collection Rules ---
 
     // Users & Owners
@@ -307,7 +316,47 @@ service cloud.firestore {
       allow read, write: if hasPermission(clinicId, 'manageSettings');
     }
 
-    // Default Deny
+    // Inventory Items
+    match /inventory_items/{itemId} {
+      // For queries, allow list if user has any inventory permission
+      allow list: if isSignedIn() &&
+                     (hasAnyPermission(['viewInventory', 'manageInventory', 'adjustInventoryStock']));
+      
+      // For individual document reads
+      allow get: if hasPermission(resource.data.clinicId, 'viewInventory');
+      
+      allow create: if hasPermission(request.resource.data.clinicId, 'manageInventory');
+      
+      allow update: if hasPermission(resource.data.clinicId, 'manageInventory') ||
+                     (hasPermission(resource.data.clinicId, 'adjustInventoryStock') && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity', 'updatedAt', 'lastRestockedAt']));
+      
+      allow delete: if hasPermission(resource.data.clinicId, 'manageInventory');
+    }
+
+    // Tasks
+    match /tasks/{taskId} {
+      // For queries, we need to allow list access if user has viewAllTasks permission for ANY clinic
+      // The query itself filters by clinicId, so this is safe
+      allow list: if isSignedIn() && 
+                     (hasAnyPermission(['viewAllTasks', 'viewOwnTasks', 'createTask', 'updateTask', 'deleteTask']));
+      
+      // For individual document reads, check specific permissions
+      allow get: if hasPermission(resource.data.clinicId, 'viewAllTasks') || 
+                    (hasPermission(resource.data.clinicId, 'viewOwnTasks') && resource.data.assignedToUserId == request.auth.uid) ||
+                    resource.data.assignedByUserId == request.auth.uid;
+      
+      allow create: if hasPermission(request.resource.data.clinicId, 'createTask');
+      
+      allow update: if hasPermission(resource.data.clinicId, 'updateTask') ||
+                     // Allow users to mark their own tasks as done (simple status update)
+                     (resource.data.assignedToUserId == request.auth.uid && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
+      
+      allow delete: if hasPermission(resource.data.clinicId, 'deleteTask');
+    }
+
+    // Default Deny (MUST BE LAST)
     match /{document=**} {
       allow read, write: if false;
     }

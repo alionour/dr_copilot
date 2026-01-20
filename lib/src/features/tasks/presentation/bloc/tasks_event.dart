@@ -62,3 +62,12 @@ class MarkTaskAsDone extends TasksEvent {
   @override
   List<Object?> get props => [taskId];
 }
+
+class TasksStreamError extends TasksEvent {
+  final String message;
+
+  const TasksStreamError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

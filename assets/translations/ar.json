@@ -37,6 +37,7 @@
   "openInBrowser": "فتح في المتصفح",
   "scheduled": "مجدولة",
   "dueDate": "تاريخ الاستحقاق",
+  "setDueDate": "تعيين تاريخ الاستحقاق",
   "scheduledBills": "الفواتير المجدولة",
   "newSchedule": "جدولة جديدة",
   "schedule": "جدولة",

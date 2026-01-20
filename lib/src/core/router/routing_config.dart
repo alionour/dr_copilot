@@ -58,6 +58,10 @@ import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
 import 'package:dr_copilot/src/features/recycle_bin/presentation/pages/recycle_bin_page.dart';
 import 'package:dr_copilot/src/features/inventory/presentation/pages/inventory_page.dart';
+import 'package:dr_copilot/src/features/inventory/presentation/pages/add_edit_inventory_page.dart';
+import 'package:dr_copilot/src/features/inventory/domain/models/inventory_item_model.dart';
+import 'package:dr_copilot/src/features/tasks/domain/models/task_model.dart';
+import 'package:dr_copilot/src/features/tasks/presentation/pages/add_edit_task_page.dart';
 import 'package:dr_copilot/src/features/tasks/presentation/pages/tasks_dashboard_page.dart';
 import 'package:dr_copilot/src/features/tasks/presentation/bloc/tasks_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -206,11 +210,49 @@ class RoutingConfig {
                 child: const TasksDashboardPage(),
               );
             },
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_task',
+                builder: (context, state) {
+                  return BlocProvider(
+                    create: (context) => sl<TasksBloc>(),
+                    child: const AddEditTaskPage(),
+                  );
+                },
+              ),
+              GoRoute(
+                path: ':taskId/edit',
+                name: 'edit_task',
+                builder: (context, state) {
+                  final task = state.extra as TaskModel;
+                  return BlocProvider(
+                    create: (context) => sl<TasksBloc>(),
+                    child: AddEditTaskPage(task: task),
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/inventory',
             name: 'inventory',
             builder: (context, state) => const InventoryPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'add_inventory',
+                builder: (context, state) => const AddEditInventoryPage(),
+              ),
+              GoRoute(
+                path: ':itemId/edit',
+                name: 'edit_inventory',
+                builder: (context, state) {
+                  final item = state.extra as InventoryItemModel?;
+                  return AddEditInventoryPage(item: item);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/patients',

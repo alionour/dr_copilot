@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/app/notifiers/owner_notifier.dart';
 import '../../../../core/injections.dart';
 import '../bloc/tasks_bloc.dart';
-import '../widgets/add_edit_task_dialog.dart';
 import '../widgets/task_item_widget.dart';
 
 class TasksDashboardPage extends StatefulWidget {
@@ -33,8 +34,13 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
     final clinicId = ownerNotifier.clinicId ?? '';
     final userId = ownerNotifier.ownerId;
 
+    debugPrint(
+        '📋 TasksDashboard: Fetching tasks - clinicId: $clinicId, userId: $userId');
+
     if (clinicId.isNotEmpty) {
       _tasksBloc.add(StreamTasks(clinicId, userId: userId));
+    } else {
+      debugPrint('⚠️ TasksDashboard: Clinic ID is empty!');
     }
   }
 
@@ -86,13 +92,7 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => BlocProvider.value(
-                    value: _tasksBloc,
-                    child: const AddEditTaskDialog(),
-                  ),
-                );
+                context.pushNamed('add_task');
               },
             ),
           ],
@@ -101,7 +101,24 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
           listener: (context, state) {
             if (state is TasksError) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
+                SnackBar(
+                  content: Text('Error: ${state.message}'),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 10),
+                  action: SnackBarAction(
+                    label: 'Copy',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: state.message));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Error copied to clipboard'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               );
             }
           },

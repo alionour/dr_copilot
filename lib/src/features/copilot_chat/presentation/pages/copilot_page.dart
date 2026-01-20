@@ -79,7 +79,7 @@ class _CopilotPageState extends State<CopilotPage> {
   final List<String> _availableModels = [];
 
   int _tokenUsage = 0;
-  int _tokenLimit = 0;
+  int _tokenLimit = SubscriptionTier.free.maxMonthlyTokens;
   SubscriptionTier _currentTier = SubscriptionTier.free;
   List<String> _userPermissions = [];
 

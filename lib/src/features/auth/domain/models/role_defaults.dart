@@ -37,6 +37,10 @@ class RoleDefaults {
           AppPermission.sendNotificationMessage,
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
+          AppPermission.viewAllTasks,
+          AppPermission.createTask,
+          AppPermission.updateTask,
+          AppPermission.deleteTask,
         ];
 
       case AppRole.staff:
@@ -50,6 +54,12 @@ class RoleDefaults {
           AppPermission.viewNotifications,
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
+          AppPermission.viewAllTasks,
+          AppPermission.createTask,
+          AppPermission.updateTask,
+          AppPermission.viewInventory,
+          AppPermission.manageInventory,
+          AppPermission.adjustInventoryStock,
         ];
 
       case AppRole.financial:

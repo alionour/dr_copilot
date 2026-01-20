@@ -948,6 +948,18 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows editing working hours and appointment duration/price.';
       case AppPermission.manageBookingAvailability:
         return 'Allows managing doctor booking availability.';
+
+      // Tasks
+      case AppPermission.viewAllTasks:
+        return 'Allows viewing all tasks.';
+      case AppPermission.viewOwnTasks:
+        return 'Allows viewing only your own tasks.';
+      case AppPermission.createTask:
+        return 'Allows creating new tasks.';
+      case AppPermission.updateTask:
+        return 'Allows editing tasks.';
+      case AppPermission.deleteTask:
+        return 'Allows deleting tasks.';
     }
   }
 }

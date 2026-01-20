@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -20,20 +21,36 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
     on<DeleteTask>(_onDeleteTask);
     on<MarkTaskAsDone>(_onMarkTaskAsDone);
     on<UpdateTasksList>(_onUpdateTasksList);
+    on<TasksStreamError>(_onTasksStreamError);
   }
 
   Future<void> _onStreamTasks(
     StreamTasks event,
     Emitter<TasksState> emit,
   ) async {
+    debugPrint(
+        '🔄 Tasks: Starting to stream tasks for clinic: ${event.clinicId}');
     emit(TasksLoading());
     await _tasksSubscription?.cancel();
-    _tasksSubscription = _useCase
-        .streamTasks(event.clinicId, userId: event.userId)
-        .listen((tasks) => add(UpdateTasksList(tasks)), onError: (error) {
-      // Handle stream errors if needed
-      // For now, simple logging or re-emitting error state via event
-    });
+    _tasksSubscription =
+        _useCase.streamTasks(event.clinicId, userId: event.userId).listen(
+      (tasks) {
+        debugPrint('✅ Tasks: Loaded ${tasks.length} tasks successfully');
+        add(UpdateTasksList(tasks));
+      },
+      onError: (error, stackTrace) {
+        debugPrint('❌ Tasks: Stream error occurred!');
+        debugPrint('Error details: $error');
+        debugPrint('Stack trace: $stackTrace');
+        // Add error event instead of calling emit directly
+        add(TasksStreamError(error.toString()));
+      },
+    );
+  }
+
+  void _onTasksStreamError(TasksStreamError event, Emitter<TasksState> emit) {
+    debugPrint('⚠️ Tasks: Emitting error state: ${event.message}');
+    emit(TasksError(event.message));
   }
 
   void _onUpdateTasksList(UpdateTasksList event, Emitter<TasksState> emit) {

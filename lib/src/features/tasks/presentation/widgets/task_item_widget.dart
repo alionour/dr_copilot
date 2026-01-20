@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../domain/models/task_model.dart';
 import '../bloc/tasks_bloc.dart';
 
@@ -81,7 +82,8 @@ class TaskItemWidget extends StatelessWidget {
           ),
         ),
         onTap: () {
-          // TODO: Open edit dialog or details
+          context.pushNamed('edit_task',
+              pathParameters: {'taskId': task.id}, extra: task);
         },
       ),
     );

@@ -238,4 +238,19 @@ enum AppPermission {
 
   /// Enable or disable booking availability for doctors.
   manageBookingAvailability,
+  // --- TASKS ---
+  /// View all tasks in the clinic
+  viewAllTasks,
+
+  /// View tasks assigned to the current user
+  viewOwnTasks,
+
+  /// Create a new task
+  createTask,
+
+  /// Edit an existing task
+  updateTask,
+
+  /// Delete a task
+  deleteTask,
 }

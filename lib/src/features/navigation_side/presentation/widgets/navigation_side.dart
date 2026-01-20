@@ -223,6 +223,7 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.chatGptProject: '/chatgpt_project',
     Destination.recycleBin: '/recycle_bin',
     Destination.tasks: '/tasks',
+    Destination.inventory: '/inventory',
   };
 
   @override

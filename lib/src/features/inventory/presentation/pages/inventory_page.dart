@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart' as easy;
+import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/inventory/domain/models/inventory_item_model.dart';
 import 'package:dr_copilot/src/features/inventory/presentation/bloc/inventory_bloc.dart';
-import 'package:dr_copilot/src/features/inventory/presentation/widgets/add_edit_inventory_dialog.dart';
 import 'package:dr_copilot/src/features/inventory/presentation/widgets/adjust_stock_dialog.dart';
 
 /// Main page for inventory management
@@ -31,7 +31,7 @@ class _InventoryPageState extends State<InventoryPage> {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'addItem'.tr(),
-            onPressed: () => _showAddEditDialog(context),
+            onPressed: () => context.pushNamed('add_inventory'),
           ),
         ],
       ),
@@ -240,23 +240,13 @@ class _InventoryPageState extends State<InventoryPage> {
         _showAdjustStockDialog(context, item);
         break;
       case 'edit':
-        _showAddEditDialog(context, item: item);
+        context.pushNamed('edit_inventory',
+            pathParameters: {'itemId': item.id!}, extra: item);
         break;
       case 'delete':
         _showDeleteConfirmation(context, item);
         break;
     }
-  }
-
-  Future<void> _showAddEditDialog(BuildContext context,
-      {InventoryItemModel? item}) async {
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => BlocProvider.value(
-        value: context.read<InventoryBloc>(),
-        child: AddEditInventoryDialog(item: item),
-      ),
-    );
   }
 
   Future<void> _showAdjustStockDialog(
