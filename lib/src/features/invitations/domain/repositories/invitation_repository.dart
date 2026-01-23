@@ -10,5 +10,6 @@ abstract class InvitationRepository {
       String clinicId);
   Future<Either<Failure, void>> deleteInvitation(String invitationId);
   Future<Either<Failure, void>> resendInvitation(String invitationId);
+  Future<Either<Failure, List<InvitationModel>>> getInvitationsForEmail(
+      String email);
 }
-

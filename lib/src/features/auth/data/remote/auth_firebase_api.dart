@@ -297,7 +297,7 @@ class AuthFirebaseApi {
   }
 
   /// Handles onboarding logic for multi-clinic support.
-  /// Checks if the user exists, processes invitations, or creates a new clinic as needed.
+  /// Checks if the user exists, sets up context, pauses manual onboarding if new.
   Future<UserModel> _handleMultiClinicOnboarding(User user) async {
     /// A list to store the IDs of clinics associated with the user.
     List<String> clinicIds = [];
@@ -310,15 +310,6 @@ class AuthFirebaseApi {
 
     final userDocRef = _usersCollection.doc(user.uid);
 
-    /// Creates a reference to the Firestore document corresponding to the given user's UID
-    /// within the users collection.
-    ///
-    /// This reference can be used to read, update, or delete the user's document in Firestore.
-    ///
-    /// Example:
-    /// ```dart
-    /// final docRef = _usersCollection.doc(user.uid);
-    /// ```
     final userDoc = await userDocRef.get();
 
     if (userDoc.exists) {
@@ -353,37 +344,22 @@ class AuthFirebaseApi {
       clinicIds = allClinicIds.toList();
       primaryClinicId = data?['primaryClinicId'] as String?;
     } else {
-      // User not found: check for invitation
-      final invitations = await _userInvitations
-          .where('email', isEqualTo: user.email)
-          .where('status', isEqualTo: 'pending')
-          .get();
-      if (invitations.docs.isNotEmpty) {
-        /// Accepts all pending invitations for the given user and creates the user document in Firestore.
-        ///
-        /// This method processes the provided list of invitations, marks them as accepted,
-        /// and ensures the user document is created or updated accordingly.
-        ///
-        /// Parameters:
-        /// - [user]: The user object representing the authenticated user.
-        /// - [invitations]: A list of invitation objects to be accepted.
-        /// - [userDocRef]: A reference to the Firestore document for the user.
-        ///
-        /// Returns a [Future] that completes when all invitations have been accepted and the user document is created.
-        await _acceptAllInvitationsAndCreateUser(user, invitations, userDocRef);
+      // User not found: check beta access but DO NOT auto-create clinic or accept invites
+      // Just create a basic user record so they are "signed in" but "not onboarded"
 
-        // Fetch the user doc again after creation
-        final createdDoc = await userDocRef.get();
-        final data = createdDoc.data() as Map<String, dynamic>?;
-        clinicIds =
-            (data?['clinicIds'] as List<dynamic>?)?.cast<String>() ?? [];
-        primaryClinicId = data?['primaryClinicId'] as String?;
-      } else {
-        // No invitation: sign up as owner (admin) for a new clinic
-        final result = await _createOwnerAndClinic(user, userDocRef);
-        clinicIds = result['clinicIds'];
-        primaryClinicId = result['primaryClinicId'];
-      }
+      // This effectively pauses the process for the UI to handle the choice
+      await userDocRef.set({
+        'email': user.email,
+        'displayName': user.displayName,
+        'photoURL': user.photoURL,
+        'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
+        'primaryClinicId': null, // Explicitly null to trigger onboarding
+        'clinicIds': [],
+        'clinics': [],
+      });
+
+      clinicIds = [];
+      primaryClinicId = null;
     }
     return UserModel(
       uid: user.uid,
@@ -403,39 +379,55 @@ class AuthFirebaseApi {
     );
   }
 
-  /// Accepts all invitations for the user, aggregates clinicIds, and creates the user doc.
-  Future<void> _acceptAllInvitationsAndCreateUser(
-    User user,
-    QuerySnapshot invitations,
-    DocumentReference docRef,
-  ) async {
-    Set<String> allClinicIds = {};
-    String? firstClinicId;
+  /// Manually creates a new clinic for the current user (Onboarding flow)
+  Future<void> createClinicForUser(String clinicName) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user signed in');
 
-    for (final invite in invitations.docs) {
-      final inviteData = invite.data() as Map<String, dynamic>?;
-      final invitedClinicId = inviteData?['clinicId'] as String?;
+    final userDocRef = _usersCollection.doc(user.uid);
+    await _createOwnerAndClinic(user, userDocRef, clinicName);
+  }
 
-      firstClinicId ??= invitedClinicId;
+  /// Manually accepts an invitation for the current user (Onboarding flow)
+  Future<void> acceptInvitationForUser(String invitationId) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user signed in');
 
-      if (invitedClinicId != null) allClinicIds.add(invitedClinicId);
+    final inviteRef = FirebaseFirestore.instance
+        .collection('user_invitations')
+        .doc(invitationId);
+    final inviteDoc = await inviteRef.get();
 
-      await invite.reference.update({
-        'status': 'accepted',
-        'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      });
-    }
+    if (!inviteDoc.exists) throw Exception('Invitation not found');
 
-    final primaryClinicId = firstClinicId;
+    final inviteData = inviteDoc.data();
+    final clinicId = inviteData?['clinicId'];
 
-    // Write minimal user data - backend will handle the rest via invitation acceptance
-    // Note: Removed clinicIds field - using only clinics array with map structure
-    await docRef.set({
-      'email': user.email,
-      'displayName': user.displayName,
-      'photoURL': user.photoURL,
-      'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      'primaryClinicId': primaryClinicId,
+    if (clinicId == null) throw Exception('Invalid invitation data');
+
+    // Update invitation status
+    await inviteRef.update({
+      'status': 'accepted',
+      'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+    });
+
+    // Update User Doc with primaryClinicId
+    // We update the user doc to reflect valid onboarding
+    await _usersCollection.doc(user.uid).update({
+      'primaryClinicId': clinicId,
+      // We rely on backend/other processes to update the 'clinics' array properly
+      // or we can force a reload.
+      // Ideally we should add it here to be safe:
+      'clinics': FieldValue.arrayUnion([
+        {
+          'clinicId': clinicId,
+          'clinicName': inviteData?['clinicName'] ?? 'Unknown Clinic',
+          // 'role': inviteData?['role'] ?? 'staff',
+          'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+        }
+      ]),
+      // Also legacy:
+      'clinicIds': FieldValue.arrayUnion([clinicId])
     });
   }
 
@@ -443,6 +435,7 @@ class AuthFirebaseApi {
   Future<Map<String, dynamic>> _createOwnerAndClinic(
     User user,
     DocumentReference docRef,
+    String clinicName,
   ) async {
     final clinicsCollection = FirebaseFirestore.instance.collection('clinics');
     final newClinicRef = clinicsCollection.doc();
@@ -451,7 +444,7 @@ class AuthFirebaseApi {
     await newClinicRef.set({
       'ownerId': user.uid,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
-      'name': user.displayName ?? user.email ?? 'Clinic',
+      'name': clinicName,
       'adminEmail': user.email,
     });
 
@@ -468,12 +461,13 @@ class AuthFirebaseApi {
       'clinics': [
         {
           'clinicId': newClinicRef.id,
-          'clinicName': user.displayName ?? user.email ?? 'Clinic',
+          'clinicName': clinicName,
           // 'role': 'Admin', // Removed to enforce usage of members subcollection
           'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
         },
       ],
-    });
+      'clinicIds': [primaryClinicId], // Maintain legacy support for now
+    }, SetOptions(merge: true));
 
     // CRITICAL: Create the Member record in the Single Source of Truth
     // This ensures the new owner has permissions immediately

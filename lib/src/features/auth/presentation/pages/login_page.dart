@@ -5,6 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/invitations/domain/usecases/invitation_usecases.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,10 +35,29 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) async {
+        // ... previously verified logic
         if (state is AuthSignedIn) {
-          // Await permission loading to prevent "Permission Denied" race condition
-          await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
-          RoutingConfig.router.go('/home');
+          final user = state.user;
+          if (user?.primaryClinicId != null) {
+            await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
+            RoutingConfig.router.go('/home');
+          } else {
+            if (user?.email != null) {
+              final result = await sl<InvitationUseCases>()
+                  .getInvitationsForEmail(user!.email!);
+              result.fold(
+                  (failure) => RoutingConfig.router.go('/onboarding-choice'),
+                  (invitations) {
+                if (invitations.isNotEmpty) {
+                  RoutingConfig.router.go('/pending-invitations');
+                } else {
+                  RoutingConfig.router.go('/onboarding-choice');
+                }
+              });
+            } else {
+              RoutingConfig.router.go('/onboarding-choice');
+            }
+          }
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -60,10 +81,13 @@ class _LoginPageState extends State<LoginPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Theme.of(context).colorScheme.primaryContainer.withAlpha(76),
+                  Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withValues(alpha: 0.3),
                   Theme.of(
                     context,
-                  ).colorScheme.secondaryContainer.withAlpha(76),
+                  ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
                 ],
               ),
             ),
@@ -73,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                   elevation: 12.0,
                   shadowColor: Theme.of(
                     context,
-                  ).colorScheme.shadow.withAlpha(76),
+                  ).colorScheme.shadow.withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24.0),
                   ),
@@ -92,7 +116,10 @@ class _LoginPageState extends State<LoginPage> {
                               shape: BoxShape.circle,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.primaryContainer.withAlpha(76),
+                              )
+                                  .colorScheme
+                                  .primaryContainer
+                                  .withValues(alpha: 0.3),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(60),
@@ -141,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.blue.withAlpha(51),
+                                color: Colors.blue.withValues(alpha: 0.2),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -194,12 +221,15 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: BoxDecoration(
                             color: Theme.of(
                               context,
-                            ).colorScheme.surfaceContainerHighest.withAlpha(76),
+                            )
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.outline.withAlpha(51),
+                              ).colorScheme.outline.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Column(

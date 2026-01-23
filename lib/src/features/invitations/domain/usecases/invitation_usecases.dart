@@ -30,5 +30,9 @@ class InvitationUseCases {
   Future<Either<Failure, void>> resendInvitation(String invitationId) async {
     return await _repository.resendInvitation(invitationId);
   }
-}
 
+  Future<Either<Failure, List<InvitationModel>>> getInvitationsForEmail(
+      String email) async {
+    return await _repository.getInvitationsForEmail(email);
+  }
+}

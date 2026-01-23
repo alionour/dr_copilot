@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_event.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/clinic_model.dart';
 
 class CreateInvitationDialog extends StatefulWidget {
   final String clinicId;
@@ -174,16 +176,29 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
         return;
       }
 
+      // Fetch clinic name from OwnerNotifier
+      final ownerNotifier = context.read<OwnerNotifier>();
+      final clinic = ownerNotifier.clinics.firstWhere(
+        (c) => c.id == widget.clinicId,
+        orElse: () => ClinicModel(
+          id: widget.clinicId,
+          name: 'Your Clinic', // Fallback
+          location: '',
+          ownerId: '',
+          createdAt: Timestamp.fromDate(DateTime.now()),
+          adminEmail: '',
+        ),
+      );
+
       // Generate a new document ID
-      final newId = FirebaseFirestore.instance
-          .collection('user_invitations')
-          .doc()
-          .id;
+      final newId =
+          FirebaseFirestore.instance.collection('user_invitations').doc().id;
 
       final invitation = InvitationModel(
         id: newId,
         email: _emailController.text.trim(),
         clinicId: widget.clinicId,
+        clinicName: clinic.name,
         invitedBy: widget.currentUserId,
         roles: _selectedRoles,
         permissions: _selectedPermissions,
@@ -196,4 +211,3 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
     }
   }
 }
-

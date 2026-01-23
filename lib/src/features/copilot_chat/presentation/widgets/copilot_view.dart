@@ -295,12 +295,30 @@ class CopilotView extends StatelessWidget {
                                         else if (textController
                                                 .text.isNotEmpty ||
                                             pickedImage != null)
-                                          IconButton(
-                                            onPressed: onSendMessage,
-                                            icon: const Icon(Icons.send),
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                onPressed: onSendMessage,
+                                                icon: const Icon(Icons.send),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              GestureDetector(
+                                                onLongPressStart: (_) =>
+                                                    onSpeechStart?.call(),
+                                                onLongPressEnd: (_) =>
+                                                    onSpeechStop?.call(),
+                                                child: Icon(Icons.mic,
+                                                    color: isListeningSpeech
+                                                        ? Colors.red
+                                                        : Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurfaceVariant),
+                                              ),
+                                            ],
                                           )
                                         else
                                           GestureDetector(

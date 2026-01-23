@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 // ignore: depend_on_referenced_packages
@@ -25,10 +24,10 @@ class ShorebirdCodePushHandler {
   /// await checkAndApplyUpdate();
   /// ```
   static Future<void> checkAndApplyUpdate() async {
-    // Shorebird currently supports Android and iOS.
-    // We guard against other platforms to prevent runtime errors.
-    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-      debugPrint('Shorebird update check skipped: Platform not supported.');
+    // Shorebird supports Android, iOS, Windows, macOS, and Linux (as of early 2025).
+    // We only skip web platform.
+    if (kIsWeb) {
+      debugPrint('Shorebird update check skipped: Web platform not supported.');
       return;
     }
 

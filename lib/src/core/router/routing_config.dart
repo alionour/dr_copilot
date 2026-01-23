@@ -50,6 +50,8 @@ import 'package:dr_copilot/src/features/invitations/presentation/pages/invitatio
 import 'package:dr_copilot/src/features/invitations/presentation/pages/create_invitation_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/pages/accept_invitation_page.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
+import 'package:dr_copilot/src/features/auth/presentation/pages/onboarding_choice_page.dart';
+import 'package:dr_copilot/src/features/invitations/presentation/pages/pending_invitations_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
 import 'package:dr_copilot/src/features/kiosk/presentation/pages/kiosk_check_in_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
@@ -87,6 +89,16 @@ class RoutingConfig {
         path: '/',
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/onboarding-choice',
+        name: 'onboarding-choice',
+        builder: (context, state) => const OnboardingChoicePage(),
+      ),
+      GoRoute(
+        path: '/pending-invitations',
+        name: 'pending-invitations',
+        builder: (context, state) => const PendingInvitationsPage(),
       ),
       ShellRoute(
         builder: (context, state, child) {

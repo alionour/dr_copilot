@@ -4,6 +4,7 @@ class Invitation extends Equatable {
   final String id;
   final String email;
   final String clinicId;
+  final String clinicName;
   final String invitedBy;
   final List<String> roles;
   final List<String> permissions;
@@ -15,6 +16,7 @@ class Invitation extends Equatable {
     required this.id,
     required this.email,
     required this.clinicId,
+    required this.clinicName,
     required this.invitedBy,
     required this.roles,
     required this.permissions,
@@ -36,4 +38,3 @@ class Invitation extends Equatable {
         acceptedAt,
       ];
 }
-

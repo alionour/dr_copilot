@@ -774,8 +774,17 @@ class _CopilotPageState extends State<CopilotPage> {
                                             .startListening();
                                     startResult.fold((failure) {
                                       _isListeningSpeech.value = false;
-                                      _showTypingEffect(
-                                          'Error starting speech recognition: ${failure.message}');
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error starting speech recognition: ${failure.message}',
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
                                     }, (_) {});
                                   },
                                   onSpeechStop: () async {
@@ -793,10 +802,32 @@ class _CopilotPageState extends State<CopilotPage> {
                                       },
                                       (transcript) {
                                         if (transcript.isNotEmpty) {
-                                          _controller.text = _controller
-                                                  .text.isNotEmpty
-                                              ? '${_controller.text} $transcript'
-                                              : transcript;
+                                          final text = _controller.text;
+                                          final selection =
+                                              _controller.selection;
+
+                                          // Check if there's a valid selection range
+                                          if (selection.start >= 0 &&
+                                              selection.end >= 0 &&
+                                              selection.end <= text.length) {
+                                            final newText = text.replaceRange(
+                                                selection.start,
+                                                selection.end,
+                                                transcript);
+                                            _controller.value =
+                                                TextEditingValue(
+                                              text: newText,
+                                              selection:
+                                                  TextSelection.collapsed(
+                                                      offset: selection.start +
+                                                          transcript.length),
+                                            );
+                                          } else {
+                                            // No valid selection, append to end with space if needed
+                                            _controller.text = text.isNotEmpty
+                                                ? '$text $transcript'
+                                                : transcript;
+                                          }
                                         }
                                       },
                                     );

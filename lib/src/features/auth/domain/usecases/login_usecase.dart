@@ -68,4 +68,15 @@ class AuthUseCase {
     return await repository.updateProfile(
         displayName: displayName, photoURL: photoURL);
   }
+
+  /// Manually creates a clinic for the current user.
+  Future<Either<Failure, void>> createClinicForUser(String clinicName) async {
+    return await repository.createClinicForUser(clinicName);
+  }
+
+  /// Manually accepts an invitation for the current user.
+  Future<Either<Failure, void>> acceptInvitationForUser(
+      String invitationId) async {
+    return await repository.acceptInvitationForUser(invitationId);
+  }
 }

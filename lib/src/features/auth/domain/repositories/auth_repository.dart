@@ -39,4 +39,10 @@ abstract class AbstractAuthRepository {
 
   /// Checks if a user with the given [email] already exists in the system.
   Future<Either<Failure, bool>> doesUserExist(String email);
+
+  /// Manually creates a clinic for the current user.
+  Future<Either<Failure, void>> createClinicForUser(String clinicName);
+
+  /// Manually accepts an invitation for the current user.
+  Future<Either<Failure, void>> acceptInvitationForUser(String invitationId);
 }

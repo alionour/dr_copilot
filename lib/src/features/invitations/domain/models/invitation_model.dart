@@ -6,6 +6,7 @@ class InvitationModel extends Invitation {
     required super.id,
     required super.email,
     required super.clinicId,
+    required super.clinicName,
     required super.invitedBy,
     required super.roles,
     required super.permissions,
@@ -20,6 +21,7 @@ class InvitationModel extends Invitation {
       id: doc.id,
       email: data['email'] ?? '',
       clinicId: data['clinicId'] ?? '',
+      clinicName: data['clinicName'] ?? 'Unknown Clinic',
       invitedBy: data['invitedBy'] ?? '',
       roles: List<String>.from(data['roles'] ?? []),
       permissions: List<String>.from(data['permissions'] ?? []),
@@ -36,6 +38,7 @@ class InvitationModel extends Invitation {
       id: json['id'] ?? '',
       email: json['email'] ?? '',
       clinicId: json['clinicId'] ?? '',
+      clinicName: json['clinicName'] ?? 'Unknown Clinic',
       invitedBy: json['invitedBy'] ?? '',
       roles: List<String>.from(json['roles'] ?? []),
       permissions: List<String>.from(json['permissions'] ?? []),
@@ -56,6 +59,7 @@ class InvitationModel extends Invitation {
       'id': id,
       'email': email,
       'clinicId': clinicId,
+      'clinicName': clinicName,
       'invitedBy': invitedBy,
       'roles': roles,
       'permissions': permissions,
@@ -65,4 +69,3 @@ class InvitationModel extends Invitation {
     };
   }
 }
-

@@ -194,6 +194,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       id: FirebaseFirestore.instance.collection('invitations').doc().id,
       email: email,
       clinicId: widget.clinicId,
+      clinicName: _clinicName ?? 'Your Clinic',
       invitedBy: widget.currentUserId,
       roles: _selectedRole != null ? [_selectedRole!.name] : [],
       permissions: _selectedPermissions.map((p) => p.name).toList(),

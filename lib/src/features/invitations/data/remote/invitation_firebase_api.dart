@@ -98,6 +98,22 @@ class InvitationFirebaseApi {
       });
     } catch (e) {
       log('Error resending invitation: $e');
+    }
+  }
+
+  Future<List<InvitationModel>> getInvitationsForEmail(String email) async {
+    try {
+      final snapshot = await _firestore
+          .collection('user_invitations')
+          .where('email', isEqualTo: email)
+          .where('status', isEqualTo: 'pending')
+          .orderBy('createdAt', descending: true)
+          .get();
+      return snapshot.docs
+          .map((doc) => InvitationModel.fromDocument(doc))
+          .toList();
+    } catch (e) {
+      log('Error fetching invitations for email: $e');
       throw ServerException(e.toString(), 500);
     }
   }

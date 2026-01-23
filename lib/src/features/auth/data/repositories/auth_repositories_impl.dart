@@ -97,4 +97,25 @@ class AuthRepositoryImpl implements AbstractAuthRepository {
       return Left(ErrorHandler.mapExceptionToFailure(e));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> createClinicForUser(String clinicName) async {
+    try {
+      await api.createClinicForUser(clinicName);
+      return const Right(null);
+    } catch (e) {
+      return Left(ErrorHandler.mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> acceptInvitationForUser(
+      String invitationId) async {
+    try {
+      await api.acceptInvitationForUser(invitationId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ErrorHandler.mapExceptionToFailure(e));
+    }
+  }
 }

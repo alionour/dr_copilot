@@ -12,6 +12,7 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     on<CreateInvitation>(_onCreateInvitation);
     on<DeleteInvitation>(_onDeleteInvitation);
     on<ResendInvitation>(_onResendInvitation);
+    on<LoadInvitationsForEmail>(_onLoadInvitationsForEmail);
   }
 
   Future<void> _onLoadInvitations(
@@ -47,7 +48,8 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     final result = await _useCases.createInvitation(event.invitation);
     result.fold(
       (failure) => emit(InvitationError(failure.message)),
-      (_) => emit(const InvitationOperationSuccess('Invitation created successfully')),
+      (_) => emit(
+          const InvitationOperationSuccess('Invitation created successfully')),
     );
   }
 
@@ -59,7 +61,8 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     final result = await _useCases.deleteInvitation(event.invitationId);
     result.fold(
       (failure) => emit(InvitationError(failure.message)),
-      (_) => emit(const InvitationOperationSuccess('Invitation deleted successfully')),
+      (_) => emit(
+          const InvitationOperationSuccess('Invitation deleted successfully')),
     );
   }
 
@@ -71,8 +74,20 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     final result = await _useCases.resendInvitation(event.invitationId);
     result.fold(
       (failure) => emit(InvitationError(failure.message)),
-      (_) => emit(const InvitationOperationSuccess('Invitation resent successfully')),
+      (_) => emit(
+          const InvitationOperationSuccess('Invitation resent successfully')),
+    );
+  }
+
+  Future<void> _onLoadInvitationsForEmail(
+    LoadInvitationsForEmail event,
+    Emitter<InvitationState> emit,
+  ) async {
+    emit(InvitationLoading());
+    final result = await _useCases.getInvitationsForEmail(event.email);
+    result.fold(
+      (failure) => emit(InvitationError(failure.message)),
+      (invitations) => emit(InvitationLoaded(invitations)),
     );
   }
 }
-

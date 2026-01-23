@@ -15,17 +15,19 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
   StreamSubscription? _webSocketSubscription;
   StreamSubscription? _deepgramSubscription;
   StreamController<String>? _recognitionController;
-  
+
   // Track the last transcript to detect spurious isFinal events
   String _lastTranscript = '';
+  final StringBuffer _accumulatedTranscript =
+      StringBuffer(); // Buffer for multiple utterances
   DateTime? _lastTranscriptTime;
-  
+
   // Completer to track when final transcript is received
   Completer<String>? _finalTranscriptCompleter;
-  
+
   // Track initialization state
   bool _isInitialized = false;
-  
+
   // Current language for speech recognition
   String _currentLanguage = 'en-US';
 
@@ -33,7 +35,7 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
 
   SpeechRecognitionService({required String deepgramApiKey})
       : _deepgramApiKey = deepgramApiKey;
-  
+
   // Method to update language
   void setLanguage(String languageCode) {
     // Map Flutter locale codes to Deepgram language codes
@@ -42,7 +44,7 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       case 'ar':
         // Deepgram nova-2 does NOT support Arabic
         // Only base, enhanced, whisper models support limited languages
-        _currentLanguage = 'ar'; 
+        _currentLanguage = 'ar';
         break;
       case 'en':
         _currentLanguage = 'en';
@@ -59,9 +61,9 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       default:
         _currentLanguage = 'en';
     }
-    
+
     debugPrint('[Speech] Language changed to: $_currentLanguage');
-    
+
     // Reset initialization to force reconnection with new language
     if (_isInitialized) {
       debugPrint('[Speech] Resetting connection for language change');
@@ -72,22 +74,25 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       _channel = null;
     }
   }
+
   @override
   Future<Either<Failure, bool>> initialize() async {
     if (_deepgramApiKey.isEmpty) {
       debugPrint('[Speech] ERROR: Deepgram API key is empty!');
-      return Left(ApiKeyFailure('Deepgram API key is not provided. Please set the DEEPGRAM_KEY environment variable.'));
+      return Left(ApiKeyFailure(
+          'Deepgram API key is not provided. Please set the DEEPGRAM_KEY environment variable.'));
     }
-    
+
     // If already initialized and channel is still active, return success
     if (_isInitialized && _channel != null) {
       debugPrint('[Speech] Already initialized, reusing existing connection');
       return const Right(true);
     }
-    
+
     // Clean up any existing connections before reinitializing
     if (_channel != null) {
-      debugPrint('[Speech] Cleaning up existing connection before reinitializing');
+      debugPrint(
+          '[Speech] Cleaning up existing connection before reinitializing');
       try {
         await _deepgramSubscription?.cancel();
         _deepgramSubscription = null;
@@ -97,21 +102,21 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         debugPrint('[Speech] Error cleaning up: $e');
       }
     }
-    
-    debugPrint('[Speech] Initializing with API key: ${_deepgramApiKey.substring(0, 8)}...');
-    
+
+    debugPrint(
+        '[Speech] Initializing with API key: ${_deepgramApiKey.substring(0, 8)}...');
+
     try {
       // Create a new AudioRecorder instance if needed
       _audioRecorder ??= AudioRecorder();
-      
+
       final hasRecorderPermission = await _audioRecorder!.hasPermission();
       debugPrint('[Speech] Microphone permission: $hasRecorderPermission');
 
       if (hasRecorderPermission) {
         // Use basic nova-2 model with English
         // For Arabic/other languages, user needs to speak English or use another service
-        final uri = Uri.parse(
-            'wss://api.deepgram.com/v1/listen?'
+        final uri = Uri.parse('wss://api.deepgram.com/v1/listen?'
             'encoding=linear16&'
             'sample_rate=16000&'
             'language=en&'
@@ -119,17 +124,18 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
             'interim_results=true&'
             'punctuate=true&'
             'endpointing=1000');
-        debugPrint('[Speech] Connecting to Deepgram WebSocket with nova-2 model (English only)');
+        debugPrint(
+            '[Speech] Connecting to Deepgram WebSocket with nova-2 model (English only)');
         _channel = IOWebSocketChannel.connect(
           uri,
           protocols: ['token', _deepgramApiKey],
         );
         await _channel!.ready;
         debugPrint('[Speech] WebSocket connected successfully');
-        
+
         // Set up the Deepgram response listener once during initialization
         _setupDeepgramListener();
-        
+
         _isInitialized = true;
         return const Right(true);
       } else {
@@ -138,8 +144,7 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         if (permissionStatus.isGranted) {
           // Use basic nova-2 model with English
           // For Arabic/other languages, user needs to speak English or use another service
-          final uri = Uri.parse(
-              'wss://api.deepgram.com/v1/listen?'
+          final uri = Uri.parse('wss://api.deepgram.com/v1/listen?'
               'encoding=linear16&'
               'sample_rate=16000&'
               'language=en&'
@@ -147,17 +152,18 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
               'interim_results=true&'
               'punctuate=true&'
               'endpointing=1000');
-          debugPrint('[Speech] Connecting to Deepgram WebSocket with nova-2 model (English only)');
+          debugPrint(
+              '[Speech] Connecting to Deepgram WebSocket with nova-2 model (English only)');
           _channel = IOWebSocketChannel.connect(
             uri,
             protocols: ['token', _deepgramApiKey],
           );
           await _channel!.ready;
           debugPrint('[Speech] WebSocket connected successfully');
-          
+
           // Set up the Deepgram response listener once during initialization
           _setupDeepgramListener();
-          
+
           _isInitialized = true;
           return const Right(true);
         } else {
@@ -182,30 +188,61 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       (message) {
         try {
           final Map<String, dynamic> deepgramResponse = json.decode(message);
-          final String? transcript = deepgramResponse['channel']?['alternatives']?[0]?['transcript'];
+          final String? transcript =
+              deepgramResponse['channel']?['alternatives']?[0]?['transcript'];
           final bool isFinal = deepgramResponse['is_final'] ?? false;
           final bool speechFinal = deepgramResponse['speech_final'] ?? false;
 
-          debugPrint('[Speech] Received - transcript: "$transcript", isFinal: $isFinal, speechFinal: $speechFinal');
+          debugPrint(
+              '[Speech] Received - transcript: "$transcript", isFinal: $isFinal, speechFinal: $speechFinal');
 
           if (transcript != null && transcript.isNotEmpty) {
             // Always update to the latest transcript (including interim results)
             _lastTranscript = transcript;
             _lastTranscriptTime = DateTime.now();
-            debugPrint('[Speech] Updated _lastTranscript to: "$_lastTranscript"');
+            debugPrint(
+                '[Speech] Updated _lastTranscript to: "$_lastTranscript"');
 
             // Emit for real-time display
-            _recognitionController?.add(transcript);
-
-            // If we receive an isFinal transcript and completer is waiting, complete it
-            if (isFinal && _finalTranscriptCompleter != null && !_finalTranscriptCompleter!.isCompleted) {
-              debugPrint('[Speech] Completing with isFinal transcript: "$transcript"');
-              _finalTranscriptCompleter!.complete(transcript);
+            // We combine accumulated history + current interim result
+            String fullDisplay = _accumulatedTranscript.toString();
+            if (fullDisplay.isNotEmpty && !fullDisplay.endsWith(' ')) {
+              fullDisplay += ' ';
             }
+            fullDisplay += transcript;
+
+            _recognitionController?.add(fullDisplay);
 
             // Mark as final if needed
-            if (speechFinal && transcript.trim().isNotEmpty) {
-              _recognitionController?.add('__FINAL__:$transcript');
+            if (isFinal && transcript.trim().isNotEmpty) {
+              debugPrint('[Speech] Finalizing segment: "$transcript"');
+              _accumulatedTranscript.write(transcript);
+              if (!transcript.endsWith(' ')) {
+                _accumulatedTranscript.write(' ');
+              }
+              debugPrint(
+                  '[Speech] Accumulated Buffer now: "${_accumulatedTranscript.toString()}"');
+              _recognitionController
+                  ?.add('__FINAL__:${_accumulatedTranscript.toString()}');
+
+              // Clear last transcript as we have committed it to history
+              _lastTranscript = '';
+            }
+
+            // Completer Logic:
+            // Check if we are waiting for a final transcript (stopListening called)
+            if (_finalTranscriptCompleter != null &&
+                !_finalTranscriptCompleter!.isCompleted) {
+              // Only complete if we have a "final" event OR clear indication of end.
+              // Logic: If isFinal is true, we have just processed it above (added to buffer).
+              // So we can return the full buffer now.
+
+              if (isFinal) {
+                String finalResult = _accumulatedTranscript.toString();
+                debugPrint(
+                    '[Speech] Completing future with FULL accumulated: "$finalResult"');
+                _finalTranscriptCompleter!.complete(finalResult);
+              }
             }
           } else if (isFinal && _lastTranscript.isNotEmpty) {
             // Empty transcript with isFinal - might be end of speech
@@ -213,13 +250,37 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
                 ? DateTime.now().difference(_lastTranscriptTime!)
                 : Duration.zero;
             if (timeSinceLastTranscript.inMilliseconds > 1500) {
-              _recognitionController?.add('__FINAL__:$_lastTranscript');
+              _accumulatedTranscript.write(_lastTranscript);
+              if (_lastTranscript.isNotEmpty &&
+                  !_lastTranscript.endsWith(' ')) {
+                _accumulatedTranscript.write(' ');
+              }
+              _recognitionController
+                  ?.add('__FINAL__:${_accumulatedTranscript.toString()}');
+              _lastTranscript = '';
             }
-            
+
             // Complete with last transcript if waiting
-            if (_finalTranscriptCompleter != null && !_finalTranscriptCompleter!.isCompleted) {
-              debugPrint('[Speech] Completing with _lastTranscript: "$_lastTranscript"');
-              _finalTranscriptCompleter!.complete(_lastTranscript);
+            if (_finalTranscriptCompleter != null &&
+                !_finalTranscriptCompleter!.isCompleted) {
+              debugPrint(
+                  '[Speech] Completing with _lastTranscript: "$_lastTranscript"');
+
+              // If we have an accumulated transcript, append the last bit
+              String acc = _accumulatedTranscript.toString();
+              debugPrint('[Speech] Completer - Accumulated: "$acc"');
+              debugPrint(
+                  '[Speech] Completer - LastTranscript: "$_lastTranscript"');
+
+              String finalResult = acc;
+              if (_lastTranscript.isNotEmpty) {
+                if (finalResult.isNotEmpty && !finalResult.endsWith(' ')) {
+                  finalResult += ' ';
+                }
+                finalResult += _lastTranscript;
+              }
+              debugPrint('[Speech] Completing future with: "$finalResult"');
+              _finalTranscriptCompleter!.complete(finalResult);
             }
           }
         } catch (e) {
@@ -230,7 +291,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       onError: (error) {
         debugPrint('[Speech] WebSocket error: $error');
         _recognitionController?.addError(error);
-        if (_finalTranscriptCompleter != null && !_finalTranscriptCompleter!.isCompleted) {
+        if (_finalTranscriptCompleter != null &&
+            !_finalTranscriptCompleter!.isCompleted) {
           _finalTranscriptCompleter!.completeError(error);
         }
       },
@@ -239,8 +301,17 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         _recognitionController?.close();
         _channel = null;
         _deepgramSubscription = null;
-        if (_finalTranscriptCompleter != null && !_finalTranscriptCompleter!.isCompleted) {
-          _finalTranscriptCompleter!.complete(_lastTranscript);
+        if (_finalTranscriptCompleter != null &&
+            !_finalTranscriptCompleter!.isCompleted) {
+          // Append any pending last transcript on done
+          String finalResult = _accumulatedTranscript.toString();
+          if (_lastTranscript.isNotEmpty) {
+            if (finalResult.isNotEmpty && !finalResult.endsWith(' ')) {
+              finalResult += ' ';
+            }
+            finalResult += _lastTranscript;
+          }
+          _finalTranscriptCompleter!.complete(finalResult);
         }
       },
     );
@@ -253,7 +324,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         // Re-initialize if channel is null or not initialized
         final initResult = await initialize();
         if (initResult.isLeft()) {
-          return Left(ServerFailure('Failed to re-initialize WebSocketChannel.', 500));
+          // Propagate the actual failure from initialization
+          return initResult;
         }
       }
 
@@ -266,6 +338,7 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
 
       // Reset tracking variables
       _lastTranscript = '';
+      _accumulatedTranscript.clear();
       _lastTranscriptTime = null;
       _finalTranscriptCompleter = null;
 
@@ -287,7 +360,8 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
           _channel?.sink.add(audioChunk);
           // Log occasionally to verify audio is being sent
           if (DateTime.now().millisecond % 500 == 0) {
-            debugPrint('[Speech] Sending audio chunk (${audioChunk.length} bytes)');
+            debugPrint(
+                '[Speech] Sending audio chunk (${audioChunk.length} bytes)');
           }
         },
         onError: (error) {
@@ -313,12 +387,21 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
   Future<Either<Failure, String>> stopListening() async {
     try {
       debugPrint('[Speech] Stopping listening...');
-      
+
       // Check if audio recorder exists and is recording
       if (_audioRecorder == null || !await _audioRecorder!.isRecording()) {
-        debugPrint('[Speech] Not recording, returning current transcript: "$_lastTranscript"');
-        final result = _lastTranscript;
+        debugPrint(
+            '[Speech] Not recording, returning current transcript: "$_lastTranscript"');
+        String result = _accumulatedTranscript.toString();
+        if (_lastTranscript.isNotEmpty) {
+          if (result.isNotEmpty && !result.endsWith(' ')) {
+            result += ' ';
+          }
+          result += _lastTranscript;
+        }
+
         _lastTranscript = '';
+        _accumulatedTranscript.clear();
         _lastTranscriptTime = null;
         return Right(result);
       }
@@ -349,26 +432,45 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         finalTranscript = await _finalTranscriptCompleter!.future.timeout(
           const Duration(milliseconds: 2000),
           onTimeout: () {
-            debugPrint('[Speech] Timeout waiting for final transcript, using _lastTranscript');
-            return _lastTranscript;
+            debugPrint(
+                '[Speech] Timeout waiting for final transcript, constructing best effort result');
+
+            String result = _accumulatedTranscript.toString();
+            if (_lastTranscript.isNotEmpty) {
+              if (result.isNotEmpty && !result.endsWith(' ')) {
+                result += ' ';
+              }
+              result += _lastTranscript;
+            }
+            return result;
           },
         );
       } catch (e) {
-        debugPrint('[Speech] Error waiting for final transcript: $e, using _lastTranscript');
-        finalTranscript = _lastTranscript;
+        debugPrint(
+            '[Speech] Error waiting for final transcript: $e, using _lastTranscript');
+        // On error, best effort
+        finalTranscript = _accumulatedTranscript.toString();
+        if (_lastTranscript.isNotEmpty) {
+          if (finalTranscript.isNotEmpty && !finalTranscript.endsWith(' ')) {
+            finalTranscript += ' ';
+          }
+          finalTranscript += _lastTranscript;
+        }
       }
 
       // Close the recognition controller
       await _recognitionController?.close();
       _recognitionController = null;
 
-      debugPrint('[Speech] Stopped listening, final transcript: "$finalTranscript"');
-      
+      debugPrint(
+          '[Speech] Stopped listening, final transcript: "$finalTranscript"');
+
       // Reset for next session
       _lastTranscript = '';
+      _accumulatedTranscript.clear();
       _lastTranscriptTime = null;
       _finalTranscriptCompleter = null;
-      
+
       return Right(finalTranscript);
     } catch (e) {
       debugPrint('[Speech] Error stopping listening: $e');
@@ -481,16 +583,15 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
       return Stream.value(
           Left(ServerFailure('Recognition stream not available.', 500)));
     }
-    
+
     return _recognitionController!.stream
-            .map<Either<Failure, String>>((text) => Right(text))
-            .handleError((error) {
-          if (error is Failure) {
-            return Left(error);
-          }
-          return Left(ServerFailure(
-              'Realtime recognition stream error: ${error.toString()}', 500));
-        });
+        .map<Either<Failure, String>>((text) => Right(text))
+        .handleError((error) {
+      if (error is Failure) {
+        return Left(error);
+      }
+      return Left(ServerFailure(
+          'Realtime recognition stream error: ${error.toString()}', 500));
+    });
   }
 }
-

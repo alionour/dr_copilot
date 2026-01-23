@@ -53,3 +53,11 @@ class ResendInvitation extends InvitationEvent {
   List<Object?> get props => [invitationId];
 }
 
+class LoadInvitationsForEmail extends InvitationEvent {
+  final String email;
+
+  const LoadInvitationsForEmail(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
