@@ -28,8 +28,8 @@ class HybridSpeechRecognitionService
   HybridSpeechRecognitionService({
     required NativeSpeechRecognitionService nativeService,
     required SpeechRecognitionService deepgramService,
-  }) : _nativeService = nativeService,
-       _deepgramService = deepgramService;
+  })  : _nativeService = nativeService,
+        _deepgramService = deepgramService;
 
   /// Determines which service to use based on current language and subscription
   Future<AbstractSpeechRecognitionService> _getServiceForLanguage() async {
@@ -219,5 +219,11 @@ class HybridSpeechRecognitionService
     }
     return _activeService!.getRealtimeRecognitionStream();
   }
-}
 
+  @override
+  void clearAccumulatedTranscript() {
+    // Clear on both services
+    _nativeService.clearAccumulatedTranscript();
+    _deepgramService.clearAccumulatedTranscript();
+  }
+}

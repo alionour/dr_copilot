@@ -1,6 +1,7 @@
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:get_it/get_it.dart';
 import 'presentation/bloc/copilot_bloc.dart';
+import 'data/repositories/conversation_repository.dart';
 import 'services/vertex_ai_service.dart';
 import 'services/gpt_service.dart';
 import 'services/gemini_service.dart';
@@ -9,6 +10,8 @@ import 'services/qwen_service.dart';
 import 'services/claude_service.dart';
 import 'services/groq_service.dart';
 import 'services/ai_router_service.dart';
+import 'data/services/tts_service.dart';
+import 'data/services/live_chat_service.dart';
 
 final sl = GetIt.instance;
 
@@ -29,6 +32,7 @@ void initCopilotInjections() {
       claudeService: sl(),
       routerService: sl(),
       secureStorage: sl(),
+      conversationRepo: ConversationRepository(),
     ),
   );
 
@@ -68,6 +72,14 @@ void initCopilotInjections() {
       geminiService: sl(),
       groqService: sl(),
       subscriptionService: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton(() => TtsService());
+  sl.registerLazySingleton(
+    () => LiveChatService(
+      speechService: sl(),
+      ttsService: sl(),
     ),
   );
 }

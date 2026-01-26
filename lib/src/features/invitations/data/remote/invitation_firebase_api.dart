@@ -117,4 +117,34 @@ class InvitationFirebaseApi {
       throw ServerException(e.toString(), 500);
     }
   }
+
+  Future<void> rejectInvitation(String invitationId, String email) async {
+    try {
+      // 1. Fetch the invitation to verify eligibility
+      final docSnapshot = await _firestore
+          .collection('user_invitations')
+          .doc(invitationId)
+          .get();
+
+      if (!docSnapshot.exists) {
+        throw ServerException('Invitation not found', 404);
+      }
+
+      final data = docSnapshot.data();
+      if (data == null || data['email'] != email) {
+        // Security check: Only the invitee can reject it
+        throw ServerException('Permission denied: Email mismatch', 403);
+      }
+
+      // 2. Delete the invitation
+      await _firestore
+          .collection('user_invitations')
+          .doc(invitationId)
+          .delete();
+    } catch (e) {
+      log('Error rejecting invitation: $e');
+      if (e is ServerException) rethrow;
+      throw ServerException(e.toString(), 500);
+    }
+  }
 }

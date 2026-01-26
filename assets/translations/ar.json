@@ -798,6 +798,11 @@
   "featurePatientManagement": "إدارة المرضى",
   "featurePatientManagementDesc": "تتبع جميع سجلات مرضاك في مكان واحد آمن ومركزي. إدارة التركيبة السكانية للمرضى والتاريخ الطبي وخطط العلاج بسهولة.",
   "featureAppointments": "جدولة المواعيد",
+  "createClinic": "Create New Clinic",
+  "setUpYourClinic": "Set Up Your Clinic",
+  "enterClinicNameMessage": "Enter a name for your new clinic to get started.",
+  "clinicName": "Clinic Name",
+  "pleaseEnterClinicName": "Please enter a clinic name",
   "featureAppointmentsDesc": "جدولة وإدارة المواعيد بسهولة باستخدام نظام تقويم متكامل. تعيين التذكيرات وتتبع الحضور وتحسين جدول عيادتك.",
   "featureBilling": "الفواتير والفوترة",
   "featureBillingDesc": "تبسيط عملية الفوترة باستخدام أدوات مالية متكاملة. إنشاء الفواتير وتتبع المدفوعات وإدارة الفواتير ومراقبة تدفقات الإيرادات بسهولة.",
@@ -1112,5 +1117,9 @@
   "copyLink": "نسخ الرابط",
   "revokeLink": "إلغاء الرابط",
   "created": "تم الإنشاء",
-  "lastUsed": "آخر استخدام"
+  "lastUsed": "آخر استخدام",
+  "accessSupport": "الوصول للدعم",
+  "sendNotificationMessage": "إرسال رسالة",
+  "sendNotificationAppointment": "إرسال إشعار موعد",
+  "sendNotificationReminder": "إرسال تذكير"
 }

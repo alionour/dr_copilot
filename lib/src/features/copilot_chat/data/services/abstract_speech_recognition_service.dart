@@ -12,5 +12,6 @@ abstract class AbstractSpeechRecognitionService {
   Future<Either<Failure, bool>> requestMicrophonePermission();
   Future<Either<Failure, bool>> checkMicrophonePermission();
   Stream<Either<Failure, String>> getRealtimeRecognitionStream();
+  void clearAccumulatedTranscript();
   Future<void> dispose();
 }

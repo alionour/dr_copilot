@@ -1,11 +1,8 @@
-import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/core/router/routing_config.dart';
-import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 class OnboardingChoicePage extends StatefulWidget {
   const OnboardingChoicePage({super.key});
@@ -15,71 +12,8 @@ class OnboardingChoicePage extends StatefulWidget {
 }
 
 class _OnboardingChoicePageState extends State<OnboardingChoicePage> {
-  bool _isLoading = false;
-
-  void _showCreateClinicDialog() {
-    final TextEditingController clinicNameController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Create New Clinic'),
-          content: TextField(
-            controller: clinicNameController,
-            decoration: const InputDecoration(
-              labelText: 'Clinic Name',
-              hintText: 'e.g. My Dental Clinic',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final name = clinicNameController.text.trim();
-                if (name.isNotEmpty) {
-                  Navigator.of(context).pop();
-                  _createClinic(name);
-                }
-              },
-              child: const Text('Create'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _createClinic(String name) async {
-    setState(() => _isLoading = true);
-    final result = await sl<AuthUseCase>().createClinicForUser(name);
-    result.fold(
-      (failure) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
-      },
-      (_) async {
-        // Success: Refresh owner notifier and navigate home
-        if (mounted) {
-          await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
-          if (mounted) context.go('/home');
-        }
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       body: Center(
         child: Container(
@@ -107,7 +41,7 @@ class _OnboardingChoicePageState extends State<OnboardingChoicePage> {
                       title: 'Create a New Clinic',
                       description:
                           'I am a clinic owner and want to set up my workspace.',
-                      onTap: _showCreateClinicDialog,
+                      onTap: () => context.push('/create-clinic'),
                       color: Theme.of(context).primaryColor,
                     ),
                   ),
@@ -123,6 +57,17 @@ class _OnboardingChoicePageState extends State<OnboardingChoicePage> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 32),
+              TextButton.icon(
+                onPressed: () {
+                  context.read<AuthBloc>().add(SignOutEvent());
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Sign Out'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey[600],
+                ),
               ),
             ],
           ),

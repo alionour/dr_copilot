@@ -6,8 +6,28 @@ import 'package:http/http.dart' as http;
 import 'package:dr_copilot/src/features/subscription/domain/services/quota_service.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/utils/ai_context_provider.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/openai_tools.dart';
+
+/// Represents a function call from DeepSeek
+class DeepSeekFunctionCall {
+  final String name;
+  final Map<String, dynamic> arguments;
+
+  DeepSeekFunctionCall({required this.name, required this.arguments});
+}
+
+/// Represents a response from DeepSeek
+class DeepSeekResponse {
+  final String? text;
+  final DeepSeekFunctionCall? functionCall;
+
+  DeepSeekResponse({this.text, this.functionCall});
+
+  bool get hasFunctionCall => functionCall != null;
+}
 
 class DeepSeekService implements AIService {
+  // ... existing fields ...
   final String apiKey;
   final QuotaService _quotaService;
   final SubscriptionService _subscriptionService;
@@ -19,6 +39,7 @@ class DeepSeekService implements AIService {
   })  : _quotaService = quotaService,
         _subscriptionService = subscriptionService;
 
+  // ... (keep helper methods like _checkTokenLimit)
   Future<void> _checkTokenLimit(String clinicId) async {
     final tier = await _subscriptionService.getCurrentTier(clinicId);
     final limit = tier.maxMonthlyTokens;
@@ -45,14 +66,16 @@ class DeepSeekService implements AIService {
     if (clinicId != null) {
       await _checkTokenLimit(clinicId);
     }
-    return getDeepSeekResponse(
+    final response = await getDeepSeekResponseRaw(
       query,
       messageHistory: messageHistory,
       clinicId: clinicId,
       userId: userId,
     );
+    return response.text ?? '';
   }
 
+  // ... generateResponseWithImage remains as is ...
   @override
   Future<String> generateResponseWithImage(
     String query,
@@ -65,7 +88,6 @@ class DeepSeekService implements AIService {
       await _checkTokenLimit(clinicId);
     }
     // DeepSeek might not support image input directly via this endpoint or model
-    // Mapping to existing implementation for now
     return getDeepSeekResponseFromBytes(
       imageBytes,
       clinicId: clinicId,
@@ -73,7 +95,6 @@ class DeepSeekService implements AIService {
     );
   }
 
-  // dynamic configuration
   List<String> _currentRequiredFields = [];
 
   @override
@@ -81,7 +102,7 @@ class DeepSeekService implements AIService {
     _currentRequiredFields = requiredFields;
   }
 
-  Future<String> getDeepSeekResponse(
+  Future<DeepSeekResponse> getDeepSeekResponseRaw(
     String query, {
     List<Map<String, dynamic>> messageHistory = const [],
     String? clinicId,
@@ -89,28 +110,31 @@ class DeepSeekService implements AIService {
   }) async {
     final url = Uri.parse('https://api.deepseek.com/chat/completions');
 
-    // Build messages array with history
-    final List<Map<String, dynamic>> messages = [];
-
-    // Add dynamic system message
+    final messages = <Map<String, dynamic>>[];
     messages.add({
       'role': 'system',
       'content': AIContextProvider.getBaseSystemInstruction(
           requiredFields: _currentRequiredFields),
     });
 
-    // Add message history
     for (var message in messageHistory) {
       final isUser = message['isUser'] as bool? ?? false;
       final text = message['message'] as String? ?? '';
-
       if (text.isNotEmpty) {
         messages.add({'role': isUser ? 'user' : 'assistant', 'content': text});
       }
     }
 
-    // Add current query
     messages.add({'role': 'user', 'content': query});
+
+    final tools = getOpenAITools(userRequiredFields: _currentRequiredFields);
+
+    final body = jsonEncode({
+      'model': 'deepseek-chat',
+      'messages': messages,
+      'tools': tools,
+      'tool_choice': 'auto',
+    });
 
     final response = await http.post(
       url,
@@ -118,13 +142,12 @@ class DeepSeekService implements AIService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
       },
-      body: jsonEncode({'model': 'deepseek-chat', 'messages': messages}),
+      body: body,
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
-      // Track tokens
       if (clinicId != null && data['usage'] != null) {
         final totalTokens = data['usage']['total_tokens'] as int?;
         if (totalTokens != null) {
@@ -137,7 +160,26 @@ class DeepSeekService implements AIService {
         }
       }
 
-      return data['choices'][0]['message']['content'];
+      final message = data['choices'][0]['message'];
+
+      // Handle Tool Calls
+      if (message['tool_calls'] != null) {
+        final toolCalls = message['tool_calls'] as List;
+        if (toolCalls.isNotEmpty) {
+          final call = toolCalls[0];
+          final function = call['function'];
+          final args = jsonDecode(function['arguments']);
+          return DeepSeekResponse(
+            functionCall: DeepSeekFunctionCall(
+              name: function['name'],
+              arguments: args is Map<String, dynamic>
+                  ? args
+                  : Map<String, dynamic>.from(args),
+            ),
+          );
+        }
+      }
+      return DeepSeekResponse(text: message['content']);
     } else {
       throw Exception('Failed to get response from DeepSeek: ${response.body}');
     }

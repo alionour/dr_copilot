@@ -17,50 +17,19 @@ class AIContextProvider {
   static String getBaseSystemInstruction(
       {List<String> requiredFields = const []}) {
     String batchingInstructions =
-        '   - If "Name" is missing -> It is STRICTLY REQUIRED. Ask for it.\n';
+        '   - **LOW FRICTION MODE**: The philosophy is to OPEN THE FORM as fast as possible.\n';
 
-    // Convert keys to human-readable format
-    final readableFields = requiredFields.map((field) {
-      switch (field) {
-        case 'patient.age':
-        case 'age': // Legacy
-          return 'Patient Age';
-        case 'patient.gender':
-        case 'gender': // Legacy
-          return 'Patient Gender';
-        case 'patient.phone':
-        case 'phoneNumber': // Legacy
-          return 'Phone Number';
-        case 'patient.address':
-          return 'Address';
-        case 'patient.alt_phone':
-          return 'Alternative Phone';
-        case 'patient.doctor':
-          return 'Treating Doctor';
-        case 'patient.occupation':
-          return 'Occupation';
-        case 'session.type':
-          return 'Session Type';
-        case 'session.doctor':
-          return 'Session Doctor';
-        case 'evaluation.doctor':
-          return 'Evaluation Doctor';
-        default:
-          return field.split('.').last.replaceAll('_', ' ');
-      }
-    }).toList();
-
+    // Ignore strict requirements to allow UI to handle validation
     if (requiredFields.isNotEmpty) {
       batchingInstructions +=
-          '   - USER SETTINGS REQUIRE: ${readableFields.join(', ')}. Ask for them explicitly.\n';
-      batchingInstructions +=
-          '   - Ask for ALL missing key fields (Name + ${readableFields.join(' + ')}) in ONE SINGLE natural language question.\n';
-    } else {
-      batchingInstructions +=
-          '   - If "Age" or "Phone" are missing -> They are HIGHLY RECOMMENDED.\n';
-      batchingInstructions +=
-          '   - Ask for ALL missing important fields (Name + Age + Phone) in ONE SINGLE natural language question.\n';
+          '   - Note: User prefers to capture ${requiredFields.join(', ')}, but DO NOT BLOCK execution to ask for them. Open the form first.\n';
     }
+
+    batchingInstructions +=
+        '   - Do NOT ask for missing details (like Age, Phone, Gender) before calling the function.\n';
+    batchingInstructions +=
+        '   - Even "Name" is optional for opening the tool, but if provided, use it.\n';
+    batchingInstructions += '   - EXECUTE IMMEDIATELY once intent is clear.\n';
 
     // Always append Doctor ID instruction for sessions/evaluations
     batchingInstructions +=
@@ -73,7 +42,7 @@ class AIContextProvider {
     2. CHECK PARAMETERS: Compare user input against the function's parameters.
     3. SMART BATCHING: 
 $batchingInstructions
-       - Example: "I can help with that. Could you provide the patient's name${readableFields.isNotEmpty ? ', ${readableFields.join(', ')}' : ', age, and phone number'}?"
+       - Example: "I can help with that. Opening the form for you now..." (Call the function immediately)
     
     4. NO NAG: If the user provides just the Name and says "Skip the rest" or implies they are done, execute the function immediately. Do not insist on optional fields.
     
@@ -81,6 +50,16 @@ $batchingInstructions
    - PRONOUNS → GENDER: If user says "he is", "his age", or "him" → Extract gender as "male". If user says "she is", "her age", or "her" → Extract gender as "female".
    - AGE INFERENCE: "56 years old", "age 56", "56 y/o" → Extract age as 56.
    - PHONE FORMATS: Accept any format: "5695665265", "569-566-5265", "+1-569-566-5265" → Extract digits only.
+
+    6. PROTOCOL FOR DATA INTEGRITY:
+   - **SPEAKER ≠ SUBJECT**: The user sticking to you (the Speaker) is likely a Doctor/Staff. The entity being modified (Patient/Session) is the Subject.
+   - **NO AUTO-FILL**: Do NOT use the Speaker's attributes (Name, Phone, Email, etc.) to fill Subject fields unless explicitly told (e.g., "Add me as a patient").
+   - **VERIFY AMBIGUITY**: If the Speaker says "Create patient" or "Add phone" without specifying whose, you MUST ASK "What is the patient's name?" or "Whose phone number?".
+   - **Refusal Default**: If data is missing for the target entity, ask for it. Do NOT guess using context from the speaker's introduction.
+   - **Refusal Default**: If data is missing for the target entity, ask for it. Do NOT guess using context from the speaker's introduction.
+   - Example 1 (Ambiguous): User "My name is John. Create patient." -> AI "Sure, what is the patient's name?" (Do NOT auto-fill 'John')
+   - Example 2 (Explicit): User "My name is John. Create patient John." -> AI [Calls add_patient(name: "John")] (Allowed because it was explicit)
+
     
     ❌ BAD INTERACTION:
     User: "Add patient Ali"

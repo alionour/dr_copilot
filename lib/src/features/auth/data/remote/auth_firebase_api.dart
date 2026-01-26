@@ -402,6 +402,8 @@ class AuthFirebaseApi {
 
     final inviteData = inviteDoc.data();
     final clinicId = inviteData?['clinicId'];
+    final roles = inviteData?['roles'] as List<dynamic>?;
+    final permissions = inviteData?['permissions'] as List<dynamic>?;
 
     if (clinicId == null) throw Exception('Invalid invitation data');
 
@@ -409,6 +411,21 @@ class AuthFirebaseApi {
     await inviteRef.update({
       'status': 'accepted',
       'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+    });
+
+    // Create member record in clinics/{clinicId}/members/{userId}
+    await FirebaseFirestore.instance
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('members')
+        .doc(user.uid)
+        .set({
+      'uid': user.uid,
+      'email': user.email,
+      'displayName': user.displayName,
+      'role': (roles?.isNotEmpty == true) ? roles!.first : 'staff',
+      'permissions': permissions ?? [],
+      'joinedAt': FieldValue.serverTimestamp(),
     });
 
     // Update User Doc with primaryClinicId

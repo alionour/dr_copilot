@@ -1161,5 +1161,14 @@
   "copyLink": "Copy Link",
   "revokeLink": "Revoke Link",
   "created": "Created",
-  "lastUsed": "Last Used"
+  "lastUsed": "Last Used",
+  "createClinic": "Create New Clinic",
+  "setUpYourClinic": "Set Up Your Clinic",
+  "enterClinicNameMessage": "Enter a name for your new clinic to get started.",
+  "clinicName": "Clinic Name",
+  "pleaseEnterClinicName": "Please enter a clinic name",
+  "accessSupport": "Access Support",
+  "sendNotificationMessage": "Send Message",
+  "sendNotificationAppointment": "Send Appointment Notification",
+  "sendNotificationReminder": "Send Reminder"
 }

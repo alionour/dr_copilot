@@ -35,4 +35,9 @@ class InvitationUseCases {
       String email) async {
     return await _repository.getInvitationsForEmail(email);
   }
+
+  Future<Either<Failure, void>> rejectInvitation(
+      String invitationId, String email) async {
+    return await _repository.rejectInvitation(invitationId, email);
+  }
 }

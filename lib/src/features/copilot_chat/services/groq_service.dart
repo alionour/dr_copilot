@@ -127,10 +127,13 @@ class GroqService implements AIService {
     });
 
     // Add message history
+    // Add message history
     for (var message in messageHistory) {
       final isUser = message['isUser'] as bool? ?? false;
       final text = message['message'] as String? ?? '';
 
+      // Only include text messages in history to avoid tool validation issues
+      // Groq specifically validates historical tool calls against current tools
       if (text.isNotEmpty) {
         messages.add({'role': isUser ? 'user' : 'assistant', 'content': text});
       }
@@ -160,7 +163,7 @@ class GroqService implements AIService {
           'tools': tools,
           'tool_choice': 'auto', // Let model decide when to use tools
           'parallel_tool_calls':
-              false, // Force sequential, structured tool calls
+              true, // Allow model to use its default parallel structure
           'temperature': 0.7,
           'max_tokens': 4096,
         }),

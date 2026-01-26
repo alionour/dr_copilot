@@ -28,10 +28,30 @@ class RemoteConfigService {
     }
   }
 
-  bool get isSignupEnabled => _remoteConfig.getBool('signup_enabled');
+  bool get isSignupEnabled {
+    try {
+      return _remoteConfig.getBool('signup_enabled');
+    } catch (e) {
+      debugPrint('Error getting signup_enabled: $e');
+      return true; // Default
+    }
+  }
 
-  int get maxAllowedUsers => _remoteConfig.getInt('max_allowed_users');
+  int get maxAllowedUsers {
+    try {
+      return _remoteConfig.getInt('max_allowed_users');
+    } catch (e) {
+      debugPrint('Error getting max_allowed_users: $e');
+      return 1000; // Default
+    }
+  }
 
-  bool get enableSensitiveScopes =>
-      _remoteConfig.getBool('enable_sensitive_scopes');
+  bool get enableSensitiveScopes {
+    try {
+      return _remoteConfig.getBool('enable_sensitive_scopes');
+    } catch (e) {
+      debugPrint('Error getting enable_sensitive_scopes: $e');
+      return false; // Default
+    }
+  }
 }

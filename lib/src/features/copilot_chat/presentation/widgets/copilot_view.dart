@@ -4,6 +4,7 @@ import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/messag
 import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/live_chat_page.dart';
 import 'package:go_router/go_router.dart';
 
 class CopilotView extends StatelessWidget {
@@ -85,6 +86,15 @@ class CopilotView extends StatelessWidget {
             icon: const Icon(Icons.history),
             tooltip: 'Chat History',
             onPressed: onToggleHistory,
+          ),
+          IconButton(
+            icon: const Icon(Icons.graphic_eq),
+            tooltip: 'Live Chat',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LiveChatPage()),
+              );
+            },
           ),
           navMenuButton ?? const SizedBox(),
         ],

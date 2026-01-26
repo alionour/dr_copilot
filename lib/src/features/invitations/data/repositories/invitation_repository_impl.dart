@@ -73,4 +73,15 @@ class InvitationRepositoryImpl implements InvitationRepository {
       return Left(ServerFailure(e.message, e.statusCode));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> rejectInvitation(
+      String invitationId, String email) async {
+    try {
+      await _api.rejectInvitation(invitationId, email);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
+    }
+  }
 }

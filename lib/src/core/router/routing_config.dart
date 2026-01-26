@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/features/auth/presentation/pages/create_clinic_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/signup_page.dart';
 import 'package:dr_copilot/src/features/charts/presentation/bloc/charts_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
@@ -96,9 +97,19 @@ class RoutingConfig {
         builder: (context, state) => const OnboardingChoicePage(),
       ),
       GoRoute(
+        path: '/create-clinic',
+        name: 'create-clinic',
+        builder: (context, state) => const CreateClinicPage(),
+      ),
+      GoRoute(
         path: '/pending-invitations',
         name: 'pending-invitations',
-        builder: (context, state) => const PendingInvitationsPage(),
+        builder: (context, state) {
+          return BlocProvider(
+            create: (context) => sl<InvitationBloc>(),
+            child: const PendingInvitationsPage(),
+          );
+        },
       ),
       ShellRoute(
         builder: (context, state, child) {

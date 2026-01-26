@@ -187,8 +187,12 @@ service cloud.firestore {
     match /user_invitations/{inviteId} {
       // Create/Send
       allow create: if hasPermission(request.resource.data.clinicId, 'sendInvitation');
-      // Revoke/Delete
+      // Revoke/Delete by admin
       allow delete: if hasPermission(resource.data.clinicId, 'revokeInvitation');
+      // Allow invitee to delete (reject) their own invitation
+      allow delete: if isSignedIn() && resource.data.email == request.auth.token.email;
+      // Allow invitee to update (accept) their own invitation
+      allow update: if isSignedIn() && resource.data.email == request.auth.token.email;
       // View/List
       allow read: if hasPermission(resource.data.clinicId, 'viewInvitations');
       // Allow user see their own invites by email
@@ -265,7 +269,10 @@ service cloud.firestore {
        // Messages subcollection
        match /messages/{messageId} {
           allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-          allow read, update, delete: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+          // Read: Check parent (allows list query without where clause)
+          allow read: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+          // Delete/Update: Check resource (safe for batch delete)
+          allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
        }
     }
 
@@ -276,7 +283,7 @@ service cloud.firestore {
        allow update: if hasPermission(resource.data.clinicId, 'manageTeams');
        allow delete: if hasPermission(resource.data.clinicId, 'archiveTeam');
     }
-
+    
     // Direct Messages (UnifiedChatRepository dependency)
     match /direct_messages/{msgId} {
        // logic: 

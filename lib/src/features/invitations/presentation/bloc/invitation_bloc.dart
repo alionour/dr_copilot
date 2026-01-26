@@ -13,6 +13,7 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     on<DeleteInvitation>(_onDeleteInvitation);
     on<ResendInvitation>(_onResendInvitation);
     on<LoadInvitationsForEmail>(_onLoadInvitationsForEmail);
+    on<RejectInvitation>(_onRejectInvitation);
   }
 
   Future<void> _onLoadInvitations(
@@ -88,6 +89,23 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     result.fold(
       (failure) => emit(InvitationError(failure.message)),
       (invitations) => emit(InvitationLoaded(invitations)),
+    );
+  }
+
+  Future<void> _onRejectInvitation(
+    RejectInvitation event,
+    Emitter<InvitationState> emit,
+  ) async {
+    emit(InvitationLoading());
+    final result =
+        await _useCases.rejectInvitation(event.invitationId, event.email);
+    result.fold(
+      (failure) => emit(InvitationError(failure.message)),
+      (_) {
+        emit(const InvitationOperationSuccess(
+            'Invitation rejected successfully'));
+        add(LoadInvitationsForEmail(event.email));
+      },
     );
   }
 }

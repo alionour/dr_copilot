@@ -130,15 +130,37 @@ class PatientActionHandler extends BaseActionHandler {
     final permError = await checkPermission('deletePatient');
     if (permError != null) return permError;
 
-    final String? patientId = args['id'];
+    String? patientId = args['id'];
+    final String? name = args['name'];
 
-    // STRICT CHECK: For deletion, we do NOT auto-resolve names.
-    // The user must provide the exact ID to ensure they are deleting the right person.
-    if (patientId == null || !IdResolver.isValidId(patientId)) {
-      return {
-        'error':
-            '⚠️ Safety Lock: To delete a patient, you must provide their exact System ID (not their name). \n\nPlease ask "Get valid ID for [Name]" first, then use that ID to delete.'
-      };
+    // Resolve ID if Name is provided
+    if ((patientId == null || !IdResolver.isValidId(patientId)) &&
+        (name != null || (patientId != null && patientId.isNotEmpty))) {
+      try {
+        final query = name ?? patientId!;
+        final resolvedId = await IdResolver.resolvePatientId(
+          query,
+          patientsUseCase.repository,
+        );
+        if (resolvedId == null) {
+          return {
+            'error': 'Could not find patient "$query". Please check the name.'
+          };
+        }
+        patientId = resolvedId;
+      } catch (e) {
+        if (e is AmbiguousMatchException) {
+          return {
+            'error':
+                '⚠️ Found ${e.count} patients matching "${e.name}".\n\nPlease provide the **Full Name** (e.g. "John Doe") to ensure we delete the correct person.'
+          };
+        }
+        rethrow;
+      }
+    }
+
+    if (patientId == null) {
+      return {'error': 'Missing ID or Name to delete.'};
     }
 
     final result = await patientsUseCase.deletePatient(patientId);

@@ -45,6 +45,8 @@ import 'package:dr_copilot/src/features/subscription/domain/services/subscriptio
 import 'package:dr_copilot/src/features/subscription/domain/enums/subscription_tier.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 
 class CopilotPage extends StatefulWidget {
   const CopilotPage({super.key, required this.title});
@@ -695,9 +697,17 @@ class _CopilotPageState extends State<CopilotPage> {
                   ),
                 );
               }
+            } else if (state is CopilotFormRequested) {
+              // Only handle form request (show dialog) if this page is currently visible
+              // This prevents duplicate forms when Live Chat is active on top
+              if (ModalRoute.of(context)?.isCurrent == true) {
+                _handleFormRequest(state.formType, state.initialData);
+              }
             } else if (state is CachedMessagesLoaded) {
               setState(() {
-                _messages.addAll(state.messages);
+                // Cache stores in chronological order (Oldest -> Newest)
+                // UI expects reverse order (Newest -> Oldest) because of reverse: true
+                _messages.addAll(state.messages.reversed);
                 if (state.conversationId != null) {
                   _currentConversationId = state.conversationId;
                 }
@@ -967,6 +977,12 @@ class _CopilotPageState extends State<CopilotPage> {
               await _conversationRepo.deleteConversation(conversationId);
               if (mounted) {
                 navigator.pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Chat deleted successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 if (_currentConversationId == conversationId) {
                   _startNewConversation();
                 }
@@ -1531,5 +1547,59 @@ class _CopilotPageState extends State<CopilotPage> {
       debugPrint("Error deleting messages: $e");
       // Optional: Undo local changes or show error
     }
+  }
+
+  void _handleFormRequest(String formType, Map<String, dynamic> initialData) {
+    debugPrint(
+        '[CopilotPage] Handling Form Request: $formType with data: $initialData');
+    if (formType == 'add_patient') {
+      _showPatientForm(initialData);
+    } else if (formType == 'edit_patient') {
+      PatientModel? patient;
+      if (initialData['id'] != null) {
+        patient = PatientModel(
+          id: initialData['id'],
+          name: initialData['name'] ?? '',
+          age: initialData['age'] is int
+              ? initialData['age']
+              : int.tryParse(initialData['age']?.toString() ?? ''),
+          gender: initialData['gender'],
+          address: initialData['address'],
+          phoneNumber: initialData['phoneNumber'],
+          alternativePhoneNumber: initialData['alternativePhoneNumber'],
+          treatingDoctor: initialData['treatingDoctor'],
+          occupation: initialData['occupation'],
+          ownerId: '',
+          clinicId: '',
+          createdAt: Timestamp.now(),
+        );
+      }
+      _showPatientForm(initialData, patient: patient);
+    } else if (formType == 'add_session') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Session Form not yet implemented')),
+      );
+    }
+  }
+
+  void _showPatientForm(Map<String, dynamic> data, {PatientModel? patient}) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: SizedBox(
+          width: 600,
+          height: 700,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: AddPatientPage(
+              initialData: data,
+              patient: patient,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

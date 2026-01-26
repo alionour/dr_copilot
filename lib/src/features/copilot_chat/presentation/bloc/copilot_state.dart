@@ -13,11 +13,12 @@ class CopilotLoading extends CopilotState {}
 
 class CopilotResponseGenerated extends CopilotState {
   final dynamic response;
+  final String? usedModel;
 
-  const CopilotResponseGenerated(this.response);
+  const CopilotResponseGenerated(this.response, {this.usedModel});
 
   @override
-  List<Object> get props => [response];
+  List<Object> get props => [response, usedModel ?? ''];
 }
 
 class CopilotError extends CopilotState {
@@ -41,21 +42,34 @@ class CachedMessagesLoaded extends CopilotState {
 
 class CopilotFunctionCall extends CopilotState {
   final FunctionCall functionCall;
+  final String? usedModel;
 
-  const CopilotFunctionCall(this.functionCall);
+  const CopilotFunctionCall(this.functionCall, {this.usedModel});
 
   @override
-  List<Object> get props => [functionCall];
+  List<Object> get props => [functionCall, usedModel ?? ''];
 }
 
 /// State for Groq function calls
 class CopilotGroqFunctionCall extends CopilotState {
   final GroqFunctionCall functionCall;
+  final String? usedModel;
 
-  const CopilotGroqFunctionCall(this.functionCall);
+  const CopilotGroqFunctionCall(this.functionCall, {this.usedModel});
 
   @override
-  List<Object> get props => [functionCall];
+  List<Object> get props => [functionCall, usedModel ?? ''];
+}
+
+class CopilotFormRequested extends CopilotState {
+  final String formType;
+  final Map<String, dynamic> initialData;
+  final String? usedModel;
+
+  const CopilotFormRequested(this.formType, this.initialData, {this.usedModel});
+
+  @override
+  List<Object> get props => [formType, initialData, usedModel ?? ''];
 }
 
 class NewChatStarted extends CopilotState {}

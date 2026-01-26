@@ -36,6 +36,14 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
   SpeechRecognitionService({required String deepgramApiKey})
       : _deepgramApiKey = deepgramApiKey;
 
+  /// Clears the accumulated transcript buffer.
+  /// Call this between conversation turns to prevent accumulation.
+  void clearAccumulatedTranscript() {
+    _accumulatedTranscript.clear();
+    _lastTranscript = '';
+    debugPrint('[Speech] Cleared accumulated transcript buffer');
+  }
+
   // Method to update language
   void setLanguage(String languageCode) {
     // Map Flutter locale codes to Deepgram language codes
@@ -351,13 +359,26 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
           encoder: AudioEncoder.pcm16bits,
           sampleRate: 16000,
           numChannels: 1,
+          echoCancel: true,
+          noiseSuppress: true,
+          autoGain: true,
         ),
       );
 
       // Send audio data to Deepgram
       _webSocketSubscription = audioStream.listen(
         (audioChunk) {
-          _channel?.sink.add(audioChunk);
+          if (_channel != null && _channel!.sink != null) {
+            try {
+              _channel!.sink.add(audioChunk);
+            } catch (e) {
+              // Ignore closure errors during stop sequence
+              if (!e.toString().contains('closed') &&
+                  !e.toString().contains('Bad state')) {
+                debugPrint('[Speech] process audio chunk error: $e');
+              }
+            }
+          }
           // Log occasionally to verify audio is being sent
           if (DateTime.now().millisecond % 500 == 0) {
             debugPrint(
@@ -366,7 +387,10 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
         },
         onError: (error) {
           debugPrint('[Speech] Audio stream error: $error');
-          _recognitionController?.addError(error);
+          if (_recognitionController != null &&
+              !_recognitionController!.isClosed) {
+            _recognitionController?.addError(error);
+          }
         },
         onDone: () {
           debugPrint('[Speech] Audio stream done');
@@ -442,6 +466,10 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
               }
               result += _lastTranscript;
             }
+            // Add final prefix for LiveChatService
+            if (result.isNotEmpty && !result.startsWith('__FINAL__:')) {
+              return '__FINAL__:$result';
+            }
             return result;
           },
         );
@@ -455,6 +483,10 @@ class SpeechRecognitionService implements AbstractSpeechRecognitionService {
             finalTranscript += ' ';
           }
           finalTranscript += _lastTranscript;
+        }
+        if (finalTranscript.isNotEmpty &&
+            !finalTranscript.startsWith('__FINAL__:')) {
+          finalTranscript = '__FINAL__:$finalTranscript';
         }
       }
 

@@ -13,6 +13,7 @@ class GenerateResponseEvent extends CopilotEvent {
   final String? clinicId;
   final String? userId;
   final bool? forcePremium;
+  final Map<String, dynamic>? activeFormContext;
 
   const GenerateResponseEvent({
     required this.query,
@@ -20,6 +21,7 @@ class GenerateResponseEvent extends CopilotEvent {
     this.clinicId,
     this.userId,
     this.forcePremium,
+    this.activeFormContext,
   });
 
   @override
@@ -29,6 +31,7 @@ class GenerateResponseEvent extends CopilotEvent {
         clinicId ?? '',
         userId ?? '',
         forcePremium ?? false,
+        activeFormContext ?? {},
       ];
 }
 

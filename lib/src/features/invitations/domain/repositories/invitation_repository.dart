@@ -12,4 +12,6 @@ abstract class InvitationRepository {
   Future<Either<Failure, void>> resendInvitation(String invitationId);
   Future<Either<Failure, List<InvitationModel>>> getInvitationsForEmail(
       String email);
+  Future<Either<Failure, void>> rejectInvitation(
+      String invitationId, String email);
 }

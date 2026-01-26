@@ -1,6 +1,7 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
+import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_event.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_state.dart';
@@ -57,7 +58,17 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pending Invitations')),
+      appBar: AppBar(
+        title: const Text('Pending Invitations'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              context.read<AuthBloc>().add(SignOutEvent());
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
       body: BlocBuilder<InvitationBloc, InvitationState>(
         builder: (context, state) {
           if (state is InvitationLoading) {
@@ -66,25 +77,34 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
 
           if (state is InvitationError) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text('Error: ${state.message}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      final user = auth.FirebaseAuth.instance.currentUser;
-                      if (user != null && user.email != null) {
-                        context
-                            .read<InvitationBloc>()
-                            .add(LoadInvitationsForEmail(user.email!));
-                      }
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
+              child: SelectionArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline,
+                        size: 48, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                      child: Text(
+                        'Error: ${state.message}',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        final user = auth.FirebaseAuth.instance.currentUser;
+                        if (user != null && user.email != null) {
+                          context
+                              .read<InvitationBloc>()
+                              .add(LoadInvitationsForEmail(user.email!));
+                        }
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -114,7 +134,7 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
                       ),
                       const SizedBox(height: 32),
                       ElevatedButton(
-                        onPressed: () => context.pop(),
+                        onPressed: () => context.go('/onboarding-choice'),
                         child: const Text('Go Back'),
                       ),
                     ],
@@ -152,9 +172,26 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
                         ),
                       ],
                     ),
-                    trailing: ElevatedButton(
-                      onPressed: () => _acceptInvitation(invite.id),
-                      child: const Text('Accept'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            final user = auth.FirebaseAuth.instance.currentUser;
+                            if (user != null && user.email != null) {
+                              context.read<InvitationBloc>().add(
+                                    RejectInvitation(invite.id, user.email!),
+                                  );
+                            }
+                          },
+                          child: const Text('Reject'),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () => _acceptInvitation(invite.id),
+                          child: const Text('Accept'),
+                        ),
+                      ],
                     ),
                   ),
                 );

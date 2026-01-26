@@ -48,9 +48,8 @@ class NativeSpeechRecognitionService
         debugPrint(
           '[NativeSpeech] All locales: ${locales.map((l) => l.localeId).join(", ")}',
         );
-        final arabicLocales = locales
-            .where((l) => l.localeId.startsWith('ar'))
-            .toList();
+        final arabicLocales =
+            locales.where((l) => l.localeId.startsWith('ar')).toList();
         debugPrint(
           '[NativeSpeech] Arabic locales found: ${arabicLocales.length}',
         );
@@ -159,10 +158,15 @@ class NativeSpeechRecognitionService
           _recognitionController?.add(result.recognizedWords);
 
           if (result.finalResult) {
+            final formattedFinal = '__FINAL__:${result.recognizedWords}';
+            _recognitionController?.add(formattedFinal);
+
             if (_finalTranscriptCompleter != null &&
                 !_finalTranscriptCompleter!.isCompleted) {
               _finalTranscriptCompleter!.complete(result.recognizedWords);
             }
+          } else {
+            _recognitionController?.add(result.recognizedWords);
           }
         },
         localeId: actualLocaleId,
@@ -342,13 +346,13 @@ class NativeSpeechRecognitionService
     return _recognitionController!.stream
         .map<Either<Failure, String>>((text) => Right(text))
         .handleError((error) {
-          return Left(
-            ServerFailure(
-              'Realtime recognition stream error: ${error.toString()}',
-              500,
-            ),
-          );
-        });
+      return Left(
+        ServerFailure(
+          'Realtime recognition stream error: ${error.toString()}',
+          500,
+        ),
+      );
+    });
   }
 
   /// Set the language for speech recognition
@@ -381,5 +385,10 @@ class NativeSpeechRecognitionService
       '[NativeSpeech] Language preference set to: $_currentLanguage (from code: $languageCode)',
     );
   }
-}
 
+  @override
+  void clearAccumulatedTranscript() {
+    _lastTranscript = '';
+    debugPrint('[NativeSpeech] Cleared accumulated transcript');
+  }
+}

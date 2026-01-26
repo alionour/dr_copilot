@@ -168,28 +168,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         : _selectedPerson?.email ?? '';
     final String name = _useManualEntry ? '' : _selectedPerson?.name ?? '';
 
-    // Check if user already exists
-    final authRepo = sl<AbstractAuthRepository>();
-    final failureOrExists = await authRepo.doesUserExist(email);
-
-    bool userExists = false;
-    failureOrExists.fold(
-      (failure) => log('Error checking user existence: $failure'),
-      (exists) => userExists = exists,
-    );
-
-    if (userExists) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('userAlreadyRegistered'.tr()),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-      return;
-    }
-
     final invitation = InvitationModel(
       id: FirebaseFirestore.instance.collection('invitations').doc().id,
       email: email,
