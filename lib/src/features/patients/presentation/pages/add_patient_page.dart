@@ -14,6 +14,8 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
+import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
@@ -51,6 +53,9 @@ class _AddPatientPageState extends State<AddPatientPage> {
 
   String _selectedGender = 'Male';
   String? _selectedClinicId;
+  String? _treatingDoctorId;
+  List<DoctorModel> _doctors = [];
+  bool _isLoadingDoctors = false;
 
   @override
   void initState() {
@@ -63,14 +68,50 @@ class _AddPatientPageState extends State<AddPatientPage> {
       _alternativePhoneNumberController.text =
           widget.patient!.alternativePhoneNumber ?? '';
       _treatingDoctorController.text = widget.patient!.treatingDoctor ?? '';
+      _treatingDoctorId = widget.patient!.treatingDoctorId;
       _occupationController.text = widget.patient!.occupation ?? '';
       _selectedGender = widget.patient!.gender ?? 'Male';
       _selectedClinicId = widget.patient!.clinicId;
     }
+    _loadDoctors();
     // Request focus to the name field when the page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_nameFocusNode);
     });
+  }
+
+  Future<void> _loadDoctors() async {
+    final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+    final clinicId = _selectedClinicId ?? ownerNotifier.clinicId;
+    if (clinicId == null) return;
+
+    setState(() => _isLoadingDoctors = true);
+
+    final result = await sl<DoctorsUseCase>().getDoctors(clinicId: clinicId);
+    result.fold(
+      (failure) => debugPrint('Error loading doctors: $failure'),
+      (doctors) {
+        setState(() {
+          _doctors = doctors;
+          _isLoadingDoctors = false;
+
+          // If scoped staff and exactly one doctor, auto-select
+          if (ownerNotifier.isDoctorScoped &&
+              ownerNotifier.linkedDoctorIds.length == 1 &&
+              widget.patient == null) {
+            final linkedId = ownerNotifier.linkedDoctorIds.first;
+            final doctor = _doctors.cast<DoctorModel?>().firstWhere(
+              (d) => d?.id == linkedId,
+              orElse: () => null,
+            );
+            if (doctor != null) {
+              _treatingDoctorId = doctor.id;
+              _treatingDoctorController.text = doctor.name;
+            }
+          }
+        });
+      },
+    );
   }
 
   // Build method for the UI
@@ -280,17 +321,68 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               },
                             ),
                             const SizedBox(height: 16.0),
-                            TextFormField(
-                              controller: _treatingDoctorController,
-                              focusNode: _treatingDoctorFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'treatingDoctor'.tr(),
-                                border: const OutlineInputBorder(),
-                              ),
-                              onFieldSubmitted: (_) {
-                                FocusScope.of(
-                                  context,
-                                ).requestFocus(_occupationFocusNode);
+                            Consumer<OwnerNotifier>(
+                              builder: (context, ownerNotifier, _) {
+                                if (ownerNotifier.isDoctorScoped) {
+                                  // Scoped staff member
+                                  final linkedDoctorIds =
+                                      ownerNotifier.linkedDoctorIds;
+                                  final filteredDoctors = _doctors
+                                      .where(
+                                        (d) =>
+                                            linkedDoctorIds.isEmpty ||
+                                            linkedDoctorIds.contains(d.id),
+                                      )
+                                      .toList();
+
+                                  return DropdownButtonFormField<String>(
+                                    initialValue: _treatingDoctorId,
+                                    decoration: InputDecoration(
+                                      labelText: 'treatingDoctor'.tr(),
+                                      border: const OutlineInputBorder(),
+                                      hintText: _isLoadingDoctors
+                                          ? 'loadingDoctors'.tr()
+                                          : null,
+                                    ),
+                                    items: filteredDoctors.map((doctor) {
+                                      return DropdownMenuItem<String>(
+                                        value: doctor.id,
+                                        child: Text(doctor.name),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _treatingDoctorId = value;
+                                        final doctor = _doctors.firstWhere(
+                                          (d) => d.id == value,
+                                        );
+                                        _treatingDoctorController.text =
+                                            doctor.name;
+                                      });
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'pleaseSelectDoctor'.tr();
+                                      }
+                                      return null;
+                                    },
+                                  );
+                                } else {
+                                  // Non-scoped user (Doctor, Admin, or staff with viewAllPatients)
+                                  return TextFormField(
+                                    controller: _treatingDoctorController,
+                                    focusNode: _treatingDoctorFocusNode,
+                                    decoration: InputDecoration(
+                                      labelText: 'treatingDoctor'.tr(),
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    onFieldSubmitted: (_) {
+                                      FocusScope.of(
+                                        context,
+                                      ).requestFocus(_occupationFocusNode);
+                                    },
+                                  );
+                                }
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -435,6 +527,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           treatingDoctor: _treatingDoctorController.text.isNotEmpty
               ? _treatingDoctorController.text
               : null,
+          treatingDoctorId: _treatingDoctorId,
           occupation: _occupationController.text.isNotEmpty
               ? _occupationController.text
               : null,

@@ -41,7 +41,10 @@ class RoleDefaults {
 
       case AppRole.staff:
         return [
-          AppPermission.viewAllPatients,
+          AppPermission.viewPatientsByDoctor, // scope applied at runtime
+          AppPermission.managePatientsForDoctor, // create/edit/delete within scope
+          AppPermission.viewMedicalFilesByDoctor,
+          AppPermission.manageMedicalFilesForDoctor,
           AppPermission.createPatient,
           AppPermission.updatePatient,
           AppPermission.viewAllSessions,

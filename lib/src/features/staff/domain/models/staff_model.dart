@@ -3,8 +3,6 @@ import 'package:dr_copilot/src/features/staff/domain/entities/staff.dart';
 
 class StaffModel extends Staff {
   final Map<String, dynamic>? workingHours;
-  final int? appointmentDuration;
-  final double? consultationPrice;
 
   const StaffModel({
     required super.id,
@@ -16,8 +14,6 @@ class StaffModel extends Staff {
     super.createdAt,
     super.updatedAt,
     this.workingHours,
-    this.appointmentDuration,
-    this.consultationPrice,
   });
 
   factory StaffModel.fromDocument(DocumentSnapshot doc) {
@@ -43,8 +39,6 @@ class StaffModel extends Staff {
           ? (json['updatedAt'] as Timestamp).toDate()
           : null,
       workingHours: json['workingHours'] as Map<String, dynamic>?,
-      appointmentDuration: json['appointmentDuration'] as int?,
-      consultationPrice: (json['consultationPrice'] as num?)?.toDouble(),
     );
   }
 
@@ -59,8 +53,6 @@ class StaffModel extends Staff {
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'workingHours': workingHours,
-      'appointmentDuration': appointmentDuration,
-      'consultationPrice': consultationPrice,
     };
   }
 
@@ -75,8 +67,6 @@ class StaffModel extends Staff {
     DateTime? createdAt,
     DateTime? updatedAt,
     Map<String, dynamic>? workingHours,
-    int? appointmentDuration,
-    double? consultationPrice,
   }) {
     return StaffModel(
       id: id ?? this.id,
@@ -88,8 +78,6 @@ class StaffModel extends Staff {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       workingHours: workingHours ?? this.workingHours,
-      appointmentDuration: appointmentDuration ?? this.appointmentDuration,
-      consultationPrice: consultationPrice ?? this.consultationPrice,
     );
   }
 }

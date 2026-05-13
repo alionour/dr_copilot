@@ -25,6 +25,25 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   /// Firebase Authentication instance for user authentication.
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  Query _applyPatientFilter(Query queryRef, User user) {
+    if (OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
+      return queryRef;
+    } else if (OwnerNotifier()
+        .hasPermission(AppPermission.viewPatientsByDoctor)) {
+      final linkedDoctorIds = OwnerNotifier().linkedDoctorIds;
+      if (linkedDoctorIds.isEmpty) {
+        // Staff linked to "All Doctors" - no filter
+        return queryRef;
+      } else {
+        // Staff linked to specific doctors
+        return queryRef.where('treatingDoctorId', whereIn: linkedDoctorIds);
+      }
+    } else {
+      // Fallback to legacy "view own patients" or restrictive access
+      return queryRef.where('createdBy', isEqualTo: user.uid);
+    }
+  }
+
   @override
   Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>>
       getPatients({
@@ -40,10 +59,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
-        }
+        queryRef = _applyPatientFilter(queryRef, user);
 
         if (lastDocumentId != null) {
           final lastDocumentSnapshot =
@@ -187,10 +203,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
-        }
+        queryRef = _applyPatientFilter(queryRef, user);
 
         if (name != null && name.isNotEmpty) {
           queryRef = queryRef
@@ -255,10 +268,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
-        }
+        queryRef = _applyPatientFilter(queryRef, user);
 
         queryRef = queryRef
             .where('createdAt',
@@ -335,10 +345,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query queryRef =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
-        }
+        queryRef = _applyPatientFilter(queryRef, user);
 
         final snapshot =
             await queryRef.orderBy('createdAt', descending: true).get();
@@ -378,10 +385,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         Query query =
             _patientsCollection.where('clinicId', isEqualTo: clinicId);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          query = query.where('createdBy', isEqualTo: user.uid);
-        }
+        query = _applyPatientFilter(query, user);
 
         final snapshot = await query.count().get();
         return Right(snapshot.count ?? 0);
@@ -410,10 +414,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
             .where('clinicId', isEqualTo: clinicId)
             .where('deletedAt', isNull: false);
 
-        // Filter by createdBy if the user does not have permission to view all patients
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
-          queryRef = queryRef.where('createdBy', isEqualTo: user.uid);
-        }
+        queryRef = _applyPatientFilter(queryRef, user);
 
         final snapshot =
             await queryRef.orderBy('deletedAt', descending: true).get();

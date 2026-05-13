@@ -247,6 +247,8 @@
   "nameMustContain": "Name must contain at least 3 words",
   "noCurrencyProfilesYet": "No currency profiles yet",
   "workingHours": "Working Hours",
+  "applyToAll": "Apply to All Days",
+  "appliedToAllDays": "Applied to all days",
   "noData": "No data available",
   "noEvaluations": "No evaluations found.",
   "noEvaluationsMatch": "No evaluations match the applied filters.",
@@ -1157,5 +1159,17 @@
   "copyLink": "Copy Link",
   "revokeLink": "Revoke Link",
   "created": "Created",
-  "lastUsed": "Last Used"
-}
+  "lastUsed": "Last Used",
+  "linkedDoctors": "Linked Doctors",
+  "allDoctors": "All Doctors",
+  "specificDoctors": "Specific Doctors",
+  "doctorAssociation": "Doctor Association",
+  "doctorScopeDescription": "This staff member will only see patients related to the selected doctors",
+  "noDoctorsInClinic": "No doctors found in this clinic",
+  "loadingDoctors": "Loading doctors...",
+  "pleaseSelectDoctor": "Please select a doctor",
+  "viewPatientsByDoctor": "View Patients by Doctor",
+  "managePatientsForDoctor": "Manage Patients for Doctor",
+  "viewMedicalFilesByDoctor": "View Medical Files by Doctor",
+  "manageMedicalFilesForDoctor": "Manage Medical Files for Doctor"
+  }

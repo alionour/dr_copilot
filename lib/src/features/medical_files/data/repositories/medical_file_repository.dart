@@ -23,7 +23,8 @@ class MedicalFileRepository {
     required File file,
     required String patientId,
   }) async {
-    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile)) {
+    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile) &&
+        !OwnerNotifier().hasPermission(AppPermission.manageMedicalFilesForDoctor)) {
       return Left(ServerFailure('Permission denied', 403));
     }
     try {
@@ -58,7 +59,8 @@ class MedicalFileRepository {
   Future<Either<Failure, MedicalFileModel>> addMedicalFile(
     MedicalFileModel medicalFile,
   ) async {
-    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile)) {
+    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile) &&
+        !OwnerNotifier().hasPermission(AppPermission.manageMedicalFilesForDoctor)) {
       return Left(ServerFailure('Permission denied', 403));
     }
     try {
@@ -75,7 +77,8 @@ class MedicalFileRepository {
   Future<Either<Failure, List<MedicalFileModel>>> getMedicalFilesForPatient(
     String patientId,
   ) async {
-    if (!OwnerNotifier().hasPermission(AppPermission.viewMedicalFiles)) {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewMedicalFiles) &&
+        !OwnerNotifier().hasPermission(AppPermission.viewMedicalFilesByDoctor)) {
       return Left(ServerFailure('Permission denied', 403));
     }
     try {
@@ -100,7 +103,8 @@ class MedicalFileRepository {
   Future<Either<Failure, void>> deleteMedicalFile(
     MedicalFileModel medicalFile,
   ) async {
-    if (!OwnerNotifier().hasPermission(AppPermission.deleteMedicalFile)) {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteMedicalFile) &&
+        !OwnerNotifier().hasPermission(AppPermission.manageMedicalFilesForDoctor)) {
       return Left(ServerFailure('Permission denied', 403));
     }
     try {

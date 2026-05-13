@@ -20,11 +20,17 @@ import 'dart:developer';
 
 // Person model to combine staff and doctors for selection
 class PersonOption {
+  final String id;
   final String name;
   final String email;
   final String role;
 
-  PersonOption({required this.name, required this.email, required this.role});
+  PersonOption({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+  });
 }
 
 class CreateInvitationPage extends StatefulWidget {
@@ -47,6 +53,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   AppRole? _selectedRole; // Changed from Set to single AppRole
   final Set<AppPermission> _selectedPermissions = {};
+
+  final List<String> _selectedDoctorIds = [];
+  bool _isAllDoctors = true;
 
   List<PersonOption> _availablePeople = [];
   bool _isLoadingPeople = true;
@@ -99,6 +108,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           uniquePeople.putIfAbsent(
             staffEmail,
             () => PersonOption(
+              id: staff.id,
               name: staff.name,
               email: staffEmail,
               role: staff.role,
@@ -119,6 +129,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           uniquePeople.putIfAbsent(
             doctor.email,
             () => PersonOption(
+              id: doctor.id,
               name: doctor.name,
               email: doctor.email,
               role: 'Doctor',
@@ -197,6 +208,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       invitedBy: widget.currentUserId,
       roles: _selectedRole != null ? [_selectedRole!.name] : [],
       permissions: _selectedPermissions.map((p) => p.name).toList(),
+      linkedDoctorIds: _isAllDoctors ? [] : _selectedDoctorIds,
       status: 'pending',
       createdAt: DateTime.now(),
     );
@@ -343,25 +355,99 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     );
   }
 
-  List<Step> getSteps() => [
+  List<Step> getSteps() {
+    final List<Step> steps = [
+      Step(
+        title: Text('recipient'.tr()),
+        content: _buildEmailSelectionSection(),
+        isActive: _currentStep >= 0,
+        state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: Text('assignRole'.tr()),
+        content: _buildRolesSection(),
+        isActive: _currentStep >= 1,
+        state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+      ),
+    ];
+
+    if (_selectedRole == AppRole.staff) {
+      steps.add(
         Step(
-          title: Text('recipient'.tr()),
-          content: _buildEmailSelectionSection(),
-          isActive: _currentStep >= 0,
-          state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-        ),
-        Step(
-          title: Text('assignRole'.tr()),
-          content: _buildRolesSection(),
-          isActive: _currentStep >= 1,
-          state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-        ),
-        Step(
-          title: Text('review'.tr()),
-          content: _buildReviewSection(),
+          title: Text('doctorAssociation'.tr()),
+          content: _buildDoctorAssociationSection(),
           isActive: _currentStep >= 2,
+          state: _currentStep > 2 ? StepState.complete : StepState.indexed,
         ),
-      ];
+      );
+    }
+
+    steps.add(
+      Step(
+        title: Text('review'.tr()),
+        content: _buildReviewSection(),
+        isActive: _currentStep >= (steps.length),
+      ),
+    );
+
+    return steps;
+  }
+
+  Widget _buildDoctorAssociationSection() {
+    final doctors = _availablePeople.where((p) => p.role == 'Doctor').toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'doctorScopeDescription'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        RadioListTile<bool>(
+          title: Text('allDoctors'.tr()),
+          value: true,
+          groupValue: _isAllDoctors,
+          onChanged: (value) => setState(() => _isAllDoctors = value!),
+        ),
+        RadioListTile<bool>(
+          title: Text('specificDoctors'.tr()),
+          value: false,
+          groupValue: _isAllDoctors,
+          onChanged: (value) => setState(() => _isAllDoctors = value!),
+        ),
+        if (!_isAllDoctors) ...[
+          const SizedBox(height: 16),
+          if (doctors.isEmpty)
+            Text(
+              'noDoctorsInClinic'.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            )
+          else
+            Column(
+              children: doctors.map((doctor) {
+                // Since we don't have UID here easily, we might need to fetch doctors specifically
+                // with their UIDs. Let's re-load doctors with UIDs.
+                return CheckboxListTile(
+                  title: Text(doctor.name),
+                  subtitle: Text(doctor.email),
+                  value: _selectedDoctorIds.contains(doctor.id),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == true) {
+                        _selectedDoctorIds.add(doctor.id);
+                      } else {
+                        _selectedDoctorIds.remove(doctor.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+        ],
+      ],
+    );
+  }
 
   Widget _buildReviewSection() {
     final String email = _useManualEntry
@@ -383,6 +469,18 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
               ? 'noRoleSelected'.tr()
               : _getRoleDisplayName(_selectedRole!),
         ),
+        if (_selectedRole == AppRole.staff) ...[
+          const Divider(height: 24),
+          _buildReviewTile(
+            icon: Icons.people_outline,
+            title: 'linkedDoctors'.tr(),
+            subtitle: _isAllDoctors
+                ? 'allDoctors'.tr()
+                : _selectedDoctorIds.isEmpty
+                    ? 'none'.tr()
+                    : _selectedDoctorIds.join(', '),
+          ),
+        ],
         const Divider(height: 24),
         _buildReviewTile(
           icon: Icons.vpn_key_outlined,
@@ -948,6 +1046,14 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows editing working hours and appointment duration/price.';
       case AppPermission.manageBookingAvailability:
         return 'Allows managing doctor booking availability.';
+      case AppPermission.viewPatientsByDoctor:
+        return 'viewPatientsByDoctor'.tr();
+      case AppPermission.managePatientsForDoctor:
+        return 'managePatientsForDoctor'.tr();
+      case AppPermission.viewMedicalFilesByDoctor:
+        return 'viewMedicalFilesByDoctor'.tr();
+      case AppPermission.manageMedicalFilesForDoctor:
+        return 'manageMedicalFilesForDoctor'.tr();
     }
   }
 }

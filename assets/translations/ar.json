@@ -249,6 +249,9 @@
   "name": "الاسم",
   "nameMustContain": "يجب أن يحتوي الاسم على 3 كلمات على الأقل",
   "noCurrencyProfilesYet": "لا توجد ملفات تعريف عملة بعد",
+  "workingHours": "ساعات العمل",
+  "applyToAll": "تطبيق على الكل",
+  "appliedToAllDays": "تم التطبيق على جميع الأيام",
   "noEvaluations": "لم يتم العثور على تقييمات.",
   "noEvaluationsMatch": "لا توجد تقييمات تطابق الفلاتر المطبقة.",
   "noMessages": "لا توجد رسائل متاحة، ابدأ محادثة",
@@ -1108,5 +1111,17 @@
   "copyLink": "نسخ الرابط",
   "revokeLink": "إلغاء الرابط",
   "created": "تم الإنشاء",
-  "lastUsed": "آخر استخدام"
-}
+  "lastUsed": "آخر استخدام",
+  "linkedDoctors": "الأطباء المرتبطون",
+  "allDoctors": "كل الأطباء",
+  "specificDoctors": "أطباء محددون",
+  "doctorAssociation": "ربط الأطباء",
+  "doctorScopeDescription": "سيرى هذا الموظف فقط المرضى المتعلقين بالأطباء المختارين",
+  "noDoctorsInClinic": "لم يتم العثور على أطباء في هذه العيادة",
+  "loadingDoctors": "جاري تحميل الأطباء...",
+  "pleaseSelectDoctor": "يرجى اختيار طبيب",
+  "viewPatientsByDoctor": "عرض المرضى حسب الطبيب",
+  "managePatientsForDoctor": "إدارة المرضى حسب الطبيب",
+  "viewMedicalFilesByDoctor": "عرض الملفات الطبية حسب الطبيب",
+  "manageMedicalFilesForDoctor": "إدارة الملفات الطبية حسب الطبيب"
+  }

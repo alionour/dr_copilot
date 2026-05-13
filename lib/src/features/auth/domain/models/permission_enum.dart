@@ -238,4 +238,17 @@ enum AppPermission {
 
   /// Enable or disable booking availability for doctors.
   manageBookingAvailability,
+
+  // --- DOCTOR-SCOPED ACCESS ---
+  /// View patients scoped to linked doctors only.
+  viewPatientsByDoctor,
+
+  /// Create, edit, or delete patients for linked doctors.
+  managePatientsForDoctor,
+
+  /// View medical files for patients of linked doctors.
+  viewMedicalFilesByDoctor,
+
+  /// Add, edit, or delete medical files for patients of linked doctors.
+  manageMedicalFilesForDoctor,
 }

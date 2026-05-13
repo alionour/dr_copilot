@@ -21,6 +21,15 @@ class OwnerNotifier with ChangeNotifier {
   AppRole? _role;
   AppRole? get role => _role;
 
+  List<String> _linkedDoctorIds = [];
+  List<String> get linkedDoctorIds => _linkedDoctorIds;
+
+  bool get isDoctorScoped =>
+      _role == AppRole.staff &&
+      (_linkedDoctorIds.isNotEmpty ||
+          (hasPermission(AppPermission.viewPatientsByDoctor) &&
+              !hasPermission(AppPermission.viewAllPatients)));
+
   List<ClinicModel> _clinics = [];
   List<ClinicModel> get clinics => _clinics;
 
@@ -133,6 +142,17 @@ class OwnerNotifier with ChangeNotifier {
                 orElse: () => AppRole.readonly,
               );
               debugPrint('[OwnerNotifier] Loaded role: $_role');
+            }
+
+            // Parse linkedDoctorIds
+            if (memberData?['linkedDoctorIds'] != null) {
+              _linkedDoctorIds =
+                  List<String>.from(memberData!['linkedDoctorIds']);
+              debugPrint(
+                '[OwnerNotifier] Loaded linkedDoctorIds: $_linkedDoctorIds',
+              );
+            } else {
+              _linkedDoctorIds = [];
             }
 
             // Trigger PermissionService to cache permissions
