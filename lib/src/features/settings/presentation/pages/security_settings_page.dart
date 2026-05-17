@@ -52,7 +52,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('verificationFailed'.tr())));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text('verificationFailed'.tr()))));
         }
         return;
       }
@@ -95,7 +95,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(reason),
+                                  content: SelectionArea(child: Text(reason)),
                                   duration: const Duration(seconds: 5),
                                 ),
                               );

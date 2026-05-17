@@ -37,7 +37,8 @@ class RoleDefaults {
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
           AppPermission.viewDepartments,
-          AppPermission.viewTeams,
+          // Doctors can create teams; they see their own teams by default without viewTeams.
+          AppPermission.createTeam,
         ];
 
       case AppRole.staff:
@@ -46,13 +47,17 @@ class RoleDefaults {
           AppPermission.createPatient,
           AppPermission.updatePatient,
           AppPermission.viewSessions,
+          AppPermission.createEvaluation,
+          AppPermission.viewEvaluations,
+          AppPermission.viewDoctors,
           AppPermission.viewCalendar,
           AppPermission.addCalendarEvent,
           AppPermission.viewNotifications,
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
           AppPermission.viewDepartments,
-          AppPermission.viewTeams,
+          // Staff can create teams; they see their own teams by default without viewTeams.
+          AppPermission.createTeam,
         ];
 
       case AppRole.financial:

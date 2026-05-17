@@ -338,8 +338,8 @@ class _CopilotPageState extends State<CopilotPage> {
                     'SnackBar Info: Error message copied to clipboard.',
                   ); // Log to console
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Error message copied to clipboard.'),
+                    SnackBar(
+                      content: SelectionArea(child: Text('Error message copied to clipboard.')),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -651,7 +651,7 @@ class _CopilotPageState extends State<CopilotPage> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('AI Error: ${state.error}'),
+                    content: SelectionArea(child: Text('AI Error: ${state.error}')),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 10),
                     action: _lastQuery != null
@@ -788,9 +788,9 @@ class _CopilotPageState extends State<CopilotPage> {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
-                                            content: Text(
+                                            content: SelectionArea(child: Text(
                                               'Error starting speech recognition: ${failure.message}',
-                                            ),
+                                            )),
                                             backgroundColor: Colors.red,
                                           ),
                                         );
@@ -965,7 +965,7 @@ class _CopilotPageState extends State<CopilotPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Chat'),
-        content: const Text('Are you sure you want to delete this chat?'),
+        content: SelectionArea(child: const Text('Are you sure you want to delete this chat?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -978,8 +978,8 @@ class _CopilotPageState extends State<CopilotPage> {
               if (mounted) {
                 navigator.pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Chat deleted successfully'),
+                  SnackBar(
+                    content: SelectionArea(child: Text('Chat deleted successfully')),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -1481,9 +1481,9 @@ class _CopilotPageState extends State<CopilotPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Message'),
-        content: const Text(
+        content: SelectionArea(child: const Text(
           'Editing this message will remove it and any subsequent response, allowing you to edit and resend. Continue?',
-        ),
+        )),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1577,7 +1577,7 @@ class _CopilotPageState extends State<CopilotPage> {
       _showPatientForm(initialData, patient: patient);
     } else if (formType == 'add_session') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Session Form not yet implemented')),
+        SnackBar(content: SelectionArea(child: Text('Session Form not yet implemented'))),
       );
     }
   }

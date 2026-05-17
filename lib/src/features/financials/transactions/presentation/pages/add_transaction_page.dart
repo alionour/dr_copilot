@@ -104,7 +104,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message.tr())),
+      SnackBar(content: SelectionArea(child: Text(message.tr()))),
     );
   }
 

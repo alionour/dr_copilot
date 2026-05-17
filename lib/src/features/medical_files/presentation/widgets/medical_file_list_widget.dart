@@ -20,11 +20,11 @@ class MedicalFileListWidget extends StatelessWidget {
         if (state is MedicalFileOperationSuccess) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
         } else if (state is MedicalFileError) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
         }
       },
       builder: (context, state) {
@@ -209,7 +209,7 @@ class MedicalFileListWidget extends StatelessWidget {
   }
 
   Widget _buildOptionsMenu(BuildContext context, MedicalFileModel file) {
-    final canEdit = OwnerNotifier().hasPermission(AppPermission.editMedicalFile);
+    final canEdit = OwnerNotifier().hasPermission(AppPermission.updateMedicalFile);
     final canDelete = OwnerNotifier().hasPermission(AppPermission.deleteMedicalFile);
 
     if (!canEdit && !canDelete) return const SizedBox.shrink();
@@ -263,7 +263,7 @@ class MedicalFileListWidget extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: Text('delete'.tr()),
-          content: Text('Are you sure you want to delete this medical file?'),
+          content: SelectionArea(child: Text('Are you sure you want to delete this medical file?')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),

@@ -16,7 +16,23 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
   @override
   Future<Either<Failure, void>> createTeam(CustomTeamModel team) async {
     try {
-      await _teamsCollection.doc(team.id).set(team.toJson());
+      await _firestore.runTransaction((transaction) async {
+        // Set the team document
+        transaction.set(_teamsCollection.doc(team.id), team.toJson());
+
+        // Set the corresponding team conversation document to match
+        final conversationRef = _firestore.collection('team_conversations').doc(team.id);
+        transaction.set(conversationRef, {
+          'clinicId': team.clinicId,
+          'participantIds': team.memberIds,
+          'createdAt': Timestamp.fromDate(team.createdAt),
+          'updatedAt': Timestamp.fromDate(team.createdAt),
+          'metadata': {
+            'teamId': team.id,
+            'teamName': team.name,
+          },
+        });
+      });
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));
@@ -26,7 +42,26 @@ class CustomTeamsRepositoryImpl implements AbstractCustomTeamsRepository {
   @override
   Future<Either<Failure, void>> updateTeam(CustomTeamModel team) async {
     try {
-      await _teamsCollection.doc(team.id).update(team.toJson());
+      await _firestore.runTransaction((transaction) async {
+        // Update the team document
+        transaction.update(_teamsCollection.doc(team.id), team.toJson());
+
+        // Update/merge the corresponding team conversation document
+        final conversationRef = _firestore.collection('team_conversations').doc(team.id);
+        transaction.set(
+          conversationRef,
+          {
+            'clinicId': team.clinicId,
+            'participantIds': team.memberIds,
+            'updatedAt': Timestamp.fromDate(DateTime.now()),
+            'metadata': {
+              'teamId': team.id,
+              'teamName': team.name,
+            },
+          },
+          SetOptions(merge: true),
+        );
+      });
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString(), 500));

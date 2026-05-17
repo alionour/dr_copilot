@@ -16,11 +16,11 @@ class MedicationListWidget extends StatelessWidget {
         if (state is MedicationOperationSuccess) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
         } else if (state is MedicationError) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
         }
       },
       builder: (context, state) {

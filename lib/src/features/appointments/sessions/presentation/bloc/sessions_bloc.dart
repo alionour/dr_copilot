@@ -452,9 +452,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           debugPrint('Failed to fetch sessions: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: SelectionArea(child: Text(
                 'Failed to fetch sessions: ${failure.message}'.tr(),
-              ),
+              )),
             ),
           );
         },
@@ -568,7 +568,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Processed all sessions successfully!'.tr()),
+              content: SelectionArea(child: Text('Processed all sessions successfully!'.tr())),
             ),
           );
         },
@@ -578,7 +578,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to process sessions'.tr())),
+        SnackBar(content: SelectionArea(child: Text('Failed to process sessions'.tr()))),
       );
     }
   }
@@ -600,9 +600,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           debugPrint('Failed to fetch sessions: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: SelectionArea(child: Text(
                 'Failed to fetch sessions: ${failure.message}'.tr(),
-              ),
+              )),
             ),
           );
         },
@@ -716,7 +716,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Processed all sessions successfully!'.tr()),
+              content: SelectionArea(child: Text('Processed all sessions successfully!'.tr())),
             ),
           );
         },
@@ -726,7 +726,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to process sessions'.tr())),
+        SnackBar(content: SelectionArea(child: Text('Failed to process sessions'.tr()))),
       );
     }
   }

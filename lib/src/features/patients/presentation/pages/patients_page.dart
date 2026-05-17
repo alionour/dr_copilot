@@ -76,11 +76,11 @@ class _PatientsPageState extends State<PatientsPage> {
       setState(() {
         _departments = deptResult.fold(
           (f) => [],
-          (list) => list.map((d) => {'id': d.id, 'name': d.name}).toList(),
+          (list) => list.map((d) => <String, dynamic>{'id': d.id, 'name': d.name}).toList(),
         );
         _teams = teamResult.fold(
           (f) => [],
-          (list) => list.map((t) => {'id': t.id, 'name': t.name}).toList(),
+          (list) => list.map((t) => <String, dynamic>{'id': t.id, 'name': t.name}).toList(),
         );
       });
     } catch (e) {
@@ -789,7 +789,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                   Text(
                                     _departments.firstWhere(
                                       (d) => d['id'] == _selectedDepartmentId,
-                                      orElse: () => {'name': ''},
+                                      orElse: () => <String, dynamic>{'name': ''},
                                     )['name'],
                                     style: const TextStyle(fontSize: 12),
                                   ),
@@ -846,7 +846,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                   Text(
                                     _teams.firstWhere(
                                       (t) => t['id'] == _selectedTeamId,
-                                      orElse: () => {'name': ''},
+                                      orElse: () => <String, dynamic>{'name': ''},
                                     )['name'],
                                     style: const TextStyle(fontSize: 12),
                                   ),
@@ -919,13 +919,13 @@ class _PatientsPageState extends State<PatientsPage> {
                       if (message != null) {
                         ScaffoldMessenger.of(
                           context,
-                        ).showSnackBar(SnackBar(content: Text(message)));
+                        ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                       }
                     } else if (state is PatientsError) {
                       final message = state.message;
                       ScaffoldMessenger.of(
                         context,
-                      ).showSnackBar(SnackBar(content: Text(message)));
+                      ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                     }
                     if (state is PatientsCountLoaded) {
                       setState(() {

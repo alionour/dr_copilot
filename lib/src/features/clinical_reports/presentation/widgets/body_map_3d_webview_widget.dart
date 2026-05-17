@@ -295,7 +295,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
     // Show toast/snackbar to inform user
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Added "$landmarkLabel" - Click model to position'),
+        content: SelectionArea(child: Text('Added "$landmarkLabel" - Click model to position')),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
@@ -492,8 +492,8 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
-                                              content: Text(
-                                                  "Failed to switch mode: $e"),
+                                              content: SelectionArea(child: Text(
+                                                  "Failed to switch mode: $e")),
                                               backgroundColor: Colors.red,
                                             ),
                                           );

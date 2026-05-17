@@ -83,9 +83,9 @@ class _BodyMap3DFlutterWidgetState extends State<BodyMap3DFlutterWidget> {
               ElevatedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Tap 3D model to place marker (not yet implemented)'),
+                    SnackBar(
+                      content: SelectionArea(child: Text(
+                          'Tap 3D model to place marker (not yet implemented)')),
                     ),
                   );
                 },

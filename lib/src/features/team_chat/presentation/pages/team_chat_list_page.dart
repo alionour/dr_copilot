@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/injections.dart';
-import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import '../bloc/team_chat_list_bloc.dart';
 import '../../data/models/team_conversation_model.dart';
 
@@ -14,11 +14,8 @@ class TeamChatListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-
-    // Get provider and auth state
-    final authState = context.read<AuthBloc>().state;
-    final userModel = authState is AuthSignedIn ? authState.user : null;
-    final clinicId = userModel?.primaryClinicId;
+    final ownerNotifier = context.watch<OwnerNotifier>();
+    final clinicId = ownerNotifier.clinicId;
 
     if (currentUser == null || clinicId == null) {
       return const Scaffold(

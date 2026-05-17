@@ -283,9 +283,9 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
+                content: SelectionArea(child: Text(
                   'notificationSentToUsers'.tr(args: [state.count.toString()]),
-                ),
+                )),
                 backgroundColor: Colors.green,
               ),
             );
@@ -296,7 +296,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: SelectionArea(child: Text(state.message)),
                 backgroundColor: Colors.red,
               ),
             );

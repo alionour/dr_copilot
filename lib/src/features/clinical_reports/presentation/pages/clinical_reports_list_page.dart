@@ -212,7 +212,7 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('openFileOptions'.tr()),
-          content: Text('howWouldYouLikeToOpenThisFile'.tr()),
+          content: SelectionArea(child: Text('howWouldYouLikeToOpenThisFile'.tr())),
           actions: <Widget>[
             TextButton(
               child: Text('openInApp'.tr()),
@@ -234,7 +234,7 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
                 } else {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('couldNotLaunch'.tr(args: [url]))),
+                    SnackBar(content: SelectionArea(child: Text('couldNotLaunch'.tr(args: [url])))),
                   );
                 }
               },

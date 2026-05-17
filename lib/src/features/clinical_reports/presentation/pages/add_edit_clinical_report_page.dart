@@ -79,9 +79,9 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Finalize Report'),
-        content: const Text(
+        content: SelectionArea(child: const Text(
           'Are you sure you want to finalize this report? This action is irreversible. The report will be saved as read-only and you will not be able to edit it again.',
-        ),
+        )),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -136,11 +136,11 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         if (state is AddEditClinicalReportSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: SelectionArea(child: Text(
                 widget.reportId == null
                     ? 'clinicalReportAddedSuccessfully'.tr()
                     : 'clinicalReportUpdatedSuccessfully'.tr(),
-              ),
+              )),
             ),
           );
           context.pop();
@@ -148,7 +148,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
         if (state is AddEditClinicalReportError) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${state.message}')));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Error: ${state.message}'))));
         }
       },
       child: DefaultTabController(

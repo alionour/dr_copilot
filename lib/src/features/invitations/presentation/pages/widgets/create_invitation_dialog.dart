@@ -171,7 +171,7 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
     if (_formKey.currentState!.validate()) {
       if (_selectedRoles.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('select_at_least_one_role'.tr())),
+          SnackBar(content: SelectionArea(child: Text('select_at_least_one_role'.tr()))),
         );
         return;
       }

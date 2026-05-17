@@ -27,14 +27,14 @@ class _DataStorageSettingsPageState extends State<DataStorageSettingsPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: const Text('appCacheCleared').tr()));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('appCacheCleared').tr())));
       }
     } catch (e) {
       debugPrint('Error clearing cache: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error clearing cache: $e')));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Error clearing cache: $e'))));
       }
     }
   }

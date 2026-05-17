@@ -331,11 +331,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   if (state is TransactionsSuccess) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text(state.message)));
+                    ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
                   } else if (state is TransactionsError) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text(state.message)));
+                    ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
                   } else if (state is TransactionsCountLoaded) {
                     setState(() {
                       _firestoreTransactionsCount = state.count;
@@ -627,7 +627,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
       builder: (context) {
         return AlertDialog(
           title: Text('deleteTransaction'.tr()),
-          content: Text('deleteTransactionConfirmation'.tr()),
+          content: SelectionArea(child: Text('deleteTransactionConfirmation'.tr())),
           actions: [
             TextButton(
               onPressed: () => context.pop(),

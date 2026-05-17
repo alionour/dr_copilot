@@ -33,14 +33,14 @@ class _ClinicalReportDetailsPageState extends State<ClinicalReportDetailsPage> {
           if (state is ClinicalReportDetailsLoaded) {
             if (state.exportStatus == 'success' && state.exportUrl != null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('exportSuccess'.tr())),
+                SnackBar(content: SelectionArea(child: Text('exportSuccess'.tr()))),
               );
               // Open the exported Google Doc
               context.push('/webview?title=Google Doc&url=${state.exportUrl}');
             } else if (state.exportStatus == 'error' &&
                 state.exportError != null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: ${state.exportError}')),
+                SnackBar(content: SelectionArea(child: Text('Error: ${state.exportError}'))),
               );
             }
           }

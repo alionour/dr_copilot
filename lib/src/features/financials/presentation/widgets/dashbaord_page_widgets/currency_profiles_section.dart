@@ -142,14 +142,14 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                         if (state is FinancialsSuccess) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(state.message)),
+                            SnackBar(content: SelectionArea(child: Text(state.message))),
                           );
                           context.read<FinancialsBloc>().add(
                             FetchCurrencyProfiles(),
                           );
                         } else if (state is FinancialsError) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(state.message)),
+                            SnackBar(content: SelectionArea(child: Text(state.message))),
                           );
                         }
                       },
@@ -163,9 +163,9 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(
+                                    content: SelectionArea(child: Text(
                                       'Profile for $selectedCurrency already exists!',
-                                    ),
+                                    )),
                                   ),
                                 );
                                 return;

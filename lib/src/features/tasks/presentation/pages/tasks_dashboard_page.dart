@@ -102,7 +102,7 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
             if (state is TasksError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Error: ${state.message}'),
+                  content: SelectionArea(child: Text('Error: ${state.message}')),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 10),
                   action: SnackBarAction(
@@ -112,7 +112,7 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
                       Clipboard.setData(ClipboardData(text: state.message));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Error copied to clipboard'),
+                          content: SelectionArea(child: Text('Error copied to clipboard')),
                           duration: Duration(seconds: 2),
                         ),
                       );

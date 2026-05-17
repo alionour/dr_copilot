@@ -39,7 +39,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('couldNotLaunch'.tr(args: [widget.url])),
+                    content: SelectionArea(child: Text('couldNotLaunch'.tr(args: [widget.url]))),
                   ),
                 );
               }

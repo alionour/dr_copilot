@@ -136,8 +136,13 @@ class AuthFirebaseApi {
     }
 
     // Check dynamic user count limit
-    final userCountQuery = await _usersCollection.count().get();
-    final currentCount = userCountQuery.count ?? 0;
+    int currentCount = 0;
+    try {
+      final userCountQuery = await _usersCollection.count().get();
+      currentCount = userCountQuery.count ?? 0;
+    } catch (e) {
+      debugPrint('Error getting user count during Email sign-up: $e');
+    }
     if (currentCount >= remoteConfig.maxAllowedUsers) {
       throw Exception(
           'Beta user limit (${remoteConfig.maxAllowedUsers}) reached. Please join the waitlist.');
@@ -223,8 +228,13 @@ class AuthFirebaseApi {
         }
 
         // Check dynamic user count limit
-        final userCountQuery = await _usersCollection.count().get();
-        final currentCount = userCountQuery.count ?? 0;
+        int currentCount = 0;
+        try {
+          final userCountQuery = await _usersCollection.count().get();
+          currentCount = userCountQuery.count ?? 0;
+        } catch (e) {
+          debugPrint('Error getting user count during Google sign-in: $e');
+        }
         if (currentCount >= remoteConfig.maxAllowedUsers) {
           await user.delete();
           throw Exception(
@@ -432,10 +442,42 @@ class AuthFirebaseApi {
     for (final invite in invitations.docs) {
       final inviteData = invite.data() as Map<String, dynamic>?;
       final invitedClinicId = inviteData?['clinicId'] as String?;
+      final invitedClinicName = inviteData?['clinicName'] as String? ?? 'Clinic';
+      final invitedRoles = List<String>.from(inviteData?['roles'] ?? []);
+      final invitedRoleStr = invitedRoles.isNotEmpty ? invitedRoles.first : 'doctor';
 
       firstClinicId ??= invitedClinicId;
 
-      if (invitedClinicId != null) allClinicIds.add(invitedClinicId);
+      if (invitedClinicId != null) {
+        allClinicIds.add(invitedClinicId);
+
+        // Resolve role and default permissions
+        final role = AppRole.values.firstWhere(
+          (r) => r.name.toLowerCase() == invitedRoleStr.toLowerCase(),
+          orElse: () => AppRole.doctor,
+        );
+        final defaultPermissions = RoleDefaults.getPermissionsForRole(role);
+        final defaultPermStrings = defaultPermissions.map((p) => p.name).toList();
+
+        // Retrieve scope associations from invitation document
+        final linkedDoctorIds = List<String>.from(inviteData?['linkedDoctorIds'] ?? []);
+        final departmentIds = List<String>.from(inviteData?['departmentIds'] ?? []);
+        final teamIds = List<String>.from(inviteData?['teamIds'] ?? []);
+
+        // Create the Member record in the Single Source of Truth
+        final clinicRef = FirebaseFirestore.instance.collection('clinics').doc(invitedClinicId);
+        await clinicRef.collection('members').doc(user.uid).set({
+          'uid': user.uid,
+          'email': user.email,
+          'displayName': user.displayName,
+          'role': role.name,
+          'permissions': defaultPermStrings,
+          'linkedDoctorIds': linkedDoctorIds,
+          'departmentIds': departmentIds,
+          'teamIds': teamIds,
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       await invite.reference.update({
         'status': 'accepted',
@@ -769,6 +811,114 @@ class AuthFirebaseApi {
       debugPrint('Error checking user existence: $e');
       throw Exception('Failed to check user existence');
     }
+  }
+
+  /// Manually creates a new clinic for the currently authenticated user.
+  Future<void> createClinicForUser(String clinicName) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user is currently signed in.');
+
+    final clinicsCollection = FirebaseFirestore.instance.collection('clinics');
+    final newClinicRef = clinicsCollection.doc();
+
+    // Create clinic with owner
+    await newClinicRef.set({
+      'ownerId': user.uid,
+      'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
+      'name': clinicName,
+      'adminEmail': user.email,
+    });
+
+    final primaryClinicId = newClinicRef.id;
+
+    // Update user document
+    final userDocRef = _usersCollection.doc(user.uid);
+    await userDocRef.update({
+      'primaryClinicId': primaryClinicId,
+      'clinics': FieldValue.arrayUnion([
+        {
+          'clinicId': primaryClinicId,
+          'clinicName': clinicName,
+          'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+        }
+      ]),
+    });
+
+    // Create the Member record in the Single Source of Truth
+    final defaultPermissions = RoleDefaults.getPermissionsForRole(AppRole.admin);
+    final defaultPermStrings = defaultPermissions.map((p) => p.name).toList();
+
+    await newClinicRef.collection('members').doc(user.uid).set({
+      'uid': user.uid,
+      'email': user.email,
+      'displayName': user.displayName,
+      'role': 'admin',
+      'permissions': defaultPermStrings,
+      'joinedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Manually accepts a pending invitation for the currently authenticated user.
+  Future<void> acceptInvitationForUser(String invitationId) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user is currently signed in.');
+
+    final inviteRef = _userInvitations.doc(invitationId);
+    final inviteDoc = await inviteRef.get();
+    if (!inviteDoc.exists) throw Exception('Invitation not found.');
+
+    final inviteData = inviteDoc.data() as Map<String, dynamic>?;
+    final invitedClinicId = inviteData?['clinicId'] as String?;
+    final invitedClinicName = inviteData?['clinicName'] as String? ?? 'Clinic';
+    final invitedRoles = List<String>.from(inviteData?['roles'] ?? []);
+    final invitedRoleStr = invitedRoles.isNotEmpty ? invitedRoles.first : 'doctor';
+
+    if (invitedClinicId == null) throw Exception('Invalid clinic ID in invitation.');
+
+    // Update invitation status
+    await inviteRef.update({
+      'status': 'accepted',
+      'acceptedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+    });
+
+    // Update user document
+    final userDocRef = _usersCollection.doc(user.uid);
+    await userDocRef.update({
+      'primaryClinicId': invitedClinicId,
+      'clinics': FieldValue.arrayUnion([
+        {
+          'clinicId': invitedClinicId,
+          'clinicName': invitedClinicName,
+          'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+        }
+      ]),
+    });
+
+    // Create the Member record based on role and scopes from invitation!
+    final role = AppRole.values.firstWhere(
+      (r) => r.name.toLowerCase() == invitedRoleStr.toLowerCase(),
+      orElse: () => AppRole.doctor,
+    );
+    final defaultPermissions = RoleDefaults.getPermissionsForRole(role);
+    final defaultPermStrings = defaultPermissions.map((p) => p.name).toList();
+
+    // Retrieve scope associations from invitation document
+    final linkedDoctorIds = List<String>.from(inviteData?['linkedDoctorIds'] ?? []);
+    final departmentIds = List<String>.from(inviteData?['departmentIds'] ?? []);
+    final teamIds = List<String>.from(inviteData?['teamIds'] ?? []);
+
+    final clinicRef = FirebaseFirestore.instance.collection('clinics').doc(invitedClinicId);
+    await clinicRef.collection('members').doc(user.uid).set({
+      'uid': user.uid,
+      'email': user.email,
+      'displayName': user.displayName,
+      'role': role.name,
+      'permissions': defaultPermStrings,
+      'linkedDoctorIds': linkedDoctorIds,
+      'departmentIds': departmentIds,
+      'teamIds': teamIds,
+      'joinedAt': FieldValue.serverTimestamp(),
+    });
   }
 }
 

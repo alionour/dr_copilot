@@ -39,7 +39,7 @@ class _CreateClinicPageState extends State<CreateClinicPage> {
       (failure) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
+          SnackBar(content: SelectionArea(child: Text(failure.message))),
         );
       },
       (_) async {

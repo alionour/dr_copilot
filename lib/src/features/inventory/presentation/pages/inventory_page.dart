@@ -270,7 +270,7 @@ class _InventoryPageState extends State<InventoryPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('deleteItem').tr(),
-        content: const Text('deleteItemConfirmation').tr(),
+        content: SelectionArea(child: Text('deleteItemConfirmation').tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),

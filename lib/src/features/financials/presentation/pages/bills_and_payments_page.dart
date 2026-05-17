@@ -26,11 +26,11 @@ class BillsAndPaymentsPage extends StatelessWidget {
         if (state is FinancialsSuccess) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
         } else if (state is FinancialsError) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
         }
       },
       builder: (context, state) {
@@ -167,9 +167,9 @@ class _BillCard extends StatelessWidget {
                         context: context,
                         builder: (context) => AlertDialog(
                           title: Text('confirm'.tr()),
-                          content: Text(
+                          content: SelectionArea(child: Text(
                             '${'doYouWantPayThisBill'.tr()}: ${bill.title}؟',
-                          ),
+                          )),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),

@@ -45,8 +45,8 @@ class _MessageBubbleState extends State<MessageBubble> {
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Message copied to clipboard'),
+      SnackBar(
+        content: SelectionArea(child: Text('Message copied to clipboard')),
         duration: Duration(seconds: 2),
       ),
     );

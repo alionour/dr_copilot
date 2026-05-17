@@ -167,7 +167,7 @@ class _ExportDataBodyState extends State<_ExportDataBody> {
         if (state is ExportFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('exportError'.tr(args: [state.error])),
+              content: SelectionArea(child: Text('exportError'.tr(args: [state.error]))),
               backgroundColor: Theme.of(context).colorScheme.error,
               duration: const Duration(seconds: 5),
             ),

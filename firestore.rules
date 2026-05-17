@@ -77,6 +77,8 @@ service cloud.firestore {
         allow read: if isClinicMember(clinicId);
         // Only admins/owners with manageStaff permission can write members
         allow write: if hasPermission(clinicId, 'manageStaff');
+        // Allow a user to join the clinic by creating their own member document
+        allow create: if isSignedIn() && memberId == request.auth.uid;
       }
 
       
@@ -124,7 +126,7 @@ service cloud.firestore {
       
        // Patients (subcollection style if used)
       match /patients/{patientId} {
-        allow read: if hasPermission(clinicId, 'viewAllPatients') || hasPermission(clinicId, 'viewOwnPatients');
+        allow read: if hasPermission(clinicId, 'viewPatients') || hasPermission(clinicId, 'viewAllPatients') || hasPermission(clinicId, 'viewOwnPatients');
         allow create: if hasPermission(clinicId, 'createPatient');
         allow update: if hasPermission(clinicId, 'updatePatient');
         allow delete: if hasPermission(clinicId, 'deletePatient');
@@ -133,7 +135,7 @@ service cloud.firestore {
 
     // Global Patients (Root Collection)
     match /patients/{patientId} {
-      allow read: if hasPermission(resource.data.clinicId, 'viewAllPatients') || hasPermission(resource.data.clinicId, 'viewOwnPatients');
+      allow read: if hasPermission(resource.data.clinicId, 'viewPatients') || hasPermission(resource.data.clinicId, 'viewAllPatients') || hasPermission(resource.data.clinicId, 'viewOwnPatients');
       allow create: if hasPermission(request.resource.data.clinicId, 'createPatient');
       allow update: if hasPermission(resource.data.clinicId, 'updatePatient');
       allow delete: if hasPermission(resource.data.clinicId, 'deletePatient');
@@ -146,8 +148,8 @@ service cloud.firestore {
     // Assuming structure: /medical_files/{fileId} with clinicId field.
     match /medical_files/{fileId} {
       allow read: if hasPermission(resource.data.clinicId, 'viewMedicalFiles');
-      allow create: if hasPermission(request.resource.data.clinicId, 'addMedicalFile');
-      allow update: if hasPermission(resource.data.clinicId, 'editMedicalFile');
+      allow create: if hasPermission(request.resource.data.clinicId, 'createMedicalFile') || hasPermission(request.resource.data.clinicId, 'addMedicalFile');
+      allow update: if hasPermission(resource.data.clinicId, 'updateMedicalFile') || hasPermission(resource.data.clinicId, 'editMedicalFile');
       allow delete: if hasPermission(resource.data.clinicId, 'deleteMedicalFile');
     }
 
@@ -182,8 +184,8 @@ service cloud.firestore {
     // Clinical Reports
     match /clinical_reports/{reportId} {
       allow read: if hasPermission(resource.data.clinicId, 'viewClinicalReports');
-      allow create: if hasPermission(request.resource.data.clinicId, 'addClinicalReport');
-      allow update: if hasPermission(resource.data.clinicId, 'editClinicalReport');
+      allow create: if hasPermission(request.resource.data.clinicId, 'createClinicalReport') || hasPermission(request.resource.data.clinicId, 'addClinicalReport');
+      allow update: if hasPermission(resource.data.clinicId, 'updateClinicalReport') || hasPermission(resource.data.clinicId, 'editClinicalReport');
       allow delete: if hasPermission(resource.data.clinicId, 'deleteClinicalReport');
     }
 
@@ -250,16 +252,16 @@ service cloud.firestore {
 
     // Evaluation/Sessions (Standard)
     match /sessions/{sessionId} {
-       allow read: if hasPermission(resource.data.clinicId, 'viewAllSessions');
+       allow read: if hasPermission(resource.data.clinicId, 'viewSessions') || hasPermission(resource.data.clinicId, 'viewAllSessions');
        allow create: if hasPermission(request.resource.data.clinicId, 'createSession');
-       allow update: if hasPermission(resource.data.clinicId, 'createSession');
-       allow delete: if hasPermission(resource.data.clinicId, 'createSession');
+       allow update: if hasPermission(resource.data.clinicId, 'updateSession') || hasPermission(resource.data.clinicId, 'createSession');
+       allow delete: if hasPermission(resource.data.clinicId, 'deleteSession') || hasPermission(resource.data.clinicId, 'createSession');
     }
     match /evaluations/{evalId} {
-       allow read: if hasPermission(resource.data.clinicId, 'viewAllEvaluations');
+       allow read: if hasPermission(resource.data.clinicId, 'viewEvaluations') || hasPermission(resource.data.clinicId, 'viewAllEvaluations');
        allow create: if hasPermission(request.resource.data.clinicId, 'createEvaluation');
-       allow update: if hasPermission(resource.data.clinicId, 'createEvaluation');
-       allow delete: if hasPermission(resource.data.clinicId, 'createEvaluation');
+       allow update: if hasPermission(resource.data.clinicId, 'updateEvaluation') || hasPermission(request.resource.data.clinicId, 'createEvaluation');
+       allow delete: if hasPermission(resource.data.clinicId, 'deleteEvaluation') || hasPermission(resource.data.clinicId, 'createEvaluation');
     }
 
     // Specific fallback for Recycle Bin? 

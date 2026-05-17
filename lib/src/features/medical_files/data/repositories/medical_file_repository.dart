@@ -72,6 +72,23 @@ class MedicalFileRepository {
     }
   }
 
+  Future<Either<Failure, MedicalFileModel>> updateMedicalFile(
+    MedicalFileModel medicalFile,
+  ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.updateMedicalFile)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
+    try {
+      await _firestore
+          .collection('medical_files')
+          .doc(medicalFile.id)
+          .update(medicalFile.toJson());
+      return Right(medicalFile);
+    } catch (e) {
+      return Left(ServerFailure(e.toString(), 500));
+    }
+  }
+
   Future<Either<Failure, List<MedicalFileModel>>> getMedicalFilesForPatient(
     String patientId,
   ) async {

@@ -65,7 +65,7 @@ class _DictationButtonState extends State<DictationButton>
         (failure) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('dictationError'.tr())),
+              SnackBar(content: SelectionArea(child: Text('dictationError'.tr()))),
             );
           }
         },
@@ -89,7 +89,7 @@ class _DictationButtonState extends State<DictationButton>
         (failure) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(failure.message)),
+              SnackBar(content: SelectionArea(child: Text(failure.message))),
             );
           }
         },
@@ -100,7 +100,7 @@ class _DictationButtonState extends State<DictationButton>
             (failure) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('dictationError'.tr())),
+                  SnackBar(content: SelectionArea(child: Text('dictationError'.tr()))),
                 );
               }
             },

@@ -35,7 +35,7 @@ class UserSelectionPage extends StatelessWidget {
           } else if (state is UserDiscoveryError) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
           }
         },
         child: Scaffold(

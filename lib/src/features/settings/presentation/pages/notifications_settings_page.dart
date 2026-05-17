@@ -81,7 +81,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         debugPrint('Error updating notification setting: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving setting: $e')),
+            SnackBar(content: SelectionArea(child: Text('Error saving setting: $e'))),
           );
         }
       }

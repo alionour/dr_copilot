@@ -1,4 +1,6 @@
+import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/core/services/backend_service.dart';
+import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // Added import for GoRouter
@@ -35,6 +37,7 @@ class _SignupPageState extends State<SignupPage> {
       TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -58,40 +61,48 @@ class _SignupPageState extends State<SignupPage> {
       final password = _passwordController.text;
       final name = _nameController.text.trim();
 
-      // --- 1. Sign up user with Firebase (example, actual implementation might vary) ---
-      // This part would typically interact with your Auth UseCase/Bloc
-      // For demonstration, we'll simulate a signup here or directly use the AuthBloc if available
       log(
         'Attempting signup for email: $email, name: $name, password: $password',
       );
-      try {
-        // Assume AuthBloc has a SignUp event
-        // context.read<AuthBloc>().add(SignUpWithEmailAndPassword(email: email, password: password, name: name));
-        // For now, we'll directly call sign-in logic from AuthBloc after the backend accepts.
-        // The actual Firebase user creation should happen as part of authBloc.add(SignUpEvent)
-        // If the user already has an account, they should sign in, not sign up.
-        // This flow assumes they are new.
+      setState(() {
+        _isLoading = true;
+      });
 
-        // --- 2. Accept Invitation via Backend ---
+      try {
+        // --- 1. Sign up user with Firebase via AuthUseCase ---
+        final signupResult = await sl<AuthUseCase>().signUpWithEmailAndPassword(email, password);
+
+        String? signedInUserId;
+        await signupResult.fold(
+          (failure) async {
+            throw Exception(failure.message);
+          },
+          (userModel) async {
+            signedInUserId = userModel?.uid;
+            log('Firebase user created successfully with UID: $signedInUserId');
+          },
+        );
+
+        if (signedInUserId == null) {
+          throw Exception('Failed to retrieve user ID after registration.');
+        }
+
+        // --- 2. Update display name in user profile ---
+        final updateProfileResult = await sl<AuthUseCase>().updateProfile(displayName: name);
+        updateProfileResult.fold(
+          (failure) => log('Warning: Failed to set display name: ${failure.message}'),
+          (_) => log('Display name updated to: $name'),
+        );
+
+        // --- 3. Accept Invitation via Backend ---
         if (widget.invitationToken != null && widget.clinicId != null) {
           log(
             'Processing invitation acceptance with token: ${widget.invitationToken}',
           );
-          // Temporarily get current user ID. In a real app, this would come from AuthBloc/Firebase Auth after signup.
-          // For now, we'll use a placeholder.
-          // You need to get the actual Firebase User ID of the newly registered user.
-          // After successful signup via AuthBloc, the AuthBloc state would contain the userId.
-          // For now, let's assume a placeholder userId or you might have a direct signup method in AuthUseCase.
-
-          // --- IMPORTANT: Replace with actual signed-in user ID ---
-          // This is a placeholder. You need to get the user ID of the user
-          // who successfully signed up/logged in.
-          final String signedInUserId =
-              'temp-firebase-user-id'; // <--- THIS NEEDS TO BE REPLACED WITH ACTUAL USER ID AFTER SIGNUP
 
           final acceptResult = await BackendService.acceptInvitation(
             token: widget.invitationToken!,
-            userId: signedInUserId,
+            userId: signedInUserId!,
           );
 
           if (!mounted) return; // Fix for use_build_context_synchronously
@@ -102,14 +113,14 @@ class _SignupPageState extends State<SignupPage> {
             );
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
+                content: SelectionArea(child: Text(
                   'invitationAccepted'.tr(
                     args: [widget.clinicName ?? 'your clinic'],
                   ),
-                ),
+                )),
               ),
             );
-            // Optionally redirect to home or dashboard after successful signup and acceptance
+            // Navigate to home after successful acceptance
             context.go('/home'); // Using context.go from GoRouter
           } else {
             log(
@@ -117,11 +128,11 @@ class _SignupPageState extends State<SignupPage> {
             );
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
+                content: SelectionArea(child: Text(
                   'invitationAcceptanceFailed'.tr(
                     args: [acceptResult['error']],
                   ),
-                ),
+                )),
               ),
             );
           }
@@ -129,15 +140,23 @@ class _SignupPageState extends State<SignupPage> {
           // Regular signup flow if no invitation token
           log('Performing regular signup for $email.');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('regularSignupSuccessful'.tr())),
+            SnackBar(content: SelectionArea(child: Text('regularSignupSuccessful'.tr()))),
           );
           context.go('/home'); // Using context.go from GoRouter
         }
       } catch (e) {
         log('Error during signup/invitation acceptance for $email: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('signupFailed'.tr(args: [e.toString()]))),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: SelectionArea(child: Text('signupFailed'.tr(args: [e.toString()])))),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -291,22 +310,31 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 32),
                       FilledButton(
-                        onPressed: _handleSignup,
+                        onPressed: _isLoading ? null : _handleSignup,
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                          widget.invitationToken != null
-                              ? 'acceptInvitationAndCreateAccount'.tr()
-                              : 'createAccount'.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                widget.invitationToken != null
+                                    ? 'acceptInvitationAndCreateAccount'.tr()
+                                    : 'createAccount'.tr(),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 16),
                       TextButton(

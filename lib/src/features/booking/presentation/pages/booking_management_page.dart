@@ -64,13 +64,13 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('bookingApproved'.tr())),
+          SnackBar(content: SelectionArea(child: Text('bookingApproved'.tr()))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: SelectionArea(child: Text('Error: $e'))),
         );
       }
     }
@@ -85,13 +85,13 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('bookingRejected'.tr())),
+          SnackBar(content: SelectionArea(child: Text('bookingRejected'.tr()))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: SelectionArea(child: Text('Error: $e'))),
         );
       }
     }

@@ -45,7 +45,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('pleaseSignInFirst'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('pleaseSignInFirst'.tr()))));
         setState(() {
           _isLoading = false;
         });
@@ -72,14 +72,14 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Payment page opened. Please verify payment in the app when done.')),
+          SnackBar(
+              content: SelectionArea(child: Text(
+                  'Payment page opened. Please verify payment in the app when done.'))),
         );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('couldNotLaunchPaymentUrl'.tr())),
+          SnackBar(content: SelectionArea(child: Text('couldNotLaunchPaymentUrl'.tr()))),
         );
       }
 
@@ -96,7 +96,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: SelectionArea(child: Text(errorMessage)),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 5),
         ),
@@ -235,9 +235,9 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                           : () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
+                                  content: SelectionArea(child: Text(
                                     'To downgrade, please manage your subscription in settings.',
-                                  ),
+                                  )),
                                 ),
                               );
                             }),

@@ -101,7 +101,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         (failure) {
           debugPrint('Failed to fetch currency profiles: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+            SnackBar(content: SelectionArea(child: Text('failedToFetchCurrencyProfiles'.tr()))),
           );
         },
         (profiles) {
@@ -116,7 +116,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       debugPrint('Error in _fetchCurrencyProfiles: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+        SnackBar(content: SelectionArea(child: Text('failedToFetchCurrencyProfiles'.tr()))),
       );
     }
     if (_currencyProfiles.isNotEmpty) {
@@ -246,16 +246,16 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       if (_selectedPatient == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('pleaseSelectPatient'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('pleaseSelectPatient'.tr()))));
         return;
       }
 
       if (_selectedCurrencyProfile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
+            content: SelectionArea(child: Text(
               'Please select a currency profile before adding a evaluation.',
-            ),
+            )),
           ),
         );
         return;
@@ -264,7 +264,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Please select a clinic.')));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Please select a clinic.'))));
         return;
       }
 
@@ -285,7 +285,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
 
       if (_selectedInvoiceStatus == null && widget.evaluation == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select an invoice status.')),
+          SnackBar(content: SelectionArea(child: Text('Please select an invoice status.'))),
         );
         return;
       }
@@ -331,7 +331,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('upgradeRequired'.tr()),
-        content: Text(message),
+        content: SelectionArea(child: Text(message)),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
@@ -381,13 +381,13 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               } else if (state is PatientsError) {
                 final message = state.message;
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(SnackBar(content: Text(message)));
+                ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
               }
             },
           ),
@@ -398,14 +398,14 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               } else if (state is EvaluationsError) {
                 final message = state.message;
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               }
             },
@@ -434,7 +434,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               }
             },

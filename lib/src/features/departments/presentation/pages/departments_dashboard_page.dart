@@ -5,8 +5,6 @@ import 'package:dr_copilot/src/features/departments/presentation/bloc/department
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_event.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_state.dart';
 import 'package:dr_copilot/src/features/departments/presentation/pages/create_edit_department_page.dart';
-import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
@@ -27,10 +25,10 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
   }
 
   void _loadDepartments() {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthSignedIn && authState.user?.primaryClinicId != null) {
+    final clinicId = context.read<OwnerNotifier>().clinicId;
+    if (clinicId != null) {
       context.read<DepartmentsBloc>().add(
-            LoadDepartmentsEvent(authState.user!.primaryClinicId!),
+            LoadDepartmentsEvent(clinicId),
           );
     }
   }
@@ -47,7 +45,7 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
           if (state is DepartmentOperationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: SelectionArea(child: Text(state.message)),
                 backgroundColor: Colors.green,
               ),
             );
@@ -55,7 +53,7 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
           } else if (state is DepartmentsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: SelectionArea(child: Text(state.message)),
                 backgroundColor: Colors.red,
               ),
             );
@@ -177,7 +175,7 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('deleteDepartment'.tr()),
-        content: Text('deleteDepartmentConfirm'.tr(namedArgs: {'name': name})),
+        content: SelectionArea(child: Text('deleteDepartmentConfirm'.tr(namedArgs: {'name': name}))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -185,9 +183,9 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
           ),
           TextButton(
             onPressed: () {
-              final authState = context.read<AuthBloc>().state;
-              if (authState is AuthSignedIn && authState.user?.primaryClinicId != null) {
-                departmentsBloc.add(DeleteDepartmentEvent(id, authState.user!.primaryClinicId!));
+              final clinicId = context.read<OwnerNotifier>().clinicId;
+              if (clinicId != null) {
+                departmentsBloc.add(DeleteDepartmentEvent(id, clinicId));
               }
               Navigator.pop(dialogContext);
             },

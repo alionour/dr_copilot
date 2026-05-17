@@ -68,7 +68,7 @@ class _PatientBookingRequestPageState extends State<PatientBookingRequestPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('pleaseSelectDateAndTime'.tr())),
+        SnackBar(content: SelectionArea(child: Text('pleaseSelectDateAndTime'.tr()))),
       );
       return;
     }
@@ -106,13 +106,13 @@ class _PatientBookingRequestPageState extends State<PatientBookingRequestPage> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('bookingRequestSubmitted'.tr())),
+          SnackBar(content: SelectionArea(child: Text('bookingRequestSubmitted'.tr()))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('errorSubmittingBooking'.tr())),
+          SnackBar(content: SelectionArea(child: Text('errorSubmittingBooking'.tr()))),
         );
       }
     } finally {

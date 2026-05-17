@@ -61,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message ?? 'Unexpected error occurred'),
+              content: SelectionArea(child: Text(state.message ?? 'Unexpected error occurred')),
               backgroundColor: Colors.red,
             ),
           );

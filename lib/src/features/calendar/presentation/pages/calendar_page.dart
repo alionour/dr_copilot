@@ -138,7 +138,7 @@ class _CalendarPageState extends State<CalendarPage> {
           if (state is CalendarEventsError) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
           }
         },
         builder: (context, state) {

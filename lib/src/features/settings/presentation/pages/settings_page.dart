@@ -30,7 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
             defaultTargetPlatform != TargetPlatform.linux &&
             defaultTargetPlatform != TargetPlatform.macOS)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Not supported on this platform')),
+        SnackBar(content: SelectionArea(child: Text('Not supported on this platform'))),
       );
       return;
     }
@@ -51,7 +51,7 @@ class _SettingsPageState extends State<SettingsPage> {
       debugPrint('Error opening window: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening window: $e')),
+          SnackBar(content: SelectionArea(child: Text('Error opening window: $e'))),
         );
       }
     }

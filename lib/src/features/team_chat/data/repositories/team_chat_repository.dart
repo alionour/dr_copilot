@@ -140,7 +140,6 @@ class TeamChatRepository {
 
   /// Mark messages as read by user
   Future<void> markMessagesAsRead(String conversationId, String userId) async {
-    // Allow this to fail silently or log error, not critical
     try {
       final messagesSnapshot = await _firestore
           .collection('team_conversations')
@@ -150,15 +149,113 @@ class TeamChatRepository {
           .get();
 
       if (messagesSnapshot.docs.isEmpty) return;
-
-      // Actually Firestore doesn't support "not-contains".
-      // simpler: just read last 20 messages and update if needed?
-      // Optimized approach: update a "lastReadTimestamp" map on the conversation document instead of every message.
-      // But for now, adhering to the model: don't do complex batched writes here to avoid cost/complexity.
-      // We will skip this implementation for the MVP to keep it simple,
-      // or implement a simpler "update conversation metadata" method.
     } catch (e) {
       // ignore
     }
   }
+
+  // ── Mute / Unmute ────────────────────────────────────────────────────────
+
+  /// Mute this conversation for [userId]. Their UID is added to `mutedBy`.
+  Future<void> muteConversation(String conversationId, String userId) async {
+    await _firestore
+        .collection('team_conversations')
+        .doc(conversationId)
+        .update({
+      'mutedBy': FieldValue.arrayUnion([userId]),
+    });
+  }
+
+  /// Unmute this conversation for [userId].
+  Future<void> unmuteConversation(String conversationId, String userId) async {
+    await _firestore
+        .collection('team_conversations')
+        .doc(conversationId)
+        .update({
+      'mutedBy': FieldValue.arrayRemove([userId]),
+    });
+  }
+
+  // ── Pin / Unpin ──────────────────────────────────────────────────────────
+
+  /// Pin a message by adding its ID to `pinnedMessageIds` on the conversation.
+  Future<void> pinMessage(String conversationId, String messageId) async {
+    await _firestore
+        .collection('team_conversations')
+        .doc(conversationId)
+        .update({
+      'pinnedMessageIds': FieldValue.arrayUnion([messageId]),
+    });
+  }
+
+  /// Unpin a message.
+  Future<void> unpinMessage(String conversationId, String messageId) async {
+    await _firestore
+        .collection('team_conversations')
+        .doc(conversationId)
+        .update({
+      'pinnedMessageIds': FieldValue.arrayRemove([messageId]),
+    });
+  }
+
+  /// Fetch full [TeamMessageModel] objects for all pinned message IDs.
+  Future<List<TeamMessageModel>> getPinnedMessages(
+      String conversationId) async {
+    final doc = await _firestore
+        .collection('team_conversations')
+        .doc(conversationId)
+        .get();
+    final data = doc.data();
+    final pinnedIds = List<String>.from(data?['pinnedMessageIds'] ?? []);
+    if (pinnedIds.isEmpty) return [];
+
+    final messages = <TeamMessageModel>[];
+    for (final id in pinnedIds) {
+      final msgDoc = await _firestore
+          .collection('team_conversations')
+          .doc(conversationId)
+          .collection('messages')
+          .doc(id)
+          .get();
+      if (msgDoc.exists) messages.add(TeamMessageModel.fromFirestore(msgDoc));
+    }
+    return messages;
+  }
+
+  // ── Leave Team ───────────────────────────────────────────────────────────
+
+  /// Remove [userId] from the team's `memberIds` and the conversation's
+  /// `participantIds` in a single atomic batch write.
+  Future<void> leaveTeam(String teamId, String userId) async {
+    final batch = _firestore.batch();
+
+    final teamRef = _firestore.collection('custom_teams').doc(teamId);
+    batch.update(teamRef, {
+      'memberIds': FieldValue.arrayRemove([userId]),
+    });
+
+    final conversationRef =
+        _firestore.collection('team_conversations').doc(teamId);
+    batch.update(conversationRef, {
+      'participantIds': FieldValue.arrayRemove([userId]),
+    });
+
+    await batch.commit();
+  }
+  // ── Team Admin ──────────────────────────────────────────────────
+
+  /// Promote [userId] to team admin by adding them to `adminIds`.
+  Future<void> promoteToAdmin(String teamId, String userId) async {
+    await _firestore.collection('custom_teams').doc(teamId).update({
+      'adminIds': FieldValue.arrayUnion([userId]),
+    });
+  }
+
+  /// Demote [userId] from team admin by removing them from `adminIds`.
+  Future<void> demoteFromAdmin(String teamId, String userId) async {
+    await _firestore.collection('custom_teams').doc(teamId).update({
+      'adminIds': FieldValue.arrayRemove([userId]),
+    });
+  }
 }
+

@@ -106,9 +106,9 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
+          content: SelectionArea(child: Text(
             'Upgrade to $requiredPlan to use ${_availableModels[model]}',
-          ),
+          )),
           action: SnackBarAction(
             label: 'Upgrade',
             onPressed: () => context.push('/settings/subscription'),

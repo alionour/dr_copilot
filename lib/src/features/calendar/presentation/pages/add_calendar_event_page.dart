@@ -136,7 +136,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
       if (endDateTime.isBefore(startDateTime)) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('endTimeAfterStartTime'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('endTimeAfterStartTime'.tr()))));
         return;
       }
 

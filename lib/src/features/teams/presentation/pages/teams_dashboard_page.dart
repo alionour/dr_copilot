@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_event.dart
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_state.dart';
 import 'package:dr_copilot/src/features/teams/presentation/pages/create_edit_team_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
@@ -40,10 +41,10 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
   }
 
   void _loadTeams() {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthSignedIn && authState.user?.primaryClinicId != null) {
+    final clinicId = context.read<OwnerNotifier>().clinicId;
+    if (clinicId != null) {
       context.read<TeamsBloc>().add(
-            LoadTeamsEvent(clinicId: authState.user!.primaryClinicId!),
+            LoadTeamsEvent(clinicId: clinicId),
           );
     }
   }
@@ -60,7 +61,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
           if (state is TeamOperationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: SelectionArea(child: Text(state.message)),
                 backgroundColor: Colors.green,
               ),
             );
@@ -68,7 +69,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
           } else if (state is TeamsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: SelectionArea(child: Text(state.message)),
                 backgroundColor: Colors.red,
               ),
             );
@@ -125,60 +126,73 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                           onPressed: () => _startTeamChat(context, team),
                           tooltip: 'startChat'.tr(),
                         ),
-                        PopupMenuButton(
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.edit_outlined),
-                                  const SizedBox(width: 8),
-                                  Text('edit'.tr()),
-                                ],
-                              ),
-                            ),
-                            if (OwnerNotifier().hasPermission(
-                              AppPermission.archiveTeam,
-                            ))
-                              PopupMenuItem(
-                                value: 'archive',
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.archive_outlined,
-                                      color: Colors.orange,
+                        Builder(
+                          builder: (context) {
+                            final currentUserId = auth.FirebaseAuth.instance.currentUser?.uid;
+                            final canEdit = OwnerNotifier().hasPermission(AppPermission.manageTeams) ||
+                                            team.ownerId == currentUserId;
+                            final canArchive = OwnerNotifier().hasPermission(AppPermission.archiveTeam) ||
+                                               team.ownerId == currentUserId;
+
+                            if (!canEdit && !canArchive) {
+                              return const SizedBox();
+                            }
+
+                            return PopupMenuButton(
+                              itemBuilder: (context) => [
+                                if (canEdit)
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.edit_outlined),
+                                        const SizedBox(width: 8),
+                                        Text('edit'.tr()),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'archiveTeam'.tr(),
-                                      style: const TextStyle(
-                                        color: Colors.orange,
+                                  ),
+                                if (canArchive)
+                                  PopupMenuItem(
+                                    value: 'archive',
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.archive_outlined,
+                                          color: Colors.orange,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'archiveTeam'.tr(),
+                                          style: const TextStyle(
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                              onSelected: (value) async {
+                                if (value == 'edit') {
+                                  final teamsBloc = context.read<TeamsBloc>();
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BlocProvider.value(
+                                        value: teamsBloc,
+                                        child: CreateEditTeamPage(team: team),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                          onSelected: (value) async {
-                            if (value == 'edit') {
-                              final teamsBloc = context.read<TeamsBloc>();
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BlocProvider.value(
-                                    value: teamsBloc,
-                                    child: CreateEditTeamPage(team: team),
-                                  ),
-                                ),
-                              );
+                                  );
 
-                              // Reload teams if a team was updated
-                              if (result == true) {
-                                _loadTeams();
-                              }
-                            } else if (value == 'archive') {
-                              _showArchiveConfirmation(team.id, team.name);
-                            }
+                                  // Reload teams if a team was updated
+                                  if (result == true) {
+                                    _loadTeams();
+                                  }
+                                } else if (value == 'archive') {
+                                  _showArchiveConfirmation(team.id, team.name);
+                                }
+                              },
+                            );
                           },
                         ),
                       ],
@@ -225,9 +239,9 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('archiveTeam'.tr()),
-        content: Text(
+        content: SelectionArea(child: Text(
           'archiveTeamConfirm'.tr(namedArgs: {'teamName': teamName}),
-        ),
+        )),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -254,81 +268,56 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       }
 
       final firestore = FirebaseFirestore.instance;
+      final currentUserId = authState.user!.uid;
 
-      // Try to find existing conversation for this team
-      // IMPORTANT: Must filter by clinicId first to satisfy Firestore security rules
-      final existingConversations = await firestore
-          .collection('team_conversations')
-          .where('clinicId', isEqualTo: team.clinicId)
-          .where('metadata.teamId', isEqualTo: team.id)
-          .limit(1)
-          .get();
+      // 1. Check if user has access to view/open this chat.
+      //    Any of these permissions grants access (permission-centric, not role-centric):
+      //      - isMember:          direct team member → full access (read + write)
+      //      - viewTeams:         global team visibility → read-only chat if not member
+      //      - manageTeams:       team management → read-only chat if not member
+      //      - viewTeamMessages:  explicit message-read grant → read-only chat if not member
+      final isMember = team.memberIds.contains(currentUserId);
+      final hasGlobalAccess =
+          OwnerNotifier().hasPermission(AppPermission.viewTeams) ||
+          OwnerNotifier().hasPermission(AppPermission.manageTeams) ||
+          OwnerNotifier().hasPermission(AppPermission.viewTeamMessages);
 
-      String conversationId;
+      if (!isMember && !hasGlobalAccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: SelectionArea(child: Text('Only team members can view this chat.')),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
 
-      if (existingConversations.docs.isNotEmpty) {
-        // Use existing conversation
-        final doc = existingConversations.docs.first;
-        conversationId = doc.id;
+      // 2. Ensure team_conversation document exists with team.id as the document ID
+      final conversationRef = firestore.collection('team_conversations').doc(team.id);
+      final conversationDoc = await conversationRef.get();
 
-        // Ensure current user is in participantIds
-        final data = doc.data();
-        final List<dynamic> participants = data['participantIds'] ?? [];
-        final currentUserId = authState.user!.uid;
-
-        debugPrint('--- DEBUG PERMISSION ---');
-        debugPrint('Current User ID: $currentUserId');
-        debugPrint('Doc ID: $conversationId');
-        debugPrint('Participants in Doc: $participants');
-        debugPrint(
-            'Is User in Participants? ${participants.contains(currentUserId)}');
-        debugPrint('------------------------');
-
-        if (!participants.contains(currentUserId)) {
-          // Add user to participants
-          final updatedParticipants = List<String>.from(participants)
-            ..add(currentUserId);
-          try {
-            await firestore
-                .collection('team_conversations')
-                .doc(conversationId)
-                .update({'participantIds': updatedParticipants});
-          } catch (e) {
-            debugPrint('Error updating participants: $e');
-            // Consider showing error to user or proceeding hoping for the best
-          }
-        }
-      } else {
-        // Create new conversation
-        conversationId = firestore.collection('team_conversations').doc().id;
-
-        final currentUserId = authState.user!.uid;
-        final participantIds = List<String>.from(team.memberIds);
-        if (!participantIds.contains(currentUserId)) {
-          participantIds.add(currentUserId);
-        }
-
-        await firestore
-            .collection('team_conversations')
-            .doc(conversationId)
-            .set({
+      if (!conversationDoc.exists) {
+        await conversationRef.set({
           'clinicId': team.clinicId,
-          'participantIds': participantIds,
+          'participantIds': List<String>.from(team.memberIds),
           'createdAt': Timestamp.now(),
           'updatedAt': Timestamp.now(),
-          'metadata': {'teamId': team.id, 'teamName': team.name},
+          'metadata': {
+            'teamId': team.id,
+            'teamName': team.name,
+          },
         });
       }
 
       if (context.mounted) {
         // Navigate to the chat page
-        context.push('/team_chat/$conversationId');
+        context.push('/team_chat/${team.id}');
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: SelectionArea(child: Text('Error: $e')),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 5),
           ),

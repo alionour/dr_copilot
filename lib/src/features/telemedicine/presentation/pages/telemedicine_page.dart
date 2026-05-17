@@ -23,7 +23,7 @@ class TelemedicinePage extends StatelessWidget {
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('couldNotLaunchMeeting'.tr())),
+          SnackBar(content: SelectionArea(child: Text('couldNotLaunchMeeting'.tr()))),
         );
       }
     }
@@ -81,7 +81,7 @@ class TelemedicinePage extends StatelessWidget {
                 onPressed: () {
                   // Copy meeting link to clipboard
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('meetingLinkCopied'.tr())),
+                    SnackBar(content: SelectionArea(child: Text('meetingLinkCopied'.tr()))),
                   );
                 },
                 icon: const Icon(Icons.copy),

@@ -129,14 +129,14 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         debugPrint('SnackBar Error: ${'selectClinic'.tr()}');
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('selectClinic'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('selectClinic'.tr()))));
         return;
       }
       if (_selectedRole == null || _selectedRole!.isEmpty) {
         debugPrint('SnackBar Error: ${'pleaseSelectRole'.tr()}');
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('pleaseSelectRole'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('pleaseSelectRole'.tr()))));
         return;
       }
 
@@ -170,7 +170,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('appliedToAllDays'.tr())),
+      SnackBar(content: SelectionArea(child: Text('appliedToAllDays'.tr()))),
     );
   }
 
@@ -202,7 +202,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
             debugPrint('SnackBar Success: $message');
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(message)));
+            ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
             if (isEditing) {
               if (context.mounted) {
                 if (context.canPop()) {
@@ -224,7 +224,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
             debugPrint('SnackBar Error: $message');
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(message)));
+            ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
           }
         },
         child: Center(

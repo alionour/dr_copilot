@@ -44,7 +44,7 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
     result.fold(
       (failure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
+          SnackBar(content: SelectionArea(child: Text(failure.message))),
         );
       },
       (_) async {

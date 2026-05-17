@@ -232,7 +232,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
 
     if (user == null || clinicId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Authentication error')),
+        SnackBar(content: SelectionArea(child: Text('Authentication error'))),
       );
       return;
     }

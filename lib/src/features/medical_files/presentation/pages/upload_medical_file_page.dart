@@ -114,10 +114,10 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
     if (_formKey.currentState!.validate()) {
       if (_selectedFile == null && _keyValueControllers.isEmpty && widget.existingFile?.fileUrl == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
+          SnackBar(
+            content: SelectionArea(child: Text(
               'Please upload a file OR add at least one value pair.',
-            ),
+            )),
           ),
         );
         return;

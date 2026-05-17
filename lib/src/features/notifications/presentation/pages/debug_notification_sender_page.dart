@@ -97,7 +97,7 @@ class _DebugNotificationSenderPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('notificationSent'.tr()),
+            content: SelectionArea(child: Text('notificationSent'.tr())),
             backgroundColor: Colors.green,
           ),
         );
@@ -109,7 +109,7 @@ class _DebugNotificationSenderPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${'error'.tr()}: $e'),
+            content: SelectionArea(child: Text('${'error'.tr()}: $e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -130,7 +130,7 @@ class _DebugNotificationSenderPageState
       context: context,
       builder: (context) => AlertDialog(
         title: Text('confirm'.tr()),
-        content: Text('sendToAllUsersConfirm'.tr()),
+        content: SelectionArea(child: Text('sendToAllUsersConfirm'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -187,9 +187,9 @@ class _DebugNotificationSenderPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
+            content: SelectionArea(child: Text(
               'sentToUsers'.tr(args: [usersSnapshot.docs.length.toString()]),
-            ),
+            )),
             backgroundColor: Colors.green,
           ),
         );
@@ -201,7 +201,7 @@ class _DebugNotificationSenderPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${'error'.tr()}: $e'),
+            content: SelectionArea(child: Text('${'error'.tr()}: $e')),
             backgroundColor: Colors.red,
           ),
         );

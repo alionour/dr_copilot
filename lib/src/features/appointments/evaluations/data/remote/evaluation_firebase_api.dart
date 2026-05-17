@@ -310,6 +310,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         if (name != null && name.isNotEmpty) {
           // 1. Find patient IDs by name
           final patientsSnapshot = await _patientsCollection
+              .where('clinicId', isEqualTo: clinicId)
               .where('name', isGreaterThanOrEqualTo: name)
               .where('name', isLessThanOrEqualTo: '$name\uf8ff')
               .get();

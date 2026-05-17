@@ -109,10 +109,10 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('confirmAppointment'.tr()),
-        content: Text(
+        content: SelectionArea(child: Text(
           'Do you have an appointment with $doctorName at $timeStr?',
           style: const TextStyle(fontSize: 20),
-        ),
+        )),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

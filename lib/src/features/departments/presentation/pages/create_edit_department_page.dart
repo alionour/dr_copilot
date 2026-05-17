@@ -5,8 +5,7 @@ import 'package:dr_copilot/src/features/departments/domain/models/department_mod
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_bloc.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_event.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_state.dart';
-import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 class CreateEditDepartmentPage extends StatefulWidget {
   final DepartmentModel? department;
@@ -48,7 +47,7 @@ class _CreateEditDepartmentPageState extends State<CreateEditDepartmentPage> {
           Navigator.pop(context, true);
         } else if (state is DepartmentsError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: SelectionArea(child: Text(state.message)), backgroundColor: Colors.red),
           );
         }
       },
@@ -114,14 +113,14 @@ class _CreateEditDepartmentPageState extends State<CreateEditDepartmentPage> {
       return;
     }
 
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthSignedIn || authState.user?.primaryClinicId == null) {
+    final clinicId = context.read<OwnerNotifier>().clinicId;
+    if (clinicId == null) {
       return;
     }
 
     final department = DepartmentModel(
       id: widget.department?.id ?? '',
-      clinicId: authState.user!.primaryClinicId!,
+      clinicId: clinicId,
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
       createdAt: widget.department?.createdAt ?? DateTime.now(),

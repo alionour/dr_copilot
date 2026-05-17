@@ -112,7 +112,8 @@ enum AppPermission {
   manageSettings,
 
   // --- TEAMS ---
-  /// View the list of clinic teams.
+  /// View the list of ALL clinic teams (admin-level global view).
+  /// Regular users see their own teams without needing this permission.
   viewTeams,
 
   /// Create or delete chat/collaboration teams.
@@ -126,6 +127,12 @@ enum AppPermission {
 
   /// Activate an archived team.
   unarchiveTeam,
+
+  /// View the full member list of any team in the clinic (admin-only).
+  viewTeamMembers,
+
+  /// Read messages in any team's chat without being a member (admin-only).
+  viewTeamMessages,
 
   // --- MEDICAL FILES ---
   /// View attached files (PDFs, Images) (Scope defined by user associations).
@@ -300,6 +307,11 @@ extension AppPermissionExtension on AppPermission {
       case AppPermission.deleteClinicalReport:
       case AppPermission.viewDoctors:
       case AppPermission.manageDoctors:
+      case AppPermission.viewAllTasks:
+      case AppPermission.viewOwnTasks:
+      case AppPermission.createTask:
+      case AppPermission.updateTask:
+      case AppPermission.deleteTask:
         return AppPermissionCategory.clinical;
 
       case AppPermission.viewFinancials:
@@ -350,6 +362,8 @@ extension AppPermissionExtension on AppPermission {
       case AppPermission.createTeam:
       case AppPermission.archiveTeam:
       case AppPermission.unarchiveTeam:
+      case AppPermission.viewTeamMembers:
+      case AppPermission.viewTeamMessages:
       case AppPermission.useCopilot:
         return AppPermissionCategory.teamCollab;
 

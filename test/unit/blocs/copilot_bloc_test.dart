@@ -7,12 +7,15 @@ import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dar
 import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'copilot_bloc_test.mocks.dart';
+
+class MockConversationRepository extends Mock implements ConversationRepository {}
 
 @GenerateMocks([
   VertexAIService,
@@ -34,6 +37,7 @@ void main() {
   late MockClaudeService mockClaudeService;
   late MockAIRouterService mockRouterService;
   late MockFlutterSecureStorage mockSecureStorage;
+  late MockConversationRepository mockConversationRepo;
 
   setUp(() {
     mockVertexAIService = MockVertexAIService();
@@ -44,6 +48,7 @@ void main() {
     mockClaudeService = MockClaudeService();
     mockRouterService = MockAIRouterService();
     mockSecureStorage = MockFlutterSecureStorage();
+    mockConversationRepo = MockConversationRepository();
 
     copilotBloc = CopilotBloc(
       vertexAIService: mockVertexAIService,
@@ -54,6 +59,7 @@ void main() {
       claudeService: mockClaudeService,
       routerService: mockRouterService,
       secureStorage: mockSecureStorage,
+      conversationRepo: mockConversationRepo,
     );
   });
 

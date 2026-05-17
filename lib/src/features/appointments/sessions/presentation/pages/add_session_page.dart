@@ -128,7 +128,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
         (failure) {
           debugPrint('Failed to fetch currency profiles: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+            SnackBar(content: SelectionArea(child: Text('failedToFetchCurrencyProfiles'.tr()))),
           );
         },
         (profiles) {
@@ -146,7 +146,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       debugPrint('Error in _fetchCurrencyProfiles: $e');
       if (!mounted) return; // Ensure context is still valid after async gap
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('failedToFetchCurrencyProfiles'.tr())),
+        SnackBar(content: SelectionArea(child: Text('failedToFetchCurrencyProfiles'.tr()))),
       );
     }
     if (_currencyProfiles.isNotEmpty) {
@@ -297,7 +297,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (_selectedPatient == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('pleaseSelectPatient'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('pleaseSelectPatient'.tr()))));
         return;
       }
 
@@ -305,9 +305,9 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (_selectedCurrencyProfile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
+            content: SelectionArea(child: Text(
               'Please select a currency profile before adding a session.',
-            ),
+            )),
           ),
         );
         return;
@@ -317,7 +317,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Please select a clinic.')));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Please select a clinic.'))));
         return;
       }
 
@@ -325,7 +325,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (_selectedInvoiceStatus == null && widget.session == null) {
         // Only check invoice status for new sessions
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select an invoice status.')),
+          SnackBar(content: SelectionArea(child: Text('Please select an invoice status.'))),
         );
         return;
       }
@@ -349,7 +349,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       if (_selectedSessionType == SessionTypePresets.custom) {
         if (_customSessionTypeController.text.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Please enter a custom session type name.')),
+            SnackBar(content: SelectionArea(child: Text('Please enter a custom session type name.'))),
           );
           return;
         }
@@ -398,7 +398,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('upgradeRequired'.tr()),
-        content: Text(message),
+        content: SelectionArea(child: Text(message)),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
@@ -465,13 +465,13 @@ class _AddSessionPageState extends State<AddSessionPage> {
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               } else if (state is PatientsError) {
                 final message = state.message;
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(SnackBar(content: Text(message)));
+                ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
               }
             },
           ),
@@ -482,14 +482,14 @@ class _AddSessionPageState extends State<AddSessionPage> {
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               } else if (state is SessionsError) {
                 final message = state.message;
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               } else if (state is SessionTypeDetected) {
                 setState(() {
@@ -522,7 +522,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                 if (message != null) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                 }
               }
             },

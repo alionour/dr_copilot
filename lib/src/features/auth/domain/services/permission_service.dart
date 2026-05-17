@@ -192,29 +192,21 @@ class PermissionService {
           .doc(userId)
           .get();
 
-      if (memberDoc.exists) {
-        final memberData = memberDoc.data();
-        debugPrint('[PermissionService] Found member doc');
-
-        if (memberData != null && memberData['permissions'] != null) {
-          if (memberData['permissions'] is List) {
-            final permissions = List<String>.from(memberData['permissions']);
-            debugPrint(
-                '[PermissionService] Loaded ${permissions.length} permissions from Firestore');
-
-            // Cache the permissions
-            _setCachedPermissions(targetClinicId, permissions);
-
-            return permissions;
-          }
-        } else {
-          debugPrint('[PermissionService] No permissions field in member doc');
+      List<String> permissions = [];
+      if (memberDoc.exists && memberDoc.data() != null) {
+        final memberData = memberDoc.data()!;
+        if (memberData['permissions'] is List) {
+          permissions = List<String>.from(memberData['permissions']);
         }
-      } else {
-        debugPrint('[PermissionService] Member doc not found');
       }
 
-      return [];
+      debugPrint(
+          '[PermissionService] Loaded ${permissions.length} permissions');
+
+      // Cache the permissions
+      _setCachedPermissions(targetClinicId, permissions);
+
+      return permissions;
     } catch (e) {
       debugPrint('[PermissionService] Error getting user permissions: $e');
       return null;

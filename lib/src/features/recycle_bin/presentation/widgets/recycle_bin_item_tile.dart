@@ -62,7 +62,7 @@ class SessionItemTile extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('deleteConfirmation'.tr()),
-        content: Text('deleteConfirmationMessage'.tr()),
+        content: SelectionArea(child: Text('deleteConfirmationMessage'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -142,7 +142,7 @@ class EvaluationItemTile extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('deleteConfirmation'.tr()),
-        content: Text('deleteConfirmationMessage'.tr()),
+        content: SelectionArea(child: Text('deleteConfirmationMessage'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -221,7 +221,7 @@ class PatientItemTile extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('deleteConfirmation'.tr()),
-        content: Text('deleteConfirmationMessage'.tr()),
+        content: SelectionArea(child: Text('deleteConfirmationMessage'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -299,7 +299,7 @@ class CalendarEventItemTile extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('deleteConfirmation'.tr()),
-        content: Text('deleteConfirmationMessage'.tr()),
+        content: SelectionArea(child: Text('deleteConfirmationMessage'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),

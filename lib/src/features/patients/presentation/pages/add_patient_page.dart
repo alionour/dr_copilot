@@ -23,8 +23,22 @@ import 'package:dr_copilot/src/features/teams/domain/repositories/abstract_custo
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
   final PatientModel? patient;
+  final Map<String, dynamic>? initialData;
+  final bool showScaffold;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+  final ValueChanged<Map<String, dynamic>>? onFormDataChange;
+
   // Constructor for AddPatientPage
-  const AddPatientPage({super.key, this.patient});
+  const AddPatientPage({
+    super.key,
+    this.patient,
+    this.initialData,
+    this.showScaffold = true,
+    this.onSuccess,
+    this.onCancel,
+    this.onFormDataChange,
+  });
 
   @override
   State<AddPatientPage> createState() => _AddPatientPageState();
@@ -81,12 +95,65 @@ class _AddPatientPageState extends State<AddPatientPage> {
       _selectedClinicId = widget.patient!.clinicId;
       _selectedDepartmentId = widget.patient!.departmentId;
       _selectedTeamId = widget.patient!.teamId;
+    } else if (widget.initialData != null) {
+      final data = widget.initialData!;
+      if (data['name'] != null) _nameController.text = data['name'].toString();
+      if (data['age'] != null) _ageController.text = data['age'].toString();
+      if (data['address'] != null) _addressController.text = data['address'].toString();
+      if (data['phoneNumber'] != null) {
+        _phoneNumberController.text = data['phoneNumber'].toString();
+      } else if (data['phone'] != null) {
+        _phoneNumberController.text = data['phone'].toString();
+      }
+      if (data['alternativePhoneNumber'] != null) {
+        _alternativePhoneNumberController.text = data['alternativePhoneNumber'].toString();
+      }
+      if (data['treatingDoctor'] != null) {
+        _treatingDoctorController.text = data['treatingDoctor'].toString();
+      }
+      if (data['gender'] != null) {
+        final g = data['gender'].toString().toLowerCase();
+        if (g.startsWith('m')) {
+          _selectedGender = 'Male';
+        } else if (g.startsWith('f')) {
+          _selectedGender = 'Female';
+        }
+      }
+      if (data['occupation'] != null) {
+        _occupationController.text = data['occupation'].toString();
+      }
     }
+    _nameController.addListener(_notifyFormDataChange);
+    _ageController.addListener(_notifyFormDataChange);
+    _addressController.addListener(_notifyFormDataChange);
+    _phoneNumberController.addListener(_notifyFormDataChange);
+    _alternativePhoneNumberController.addListener(_notifyFormDataChange);
+    _treatingDoctorController.addListener(_notifyFormDataChange);
+    _occupationController.addListener(_notifyFormDataChange);
     _loadInitialData();
     // Request focus to the name field when the page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_nameFocusNode);
     });
+  }
+
+  void _notifyFormDataChange() {
+    if (widget.onFormDataChange != null) {
+      widget.onFormDataChange!({
+        'name': _nameController.text,
+        'age': int.tryParse(_ageController.text),
+        'gender': _selectedGender,
+        'address': _addressController.text,
+        'phoneNumber': _phoneNumberController.text,
+        'alternativePhoneNumber': _alternativePhoneNumberController.text,
+        'treatingDoctor': _treatingDoctorController.text,
+        'occupation': _occupationController.text,
+        'treatingDoctorId': _treatingDoctorId,
+        'departmentId': _selectedDepartmentId,
+        'teamId': _selectedTeamId,
+        'clinicId': _selectedClinicId,
+      });
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -168,40 +235,32 @@ class _AddPatientPageState extends State<AddPatientPage> {
   // Build method for the UI
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr(),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
+    final body = BlocListener<PatientsBloc, PatientsState>(
+      listener: (context, state) {
+        if (state is PatientsSuccess) {
+          // Clear the form fields after successful addition
+          _nameController.clear();
+          _ageController.clear();
+          _addressController.clear();
+          _phoneNumberController.clear();
+          _alternativePhoneNumberController.clear();
+          _treatingDoctorController.clear();
+          _occupationController.clear();
+          setState(() {
+            _selectedGender = 'Male';
+          });
+          if (widget.onSuccess != null) {
+            widget.onSuccess!();
+          } else if (context.mounted) {
             context.pop();
-          },
-        ),
-      ),
-      body: BlocListener<PatientsBloc, PatientsState>(
-        listener: (context, state) {
-          if (state is PatientsSuccess) {
-            // Clear the form fields after successful addition
-            _nameController.clear();
-            _ageController.clear();
-            _addressController.clear();
-            _phoneNumberController.clear();
-            _alternativePhoneNumberController.clear();
-            _treatingDoctorController.clear();
-            _occupationController.clear();
-            setState(() {
-              _selectedGender = 'Male';
-            });
-            if (context.mounted) context.pop();
-          } else if (state is PatientsError) {
-            debugPrint('SnackBar Error: ${state.message}');
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
-        },
+        } else if (state is PatientsError) {
+          debugPrint('SnackBar Error: ${state.message}');
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
+        }
+      },
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isSmallScreen = constraints.maxWidth < 600;
@@ -248,6 +307,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                       onChanged: (String? newValue) {
                                         setState(() {
                                           _selectedClinicId = newValue;
+                                          _notifyFormDataChange();
                                         });
                                       },
                                       validator: (value) {
@@ -409,6 +469,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                         );
                                         _treatingDoctorController.text =
                                             doctor.name;
+                                        _notifyFormDataChange();
                                       });
                                     },
                                     validator: (value) {
@@ -471,7 +532,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                     );
                                   }).toList(),
                                   onChanged: (value) {
-                                    setState(() => _selectedDepartmentId = value);
+                                    setState(() {
+                                      _selectedDepartmentId = value;
+                                      _notifyFormDataChange();
+                                    });
                                   },
                                 );
                               },
@@ -511,7 +575,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                     );
                                   }).toList(),
                                   onChanged: (value) {
-                                    setState(() => _selectedTeamId = value);
+                                    setState(() {
+                                      _selectedTeamId = value;
+                                      _notifyFormDataChange();
+                                    });
                                   },
                                 );
                               },
@@ -550,6 +617,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   setState(() {
                                     _selectedGender =
                                         index == 0 ? 'Male' : 'Female';
+                                    _notifyFormDataChange();
                                   });
                                 },
                                 borderRadius: BorderRadius.circular(8.0),
@@ -607,8 +675,30 @@ class _AddPatientPageState extends State<AddPatientPage> {
             );
           },
         ),
-      ),
-    );
+      );
+
+      if (!widget.showScaffold) {
+        return body;
+      }
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr(),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.onCancel != null) {
+                widget.onCancel!();
+              } else {
+                context.pop();
+              }
+            },
+          ),
+        ),
+        body: body,
+      );
   }
 
   // Method to submit the form
@@ -685,7 +775,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         debugPrint('SnackBar Error: $message');
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
       }
     }
   }
@@ -695,7 +785,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('upgradeRequired'.tr()),
-        content: Text(message),
+        content: SelectionArea(child: Text(message)),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
@@ -716,6 +806,14 @@ class _AddPatientPageState extends State<AddPatientPage> {
   // Dispose method to release resources
   @override
   void dispose() {
+    _nameController.removeListener(_notifyFormDataChange);
+    _ageController.removeListener(_notifyFormDataChange);
+    _addressController.removeListener(_notifyFormDataChange);
+    _phoneNumberController.removeListener(_notifyFormDataChange);
+    _alternativePhoneNumberController.removeListener(_notifyFormDataChange);
+    _treatingDoctorController.removeListener(_notifyFormDataChange);
+    _occupationController.removeListener(_notifyFormDataChange);
+
     // Dispose the controllers
     _nameController.dispose();
     _ageController.dispose();

@@ -77,7 +77,7 @@ class _CalendarEventDetailsPageState extends State<CalendarEventDetailsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('deleteEvent'.tr()),
-        content: Text('deleteReportConfirmation'.tr()),
+        content: SelectionArea(child: Text('deleteReportConfirmation'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

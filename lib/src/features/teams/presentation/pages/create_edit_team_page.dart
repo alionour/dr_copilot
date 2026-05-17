@@ -6,7 +6,7 @@ import 'package:dr_copilot/src/features/teams/domain/models/custom_team_model.da
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_event.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_state.dart';
-import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
@@ -40,13 +40,12 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
   }
 
   Future<void> _loadClinicMembers() async {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthSignedIn || authState.user?.primaryClinicId == null) {
+    final clinicId = context.read<OwnerNotifier>().clinicId;
+    if (clinicId == null) {
       return;
     }
 
     try {
-      final clinicId = authState.user!.primaryClinicId!;
       debugPrint('[Teams] Loading members for clinic: $clinicId');
 
       final membersSnapshot = await FirebaseFirestore.instance
@@ -91,7 +90,7 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('errorLoadingMembers'.tr()),
+            content: SelectionArea(child: Text('errorLoadingMembers'.tr())),
             backgroundColor: Colors.red,
           ),
         );
@@ -114,7 +113,7 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
           Navigator.pop(context, true);
         } else if (state is TeamsError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: SelectionArea(child: Text(state.message)), backgroundColor: Colors.red),
           );
         }
       },
@@ -214,7 +213,7 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
         !OwnerNotifier().hasPermission(AppPermission.createTeam)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('noPermissionCreateTeam'.tr()),
+          content: SelectionArea(child: Text('noPermissionCreateTeam'.tr())),
           backgroundColor: Colors.red,
         ),
       );
@@ -224,30 +223,31 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
     if (_selectedMembers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('pleaseSelectAtLeastOneMember'.tr()),
+          content: SelectionArea(child: Text('pleaseSelectAtLeastOneMember'.tr())),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthSignedIn || authState.user?.primaryClinicId == null) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final clinicId = context.read<OwnerNotifier>().clinicId;
+    if (currentUser == null || clinicId == null) {
       return;
     }
 
     // Include owner in members list
     final memberIds = _selectedMembers.toList();
-    if (!memberIds.contains(authState.user!.uid)) {
-      memberIds.add(authState.user!.uid);
+    if (!memberIds.contains(currentUser.uid)) {
+      memberIds.add(currentUser.uid);
     }
 
     final team = CustomTeamModel(
       id:
           widget.team?.id ??
           FirebaseFirestore.instance.collection('custom_teams').doc().id,
-      clinicId: authState.user!.primaryClinicId!,
-      ownerId: authState.user!.uid,
+      clinicId: clinicId,
+      ownerId: currentUser.uid,
       name: _nameController.text.trim(),
       memberIds: memberIds,
       createdAt: widget.team?.createdAt ?? DateTime.now(),

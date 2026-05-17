@@ -43,7 +43,7 @@ class _PaymentGatewaySettingsPageState
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: No active clinic found.')),
+          SnackBar(content: SelectionArea(child: Text('Error: No active clinic found.'))),
         );
       }
       return;
@@ -66,7 +66,7 @@ class _PaymentGatewaySettingsPageState
       debugPrint('Error loading payment config: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load settings: $e')),
+          SnackBar(content: SelectionArea(child: Text('Failed to load settings: $e'))),
         );
       }
     } finally {
@@ -98,7 +98,7 @@ class _PaymentGatewaySettingsPageState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment settings saved successfully.')),
+          SnackBar(content: SelectionArea(child: Text('Payment settings saved successfully.'))),
         );
         Navigator.pop(context);
       }
@@ -106,7 +106,7 @@ class _PaymentGatewaySettingsPageState
       debugPrint('Error saving payment config: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save settings: $e')),
+          SnackBar(content: SelectionArea(child: Text('Failed to save settings: $e'))),
         );
       }
     } finally {

@@ -109,9 +109,9 @@ class AccountPage extends StatelessWidget {
                                         context,
                                       ).showSnackBar(
                                         SnackBar(
-                                          content: Text(
+                                          content: SelectionArea(child: Text(
                                             'copiedToClipboard'.tr(),
-                                          ),
+                                          )),
                                         ),
                                       );
                                     },
@@ -150,9 +150,9 @@ class AccountPage extends StatelessWidget {
                                         context,
                                       ).showSnackBar(
                                         SnackBar(
-                                          content: Text(
+                                          content: SelectionArea(child: Text(
                                             'copiedToClipboard'.tr(),
-                                          ),
+                                          )),
                                         ),
                                       );
                                     },
@@ -191,9 +191,9 @@ class AccountPage extends StatelessWidget {
                                         context,
                                       ).showSnackBar(
                                         SnackBar(
-                                          content: Text(
+                                          content: SelectionArea(child: Text(
                                             'copiedToClipboard'.tr(),
-                                          ),
+                                          )),
                                         ),
                                       );
                                     },

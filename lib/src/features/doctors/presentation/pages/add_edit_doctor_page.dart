@@ -128,13 +128,13 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
     if (_formKey.currentState!.validate()) {
       if (_selectedClinicId == null || _selectedClinicId!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('selectClinic'.tr())),
+          SnackBar(content: SelectionArea(child: Text('selectClinic'.tr()))),
         );
         return;
       }
       if (_selectedSpecialty == null || _selectedSpecialty!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('pleaseSelectSpecialty'.tr())),
+          SnackBar(content: SelectionArea(child: Text('pleaseSelectSpecialty'.tr()))),
         );
         return;
       }
@@ -197,7 +197,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             });
           } else if (state is DoctorsSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? 'Success'.tr())),
+              SnackBar(content: SelectionArea(child: Text(state.message ?? 'Success'.tr()))),
             );
             if (isEditing) {
               if (context.mounted) context.pop();
@@ -211,7 +211,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             }
           } else if (state is DoctorsError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? 'Error'.tr())),
+              SnackBar(content: SelectionArea(child: Text(state.message ?? 'Error'.tr()))),
             );
           }
         },

@@ -71,12 +71,12 @@ class InvitationsPage extends StatelessWidget {
                 if (state is InvitationOperationSuccess) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(state.message)));
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(state.message))));
                   context.read<InvitationBloc>().add(LoadInvitations(clinicId));
                 } else if (state is InvitationError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(state.message),
+                      content: SelectionArea(child: Text(state.message)),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -110,7 +110,7 @@ class InvitationsPage extends StatelessWidget {
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('onlyAdminsCanDelete'.tr()),
+                                  content: SelectionArea(child: Text('onlyAdminsCanDelete'.tr())),
                                 ),
                               );
                             }
@@ -124,7 +124,7 @@ class InvitationsPage extends StatelessWidget {
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('onlyAdminsCanResend'.tr()),
+                                  content: SelectionArea(child: Text('onlyAdminsCanResend'.tr())),
                                 ),
                               );
                             }

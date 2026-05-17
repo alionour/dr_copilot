@@ -30,7 +30,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
         Navigator.pop(context);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Please sign in first')));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Please sign in first'))));
         return;
       }
 
@@ -55,15 +55,15 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Payment page opened. Please verify payment in the app when done.')),
+            SnackBar(
+                content: SelectionArea(child: Text(
+                    'Payment page opened. Please verify payment in the app when done.'))),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open payment page')),
+            SnackBar(content: SelectionArea(child: Text('Could not open payment page'))),
           );
         }
       }
@@ -71,7 +71,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
       if (mounted) {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: SelectionArea(child: Text('Error: $e')), backgroundColor: Colors.red),
         );
       }
     }

@@ -47,7 +47,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
         (failure) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error loading user: ${failure.message}')),
+              SnackBar(content: SelectionArea(child: Text('Error loading user: ${failure.message}'))),
             );
           }
         },
@@ -84,7 +84,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('maxActiveLinksReached'.tr()),
+              content: SelectionArea(child: Text('maxActiveLinksReached'.tr())),
               backgroundColor: Colors.orange,
             ),
           );
@@ -118,7 +118,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('kioskLinkGenerated'.tr())),
+          SnackBar(content: SelectionArea(child: Text('kioskLinkGenerated'.tr()))),
         );
         // Requirement 1: Instantly show QR code
         _showQrCode(link);
@@ -130,7 +130,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: SelectionArea(child: Text('Error: ${e.toString()}'))),
         );
       }
     }
@@ -170,7 +170,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('revokeKioskLink'.tr()),
-        content: Text('revokeKioskLinkConfirmation'.tr()),
+        content: SelectionArea(child: Text('revokeKioskLinkConfirmation'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -194,7 +194,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('kioskLinkRevoked'.tr())),
+          SnackBar(content: SelectionArea(child: Text('kioskLinkRevoked'.tr()))),
         );
       }
     }
@@ -203,7 +203,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('copiedToClipboard'.tr())),
+      SnackBar(content: SelectionArea(child: Text('copiedToClipboard'.tr()))),
     );
   }
 
@@ -308,7 +308,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                                     text:
                                         'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId'));
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Link copied!')),
+                                  SnackBar(content: SelectionArea(child: Text('Link copied!'))),
                                 );
                               },
                             ),

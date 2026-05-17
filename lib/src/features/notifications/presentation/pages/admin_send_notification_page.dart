@@ -40,7 +40,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
     if (role != AppRole.admin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('access_denied_admins_only'.tr())),
+          SnackBar(content: SelectionArea(child: Text('access_denied_admins_only'.tr()))),
         );
         Navigator.of(context).pop();
       });
@@ -95,7 +95,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('errorLoadingClinics'.tr(args: [e.toString()])),
+            content: SelectionArea(child: Text('errorLoadingClinics'.tr(args: [e.toString()]))),
           ),
         );
       }
@@ -110,14 +110,14 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
         _selectedRoles.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('select_at_least_one_role'.tr())));
+      ).showSnackBar(SnackBar(content: SelectionArea(child: Text('select_at_least_one_role'.tr()))));
       return;
     }
 
     if (_selectedTarget == NotificationTargetType.specificClinic &&
         _selectedClinicIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('select_at_least_one_clinic'.tr())),
+        SnackBar(content: SelectionArea(child: Text('select_at_least_one_clinic'.tr()))),
       );
       return;
     }
@@ -159,12 +159,12 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
           if (state is SendNotificationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
+                content: SelectionArea(child: Text(
                   'notification_sent_to_users'.tr().replaceAll(
                         '{count}',
                         state.recipientCount.toString(),
                       ),
-                ),
+                )),
                 backgroundColor: Colors.green,
               ),
             );
@@ -177,7 +177,7 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
           } else if (state is SendNotificationFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${'error'.tr()}: ${state.message}'),
+                content: SelectionArea(child: Text('${'error'.tr()}: ${state.message}')),
                 backgroundColor: Colors.red,
               ),
             );

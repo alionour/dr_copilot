@@ -112,9 +112,9 @@ class InvitationListItem extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('deleteInvitation'.tr()),
-        content: Text(
+        content: SelectionArea(child: Text(
           'Are you sure you want to delete the invitation for ${invitation.email}?',
-        ),
+        )),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

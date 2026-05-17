@@ -144,7 +144,7 @@ class PatientDetailsPage extends StatelessWidget {
                 'associatedClinicalReports'.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              if (OwnerNotifier().hasPermission(AppPermission.addClinicalReport))
+              if (OwnerNotifier().hasPermission(AppPermission.createClinicalReport))
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () {
@@ -225,7 +225,7 @@ class PatientDetailsPage extends StatelessWidget {
                 'Medical Records',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              if (OwnerNotifier().hasPermission(AppPermission.addMedicalFile))
+              if (OwnerNotifier().hasPermission(AppPermission.createMedicalFile))
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () {

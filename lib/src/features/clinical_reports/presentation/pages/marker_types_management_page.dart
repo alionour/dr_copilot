@@ -37,7 +37,7 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading types: $e')),
+          SnackBar(content: SelectionArea(child: Text('Error loading types: $e'))),
         );
       }
     }
@@ -144,7 +144,7 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Marker Type'),
-        content: Text('Delete "${type.name}"?'),
+        content: SelectionArea(child: Text('Delete "${type.name}"?')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -164,12 +164,12 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
         _loadTypes();
         if (mounted) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Deleted')));
+              .showSnackBar(SnackBar(content: SelectionArea(child: Text('Deleted'))));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Error: $e')));
+              .showSnackBar(SnackBar(content: SelectionArea(child: Text('Error: $e'))));
         }
       }
     }
@@ -319,7 +319,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Enter a name')));
+          .showSnackBar(SnackBar(content: SelectionArea(child: Text('Enter a name'))));
       return;
     }
 
@@ -328,7 +328,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
           excludeId: widget.existing?.id);
       if (exists && mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Name exists')));
+            .showSnackBar(SnackBar(content: SelectionArea(child: Text('Name exists'))));
         return;
       }
 
@@ -349,12 +349,12 @@ class _AddEditDialogState extends State<_AddEditDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(widget.existing == null ? 'Added' : 'Updated')));
+            content: SelectionArea(child: Text(widget.existing == null ? 'Added' : 'Updated'))));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+            .showSnackBar(SnackBar(content: SelectionArea(child: Text('Error: $e'))));
       }
     }
   }

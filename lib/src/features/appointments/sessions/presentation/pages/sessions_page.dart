@@ -217,14 +217,14 @@ class _SessionsPageState extends State<SessionsPage> {
             if (message != null) {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(SnackBar(content: Text(message)));
+              ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
             }
           } else if (state is SessionsError) {
             final message = state.message;
             if (message != null) {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(SnackBar(content: Text(message)));
+              ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
             }
           } else if (state is SessionsCountLoaded) {
             setState(() {

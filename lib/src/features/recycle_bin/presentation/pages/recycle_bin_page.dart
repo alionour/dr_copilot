@@ -46,7 +46,7 @@ class RecycleBinPage extends StatelessWidget {
             listener: (context, state) {
               if (state is RecycleBinError) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
+                  SnackBar(content: SelectionArea(child: Text(state.message))),
                 );
               }
             },

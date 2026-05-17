@@ -103,7 +103,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           if (state is NotificationsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: SelectionArea(child: Text(state.message)),
                 backgroundColor: Colors.red,
               ),
             );

@@ -226,7 +226,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
 
     if (user == null || clinicId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Authentication error')),
+        SnackBar(content: SelectionArea(child: Text('Authentication error'))),
       );
       return;
     }

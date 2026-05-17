@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/teams/domain/repositories/abstract_custom_teams_repository.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_event.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_state.dart';
@@ -22,13 +25,29 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
 
     final result = await repository.getTeamsForClinic(event.clinicId);
 
-    result.fold((failure) => emit(TeamsError(message: failure.message)), (
-      teams,
-    ) {
-      // Filter out archived teams
-      final activeTeams = teams.where((team) => !team.isArchived).toList();
-      emit(TeamsLoaded(teams: activeTeams));
-    });
+    result.fold(
+      (failure) => emit(TeamsError(message: failure.message)),
+      (teams) {
+        // Filter out archived teams
+        var activeTeams = teams.where((team) => !team.isArchived).toList();
+
+        // By default, every user only sees teams they are a member of.
+        // No permission is required for this — it is the universal baseline.
+        // Only users with viewTeams OR manageTeams get a global view of ALL clinic teams.
+        final currentUser = FirebaseAuth.instance.currentUser;
+        final hasGlobalAccess =
+            OwnerNotifier().hasPermission(AppPermission.viewTeams) ||
+            OwnerNotifier().hasPermission(AppPermission.manageTeams);
+
+        if (!hasGlobalAccess && currentUser != null) {
+          activeTeams = activeTeams
+              .where((team) => team.memberIds.contains(currentUser.uid))
+              .toList();
+        }
+
+        emit(TeamsLoaded(teams: activeTeams));
+      },
+    );
   }
 
   Future<void> _onCreateTeam(

@@ -56,7 +56,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
       if (_selectedPatient == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('selectPatientError'.tr())));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('selectPatientError'.tr()))));
         return;
       }
 
@@ -173,7 +173,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
             context.go('/clinical_reports/${state.reportId}/edit');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('reportCreatedIdMissing'.tr())),
+              SnackBar(content: SelectionArea(child: Text('reportCreatedIdMissing'.tr()))),
             );
             context.pop();
           }
@@ -181,7 +181,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
         if (state is AddEditClinicalReportError) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${state.message}')));
+          ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Error: ${state.message}'))));
         }
       },
       child: Scaffold(

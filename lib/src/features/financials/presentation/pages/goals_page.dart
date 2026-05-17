@@ -21,11 +21,11 @@ class GoalsPage extends StatelessWidget {
       listener: (context, state) {
         if (state is FinancialsSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(content: SelectionArea(child: Text(state.message))),
           );
         } else if (state is FinancialsError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(content: SelectionArea(child: Text(state.message))),
           );
         }
       },

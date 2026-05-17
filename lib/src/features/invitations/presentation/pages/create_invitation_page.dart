@@ -5,6 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
+import 'package:provider/provider.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/clinic_model.dart';
 
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
@@ -67,7 +70,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   List<Map<String, dynamic>> _availableDepartments = [];
   List<Map<String, dynamic>> _availableTeams = [];
   bool _isLoadingPeople = true;
-  bool _isLoadingMetadata = true;
   bool _useManualEntry = false;
   bool _showAllPermissions = false;
   PersonOption? _selectedPerson;
@@ -125,14 +127,10 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
             (f) => [],
             (list) => list.map((t) => {'id': t.id, 'name': t.name}).toList(),
           );
-          _isLoadingMetadata = false;
         });
       }
     } catch (e) {
       log('Error loading metadata: $e');
-      if (mounted) {
-        setState(() => _isLoadingMetadata = false);
-      }
     }
   }
 
@@ -236,7 +234,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('userAlreadyRegistered'.tr()),
+            content: SelectionArea(child: Text('userAlreadyRegistered'.tr())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -244,10 +242,25 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       return;
     }
 
+    final ownerNotifier = context.read<OwnerNotifier>();
+    final clinic = ownerNotifier.clinics.firstWhere(
+      (c) => c.id == widget.clinicId,
+      orElse: () => ClinicModel(
+        id: widget.clinicId,
+        name: 'Clinic',
+        location: null,
+        ownerId: '',
+        adminEmail: '',
+        createdAt: null,
+      ),
+    );
+    final clinicName = clinic.name;
+
     final invitation = InvitationModel(
       id: FirebaseFirestore.instance.collection('invitations').doc().id,
       email: email,
       clinicId: widget.clinicId,
+      clinicName: clinicName,
       invitedBy: widget.currentUserId,
       roles: _selectedRole != null ? [_selectedRole!.name] : [],
       permissions: _selectedPermissions.map((p) => p.name).toList(),
@@ -354,7 +367,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
             if (_formKey.currentState!.validate()) {
               if (_currentStep == 1 && _selectedRole == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('pleaseSelectRoleToProceed'.tr())),
+                  SnackBar(content: SelectionArea(child: Text('pleaseSelectRoleToProceed'.tr()))),
                 );
                 return;
               }
@@ -1281,6 +1294,10 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows archiving teams.';
       case AppPermission.unarchiveTeam:
         return 'Allows restoring archived teams.';
+      case AppPermission.viewTeamMembers:
+        return 'Allows viewing the full member list of any team (admin-only).';
+      case AppPermission.viewTeamMessages:
+        return 'Allows reading messages in any team chat without being a member (admin-only).';
 
       // Inventory
       case AppPermission.viewInventory:
@@ -1300,6 +1317,16 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         return 'Allows editing working hours.';
       case AppPermission.manageBookingAvailability:
         return 'Allows managing booking availability.';
+      case AppPermission.viewAllTasks:
+        return 'Allows viewing all tasks in the clinic.';
+      case AppPermission.viewOwnTasks:
+        return 'Allows viewing tasks assigned to the current user.';
+      case AppPermission.createTask:
+        return 'Allows creating a new task.';
+      case AppPermission.updateTask:
+        return 'Allows editing an existing task.';
+      case AppPermission.deleteTask:
+        return 'Allows deleting a task.';
     }
   }
 
