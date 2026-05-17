@@ -20,6 +20,7 @@ import 'package:dr_copilot/src/features/recycle_bin/presentation/bloc/recycle_bi
 import 'package:dr_copilot/src/features/inventory/inventory_injections.dart';
 import 'package:dr_copilot/src/features/tasks/tasks_injections.dart';
 import 'package:dr_copilot/src/features/charts/charts_injections.dart';
+import 'package:dr_copilot/src/features/departments/departments_injections.dart';
 
 import 'package:dr_copilot/src/features/navigation_side/navigation_side_injections.dart';
 import 'package:dr_copilot/src/features/settings/settings_injections.dart';
@@ -171,6 +172,7 @@ Future<void> initInjections() async {
   initInventoryInjections();
   initTasksInjections();
   initChartsInjections();
+  initDepartmentsInjections();
 
   // Medical Files
   sl.registerLazySingleton(() => MedicalFileRepository());

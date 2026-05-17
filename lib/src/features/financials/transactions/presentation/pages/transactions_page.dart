@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({super.key});
@@ -525,12 +526,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/transactions/new');
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          OwnerNotifier().hasPermission(AppPermission.addFinancialEntry)
+              ? FloatingActionButton(
+                  onPressed: () {
+                    context.push('/transactions/new');
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
     );
   }
 
@@ -587,26 +591,28 @@ class _TransactionsPageState extends State<TransactionsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: Text('edit'.tr()),
-                onTap: () {
-                  context.pop(); // Close bottom sheet
-                  context.push('/financials/transactions/new',
-                      extra: transaction);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: Text(
-                  'delete'.tr(),
-                  style: const TextStyle(color: Colors.red),
+              if (OwnerNotifier().hasPermission(AppPermission.editFinancialEntry))
+                ListTile(
+                  leading: const Icon(Icons.edit),
+                  title: Text('edit'.tr()),
+                  onTap: () {
+                    context.pop(); // Close bottom sheet
+                    context.push('/financials/transactions/new',
+                        extra: transaction);
+                  },
                 ),
-                onTap: () {
-                  context.pop(); // Close bottom sheet
-                  _showDeleteConfirmation(context, transaction);
-                },
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.deleteFinancialEntry))
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    'delete'.tr(),
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    context.pop(); // Close bottom sheet
+                    _showDeleteConfirmation(context, transaction);
+                  },
+                ),
             ],
           ),
         );

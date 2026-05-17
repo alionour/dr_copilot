@@ -41,9 +41,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted evaluations
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -100,6 +98,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
   Future<Either<Failure, EvaluationModel>> addEvaluation(
     EvaluationModel evaluationModel,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.createEvaluation)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (clinicId == null) {
@@ -111,24 +112,20 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         // Save the patient name before removing it from the data
         final patientName = data['patientName'];
 
-        // Remove the `id` field because Firestore generates a unique ID for each document.
         data.remove('id');
-
-        // Remove the `patientName` field because only the `patientId` is stored in Firestore.
         data.remove('patientName');
 
         final docRef = await _evaluationsCollection.add({
           ...data,
           'createdBy': user.uid,
-          'doctorId': user.uid, // Ensure doctorId is set
-          'clinicId': clinicId, // Ensure clinicId is set
+          'doctorId': data['doctorId'] ?? user.uid,
+          'clinicId': clinicId,
         });
         final createdEvaluation = evaluationModel.copyWith(
-          id: docRef.id, // Assign the generated document ID
-          createdBy: user.uid, // Ensure createdBy is set
-          doctorId: user.uid, // Ensure doctorId is set
-          patientName:
-              patientName, // Include the patient name in the returned model
+          id: docRef.id,
+          createdBy: user.uid,
+          doctorId: data['doctorId'] ?? user.uid,
+          patientName: patientName,
         );
         return Right(createdEvaluation);
       }
@@ -145,6 +142,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     String id,
     EvaluationModel evaluationModel,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.updateEvaluation)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -152,48 +152,22 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        debugPrint('Fetching document with ID: $id');
-        final doc = await _evaluationsCollection.doc(id).get();
+        // Apply scope check before update
+        Query checkQuery =
+            _evaluationsCollection.where(FieldPath.documentId, isEqualTo: id);
+        checkQuery = _applyScopeFilter(checkQuery, user);
+        final checkResult = await checkQuery.get();
 
-        if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            debugPrint('Error: Document data is null');
-            return Left(ServerFailure('Document data is null', 400));
-          }
-
-          final createdBy = data['createdBy'] as String?;
-          if (createdBy == null) {
-            debugPrint(
-              'Error: createdBy field is missing or null in the document',
-            );
-            return Left(
-              ServerFailure('createdBy field is missing or null', 400),
-            );
-          }
-
-          if (createdBy == user.uid) {
-            final updatedData = evaluationModel.toJson();
-            // Remove the `id` field because Firestore does not allow updating the document ID.
-            updatedData.remove('id');
-
-            // Remove the `patientName` field because only the `patientId` is stored in Firestore.
-            // The `patientName` is dynamically fetched when needed to ensure data consistency.
-            updatedData.remove('patientName');
-
-            await _evaluationsCollection.doc(id).update(updatedData);
-
-            return Right(evaluationModel.copyWith(id: id));
-          } else {
-            debugPrint(
-              'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}',
-            );
-            return Left(ServerFailure('Unauthorized', 403));
-          }
-        } else {
-          debugPrint('Error: Document does not exist');
-          return Left(ServerFailure('Document does not exist', 404));
+        if (checkResult.docs.isEmpty) {
+          return Left(ServerFailure('Access denied to this evaluation', 403));
         }
+
+        final updatedData = evaluationModel.toJson();
+        updatedData.remove('id');
+        updatedData.remove('patientName');
+
+        await _evaluationsCollection.doc(id).update(updatedData);
+        return Right(evaluationModel.copyWith(id: id));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e, stack) {
@@ -205,6 +179,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
 
   @override
   Future<Either<Failure, void>> deleteEvaluation(String id) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteEvaluation)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -212,35 +189,22 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await _evaluationsCollection.doc(id).get();
-        if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
-          final createdBy = data?['createdBy'] as String?;
-          if (createdBy == null) {
-            debugPrint(
-              'Error: createdBy field is missing or null in the document',
-            );
-            return Left(
-              ServerFailure('createdBy field is missing or null', 400),
-            );
-          }
-          if (createdBy == user.uid) {
-            // Soft delete: Update deletedAt timestamp and deletedBy
-            await _evaluationsCollection.doc(id).update({
-              'deletedAt': Timestamp.now(),
-              'deletedBy': user.uid,
-            });
-            return Right(null);
-          } else {
-            debugPrint(
-              'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}',
-            );
-            return Left(ServerFailure('Unauthorized', 403));
-          }
-        } else {
-          debugPrint('Error: Document does not exist');
-          return Left(ServerFailure('Document does not exist', 404));
+        // Apply scope check before delete
+        Query checkQuery =
+            _evaluationsCollection.where(FieldPath.documentId, isEqualTo: id);
+        checkQuery = _applyScopeFilter(checkQuery, user);
+        final checkResult = await checkQuery.get();
+
+        if (checkResult.docs.isEmpty) {
+          return Left(ServerFailure('Access denied to this evaluation', 403));
         }
+
+        // Soft delete: Update deletedAt timestamp and deletedBy
+        await _evaluationsCollection.doc(id).update({
+          'deletedAt': Timestamp.now(),
+          'deletedBy': user.uid,
+        });
+        return const Right(null);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e, stack) {
@@ -263,9 +227,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         queryRef = queryRef
             .where('deletedAt', isNull: false)
@@ -364,9 +326,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         );
 
         // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted evaluations
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -456,9 +416,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         );
 
         // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted evaluations
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -557,9 +515,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         );
 
         // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted evaluations
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -642,10 +598,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted evaluations
         query = query.where('deletedAt', isNull: true);
@@ -684,10 +637,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted evaluations
         query = query.where('deletedAt', isNull: true);
@@ -730,10 +680,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted evaluations
         query = query.where('deletedAt', isNull: true);
@@ -779,10 +726,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted evaluations
         query = query.where('deletedAt', isNull: true);
@@ -829,10 +773,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted evaluations
         query = query.where('deletedAt', isNull: true);
@@ -873,7 +814,7 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         );
 
         // Filter by doctorId if the user does not have permission to view all evaluations
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllEvaluations)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewEvaluations)) {
           query = query.where('doctorId', isEqualTo: user.uid);
         }
 
@@ -891,6 +832,66 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
     } catch (e) {
       debugPrint('Error summing all evaluation costs: $e');
       return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Applies scope-based filtering to a Firestore query for evaluations.
+  Query _applyScopeFilter(Query queryRef, User user) {
+    final notifier = OwnerNotifier();
+
+    // 1. Check if user has basic view permission
+    if (!notifier.hasPermission(AppPermission.viewEvaluations)) {
+      return queryRef.where(FieldPath.documentId, isEqualTo: 'PERMISSION_DENIED');
+    }
+
+    // 2. Global Access Check
+    if (notifier.hasAllDoctorsAccess ||
+        notifier.hasAllDepartmentsAccess ||
+        notifier.hasAllTeamsAccess) {
+      return queryRef;
+    }
+
+    // 3. Association Scoping
+    List<Filter> scopeFilters = [];
+
+    if (notifier.linkedDoctorIds.isNotEmpty) {
+      scopeFilters.add(Filter('doctorId', whereIn: notifier.linkedDoctorIds));
+    }
+
+    if (notifier.departmentIds.isNotEmpty) {
+      scopeFilters.add(Filter('departmentId', whereIn: notifier.departmentIds));
+    }
+
+    if (notifier.teamIds.isNotEmpty) {
+      scopeFilters.add(Filter('teamId', whereIn: notifier.teamIds));
+    }
+
+    // 4. Flexible Model: If user has at least one association, also allow seeing evaluations with null doctor
+    if (scopeFilters.isNotEmpty) {
+      scopeFilters.add(Filter('doctorId', isNull: true));
+    }
+
+    // 5. Apply filters
+    if (scopeFilters.isEmpty) {
+      return queryRef.where(
+        FieldPath.documentId,
+        isEqualTo: 'NO_ASSOCIATIONS_ACCESS',
+      );
+    }
+
+    if (scopeFilters.length == 1) {
+      return queryRef.where(scopeFilters.first);
+    } else if (scopeFilters.length == 2) {
+      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1]));
+    } else if (scopeFilters.length == 3) {
+      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1], scopeFilters[2]));
+    } else {
+      return queryRef.where(Filter.or(
+        scopeFilters[0],
+        scopeFilters[1],
+        scopeFilters[2],
+        scopeFilters[3],
+      ));
     }
   }
 }

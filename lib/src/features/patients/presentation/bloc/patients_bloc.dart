@@ -112,6 +112,8 @@ class PatientsBloc extends Bloc<PatientsEvent, PatientsState> {
       maxAge: event.maxAge,
       address: event.address,
       gender: event.gender,
+      departmentId: event.departmentId,
+      teamId: event.teamId,
     );
 
     emit(failureOrPatients.fold(

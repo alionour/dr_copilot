@@ -29,6 +29,8 @@ abstract class AbstractPatientsRepository {
     int? maxAge,
     String? address,
     String? gender,
+    String? departmentId,
+    String? teamId,
   });
 
   /// Gets patients by a specific date.

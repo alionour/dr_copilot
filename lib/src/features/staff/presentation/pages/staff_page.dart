@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class StaffPage extends StatefulWidget {
   const StaffPage({super.key});
@@ -53,12 +54,13 @@ class _StaffPageState extends State<StaffPage> {
       appBar: AppBar(
         title: Text('staff'.tr()),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              context.go('/staff/add');
-            },
-          ),
+          if (_ownerNotifier.hasPermission(AppPermission.manageUsers))
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                context.go('/staff/add');
+              },
+            ),
         ],
       ),
       body: BlocBuilder<StaffBloc, StaffState>(
@@ -79,10 +81,16 @@ class _StaffPageState extends State<StaffPage> {
                         return EmptyStateWidget(
                           message: 'noStaffFound'.tr(),
                           title: 'noStaff'.tr(),
-                          actionLabel: 'addStaff'.tr(),
-                          onActionPressed: () {
-                            context.go('/staff/add');
-                          },
+                          actionLabel: _ownerNotifier
+                                  .hasPermission(AppPermission.manageUsers)
+                              ? 'addStaff'.tr()
+                              : null,
+                          onActionPressed: _ownerNotifier
+                                  .hasPermission(AppPermission.manageUsers)
+                              ? () {
+                                  context.go('/staff/add');
+                                }
+                              : null,
                         );
                       }
                       return Column(

@@ -42,11 +42,11 @@ class ClinicalReportFirebaseApi {
 
       // Check permissions
       if (report.id == 'new_report_id') {
-        if (!OwnerNotifier().hasPermission(AppPermission.addClinicalReport)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.createClinicalReport)) {
           return Left(ServerFailure('Permission denied', 403));
         }
       } else {
-        if (!OwnerNotifier().hasPermission(AppPermission.editClinicalReport)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.updateClinicalReport)) {
           return Left(ServerFailure('Permission denied', 403));
         }
       }

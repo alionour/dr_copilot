@@ -47,11 +47,15 @@
       ]
     },
     {
-      "collectionGroup": "user_invitations",
+      "collectionGroup": "patients",
       "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "clinicId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "treatingDoctorId",
           "order": "ASCENDING"
         },
         {
@@ -61,43 +65,59 @@
       ]
     },
     {
-      "fieldPath": "createdAt",
-      "order": "DESCENDING"
-    }
-  ]
-},
-{
-  "collectionGroup": "user_invitations",
-  "queryScope": "COLLECTION",
-  "fields": [
-    {
-      "fieldPath": "email",
-      "order": "ASCENDING"
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "clinicId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "departmentId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     },
     {
-      "fieldPath": "status",
-      "order": "ASCENDING"
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "clinicId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "teamId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     },
     {
-      "fieldPath": "createdAt",
-      "order": "DESCENDING"
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "clinicId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdBy",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
-  ]
-},
-{
-  "collectionGroup": "invitations",
-  "queryScope": "COLLECTION",
-  "fields": [
-    {
-      "fieldPath": "email",
-      "order": "ASCENDING"
-    },
-    {
-      "fieldPath": "createdAt",
-      "order": "DESCENDING"
-    }
-  ]
-}
-],
-"fieldOverrides": []
+  ],
+  "fieldOverrides": []
 }

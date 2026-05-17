@@ -25,6 +25,8 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clin
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/add_edit_clinical_report_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/create_clinical_report_page.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/clinical_report_details_page.dart';
+import 'package:dr_copilot/src/features/medical_files/presentation/pages/upload_medical_file_page.dart';
+import 'package:dr_copilot/src/features/medical_files/domain/models/medical_file_model.dart';
 import 'package:dr_copilot/src/features/chatgpt_project/presentation/pages/chatgpt_project_list_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/api_key_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/help_support_page.dart';
@@ -67,6 +69,8 @@ import 'package:dr_copilot/src/features/tasks/domain/models/task_model.dart';
 import 'package:dr_copilot/src/features/tasks/presentation/pages/add_edit_task_page.dart';
 import 'package:dr_copilot/src/features/tasks/presentation/pages/tasks_dashboard_page.dart';
 import 'package:dr_copilot/src/features/tasks/presentation/bloc/tasks_bloc.dart';
+import 'package:dr_copilot/src/features/departments/presentation/pages/departments_dashboard_page.dart';
+import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/shared/presentation/widgets/webview_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -258,6 +262,16 @@ class RoutingConfig {
             ],
           ),
           GoRoute(
+            path: '/departments',
+            name: 'departments',
+            builder: (context, state) {
+              return BlocProvider(
+                create: (context) => sl<DepartmentsBloc>(),
+                child: const DepartmentsDashboardPage(),
+              );
+            },
+          ),
+          GoRoute(
             path: '/inventory',
             name: 'inventory',
             builder: (context, state) => const InventoryPage(),
@@ -293,6 +307,23 @@ class RoutingConfig {
                 builder: (context, state) {
                   final patient = state.extra as PatientModel;
                   return AddPatientPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: ':patientId/upload-file',
+                name: 'upload_medical_file',
+                builder: (context, state) {
+                  final patientId = state.pathParameters['patientId']!;
+                  return UploadMedicalFilePage(patientId: patientId);
+                },
+              ),
+              GoRoute(
+                path: ':patientId/medical-records/new',
+                name: 'edit_medical_file',
+                builder: (context, state) {
+                  final patientId = state.pathParameters['patientId']!;
+                  final file = state.extra as MedicalFileModel?;
+                  return UploadMedicalFilePage(patientId: patientId, existingFile: file);
                 },
               ),
             ],

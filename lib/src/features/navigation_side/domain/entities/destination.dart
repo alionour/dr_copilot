@@ -29,6 +29,10 @@ enum Destination {
     NavItemModel('doctors', Icons.medical_services_outlined),
     'Manage your doctors',
   ),
+  departments(
+    NavItemModel('departmentsTitle', Icons.business_outlined),
+    'Manage clinical departments',
+  ),
   staff(NavItemModel('staff', Icons.badge_outlined), 'Manage your staff'),
   invitations(
     NavItemModel('invitations', Icons.mail_outline),

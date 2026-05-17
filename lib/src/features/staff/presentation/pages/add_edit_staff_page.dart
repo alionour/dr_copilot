@@ -53,7 +53,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
   String? _selectedClinicId;
   StaffModel? _initialStaff;
 
-  final _appointmentDurationController = TextEditingController(text: '30');
+
 
   // Default schedule: Mon-Fri 9-5
   Map<String, Map<String, dynamic>> _workingHours = {
@@ -61,9 +61,9 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
     'tuesday': {'active': true, 'start': '09:00', 'end': '17:00'},
     'wednesday': {'active': true, 'start': '09:00', 'end': '17:00'},
     'thursday': {'active': true, 'start': '09:00', 'end': '17:00'},
-    'friday': {'active': true, 'start': '09:00', 'end': '17:00'},
-    'saturday': {'active': false, 'start': '10:00', 'end': '14:00'},
-    'sunday': {'active': false, 'start': '10:00', 'end': '14:00'},
+    'friday': {'active': false, 'start': '09:00', 'end': '17:00'},
+    'saturday': {'active': true, 'start': '09:00', 'end': '17:00'},
+    'sunday': {'active': true, 'start': '09:00', 'end': '17:00'},
   };
 
   bool get isEditing => widget.staffId != null;
@@ -108,10 +108,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
             ),
           );
         }
-        if (staff.appointmentDuration != null) {
-          _appointmentDurationController.text =
-              staff.appointmentDuration.toString();
-        }
+
       }
     }
     _selectedRole = _initialStaff?.role;
@@ -122,7 +119,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneNumberController.dispose();
-    _appointmentDurationController.dispose();
+
     super.dispose();
   }
 
@@ -155,7 +152,6 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         createdAt: isEditing ? _initialStaff!.createdAt : now,
         updatedAt: now,
         workingHours: _workingHours,
-        appointmentDuration: int.tryParse(_appointmentDurationController.text),
       );
 
       if (isEditing) {
@@ -164,6 +160,18 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
         context.read<StaffBloc>().add(AddStaff(staff));
       }
     }
+  }
+
+  void _applyToAll(String start, String end) {
+    setState(() {
+      for (var day in _workingHours.keys) {
+        _workingHours[day]!['start'] = start;
+        _workingHours[day]!['end'] = end;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('appliedToAllDays'.tr())),
+    );
   }
 
   TimeOfDay _parseTime(String time) {
@@ -349,24 +357,6 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _appointmentDurationController,
-                          decoration: InputDecoration(
-                            labelText: 'appointmentDurationMin'.tr(),
-                            border: const OutlineInputBorder(),
-                            suffixText: 'min',
-                          ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value != null && value.isNotEmpty) {
-                              if (int.tryParse(value) == null) {
-                                return 'invalidNumber'.tr();
-                              }
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
                         ..._workingHours.keys.map((day) {
                           final schedule = _workingHours[day]!;
                           return Card(
@@ -420,6 +410,15 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                                             }
                                           },
                                           child: Text(schedule['end']),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.copy_all, size: 20),
+                                          onPressed: () => _applyToAll(
+                                            schedule['start'],
+                                            schedule['end'],
+                                          ),
+                                          tooltip: 'applyToAll'.tr(),
+                                          visualDensity: VisualDensity.compact,
                                         ),
                                       ],
                                     ],

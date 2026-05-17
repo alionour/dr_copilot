@@ -21,6 +21,27 @@ class OwnerNotifier with ChangeNotifier {
   AppRole? _role;
   AppRole? get role => _role;
 
+  List<String> _linkedDoctorIds = [];
+  List<String> get linkedDoctorIds => _linkedDoctorIds;
+  bool get hasAllDoctorsAccess => _linkedDoctorIds.contains('ALL');
+
+  List<String> _departmentIds = [];
+  List<String> get departmentIds => _departmentIds;
+  bool get hasAllDepartmentsAccess => _departmentIds.contains('ALL');
+
+  List<String> _teamIds = [];
+  List<String> get teamIds => _teamIds;
+  bool get hasAllTeamsAccess => _teamIds.contains('ALL');
+
+  bool get isScoped =>
+      _role != null &&
+      (_linkedDoctorIds.isNotEmpty ||
+          _departmentIds.isNotEmpty ||
+          _teamIds.isNotEmpty);
+
+  bool get isDoctorScoped =>
+      _role != null && _linkedDoctorIds.isNotEmpty && !hasAllDoctorsAccess;
+
   List<ClinicModel> _clinics = [];
   List<ClinicModel> get clinics => _clinics;
 
@@ -81,10 +102,23 @@ class OwnerNotifier with ChangeNotifier {
       _ownerId = user.uid;
       debugPrint('[OwnerNotifier] Set ownerId from user: $_ownerId');
 
-      final userDoc = await FirebaseFirestore.instance
+      var userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
+
+      // If doc doesn't exist yet, retry a few times to handle new user onboarding race conditions
+      int retries = 0;
+      while (!userDoc.exists && retries < 5) {
+        debugPrint('[OwnerNotifier] User doc does not exist yet. Retrying in 200ms... (Attempt ${retries + 1}/5)');
+        await Future.delayed(const Duration(milliseconds: 200));
+        userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        retries++;
+      }
+
       final data = userDoc.data();
       debugPrint('[OwnerNotifier] User doc data: $data');
 
@@ -115,12 +149,26 @@ class OwnerNotifier with ChangeNotifier {
           '[OwnerNotifier] Fetching role from clinics/$_clinicId/members/${user.uid}',
         );
         try {
-          final memberDoc = await FirebaseFirestore.instance
+          var memberDoc = await FirebaseFirestore.instance
               .collection('clinics')
               .doc(_clinicId)
               .collection('members')
               .doc(user.uid)
               .get();
+
+          // Retry fetching member doc if it doesn't exist yet (handles race conditions)
+          int memberRetries = 0;
+          while (!memberDoc.exists && memberRetries < 5) {
+            debugPrint('[OwnerNotifier] Member doc does not exist yet. Retrying in 200ms... (Attempt ${memberRetries + 1}/5)');
+            await Future.delayed(const Duration(milliseconds: 200));
+            memberDoc = await FirebaseFirestore.instance
+                .collection('clinics')
+                .doc(_clinicId)
+                .collection('members')
+                .doc(user.uid)
+                .get();
+            memberRetries++;
+          }
 
           if (memberDoc.exists) {
             final memberData = memberDoc.data();
@@ -133,6 +181,33 @@ class OwnerNotifier with ChangeNotifier {
                 orElse: () => AppRole.readonly,
               );
               debugPrint('[OwnerNotifier] Loaded role: $_role');
+            }
+
+            // Parse linkedDoctorIds
+            if (memberData?['linkedDoctorIds'] != null) {
+              _linkedDoctorIds =
+                  List<String>.from(memberData!['linkedDoctorIds']);
+            } else {
+              _linkedDoctorIds = [];
+            }
+
+            // Ensure doctors are always linked to themselves for data filtering
+            if (_role == AppRole.doctor && !_linkedDoctorIds.contains(user.uid)) {
+              _linkedDoctorIds.add(user.uid);
+            }
+
+            // Parse departmentIds
+            if (memberData?['departmentIds'] != null) {
+              _departmentIds = List<String>.from(memberData!['departmentIds']);
+            } else {
+              _departmentIds = [];
+            }
+
+            // Parse teamIds
+            if (memberData?['teamIds'] != null) {
+              _teamIds = List<String>.from(memberData!['teamIds']);
+            } else {
+              _teamIds = [];
             }
 
             // Trigger PermissionService to cache permissions

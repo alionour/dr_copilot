@@ -44,6 +44,8 @@ class PatientsUseCase {
     int? maxAge,
     String? address,
     String? gender,
+    String? departmentId,
+    String? teamId,
   }) async {
     return await repository.searchPatients(
       name: name,
@@ -51,6 +53,8 @@ class PatientsUseCase {
       maxAge: maxAge,
       address: address,
       gender: gender,
+      departmentId: departmentId,
+      teamId: teamId,
     );
   }
 

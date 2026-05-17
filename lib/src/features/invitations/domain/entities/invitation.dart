@@ -8,6 +8,9 @@ class Invitation extends Equatable {
   final String invitedBy;
   final List<String> roles;
   final List<String> permissions;
+  final List<String> linkedDoctorIds;
+  final List<String> departmentIds;
+  final List<String> teamIds;
   final String status;
   final DateTime createdAt;
   final DateTime? acceptedAt;
@@ -20,6 +23,9 @@ class Invitation extends Equatable {
     required this.invitedBy,
     required this.roles,
     required this.permissions,
+    this.linkedDoctorIds = const [],
+    this.departmentIds = const [],
+    this.teamIds = const [],
     required this.status,
     required this.createdAt,
     this.acceptedAt,
@@ -33,6 +39,9 @@ class Invitation extends Equatable {
         invitedBy,
         roles,
         permissions,
+        linkedDoctorIds,
+        departmentIds,
+        teamIds,
         status,
         createdAt,
         acceptedAt,

@@ -56,10 +56,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted sessions
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -122,6 +119,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   Future<Either<Failure, SessionModel>> addSession(
     SessionModel sessionModel,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.createSession)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     // Check if the user is authenticated
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
@@ -139,34 +139,28 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
         // Save the patient name before removing it from the data
         final patientName = data['patientName'];
 
-        // Remove the `id` field because Firestore generates a unique ID for each document.
         data.remove('id');
-
-        // Remove the `patientName` field because only the `patientId` is stored in Firestore.
         data.remove('patientName');
 
         // Add the session data to the Firestore collection
         final docRef = await _sessionsCollection.add({
           ...data,
           'createdBy': user.uid,
-          'doctorId': user.uid, // Ensure doctorId is set
+          'doctorId': data['doctorId'] ?? user.uid,
           'clinicId': clinicId,
         });
 
-        // Create a new SessionModel with the generated document ID and patientName
         final createdSession = sessionModel.copyWith(
-          id: docRef.id, // Assign the generated document ID
-          createdBy: user.uid, // Ensure createdBy is set
-          doctorId: user.uid, // Ensure doctorId is set
-          patientName:
-              patientName, // Include the patient name in the returned model
+          id: docRef.id,
+          createdBy: user.uid,
+          doctorId: data['doctorId'] ?? user.uid,
+          patientName: patientName,
         );
 
         return Right(createdSession);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
-      // Handle general exceptions
       debugPrint('Error adding session: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
@@ -183,6 +177,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     String id,
     SessionModel sessionModel,
   ) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.updateSession)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     // Check if the user is authenticated
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
@@ -191,59 +188,25 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        debugPrint('Fetching document with ID: $id');
-        // Fetch the document to be updated
-        final doc = await _sessionsCollection.doc(id).get();
+        // Apply scope check before update
+        Query checkQuery =
+            _sessionsCollection.where(FieldPath.documentId, isEqualTo: id);
+        checkQuery = _applyScopeFilter(checkQuery, user);
+        final checkResult = await checkQuery.get();
 
-        if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            debugPrint('Error: Document data is null');
-            return Left(ServerFailure('Document data is null', 400));
-          }
-
-          final createdBy = data['createdBy'] as String?;
-          if (createdBy == null) {
-            debugPrint(
-              'Error: createdBy field is missing or null in the document',
-            );
-            return Left(
-              ServerFailure('createdBy field is missing or null', 400),
-            );
-          }
-
-          // Check if the authenticated user is authorized to update the document
-          // Relaxing this check for clinic-based access or keeping it if strict ownership is needed.
-          // For now, keeping it as is, assuming createdBy check is still valid or should be relaxed to clinicId check.
-          // Given the context, let's keep it but be aware.
-          if (createdBy == user.uid) {
-            final updatedData = sessionModel.toJson();
-
-            // Remove the `id` field because Firestore does not allow updating the document ID.
-            updatedData.remove('id');
-
-            // Remove the `patientName` field because only the `patientId` is stored in Firestore.
-            // The `patientName` is dynamically fetched when needed to ensure data consistency.
-            updatedData.remove('patientName');
-
-            // Update the document in Firestore
-            await _sessionsCollection.doc(id).update(updatedData);
-
-            return Right(sessionModel.copyWith(id: id));
-          } else {
-            debugPrint(
-              'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}',
-            );
-            return Left(ServerFailure('Unauthorized', 403));
-          }
-        } else {
-          debugPrint('Error: Document does not exist');
-          return Left(ServerFailure('Document does not exist', 404));
+        if (checkResult.docs.isEmpty) {
+          return Left(ServerFailure('Access denied to this session', 403));
         }
+
+        final updatedData = sessionModel.toJson();
+        updatedData.remove('id');
+        updatedData.remove('patientName');
+
+        await _sessionsCollection.doc(id).update(updatedData);
+        return Right(sessionModel.copyWith(id: id));
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
-      // Handle general exceptions
       debugPrint('Error updating session: $e');
       return Left(ServerFailure(e.toString(), 404));
     }
@@ -256,6 +219,9 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
   /// Returns the deleted [SessionModel] or a [Failure] in case of an error.
   @override
   Future<Either<Failure, void>> deleteSession(String id) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deleteSession)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     if (!await _isAuthenticated()) {
       debugPrint('User not authenticated');
       return Left(ServerFailure('User not authenticated', 401));
@@ -263,37 +229,23 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final doc = await _sessionsCollection.doc(id).get();
-        if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
-          debugPrint('Session data to delete: $data'); // Log the document data
+        // Apply scope check before delete
+        Query checkQuery =
+            _sessionsCollection.where(FieldPath.documentId, isEqualTo: id);
+        checkQuery = _applyScopeFilter(checkQuery, user);
+        final checkResult = await checkQuery.get();
 
-          if (data == null) {
-            debugPrint('Error: Document data is null');
-            return Left(ServerFailure('Document data is null', 400));
-          }
-
-          // Validate all required fields
-          final createdBy = data['createdBy']?.toString();
-
-          if (createdBy == user.uid) {
-            // Soft delete: Update deletedAt timestamp and deletedBy
-            await _sessionsCollection.doc(id).update({
-              'deletedAt': Timestamp.now(),
-              'deletedBy': user.uid,
-            });
-            debugPrint('Session with ID $id soft deleted successfully');
-            return Right(null); // Return void on successful deletion
-          } else {
-            debugPrint(
-              'Error: Unauthorized access. createdBy: $createdBy, user.uid: ${user.uid}',
-            );
-            return Left(ServerFailure('Unauthorized', 403));
-          }
-        } else {
-          debugPrint('Error: Document does not exist');
-          return Left(ServerFailure('Document does not exist', 404));
+        if (checkResult.docs.isEmpty) {
+          return Left(ServerFailure('Access denied to this session', 403));
         }
+
+        // Soft delete: Update deletedAt timestamp and deletedBy
+        await _sessionsCollection.doc(id).update({
+          'deletedAt': Timestamp.now(),
+          'deletedBy': user.uid,
+        });
+        debugPrint('Session with ID $id soft deleted successfully');
+        return const Right(null);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -315,9 +267,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         queryRef = queryRef
             .where('deletedAt', isNull: false)
@@ -422,10 +372,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted sessions
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -519,10 +466,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted sessions
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -700,10 +644,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
-        }
+        queryRef = _applyScopeFilter(queryRef, user);
 
         // Filter out deleted sessions
         queryRef = queryRef.where('deletedAt', isNull: true);
@@ -757,10 +698,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
@@ -800,10 +738,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
@@ -843,10 +778,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
@@ -893,10 +825,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
@@ -943,10 +872,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
@@ -987,10 +913,7 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           isEqualTo: clinicId,
         );
 
-        // Filter by doctorId if the user does not have permission to view all sessions
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
-          query = query.where('doctorId', isEqualTo: user.uid);
-        }
+        query = _applyScopeFilter(query, user);
 
         // Filter out deleted sessions
         query = query.where('deletedAt', isNull: true);
@@ -1006,6 +929,68 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
     } catch (e) {
       debugPrint('Error summing all session costs: $e');
       return Left(ServerFailure(e.toString(), 404));
+    }
+  }
+
+  /// Applies scope-based filtering to a Firestore query for sessions.
+  Query _applyScopeFilter(Query queryRef, User user) {
+    final notifier = OwnerNotifier();
+
+    // 1. Check if user has basic view permission
+    if (!notifier.hasPermission(AppPermission.viewSessions)) {
+      return queryRef.where(FieldPath.documentId, isEqualTo: 'PERMISSION_DENIED');
+    }
+
+    // 2. Global Access Check
+    if (notifier.hasAllDoctorsAccess ||
+        notifier.hasAllDepartmentsAccess ||
+        notifier.hasAllTeamsAccess) {
+      return queryRef;
+    }
+
+    // 3. Association Scoping
+    List<Filter> scopeFilters = [];
+
+    if (notifier.linkedDoctorIds.isNotEmpty) {
+      scopeFilters.add(Filter('doctorId', whereIn: notifier.linkedDoctorIds));
+    }
+
+    if (notifier.departmentIds.isNotEmpty) {
+      // Assuming sessions might have departmentId in future
+      scopeFilters.add(Filter('departmentId', whereIn: notifier.departmentIds));
+    }
+
+    if (notifier.teamIds.isNotEmpty) {
+      // Assuming sessions might have teamId in future
+      scopeFilters.add(Filter('teamId', whereIn: notifier.teamIds));
+    }
+
+    // 4. Flexible Model: If user has at least one association, also allow seeing sessions with null doctor
+    if (scopeFilters.isNotEmpty) {
+      scopeFilters.add(Filter('doctorId', isNull: true));
+    }
+
+    // 5. Apply filters
+    if (scopeFilters.isEmpty) {
+      return queryRef.where(
+        FieldPath.documentId,
+        isEqualTo: 'NO_ASSOCIATIONS_ACCESS',
+      );
+    }
+
+    if (scopeFilters.length == 1) {
+      return queryRef.where(scopeFilters.first);
+    } else if (scopeFilters.length == 2) {
+      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1]));
+    } else if (scopeFilters.length == 3) {
+      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1], scopeFilters[2]));
+    } else {
+      return queryRef.where(Filter.or(
+        scopeFilters[0],
+        scopeFilters[1],
+        scopeFilters[2],
+        scopeFilters[3],
+      ));
     }
   }
 }

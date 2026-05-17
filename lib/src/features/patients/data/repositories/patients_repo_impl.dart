@@ -47,6 +47,8 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
     int? maxAge,
     String? address,
     String? gender,
+    String? departmentId,
+    String? teamId,
   }) {
     return api.searchPatients(
       name: name,
@@ -54,6 +56,8 @@ class PatientsRepositoryImpl extends AbstractPatientsRepository {
       maxAge: maxAge,
       address: address,
       gender: gender,
+      departmentId: departmentId,
+      teamId: teamId,
     );
   }
 

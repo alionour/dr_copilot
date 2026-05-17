@@ -1,15 +1,13 @@
 // This file defines granular permissions for the application.
 // These permissions are stored in the database for each user/member.
+import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 
 enum AppPermission {
   // --- PATIENTS ---
-  /// View the complete list of patients in the clinic.
-  viewAllPatients,
+  /// View patient profiles and records (Scope defined by user associations).
+  viewPatients,
 
-  /// View only patients assigned strictly to the current user (if applicable).
-  viewOwnPatients,
-
-  /// Register a new patient in the clinic.
+  /// Register a new patient.
   createPatient,
 
   /// Update existing patient demographic or assignment details.
@@ -19,11 +17,8 @@ enum AppPermission {
   deletePatient,
 
   // --- SESSIONS ---
-  /// View sessions across the entire clinic.
-  viewAllSessions,
-
-  /// View sessions where the current user is the provider.
-  viewOwnSessions,
+  /// View patient sessions (Scope defined by user associations).
+  viewSessions,
 
   /// Schedule or record a new clinical session.
   createSession,
@@ -35,11 +30,8 @@ enum AppPermission {
   deleteSession,
 
   // --- EVALUATIONS ---
-  /// View clinical evaluations/assessments for all patients.
-  viewAllEvaluations,
-
-  /// View evaluations performed by the current user.
-  viewOwnEvaluations,
+  /// View patient evaluations (Scope defined by user associations).
+  viewEvaluations,
 
   /// Perform and record a new evaluation.
   createEvaluation,
@@ -120,6 +112,9 @@ enum AppPermission {
   manageSettings,
 
   // --- TEAMS ---
+  /// View the list of clinic teams.
+  viewTeams,
+
   /// Create or delete chat/collaboration teams.
   manageTeams,
 
@@ -133,14 +128,14 @@ enum AppPermission {
   unarchiveTeam,
 
   // --- MEDICAL FILES ---
-  /// View attached files (PDFs, Images) in patient records.
+  /// View attached files (PDFs, Images) (Scope defined by user associations).
   viewMedicalFiles,
 
   /// Upload new documents to patient records.
-  addMedicalFile,
+  createMedicalFile,
 
   /// Rename or modify metadata of uploaded files.
-  editMedicalFile,
+  updateMedicalFile,
 
   /// Remove files from patient records.
   deleteMedicalFile,
@@ -179,14 +174,14 @@ enum AppPermission {
   deleteFinancialEntry,
 
   // --- CLINICAL REPORTS ---
-  /// View specialized clinical reports (Phase 2 feature).
+  /// View specialized clinical reports (Scope defined by user associations).
   viewClinicalReports,
 
   /// Generate a new clinical report.
-  addClinicalReport,
+  createClinicalReport,
 
   /// Modify an existing clinical report.
-  editClinicalReport,
+  updateClinicalReport,
 
   /// Delete a clinical report.
   deleteClinicalReport,
@@ -225,6 +220,13 @@ enum AppPermission {
   /// Adjust stock quantities (add/remove stock).
   adjustInventoryStock,
 
+  // --- DEPARTMENTS ---
+  /// View the clinic's departments list.
+  viewDepartments,
+
+  /// Add, edit, or delete departments.
+  manageDepartments,
+
   // --- HELP & SUPPORT ---
   /// Access help documentation/FAQ.
   viewHelp,
@@ -254,3 +256,146 @@ enum AppPermission {
   /// Delete a task
   deleteTask,
 }
+
+
+enum AppPermissionCategory {
+  patientManagement,
+  clinical,
+  financial,
+  administrative,
+  scopedAccess,
+  inventory,
+  teamCollab,
+  system,
+}
+
+extension AppPermissionExtension on AppPermission {
+  AppPermissionCategory get category {
+    switch (this) {
+      case AppPermission.viewPatients:
+      case AppPermission.createPatient:
+      case AppPermission.updatePatient:
+      case AppPermission.deletePatient:
+        return AppPermissionCategory.patientManagement;
+
+      case AppPermission.viewSessions:
+      case AppPermission.createSession:
+      case AppPermission.updateSession:
+      case AppPermission.deleteSession:
+      case AppPermission.viewEvaluations:
+      case AppPermission.createEvaluation:
+      case AppPermission.updateEvaluation:
+      case AppPermission.deleteEvaluation:
+      case AppPermission.viewMedicalFiles:
+      case AppPermission.createMedicalFile:
+      case AppPermission.updateMedicalFile:
+      case AppPermission.deleteMedicalFile:
+      case AppPermission.viewMedications:
+      case AppPermission.addMedication:
+      case AppPermission.editMedication:
+      case AppPermission.deleteMedication:
+      case AppPermission.viewClinicalReports:
+      case AppPermission.createClinicalReport:
+      case AppPermission.updateClinicalReport:
+      case AppPermission.deleteClinicalReport:
+      case AppPermission.viewDoctors:
+      case AppPermission.manageDoctors:
+        return AppPermissionCategory.clinical;
+
+      case AppPermission.viewFinancials:
+      case AppPermission.manageInvoices: // Deprecated but still in enum
+      case AppPermission.viewReports:
+      case AppPermission.viewCharts:
+      case AppPermission.addFinancialEntry:
+      case AppPermission.editFinancialEntry:
+      case AppPermission.deleteFinancialEntry:
+      case AppPermission.viewSubscription:
+      case AppPermission.manageSubscription:
+        return AppPermissionCategory.financial;
+
+      case AppPermission.viewCalendar:
+      case AppPermission.addCalendarEvent:
+      case AppPermission.editCalendarEvent:
+      case AppPermission.deleteCalendarEvent:
+      case AppPermission.viewNotifications:
+      case AppPermission.manageNotifications:
+      case AppPermission.sendNotificationMessage:
+      case AppPermission.sendNotificationAppointment:
+      case AppPermission.sendNotificationReminder:
+      case AppPermission.viewSettings:
+      case AppPermission.editSettings:
+      case AppPermission.manageSettings:
+      case AppPermission.manageStaff:
+      case AppPermission.manageUsers:
+      case AppPermission.assignRoles:
+      case AppPermission.assignPermissions:
+      case AppPermission.viewInvitations:
+      case AppPermission.sendInvitation:
+      case AppPermission.revokeInvitation:
+      case AppPermission.viewDepartments:
+      case AppPermission.manageDepartments:
+      case AppPermission.viewHelp:
+      case AppPermission.accessSupport:
+      case AppPermission.manageWorkingHours:
+      case AppPermission.manageBookingAvailability:
+        return AppPermissionCategory.administrative;
+
+      case AppPermission.viewInventory:
+      case AppPermission.manageInventory:
+      case AppPermission.adjustInventoryStock:
+        return AppPermissionCategory.inventory;
+
+      case AppPermission.viewTeams:
+      case AppPermission.manageTeams:
+      case AppPermission.createTeam:
+      case AppPermission.archiveTeam:
+      case AppPermission.unarchiveTeam:
+      case AppPermission.useCopilot:
+        return AppPermissionCategory.teamCollab;
+
+      case AppPermission.viewRecycleBin:
+      case AppPermission.restoreRecycleBinItem:
+      case AppPermission.permanentDeleteRecycleBinItem:
+        return AppPermissionCategory.system;
+    }
+  }
+
+  /// Returns true if this permission is logically relevant for a given role.
+  /// Used to filter permissions in the UI to reduce complexity.
+  bool isMeaningfulFor(AppRole role) {
+    if (role == AppRole.admin) return true;
+
+    switch (role) {
+      case AppRole.doctor:
+        // Doctors see clinical, administrative (except admin-only), and collab
+        return category != AppPermissionCategory.financial &&
+            category != AppPermissionCategory.system &&
+            category != AppPermissionCategory.inventory;
+
+      case AppRole.staff:
+        // Staff see patient management, clinical (sessions/evals), general admin, and collab
+        return category == AppPermissionCategory.patientManagement ||
+            category == AppPermissionCategory.clinical ||
+            category == AppPermissionCategory.administrative ||
+            category == AppPermissionCategory.teamCollab;
+
+      case AppRole.financial:
+        // Financial see money and general admin/collab
+        return category == AppPermissionCategory.financial ||
+            category == AppPermissionCategory.administrative ||
+            category == AppPermissionCategory.teamCollab;
+
+      case AppRole.readonly:
+        // Readonly see a very limited subset
+        return this == AppPermission.viewPatients ||
+            this == AppPermission.viewSessions ||
+            this == AppPermission.viewCalendar ||
+            this == AppPermission.viewNotifications ||
+            this == AppPermission.viewHelp;
+
+      default:
+        return false;
+    }
+  }
+}
+

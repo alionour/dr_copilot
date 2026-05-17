@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart' as localization;
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class PatientListItem extends StatefulWidget {
   final PatientModel patientModel;
@@ -154,34 +156,40 @@ class _PatientListItemState extends State<PatientListItem> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          context.pushNamed(
-                            'edit_patient',
-                            extra: widget.patientModel,
-                          );
-                        },
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: Text('edit'.tr()),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.primary,
-                          side: BorderSide(color: colorScheme.primary),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.updatePatient))
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            context.pushNamed(
+                              'edit_patient',
+                              extra: widget.patientModel,
+                            );
+                          },
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: Text('edit'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.primary,
+                            side: BorderSide(color: colorScheme.primary),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          context.read<PatientsBloc>().add(
-                                DeletePatient(widget.patientModel.id),
-                              );
-                        },
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        label: Text('delete'.tr()),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.error,
-                          side: BorderSide(color: colorScheme.error),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.updatePatient))
+                        const SizedBox(width: 12),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.deletePatient))
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            context.read<PatientsBloc>().add(
+                                  DeletePatient(widget.patientModel.id),
+                                );
+                          },
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          label: Text('delete'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.error,
+                            side: BorderSide(color: colorScheme.error),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

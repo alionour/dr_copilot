@@ -23,7 +23,7 @@ class MedicalFileRepository {
     required File file,
     required String patientId,
   }) async {
-    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile)) {
+    if (!OwnerNotifier().hasPermission(AppPermission.createMedicalFile)) {
       return Left(ServerFailure('Permission denied', 403));
     }
     try {
@@ -58,7 +58,7 @@ class MedicalFileRepository {
   Future<Either<Failure, MedicalFileModel>> addMedicalFile(
     MedicalFileModel medicalFile,
   ) async {
-    if (!OwnerNotifier().hasPermission(AppPermission.addMedicalFile)) {
+    if (!OwnerNotifier().hasPermission(AppPermission.createMedicalFile)) {
       return Left(ServerFailure('Permission denied', 403));
     }
     try {
