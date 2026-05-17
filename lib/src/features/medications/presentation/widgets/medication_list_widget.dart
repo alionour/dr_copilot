@@ -30,7 +30,7 @@ class MedicationListWidget extends StatelessWidget {
 
         if (state is MedicationsLoaded) {
           if (state.medications.isEmpty) {
-            return Center(child: Text('No medications found'.tr()));
+            return Center(child: Text('noMedicationsFound'.tr()));
           }
 
           return ListView.builder(

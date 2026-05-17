@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
@@ -32,7 +33,7 @@ void main() {
         tPassword,
       );
 
-      expect(result, tUser);
+      expect(result, Right(tUser));
       verify(
         () => mockApi.signInWithEmailAndPassword(tEmail, tPassword),
       ).called(1);
@@ -41,8 +42,9 @@ void main() {
     test('signOut calls api', () async {
       when(() => mockApi.signOut()).thenAnswer((_) async => {});
 
-      await authRepository.signOut();
+      final result = await authRepository.signOut();
 
+      expect(result, const Right(null));
       verify(() => mockApi.signOut()).called(1);
     });
 
@@ -51,7 +53,7 @@ void main() {
 
       final result = await authRepository.getCurrentUser();
 
-      expect(result, tUser);
+      expect(result, Right(tUser));
       verify(() => mockApi.getCurrentUser()).called(1);
     });
 
@@ -75,7 +77,7 @@ void main() {
         tPassword,
       );
 
-      expect(result, tUser);
+      expect(result, Right(tUser));
       verify(
         () => mockApi.signUpWithEmailAndPassword(tEmail, tPassword),
       ).called(1);

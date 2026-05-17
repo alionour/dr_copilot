@@ -306,19 +306,35 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         return Left(ServerFailure('No clinic ID found', 403));
       }
       if (user != null) {
-        List<String> patientIds = [];
-        if (name != null && name.isNotEmpty) {
-          // 1. Find patient IDs by name
-          final patientsSnapshot = await _patientsCollection
-              .where('clinicId', isEqualTo: clinicId)
-              .where('name', isGreaterThanOrEqualTo: name)
-              .where('name', isLessThanOrEqualTo: '$name\uf8ff')
-              .get();
-          patientIds = patientsSnapshot.docs.map((doc) => doc.id).toList();
-          if (patientIds.isEmpty) {
-            // No patients found, return empty result
-            return Right([]);
+        List<String> matchedPatientIds = [];
+        
+        // Fetch up to 1000 clinic patients to resolve case-insensitive name matching in memory
+        final patientsSnapshot = await _patientsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .limit(1000)
+            .get();
+
+        final patients = patientsSnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>?;
+          return {
+            'id': doc.id,
+            'name': (data?['name'] as String? ?? '').toLowerCase(),
+          };
+        }).toList();
+
+        if (name != null && name.trim().isNotEmpty) {
+          final cleanQuery = name.trim().toLowerCase();
+          for (var p in patients) {
+            final pName = p['name'] ?? '';
+            if (pName.contains(cleanQuery)) {
+              matchedPatientIds.add(p['id']!);
+            }
           }
+          if (matchedPatientIds.isEmpty) {
+            return const Right([]);
+          }
+        } else {
+          matchedPatientIds = patients.map((p) => p['id']!).toList();
         }
 
         Query queryRef = _evaluationsCollection.where(
@@ -332,14 +348,6 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
         // Filter out deleted evaluations
         queryRef = queryRef.where('deletedAt', isNull: true);
 
-        if (patientIds.isNotEmpty) {
-          // Firestore whereIn supports max 10 items, so take first 10
-          queryRef = queryRef.where(
-            'patientId',
-            whereIn: patientIds.take(10).toList(),
-          );
-        }
-
         if (lastDocumentID != null) {
           final lastDocumentSnapshot =
               await _evaluationsCollection.doc(lastDocumentID).get();
@@ -349,6 +357,9 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             throw Exception('Document with ID $lastDocumentID does not exist');
           }
         }
+
+        // Limit results to keep search fast and responsive
+        queryRef = queryRef.limit(200);
 
         final snapshot = await queryRef.get();
 
@@ -362,11 +373,6 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             final patientName = await getPatientNameById(
               data['patientId'] as String,
             );
-            if (patientName == null) {
-              debugPrint(
-                'Patient name not found for ID: \\${data['patientId']}',
-              );
-            }
             return EvaluationModel.fromJson({
               ...data,
               'id': doc.id, // Ensure the document ID is included
@@ -374,6 +380,12 @@ class EvaluationsFirebaseApi extends AbstractEvaluationsRepository {
             });
           }).toList(),
         );
+
+        // Filter evaluations to only those that match the matched patient IDs
+        evaluations = evaluations.where((evaluation) {
+          return matchedPatientIds.contains(evaluation.patientId);
+        }).toList();
+
         return Right(evaluations);
       }
       return Left(ServerFailure('User not authenticated', 401));

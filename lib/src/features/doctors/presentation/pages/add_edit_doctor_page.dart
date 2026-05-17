@@ -167,6 +167,41 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
 
   @override
   Widget build(BuildContext context) {
+    final hasManagePermission = OwnerNotifier().hasPermission(AppPermission.manageDoctors);
+
+    if (!hasManagePermission) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(isEditing ? 'editDoctor'.tr() : 'addDoctor'.tr()),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              context.pop();
+            },
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.gpp_bad_outlined,
+                size: 80,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'notAuthorized'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'editDoctor'.tr() : 'addDoctor'.tr()),
@@ -197,7 +232,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             });
           } else if (state is DoctorsSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: SelectionArea(child: Text(state.message ?? 'Success'.tr()))),
+              SnackBar(content: SelectionArea(child: Text(state.message ?? 'success'.tr()))),
             );
             if (isEditing) {
               if (context.mounted) context.pop();
@@ -211,7 +246,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
             }
           } else if (state is DoctorsError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: SelectionArea(child: Text(state.message ?? 'Error'.tr()))),
+              SnackBar(content: SelectionArea(child: Text(state.message ?? 'anErrorOccurred'.tr()))),
             );
           }
         },

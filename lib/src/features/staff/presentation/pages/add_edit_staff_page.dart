@@ -198,7 +198,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
       body: BlocListener<StaffBloc, StaffState>(
         listener: (context, state) {
           if (state is StaffSuccess) {
-            final message = state.message ?? 'Success'.tr();
+            final message = state.message ?? 'success'.tr();
             debugPrint('SnackBar Success: $message');
             ScaffoldMessenger.of(
               context,
@@ -220,7 +220,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
               });
             }
           } else if (state is StaffError) {
-            final message = state.message ?? 'Error'.tr();
+            final message = state.message ?? 'anErrorOccurred'.tr();
             debugPrint('SnackBar Error: $message');
             ScaffoldMessenger.of(
               context,

@@ -268,37 +268,10 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
         queryRef = _applyPatientFilter(queryRef, user);
 
-        if (name != null && name.isNotEmpty) {
-          queryRef = queryRef
-              .where('name', isGreaterThanOrEqualTo: name)
-              .where('name', isLessThanOrEqualTo: '$name\uf8ff');
-        }
+        // Fetch up to 1000 clinic patients for client-side search to guarantee state resilience
+        queryRef = queryRef.limit(1000);
 
-        if (minAge != null) {
-          queryRef = queryRef.where('age', isGreaterThanOrEqualTo: minAge);
-        }
-
-        if (maxAge != null) {
-          queryRef = queryRef.where('age', isLessThanOrEqualTo: maxAge);
-        }
-
-        if (address != null && address.isNotEmpty) {
-          queryRef = queryRef.where('address', isEqualTo: address);
-        }
-
-        if (gender != null && gender.isNotEmpty) {
-          queryRef = queryRef.where('gender', isEqualTo: gender);
-        }
-
-        if (departmentId != null && departmentId.isNotEmpty) {
-          queryRef = queryRef.where('departmentId', isEqualTo: departmentId);
-        }
-
-        if (teamId != null && teamId.isNotEmpty) {
-          queryRef = queryRef.where('teamId', isEqualTo: teamId);
-        }
-
-        debugPrint('Executing query: $queryRef');
+        debugPrint('Executing search patients query: $queryRef');
 
         final snapshot = await queryRef.get();
 
@@ -307,12 +280,45 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           if (data == null) {
             throw Exception('Document data is null');
           }
-          debugPrint('Fetched patient data: $data');
           return PatientModel.fromJson({
             ...data,
-            'id': doc.id, // Ensure the document ID is included
+            'id': doc.id,
           });
         }).toList();
+
+        // Perform case-insensitive searches and bounds checking in memory
+        if (name != null && name.trim().isNotEmpty) {
+          final cleanQuery = name.trim().toLowerCase();
+          patients = patients.where((patient) {
+            return patient.name.toLowerCase().contains(cleanQuery);
+          }).toList();
+        }
+
+        if (minAge != null) {
+          patients = patients.where((p) => p.age != null && p.age! >= minAge).toList();
+        }
+
+        if (maxAge != null) {
+          patients = patients.where((p) => p.age != null && p.age! <= maxAge).toList();
+        }
+
+        if (address != null && address.trim().isNotEmpty) {
+          final cleanAddr = address.trim().toLowerCase();
+          patients = patients.where((p) => p.address != null && p.address!.toLowerCase().contains(cleanAddr)).toList();
+        }
+
+        if (gender != null && gender.trim().isNotEmpty) {
+          final cleanGender = gender.trim().toLowerCase();
+          patients = patients.where((p) => p.gender != null && p.gender!.toLowerCase() == cleanGender).toList();
+        }
+
+        if (departmentId != null && departmentId.isNotEmpty) {
+          patients = patients.where((p) => p.departmentId == departmentId).toList();
+        }
+
+        if (teamId != null && teamId.isNotEmpty) {
+          patients = patients.where((p) => p.teamId == teamId).toList();
+        }
 
         return Right(patients);
       }

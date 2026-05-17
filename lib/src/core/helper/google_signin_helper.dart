@@ -130,18 +130,25 @@ class GoogleSignInHelper {
   factory GoogleSignInHelper() => _instance;
 
   /// Internal constructor to initialize the singleton instance.
-  GoogleSignInHelper._internal() {
-    _googleSignIn.onCurrentUserChanged.listen((account) async {
-      _client = await _googleSignIn.authenticatedClient();
-      debugPrint('User signed in: $account');
-    });
-  }
+  GoogleSignInHelper._internal();
 
   static const _webClientId = String.fromEnvironment('WEB_CLIENT_ID');
 
+  GoogleSignIn? _googleSignInInstance;
+
   /// Getter for the standard Google Sign-In instance.
   GoogleSignIn get _googleSignIn {
-    return GoogleSignIn(clientId: kIsWeb ? _webClientId : null, scopes: scopes);
+    if (_googleSignInInstance == null) {
+      _googleSignInInstance = GoogleSignIn(
+        clientId: kIsWeb ? _webClientId : null,
+        scopes: scopes,
+      );
+      _googleSignInInstance!.onCurrentUserChanged.listen((account) async {
+        _client = await _googleSignInInstance!.authenticatedClient();
+        debugPrint('User signed in: $account');
+      });
+    }
+    return _googleSignInInstance!;
   }
 
   Client? _client;
@@ -228,11 +235,15 @@ class GoogleSignInHelper {
     try {
       final jsonString =
           await rootBundle.loadString('assets/google_credentials.json');
-      final jsonMap = jsonDecode(jsonString);
-      if (jsonMap is Map<String, dynamic>) {
-        clientId = jsonMap['WEB_CLIENT_ID'] as String?;
-        clientSecret = jsonMap['WEB_CLIENT_SECRET'] as String?;
-        redirectPortStr = jsonMap['WEB_REDIRECT_PORT'] as String?;
+      if (jsonString.trim().isNotEmpty) {
+        final jsonMap = jsonDecode(jsonString);
+        if (jsonMap is Map<String, dynamic>) {
+          clientId = jsonMap['WEB_CLIENT_ID'] as String?;
+          clientSecret = jsonMap['WEB_CLIENT_SECRET'] as String?;
+          redirectPortStr = jsonMap['WEB_REDIRECT_PORT'] as String?;
+        }
+      } else {
+        debugPrint('assets/google_credentials.json is empty');
       }
     } catch (e) {
       debugPrint('Could not load assets/google_credentials.json: $e');

@@ -210,200 +210,218 @@ class _SessionsPageState extends State<SessionsPage> {
           ],
         ),
       ),
-      body: BlocListener<SessionsBloc, SessionsState>(
-        listener: (context, state) {
-          if (state is SessionsSuccess) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
-            }
-          } else if (state is SessionsError) {
-            final message = state.message;
-            if (message != null) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
-            }
-          } else if (state is SessionsCountLoaded) {
-            setState(() {
-              _firestoreSessionsCount = state.count;
-            });
-          }
-        },
-        child: BlocBuilder<SessionsBloc, SessionsState>(
-          builder: (context, state) {
-            if (state is SessionsLoading) {
-              return Shimmer.fromColors(
-                baseColor: Theme.of(
+      body: SafeArea(
+        child: BlocListener<SessionsBloc, SessionsState>(
+          listener: (context, state) {
+            if (state is SessionsSuccess) {
+              final message = state.message;
+              if (message != null) {
+                ScaffoldMessenger.of(
                   context,
-                ).colorScheme.surfaceContainerHighest,
-                highlightColor: Theme.of(context).colorScheme.surface,
-                child: ListView.builder(
-                  itemCount: 10,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Container(
-                      height: 50.0,
-                      color: Theme.of(context).colorScheme.surface,
+                ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+              }
+            } else if (state is SessionsError) {
+              final message = state.message;
+              if (message != null) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+              }
+            } else if (state is SessionsCountLoaded) {
+              setState(() {
+                _firestoreSessionsCount = state.count;
+              });
+            }
+          },
+          child: BlocBuilder<SessionsBloc, SessionsState>(
+            builder: (context, state) {
+              if (state is SessionsLoading) {
+                return Shimmer.fromColors(
+                  baseColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                  highlightColor: Theme.of(context).colorScheme.surface,
+                  child: ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Container(
+                        height: 50.0,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
                     ),
                   ),
-                ),
-              );
-            } else if (state is SessionsLoaded ||
-                state is SessionsLoadingMore ||
-                state is SessionsCountLoaded) {
-              final sessions = (state is SessionsLoaded)
-                  ? state.sessions
-                  : (state is SessionsLoadingMore)
-                      ? state.sessions
-                      : <SessionModel>[];
+                );
+              } else if (state is SessionsLoaded ||
+                  state is SessionsLoadingMore ||
+                  state is SessionsCountLoaded) {
+                final sessions = (state is SessionsLoaded)
+                    ? state.sessions
+                    : (state is SessionsLoadingMore)
+                        ? state.sessions
+                        : <SessionModel>[];
 
-              final groupedSessions = <String, List<SessionModel>>{};
-              for (var session in sessions) {
-                final creationDate = session.startDateTime
-                    .toDate()
-                    .toIso8601String()
-                    .split('T')[0];
-                groupedSessions
-                    .putIfAbsent(creationDate, () => [])
-                    .add(session);
-              }
+                final groupedSessions = <String, List<SessionModel>>{};
+                for (var session in sessions) {
+                  final creationDate = session.startDateTime
+                      .toDate()
+                      .toIso8601String()
+                      .split('T')[0];
+                  groupedSessions
+                      .putIfAbsent(creationDate, () => [])
+                      .add(session);
+                }
 
-              // Sort grouped sessions by date in descending order
-              final sortedGroupedSessions = groupedSessions.entries.toList()
-                ..sort((a, b) => b.key.compareTo(a.key));
+                // Sort grouped sessions by date in descending order
+                final sortedGroupedSessions = groupedSessions.entries.toList()
+                  ..sort((a, b) => b.key.compareTo(a.key));
 
-              return Column(
-                children: [
-                  // Add a label to show the total number of sessions (like patients_page)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 16.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(Icons.assignment_outlined,
-                            size: 20, color: Colors.blue),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${sessions.length} ',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                        ),
-                        Text(
-                          'loaded'.tr(),
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        if (_firestoreSessionsCount != null) ...[
-                          const SizedBox(width: 16),
-                          Icon(Icons.cloud_outlined,
-                              size: 18, color: Colors.deepPurple),
-                          const SizedBox(width: 2),
+                return Column(
+                  children: [
+                    // Add a label to show the total number of sessions (like patients_page)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 16.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.assignment_outlined,
+                              size: 20, color: Colors.blue),
+                          const SizedBox(width: 4),
                           Text(
-                            '$_firestoreSessionsCount',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                            '${sessions.length} ',
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue,
+                                    ),
+                          ),
+                          Text(
+                            'loaded'.tr(),
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          if (_firestoreSessionsCount != null)
+                            Row(
+                              children: [
+                                const SizedBox(width: 16),
+                                Icon(
+                                  Icons.cloud_outlined,
+                                  size: 18,
                                   color: Colors.deepPurple,
                                 ),
-                          ),
-                          Text(
-                            ' ${'stored'.tr()} ',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: sortedGroupedSessions.length,
-                      itemBuilder: (context, index) {
-                        final dateKey = sortedGroupedSessions[index].key;
-                        final sessionsForDate =
-                            sortedGroupedSessions[index].value;
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                                horizontal: 16.0,
-                              ),
-                              child: Text(
-                                _getDateLabel(dateKey),
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineMedium,
-                              ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '$_firestoreSessionsCount',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.deepPurple,
+                                      ),
+                                ),
+                                Text(
+                                  ' ${'stored'.tr()} ',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ],
                             ),
-                            ...sessionsForDate.map((session) {
-                              return SessionListItem(
-                                sessionModel: session,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedIndex = sessions.indexOf(session);
-                                  });
-                                },
-                              );
-                            }),
-                          ],
-                        );
-                      },
+                        ],
+                      ),
                     ),
-                  ),
-                  if (state is SessionsLoaded && state.isLoadingMore ||
-                      state is SessionsLoadingMore)
-                    Shimmer.fromColors(
-                      baseColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      highlightColor: Theme.of(context).colorScheme.surface,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          height: 50.0,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(8.0),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: sortedGroupedSessions.length,
+                        itemBuilder: (context, index) {
+                          final dateKey = sortedGroupedSessions[index].key;
+                          final sessionsForDate =
+                              sortedGroupedSessions[index].value;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                  horizontal: 16.0,
+                                ),
+                                child: Text(
+                                  _getDateLabel(dateKey),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
+                                ),
+                              ),
+                              ...sessionsForDate.map((session) {
+                                return Container(
+                                  color: _selectedIndex ==
+                                          sessions.indexOf(session)
+                                      ? Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.2)
+                                      : Colors.transparent,
+                                  child: SessionListItem(
+                                    sessionModel: session,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedIndex =
+                                            sessions.indexOf(session);
+                                      });
+                                    },
+                                  ),
+                                );
+                              }),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    if (state is SessionsLoaded && state.isLoadingMore ||
+                        state is SessionsLoadingMore)
+                      Shimmer.fromColors(
+                        baseColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        highlightColor: Theme.of(context).colorScheme.surface,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: 50.0,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            } else if (state is SessionsError) {
-              debugPrint('Error: ${state.message}');
+                  ],
+                );
+              } else if (state is SessionsError) {
+                debugPrint('Error: ${state.message}');
 
-              return Center(child: Text('Error: ${state.message}'));
-            }
-            return EmptyStateWidget(
-              message: 'noSessionsFound'.tr(),
-              title: 'noSessions'.tr(),
-              actionLabel: OwnerNotifier()
-                      .hasPermission(AppPermission.createSession)
-                  ? 'addSession'.tr()
-                  : null,
-              onActionPressed: OwnerNotifier()
-                      .hasPermission(AppPermission.createSession)
-                  ? () {
-                      context.push('/sessions/new');
-                    }
-                  : null,
-            );
-          },
+                return Center(child: Text('Error: ${state.message}'));
+              }
+              return EmptyStateWidget(
+                message: 'noSessionsFound'.tr(),
+                title: 'noSessions'.tr(),
+                actionLabel: OwnerNotifier()
+                        .hasPermission(AppPermission.createSession)
+                    ? 'addSession'.tr()
+                    : null,
+                onActionPressed: OwnerNotifier()
+                        .hasPermission(AppPermission.createSession)
+                    ? () {
+                        context.push('/sessions/new');
+                      }
+                    : null,
+              );
+            },
+          ),
         ),
       ),
       floatingActionButton:

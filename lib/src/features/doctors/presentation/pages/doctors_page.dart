@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class DoctorsPage extends StatefulWidget {
   const DoctorsPage({super.key});
@@ -48,16 +49,18 @@ class _DoctorsPageState extends State<DoctorsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canManage = _ownerNotifier.hasPermission(AppPermission.manageDoctors);
     return Scaffold(
       appBar: AppBar(
         title: Text('doctors'.tr()),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              context.go('/doctors/new');
-            },
-          ),
+          if (canManage)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                context.go('/doctors/new');
+              },
+            ),
         ],
       ),
       body: BlocBuilder<DoctorsBloc, DoctorsState>(
@@ -69,10 +72,10 @@ class _DoctorsPageState extends State<DoctorsPage> {
               return EmptyStateWidget(
                 message: 'noDoctorsFound'.tr(),
                 title: 'noDoctors'.tr(),
-                actionLabel: 'addDoctor'.tr(),
-                onActionPressed: () {
+                actionLabel: canManage ? 'addDoctor'.tr() : null,
+                onActionPressed: canManage ? () {
                   context.go('/doctors/new');
-                },
+                } : null,
               );
             }
             return ListView.builder(
@@ -89,7 +92,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
             );
           } else if (state is DoctorsError) {
             return Center(
-              child: Text(state.message ?? 'An error occurred'.tr()),
+              child: Text(state.message ?? 'anErrorOccurred'.tr()),
             );
           }
           return EmptyStateWidget(

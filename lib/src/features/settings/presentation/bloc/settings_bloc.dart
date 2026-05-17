@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
@@ -30,9 +31,15 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateCopilotFieldEvent>(_updateCopilotFields);
     on<UpdateWorkingDaysEvent>(_updateWorkingDays);
     on<TogglePremiumModelsEvent>(_togglePremiumModels);
-    on<_UpdateUserSettings>((event, emit) {
+    on<_UpdateUserSettings>((event, emit) async {
+      final isDarkMode = event.settings.isDarkMode ?? state.isDarkMode;
+      try {
+        await secureStorage.write(key: 'isDarkMode', value: isDarkMode.toString());
+      } catch (e) {
+        debugPrint('Error saving theme from stream update to secure storage: $e');
+      }
       emit(state.copyWith(
-        isDarkMode: event.settings.isDarkMode ?? state.isDarkMode,
+        isDarkMode: isDarkMode,
         localeCode: event.settings.localeCode ?? state.localeCode,
         usePremiumModels:
             event.settings.usePremiumModels ?? state.usePremiumModels,
@@ -59,8 +66,20 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await _userSettingsSubscription?.cancel();
     await _clinicSettingsSubscription?.cancel();
 
+    // 1. Pre-load local isDarkMode value for instant startup / offline capability
+    try {
+      final localDark = await secureStorage.read(key: 'isDarkMode');
+      if (localDark != null) {
+        emit(state.copyWith(isDarkMode: localDark == 'true'));
+      }
+    } catch (e) {
+      debugPrint('Error reading local isDarkMode from secure storage: $e');
+    }
+
     // Subscribe to User Settings
-    _userSettingsSubscription = repository.getUserSettings().listen(
+    _userSettingsSubscription = repository.getUserSettings().handleError((error) {
+      debugPrint('Error loading user settings from Firestore: $error');
+    }).listen(
       (settings) {
         add(_UpdateUserSettings(settings));
       },
@@ -85,8 +104,19 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     // Optimistic update
     emit(state.copyWith(isDarkMode: newMode));
 
+    // Save to local secure storage
+    try {
+      await secureStorage.write(key: 'isDarkMode', value: newMode.toString());
+    } catch (e) {
+      debugPrint('Error saving theme to secure storage: $e');
+    }
+
     // Save to User Settings
-    await repository.updateUserSettings(UserSettingsModel(isDarkMode: newMode));
+    try {
+      await repository.updateUserSettings(UserSettingsModel(isDarkMode: newMode));
+    } catch (e) {
+      debugPrint('Error syncing theme to Firestore: $e');
+    }
   }
 
   void _changeLocale(
@@ -95,8 +125,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(state.copyWith(localeCode: event.localeCode));
 
     // Save to User Settings
-    await repository
-        .updateUserSettings(UserSettingsModel(localeCode: event.localeCode));
+    try {
+      await repository
+          .updateUserSettings(UserSettingsModel(localeCode: event.localeCode));
+    } catch (e) {
+      debugPrint('Error syncing locale to Firestore: $e');
+    }
   }
 
   bool get _canEditClinicSettings {
@@ -113,12 +147,16 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     // Optimistic update
     emit(state.copyWith(copilotRequiredFields: event.requiredFields));
 
-    await repository.updateClinicSettings(
-      clinicId,
-      ClinicSettingsModel(
-          copilotRequiredFields: event.requiredFields,
-          workingDays: state.workingDays),
-    );
+    try {
+      await repository.updateClinicSettings(
+        clinicId,
+        ClinicSettingsModel(
+            copilotRequiredFields: event.requiredFields,
+            workingDays: state.workingDays),
+      );
+    } catch (e) {
+      debugPrint('Error syncing Copilot fields to Firestore: $e');
+    }
   }
 
   void _updateWorkingDays(
@@ -131,12 +169,16 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     // Optimistic update
     emit(state.copyWith(workingDays: event.workingDays));
 
-    await repository.updateClinicSettings(
-      clinicId,
-      ClinicSettingsModel(
-          workingDays: event.workingDays,
-          copilotRequiredFields: state.copilotRequiredFields),
-    );
+    try {
+      await repository.updateClinicSettings(
+        clinicId,
+        ClinicSettingsModel(
+            workingDays: event.workingDays,
+            copilotRequiredFields: state.copilotRequiredFields),
+      );
+    } catch (e) {
+      debugPrint('Error syncing working days to Firestore: $e');
+    }
   }
 
   void _togglePremiumModels(
@@ -146,8 +188,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(state.copyWith(usePremiumModels: newValue));
 
     // Save to User Settings
-    await repository
-        .updateUserSettings(UserSettingsModel(usePremiumModels: newValue));
+    try {
+      await repository
+          .updateUserSettings(UserSettingsModel(usePremiumModels: newValue));
+    } catch (e) {
+      debugPrint('Error syncing premium models preference to Firestore: $e');
+    }
   }
 }
 

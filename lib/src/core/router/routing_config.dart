@@ -44,6 +44,7 @@ import 'package:dr_copilot/src/features/settings/presentation/pages/model_select
 import 'package:dr_copilot/src/features/subscription/presentation/pages/subscription_pricing_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/payment_gateway_settings_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/pages/calendar_settings_page.dart';
+import 'package:dr_copilot/src/features/settings/presentation/pages/clinic_members_page.dart';
 
 import 'package:dr_copilot/src/features/doctors/presentation/pages/doctors_page.dart';
 import 'package:dr_copilot/src/features/doctors/presentation/pages/add_edit_doctor_page.dart';
@@ -166,6 +167,11 @@ class RoutingConfig {
             path: '/settings/calendar_settings',
             name: 'calendar_settings',
             builder: (context, state) => const CalendarSettingsPage(),
+          ),
+          GoRoute(
+            path: '/settings/members',
+            name: 'clinic_members',
+            builder: (context, state) => const ClinicMembersPage(),
           ),
           GoRoute(
             path: '/notifications',

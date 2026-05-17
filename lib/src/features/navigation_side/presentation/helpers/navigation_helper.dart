@@ -97,7 +97,7 @@ class NavigationHelper {
             isAllowed = notifier.hasPermission(AppPermission.viewNotifications);
             break;
           case Destination.settings:
-            isAllowed = notifier.hasPermission(AppPermission.viewSettings);
+            isAllowed = true;
             break;
           case Destination.teamChat:
             isAllowed = true; // Basic collab usually allowed for all

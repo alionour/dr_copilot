@@ -596,6 +596,11 @@ class AuthFirebaseApi {
   /// Throws an [Exception] if the sign-out process fails.
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+    try {
+      await googleSignInHelper.signOut();
+    } catch (e) {
+      debugPrint('Error signing out Google user: $e');
+    }
 
     // Only clear keys in release mode to avoid friction during development/testing
     if (kReleaseMode) {

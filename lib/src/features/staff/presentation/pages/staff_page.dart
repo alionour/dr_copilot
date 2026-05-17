@@ -112,7 +112,7 @@ class _StaffPageState extends State<StaffPage> {
                         ],
                       );
                     } else if (state is StaffError) {
-                      return Center(child: Text('An error occurred'.tr()));
+                      return Center(child: Text('anErrorOccurred'.tr()));
                     } else {
                       return EmptyStateWidget(
                         message: 'noStaffFound'.tr(),

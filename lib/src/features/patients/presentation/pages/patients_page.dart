@@ -904,245 +904,247 @@ class _PatientsPageState extends State<PatientsPage> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: BlocBuilder<NavigationBloc, NavigationState>(
-              builder: (context, navState) {
-                if (!navState.isNavigationFocused) {
-                  _listFocusNode.requestFocus();
-                }
-                return BlocListener<PatientsBloc, PatientsState>(
-                  listener: (context, state) {
-                    if (state is PatientsSuccess) {
-                      final message = state.message;
-                      if (message != null) {
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: BlocBuilder<NavigationBloc, NavigationState>(
+                builder: (context, navState) {
+                  if (!navState.isNavigationFocused) {
+                    _listFocusNode.requestFocus();
+                  }
+                  return BlocListener<PatientsBloc, PatientsState>(
+                    listener: (context, state) {
+                      if (state is PatientsSuccess) {
+                        final message = state.message;
+                        if (message != null) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                        }
+                      } else if (state is PatientsError) {
+                        final message = state.message;
                         ScaffoldMessenger.of(
                           context,
                         ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                       }
-                    } else if (state is PatientsError) {
-                      final message = state.message;
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
-                    }
-                    if (state is PatientsCountLoaded) {
-                      setState(() {
-                        _firestorePatientsCount = state.count;
-                      });
-                    }
-                  },
-                  child: BlocBuilder<PatientsBloc, PatientsState>(
-                    builder: (context, state) {
-                      if (state is PatientsLoading) {
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: ListView.builder(
-                            itemCount: 10,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0,
-                                  horizontal: 16.0,
-                                ),
-                                child: Container(
-                                  height: 50.0,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8.0),
+                      if (state is PatientsCountLoaded) {
+                        setState(() {
+                          _firestorePatientsCount = state.count;
+                        });
+                      }
+                    },
+                    child: BlocBuilder<PatientsBloc, PatientsState>(
+                      builder: (context, state) {
+                        if (state is PatientsLoading) {
+                          return Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: ListView.builder(
+                              itemCount: 10,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                    horizontal: 16.0,
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      } else if (state is PatientsLoaded ||
-                          state is PatientsLoadingMore ||
-                          state is PatientsCountLoaded) {
-                        final patients = (state is PatientsLoaded)
-                            ? state.patients
-                            : (state is PatientsLoadingMore)
-                                ? state.patients
-                                : (state as PatientsCountLoaded).patients;
-
-                        if (patients.isEmpty) {
-                          return EmptyStateWidget(
-                            message: 'noPatientsMatchsMatch'.tr(),
-                            title: 'noResultsFound'.tr(),
-                          );
-                        }
-
-                        final groupedPatients = <String, List<PatientModel>>{};
-                        for (var patient in patients) {
-                          if (patient.createdAt != null) {
-                            final creationDate = DateFormat(
-                              'yyyy-MM-dd',
-                            ).format(patient.createdAt!.toDate());
-                            groupedPatients
-                                .putIfAbsent(creationDate, () => [])
-                                .add(patient);
-                          } else {
-                            groupedPatients
-                                .putIfAbsent('Unknown', () => [])
-                                .add(patient);
-                          }
-                        }
-
-                        final sortedGroupedPatients = groupedPatients.entries
-                            .toList()
-                          ..sort((a, b) => b.key.compareTo(a.key));
-
-                        return Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                                horizontal: 16.0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.people,
-                                    size: 20,
-                                    color: Colors.blue,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${patients.length} ',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue,
-                                        ),
-                                  ),
-                                  Text(
-                                    'loaded'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                  if (_firestorePatientsCount != null) ...[
-                                    const SizedBox(width: 16),
-                                    Icon(
-                                      Icons.cloud,
-                                      size: 18,
-                                      color: Colors.deepPurple,
-                                    ),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      '$_firestorePatientsCount',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.deepPurple,
-                                          ),
-                                    ),
-                                    Text(
-                                      ' ${'stored'.tr()} ',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: sortedGroupedPatients.length,
-                                itemBuilder: (context, index) {
-                                  final dateKey =
-                                      sortedGroupedPatients[index].key;
-                                  final patientsForDate =
-                                      sortedGroupedPatients[index].value;
-
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8.0,
-                                          horizontal: 16.0,
-                                        ),
-                                        child: Text(
-                                          _getDateLabel(dateKey),
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.headlineMedium,
-                                        ),
-                                      ),
-                                      ...patientsForDate.map((patient) {
-                                        return Container(
-                                          color: !navState
-                                                      .isNavigationFocused &&
-                                                  _selectedIndex ==
-                                                      patients.indexOf(patient)
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withValues(alpha: 0.2)
-                                              : Colors.transparent,
-                                          child: _buildPatientListItem(patient),
-                                        );
-                                      }),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            if ((state is PatientsLoaded &&
-                                    state.isLoadingMore) ||
-                                state is PatientsLoadingMore)
-                              Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
                                   child: Container(
                                     height: 50.0,
-                                    width: double.infinity,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                   ),
+                                );
+                              },
+                            ),
+                          );
+                        } else if (state is PatientsLoaded ||
+                            state is PatientsLoadingMore ||
+                            state is PatientsCountLoaded) {
+                          final patients = (state is PatientsLoaded)
+                              ? state.patients
+                              : (state is PatientsLoadingMore)
+                                  ? state.patients
+                                  : (state as PatientsCountLoaded).patients;
+
+                          if (patients.isEmpty) {
+                            return EmptyStateWidget(
+                              message: 'noPatientsMatchsMatch'.tr(),
+                              title: 'noResultsFound'.tr(),
+                            );
+                          }
+
+                          final groupedPatients = <String, List<PatientModel>>{};
+                          for (var patient in patients) {
+                            if (patient.createdAt != null) {
+                              final creationDate = DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(patient.createdAt!.toDate());
+                              groupedPatients
+                                  .putIfAbsent(creationDate, () => [])
+                                  .add(patient);
+                            } else {
+                              groupedPatients
+                                  .putIfAbsent('Unknown', () => [])
+                                  .add(patient);
+                            }
+                          }
+
+                          final sortedGroupedPatients = groupedPatients.entries
+                              .toList()
+                            ..sort((a, b) => b.key.compareTo(a.key));
+
+                          return Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                  horizontal: 16.0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.people,
+                                      size: 20,
+                                      color: Colors.blue,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${patients.length} ',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue,
+                                          ),
+                                    ),
+                                    Text(
+                                      'loaded'.tr(),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge,
+                                    ),
+                                    if (_firestorePatientsCount != null) ...[
+                                      const SizedBox(width: 16),
+                                      Icon(
+                                        Icons.cloud,
+                                        size: 18,
+                                        color: Colors.deepPurple,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        '$_firestorePatientsCount',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.deepPurple,
+                                            ),
+                                      ),
+                                      Text(
+                                        ' ${'stored'.tr()} ',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
-                          ],
+                              Expanded(
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sortedGroupedPatients.length,
+                                  itemBuilder: (context, index) {
+                                    final dateKey =
+                                        sortedGroupedPatients[index].key;
+                                    final patientsForDate =
+                                        sortedGroupedPatients[index].value;
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8.0,
+                                            horizontal: 16.0,
+                                          ),
+                                          child: Text(
+                                            _getDateLabel(dateKey),
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.headlineMedium,
+                                          ),
+                                        ),
+                                        ...patientsForDate.map((patient) {
+                                          return Container(
+                                            color: !navState
+                                                        .isNavigationFocused &&
+                                                    _selectedIndex ==
+                                                        patients.indexOf(patient)
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                    .withValues(alpha: 0.2)
+                                                : Colors.transparent,
+                                            child: _buildPatientListItem(patient),
+                                          );
+                                        }),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                              if ((state is PatientsLoaded &&
+                                      state.isLoadingMore) ||
+                                  state is PatientsLoadingMore)
+                                Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      height: 50.0,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8.0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        } else if (state is PatientsError) {
+                          return Center(child: Text('Error: ${state.message}'));
+                        }
+                        return EmptyStateWidget(
+                          message: 'noPatients'.tr(),
+                          title: 'noPatientsFound'.tr(),
+                          actionLabel: OwnerNotifier()
+                                  .hasPermission(AppPermission.createPatient)
+                              ? 'addPatient'.tr()
+                              : null,
+                          onActionPressed: OwnerNotifier()
+                                  .hasPermission(AppPermission.createPatient)
+                              ? () {
+                                  context.push('/patients/new');
+                                }
+                              : null,
                         );
-                      } else if (state is PatientsError) {
-                        return Center(child: Text('Error: ${state.message}'));
-                      }
-                      return EmptyStateWidget(
-                        message: 'noPatients'.tr(),
-                        title: 'noPatientsFound'.tr(),
-                        actionLabel: OwnerNotifier()
-                                .hasPermission(AppPermission.createPatient)
-                            ? 'addPatient'.tr()
-                            : null,
-                        onActionPressed: OwnerNotifier()
-                                .hasPermission(AppPermission.createPatient)
-                            ? () {
-                                context.push('/patients/new');
-                              }
-                            : null,
-                      );
-                    },
-                  ),
-                );
-              },
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton:
           OwnerNotifier().hasPermission(AppPermission.createPatient)

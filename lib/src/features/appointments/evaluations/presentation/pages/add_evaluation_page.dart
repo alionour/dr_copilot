@@ -66,9 +66,9 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_patientNameFocusNode);
       _fetchCurrencyProfiles(); // Fetch currency profiles on init
-      context.read<DoctorsBloc>().add(const GetDoctors());
+      context.read<DoctorsBloc>().add(GetDoctors(clinicId: _selectedClinicId));
     });
-    context.read<PatientsBloc>().add(const GetPatients());
+    context.read<PatientsBloc>().add(const GetPatients(limit: 1000));
 
     if (widget.evaluation != null) {
       _selectedClinicId = widget.evaluation!.clinicId;
@@ -372,7 +372,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           },
         ),
       ),
-      body: MultiBlocListener(
+      body: SafeArea(
+        child: MultiBlocListener(
         listeners: [
           BlocListener<PatientsBloc, PatientsState>(
             listener: (context, state) {
@@ -414,7 +415,14 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
             listener: (context, state) {
               if (state is DoctorsLoaded) {
                 setState(() {
-                  _doctors = state.doctors;
+                  final notifier = OwnerNotifier();
+                  if (notifier.hasAllDoctorsAccess) {
+                    _doctors = state.doctors;
+                  } else {
+                    _doctors = state.doctors.where((doctor) {
+                      return notifier.linkedDoctorIds.contains(doctor.id);
+                    }).toList();
+                  }
                   if (_doctors.isNotEmpty && _selectedDoctor == null) {
                     if (widget.evaluation != null &&
                         widget.evaluation!.doctorId != null) {
@@ -524,15 +532,13 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                               focusNode: _searchFocusNode,
                               child: BlocBuilder<PatientsBloc, PatientsState>(
                                 builder: (context, state) {
-                                  if (state is PatientsLoaded) {
-                                    _filteredPatients = state.patients.where((
-                                      patient,
-                                    ) {
-                                      return patient.name
-                                          .toLowerCase()
-                                          .contains(query.toLowerCase());
-                                    }).toList();
-                                  }
+                                  _filteredPatients = state.patients.where((
+                                    patient,
+                                  ) {
+                                    return patient.name
+                                        .toLowerCase()
+                                        .contains(query.toLowerCase());
+                                  }).toList();
                                   return Column(
                                     children: [
                                       TextFormField(
@@ -1001,6 +1007,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           },
         ),
       ),
+    ),
     );
   }
 }

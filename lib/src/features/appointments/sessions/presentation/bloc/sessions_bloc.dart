@@ -453,7 +453,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: SelectionArea(child: Text(
-                'Failed to fetch sessions: ${failure.message}'.tr(),
+                '${'failedToFetchSessions'.tr()}: ${failure.message}',
               )),
             ),
           );
@@ -568,7 +568,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: SelectionArea(child: Text('Processed all sessions successfully!'.tr())),
+              content: SelectionArea(child: Text('processedAllSessionsSuccessfully'.tr())),
             ),
           );
         },
@@ -578,7 +578,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: SelectionArea(child: Text('Failed to process sessions'.tr()))),
+        SnackBar(content: SelectionArea(child: Text('failedToProcessSessions'.tr()))),
       );
     }
   }
@@ -601,7 +601,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: SelectionArea(child: Text(
-                'Failed to fetch sessions: ${failure.message}'.tr(),
+                '${'failedToFetchSessions'.tr()}: ${failure.message}',
               )),
             ),
           );
@@ -716,7 +716,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: SelectionArea(child: Text('Processed all sessions successfully!'.tr())),
+              content: SelectionArea(child: Text('processedAllSessionsSuccessfully'.tr())),
             ),
           );
         },
@@ -726,7 +726,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: SelectionArea(child: Text('Failed to process sessions'.tr()))),
+        SnackBar(content: SelectionArea(child: Text('failedToProcessSessions'.tr()))),
       );
     }
   }

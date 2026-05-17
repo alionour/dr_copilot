@@ -7,7 +7,17 @@ class RemoteConfigService {
   RemoteConfigService({FirebaseRemoteConfig? remoteConfig})
       : _remoteConfig = remoteConfig ?? FirebaseRemoteConfig.instance;
 
+  bool get _isDesktop =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
   Future<void> initialize() async {
+    if (_isDesktop) {
+      debugPrint('RemoteConfigService: Skipping initialization on desktop.');
+      return;
+    }
     try {
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
@@ -29,6 +39,7 @@ class RemoteConfigService {
   }
 
   bool get isSignupEnabled {
+    if (_isDesktop) return true;
     try {
       return _remoteConfig.getBool('signup_enabled');
     } catch (e) {
@@ -38,6 +49,7 @@ class RemoteConfigService {
   }
 
   int get maxAllowedUsers {
+    if (_isDesktop) return 1000;
     try {
       return _remoteConfig.getInt('max_allowed_users');
     } catch (e) {
@@ -47,6 +59,7 @@ class RemoteConfigService {
   }
 
   bool get enableSensitiveScopes {
+    if (_isDesktop) return false;
     try {
       return _remoteConfig.getBool('enable_sensitive_scopes');
     } catch (e) {

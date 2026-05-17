@@ -270,13 +270,15 @@ class _NavigationSideState extends State<NavigationSide> {
                   if (_showMobileNav) _closeMobileNav();
                 }
               },
-              child: Scaffold(
-                body: Stack(
+              child: Material(
+                child: Stack(
                   children: [
                     Positioned.fill(
                       child: Container(
                         color: Colors.transparent,
-                        child: SelectionArea(child: widget.child),
+                        child: SafeArea(
+                          child: SelectionArea(child: widget.child),
+                        ),
                       ),
                     ),
                     AnimatedPositioned(
@@ -428,79 +430,68 @@ class _NavigationSideState extends State<NavigationSide> {
                                 },
                                 child: SafeArea(
                                   bottom: false,
-                                  child: Column(
-                                    children: [
-                                      LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          if (constraints.maxWidth < 60) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0,
-                                              vertical: 8.0,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                SvgPicture.asset(
-                                                  'assets/icon.svg',
-                                                  width: 32,
-                                                  height: 32,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/icon.svg',
+                                          width: 32,
+                                          height: 32,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'drCopilot'.tr(),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge
+                                                ?.copyWith(
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                  color:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface,
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Text(
-                                                    'drCopilot'.tr(),
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .titleLarge
-                                                        ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onSurface,
-                                                        ),
-                                                  ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets
+                                              .symmetric(
+                                              horizontal: 6,
+                                              vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange
+                                                .withValues(alpha: 0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(
+                                                    4),
+                                            border: Border.all(
+                                                color: Colors.orange,
+                                                width: 1),
+                                          ),
+                                          child: Text(
+                                            'BETA',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  color: Colors
+                                                      .orange[800],
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                  fontSize: 10,
+                                                  letterSpacing: 0.5,
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.orange
-                                                        .withValues(alpha: 0.2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4),
-                                                    border: Border.all(
-                                                        color: Colors.orange,
-                                                        width: 1),
-                                                  ),
-                                                  child: Text(
-                                                    'BETA',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .labelSmall
-                                                        ?.copyWith(
-                                                          color: Colors
-                                                              .orange[800],
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 10,
-                                                          letterSpacing: 0.5,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               )
@@ -623,94 +614,83 @@ class _NavigationSideState extends State<NavigationSide> {
                             .expand((element) => element)
                             .toList(),
                         footer: data.isOpen
-                            ? Column(
-                                children: [
-                                  BlocBuilder<NavigationBloc, NavigationState>(
-                                    builder: (context, NavigationState state) {
-                                      final String profileImageUrl =
-                                          state.user?.photoURL ?? '';
+                            ? BlocBuilder<NavigationBloc, NavigationState>(
+                                builder: (context, NavigationState state) {
+                                  final String profileImageUrl =
+                                      state.user?.photoURL ?? '';
 
-                                      return LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          if (constraints.maxWidth < 60) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0,
-                                              vertical: 8.0,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                if (profileImageUrl.isNotEmpty)
-                                                  InkWell(
-                                                    onTap: () {
-                                                      context.push('/account');
-                                                    },
-                                                    child: Container(
-                                                      width: 40,
-                                                      height: 40,
-                                                      decoration:
-                                                          const BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: ClipOval(
-                                                        child:
-                                                            CachedNetworkImage(
-                                                          imageUrl:
-                                                              profileImageUrl,
-                                                          cacheKey:
-                                                              state.user?.uid,
-                                                          placeholder: (
-                                                            ctx,
-                                                            url,
-                                                          ) =>
-                                                              const Icon(
-                                                            Icons
-                                                                .account_circle_outlined,
-                                                          ),
-                                                          errorWidget: (
-                                                            context,
-                                                            url,
-                                                            error,
-                                                          ) {
-                                                            return const SizedBox();
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                else
-                                                  const Icon(
-                                                    Icons.person_3_outlined,
-                                                    size: 40,
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        if (profileImageUrl.isNotEmpty)
+                                          InkWell(
+                                            onTap: () {
+                                              context.push('/account');
+                                            },
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration:
+                                                  const BoxDecoration(
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: ClipOval(
+                                                child:
+                                                    CachedNetworkImage(
+                                                  imageUrl:
+                                                      profileImageUrl,
+                                                  cacheKey:
+                                                      state.user?.uid,
+                                                  placeholder: (
+                                                    ctx,
+                                                    url,
+                                                  ) =>
+                                                      const Icon(
+                                                    Icons
+                                                        .account_circle_outlined,
                                                   ),
-                                                const SizedBox(width: 16),
-                                                Expanded(
-                                                  child: Text(
-                                                    state.user?.displayName ??
-                                                        '',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .titleMedium
-                                                        ?.copyWith(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onSurface,
-                                                        ),
-                                                  ),
+                                                  errorWidget: (
+                                                    context,
+                                                    url,
+                                                    error,
+                                                  ) {
+                                                    return const SizedBox();
+                                                  },
                                                 ),
-                                              ],
+                                              ),
                                             ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ],
+                                          )
+                                        else
+                                          const Icon(
+                                            Icons.person_3_outlined,
+                                            size: 40,
+                                          ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Text(
+                                            state.user?.displayName ??
+                                                '',
+                                            overflow:
+                                                TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  color:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               )
                             : null,
                       );

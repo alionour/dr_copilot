@@ -150,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text('appearance'.tr()),
                 onTap: () => context.push('/settings/appearance'),
               ),
-              if (OwnerNotifier().hasPermission(AppPermission.editSettings)) ...[
+               if (OwnerNotifier().hasPermission(AppPermission.manageSettings)) ...[
                 _buildSectionHeader('Copilot Intelligence'),
                 ListTile(
                   leading: const Icon(Icons.psychology_outlined),
@@ -184,28 +184,40 @@ class _SettingsPageState extends State<SettingsPage> {
                     'Open the waiting room display window (HDMI/Cast)'),
                 onTap: _openPresentationWindow,
               ),
-              ListTile(
-                leading: const Icon(Icons.notifications_outlined),
-                title: Text('notifications'.tr()),
-                onTap: () => context.push('/settings/notifications'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.date_range_outlined),
-                title: Text('Calendar Settings'),
-                onTap: () => context.push('/settings/calendar_settings'),
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
+                ListTile(
+                  leading: const Icon(Icons.notifications_outlined),
+                  title: Text('notifications'.tr()),
+                  onTap: () => context.push('/settings/notifications'),
+                ),
+              if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
+                ListTile(
+                  leading: const Icon(Icons.date_range_outlined),
+                  title: Text('Calendar Settings'),
+                  onTap: () => context.push('/settings/calendar_settings'),
+                ),
               ListTile(
                 leading: const Icon(Icons.storage),
                 title: Text('dataAndStorage'.tr()),
                 onTap: () => context.push('/settings/data_storage'),
               ),
               _buildSectionHeader('accountAndSecurity'),
-              ListTile(
-                leading: const Icon(Icons.card_membership_outlined),
-                title: Text('subscriptionAndBilling'.tr()),
-                onTap: () => context.push('/settings/subscription'),
-              ),
-              if (OwnerNotifier().hasPermission(AppPermission.editSettings))
+              if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
+                ListTile(
+                  leading: const Icon(Icons.card_membership_outlined),
+                  title: Text('subscriptionAndBilling'.tr()),
+                  onTap: () => context.push('/settings/subscription'),
+                ),
+              if (OwnerNotifier().hasPermission(AppPermission.assignPermissions) ||
+                  OwnerNotifier().hasPermission(AppPermission.manageUsers))
+                ListTile(
+                  leading: const Icon(Icons.people_outline),
+                  title: Text('clinicMembers'.tr()),
+                  subtitle: Text('manageMembers'.tr()),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => context.push('/settings/members'),
+                ),
+              if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
                 ListTile(
                   leading: const Icon(Icons.payment_outlined),
                   title: const Text('Payment Gateway'),
@@ -217,11 +229,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text('security'.tr()),
                 onTap: () => context.push('/settings/security'),
               ),
-              ListTile(
-                leading: const Icon(Icons.model_training_outlined),
-                title: Text('aiModel'.tr()),
-                onTap: () => context.push('/settings/model_selection'),
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
+                ListTile(
+                  leading: const Icon(Icons.model_training_outlined),
+                  title: Text('aiModel'.tr()),
+                  onTap: () => context.push('/settings/model_selection'),
+                ),
               ListTile(
                 leading: const Icon(Icons.lock_outline),
                 title: Text('privacy'.tr()),
