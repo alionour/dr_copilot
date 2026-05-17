@@ -41,7 +41,6 @@ class ExportDataPage extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(
           title: Text('exportMyData'.tr()),
-          backgroundColor: Theme.of(context).colorScheme.surface,
         ),
         body: Center(child: Text('pleaseSignIn'.tr())),
       );
@@ -54,7 +53,6 @@ class ExportDataPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text('exportMyData'.tr()),
-              backgroundColor: Theme.of(context).colorScheme.surface,
             ),
             body: const Center(child: CircularProgressIndicator()),
           );
@@ -70,8 +68,6 @@ class ExportDataPage extends StatelessWidget {
           child: Scaffold(
             appBar: AppBar(
               title: Text('exportMyData'.tr()),
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              elevation: 0.5,
               actions: [navMenuButton ?? const SizedBox()],
             ),
             body: _ExportDataBody(clinicId: snapshot.data),

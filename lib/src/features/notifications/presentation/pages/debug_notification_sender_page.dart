@@ -220,7 +220,6 @@ class _DebugNotificationSenderPageState
     return Scaffold(
       appBar: AppBar(
         title: Text('debugNotificationSender'.tr()),
-        backgroundColor: Colors.orange,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

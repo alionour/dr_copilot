@@ -5,6 +5,8 @@ import 'package:dr_copilot/src/features/departments/presentation/bloc/department
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_event.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_state.dart';
 import 'package:dr_copilot/src/features/departments/presentation/pages/create_edit_department_page.dart';
+import 'package:dr_copilot/src/features/departments/presentation/pages/department_detail_page.dart';
+import 'package:dr_copilot/src/features/departments/domain/models/department_model.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
@@ -38,7 +40,6 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('departmentsTitle'.tr()),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: BlocConsumer<DepartmentsBloc, DepartmentsState>(
         listener: (context, state) {
@@ -95,6 +96,7 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
+                    onTap: () => _navigateToDepartmentDetail(dept),
                     leading: CircleAvatar(
                       child: Text(dept.name.substring(0, 1).toUpperCase()),
                     ),
@@ -167,6 +169,18 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
     if (result == true) {
       _loadDepartments();
     }
+  }
+
+  void _navigateToDepartmentDetail(DepartmentModel department) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: context.read<DepartmentsBloc>(),
+          child: DepartmentDetailPage(department: department),
+        ),
+      ),
+    ).then((_) => _loadDepartments());
   }
 
   void _showDeleteConfirmation(String id, String name) {

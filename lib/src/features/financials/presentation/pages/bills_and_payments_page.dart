@@ -38,11 +38,9 @@ class BillsAndPaymentsPage extends StatelessWidget {
           appBar: AppBar(
             title: Text('billsAndPayments'.tr()),
             centerTitle: true,
-            backgroundColor: Colors.green[200],
-            elevation: 0,
             actions: [
               IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.teal),
+                icon: const Icon(Icons.refresh),
                 tooltip: 'refresh'.tr(),
                 onPressed: () {
                   context.read<FinancialsBloc>().add(FetchScheduledBills());

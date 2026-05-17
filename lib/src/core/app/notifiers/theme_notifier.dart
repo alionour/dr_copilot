@@ -54,9 +54,22 @@ class ThemeNotifier extends ChangeNotifier {
   }
 
   ThemeData get currentTheme {
-    return _isDarkMode
+    final theme = _isDarkMode
         ? FlexColorScheme.dark(scheme: _currentScheme).toTheme
         : FlexColorScheme.light(scheme: _currentScheme).toTheme;
+    return theme.copyWith(
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: theme.colorScheme.primaryContainer,
+        foregroundColor: theme.colorScheme.onPrimaryContainer,
+        iconTheme: IconThemeData(
+          color: theme.colorScheme.onPrimaryContainer,
+        ),
+        actionsIconTheme: IconThemeData(
+          color: theme.colorScheme.onPrimaryContainer,
+        ),
+        elevation: 0,
+      ),
+    );
   }
 
   void toggleTheme() {

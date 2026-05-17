@@ -79,8 +79,6 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text('settings'.tr()),
         leading: const Icon(Icons.settings_outlined),
         actions: [navMenuButton ?? const SizedBox()],
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0.5,
       ),
       body: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, state) {

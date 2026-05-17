@@ -120,7 +120,6 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_isEditing ? 'editTeam'.tr() : 'createTeam'.tr()),
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())

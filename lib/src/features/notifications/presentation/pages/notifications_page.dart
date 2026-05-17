@@ -95,8 +95,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         title: Text('notifications'.tr()),
         leading: const Icon(Icons.notifications_outlined),
         actions: [if (navMenuButton != null) navMenuButton],
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0.5,
       ),
       body: BlocConsumer<NotificationsBloc, NotificationsState>(
         listener: (context, state) {

@@ -34,8 +34,6 @@ class GoalsPage extends StatelessWidget {
           appBar: AppBar(
             title: Text('financialGoals'.tr()),
             centerTitle: true,
-            backgroundColor: Colors.green[200],
-            elevation: 0,
           ),
           body: LayoutBuilder(
             builder: (context, constraints) {

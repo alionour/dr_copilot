@@ -98,8 +98,6 @@ class CopilotView extends StatelessWidget {
           ),
           navMenuButton ?? const SizedBox(),
         ],
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0.5,
       ),
       body: Column(
         children: [

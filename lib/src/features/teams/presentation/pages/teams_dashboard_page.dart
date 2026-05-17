@@ -54,7 +54,6 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('teamsTitle'.tr()),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: BlocConsumer<TeamsBloc, TeamsState>(
         listener: (context, state) {

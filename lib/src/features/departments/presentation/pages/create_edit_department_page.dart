@@ -54,7 +54,6 @@ class _CreateEditDepartmentPageState extends State<CreateEditDepartmentPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_isEditing ? 'editDepartment'.tr() : 'createDepartment'.tr()),
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

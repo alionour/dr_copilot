@@ -92,8 +92,6 @@ class _ClinicMembersPageState extends State<ClinicMembersPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0.5,
       ),
       body: Column(
         children: [

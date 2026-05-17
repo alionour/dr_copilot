@@ -273,7 +273,6 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('createNotificationTitle'.tr()),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: BlocListener<NotificationsBloc, NotificationsState>(
         listener: (context, state) {
