@@ -19,14 +19,13 @@ class RoleDefaults {
 
       case AppRole.doctor:
         return [
-          AppPermission.viewAllPatients,
+          AppPermission.viewPatients,
           AppPermission.createPatient,
           AppPermission.updatePatient,
-          AppPermission
-              .viewAllSessions, // Doctor usually sees all sessions in clinic context
+          AppPermission.viewSessions,
           AppPermission.createSession,
           AppPermission.updateSession,
-          AppPermission.viewAllEvaluations,
+          AppPermission.viewEvaluations,
           AppPermission.createEvaluation,
           AppPermission.updateEvaluation,
           AppPermission.viewCalendar,
@@ -37,22 +36,23 @@ class RoleDefaults {
           AppPermission.sendNotificationMessage,
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
+          AppPermission.viewDepartments,
+          AppPermission.viewTeams,
         ];
 
       case AppRole.staff:
         return [
-          AppPermission.viewPatientsByDoctor, // scope applied at runtime
-          AppPermission.managePatientsForDoctor, // create/edit/delete within scope
-          AppPermission.viewMedicalFilesByDoctor,
-          AppPermission.manageMedicalFilesForDoctor,
+          AppPermission.viewPatients,
           AppPermission.createPatient,
           AppPermission.updatePatient,
-          AppPermission.viewAllSessions,
+          AppPermission.viewSessions,
           AppPermission.viewCalendar,
-          AppPermission.addCalendarEvent, // Staff often schedule
+          AppPermission.addCalendarEvent,
           AppPermission.viewNotifications,
           AppPermission.sendNotificationAppointment,
           AppPermission.sendNotificationReminder,
+          AppPermission.viewDepartments,
+          AppPermission.viewTeams,
         ];
 
       case AppRole.financial:
@@ -66,10 +66,11 @@ class RoleDefaults {
 
       case AppRole.readonly:
         return [
-          AppPermission.viewAllPatients,
-          AppPermission.viewAllSessions,
+          AppPermission.viewPatients,
+          AppPermission.viewSessions,
           AppPermission.viewCalendar,
         ];
+
     }
   }
 

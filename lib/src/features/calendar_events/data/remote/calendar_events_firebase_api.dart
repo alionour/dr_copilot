@@ -47,7 +47,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
             .where('deletedAt', isNull: true);
 
         // Filter by doctorId if user doesn't have viewAllSessions permission
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
@@ -74,7 +74,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
         }).toList();
 
         // Also include clinic-wide events
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           final clinicWideSnapshot = await _eventsCollection
               .where('clinicId', isEqualTo: clinicId)
               .where('isClinicWide', isEqualTo: true)
@@ -150,7 +150,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
             .where('deletedAt', isNull: true);
 
         // Filter by doctorId if user doesn't have viewAllSessions permission
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
@@ -253,7 +253,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
           // Check authorization
           final canEdit = (createdBy == user.uid) ||
               (OwnerNotifier().hasPermission(AppPermission.editCalendarEvent) &&
-                  OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
+                  OwnerNotifier().hasPermission(AppPermission.viewSessions));
 
           if (canEdit) {
             final updatedData = event.toJson();
@@ -316,7 +316,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
               (OwnerNotifier().hasPermission(
                     AppPermission.deleteCalendarEvent,
                   ) &&
-                  OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
+                  OwnerNotifier().hasPermission(AppPermission.viewSessions));
 
           if (canDelete) {
             // Soft delete
@@ -360,7 +360,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
             .where('deletedAt', isNull: true);
 
         // Filter by doctorId if user doesn't have viewAllSessions permission
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
@@ -434,7 +434,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
             .where('deletedAt', isNull: true);
 
         // Filter by doctorId if user doesn't have viewAllSessions permission
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
@@ -541,7 +541,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
             .where('deletedAt', isNull: false);
 
         // Filter by doctorId if user doesn't have viewAllSessions permission
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 
@@ -589,7 +589,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
         final canRestore = (createdBy == user.uid) ||
             (OwnerNotifier().hasPermission(AppPermission.editCalendarEvent) &&
-                OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
+                OwnerNotifier().hasPermission(AppPermission.viewSessions));
 
         if (canRestore) {
           await _eventsCollection.doc(id).update({
@@ -628,7 +628,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
 
         final canDelete = (createdBy == user.uid) ||
             (OwnerNotifier().hasPermission(AppPermission.deleteCalendarEvent) &&
-                OwnerNotifier().hasPermission(AppPermission.viewAllSessions));
+                OwnerNotifier().hasPermission(AppPermission.viewSessions));
 
         if (canDelete) {
           await _eventsCollection.doc(id).delete();
@@ -666,7 +666,7 @@ class CalendarEventsFirebaseApi extends AbstractCalendarEventsRepository {
             .where('clinicId', isEqualTo: clinicId)
             .where('deletedAt', isNull: true);
 
-        if (!OwnerNotifier().hasPermission(AppPermission.viewAllSessions)) {
+        if (!OwnerNotifier().hasPermission(AppPermission.viewSessions)) {
           queryRef = queryRef.where('doctorId', isEqualTo: user.uid);
         }
 

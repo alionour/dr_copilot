@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class SessionsPage extends StatefulWidget {
   const SessionsPage({super.key});
@@ -390,20 +392,29 @@ class _SessionsPageState extends State<SessionsPage> {
             return EmptyStateWidget(
               message: 'noSessionsFound'.tr(),
               title: 'noSessions'.tr(),
-              actionLabel: 'addSession'.tr(),
-              onActionPressed: () {
-                context.push('/sessions/new');
-              },
+              actionLabel: OwnerNotifier()
+                      .hasPermission(AppPermission.createSession)
+                  ? 'addSession'.tr()
+                  : null,
+              onActionPressed: OwnerNotifier()
+                      .hasPermission(AppPermission.createSession)
+                  ? () {
+                      context.push('/sessions/new');
+                    }
+                  : null,
             );
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/sessions/new');
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          OwnerNotifier().hasPermission(AppPermission.createSession)
+              ? FloatingActionButton(
+                  onPressed: () {
+                    context.push('/sessions/new');
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
     );
   }
 

@@ -44,6 +44,7 @@ class _NavigationSideState extends State<NavigationSide> {
   // Management
   final GlobalKey _patientsKey = GlobalKey();
   final GlobalKey _doctorsKey = GlobalKey();
+  final GlobalKey _departmentsKey = GlobalKey();
   final GlobalKey _clinicalReportsKey = GlobalKey();
 
   // Business
@@ -144,6 +145,7 @@ class _NavigationSideState extends State<NavigationSide> {
         _calendarKey,
         _patientsKey,
         _doctorsKey,
+        _departmentsKey,
         _clinicalReportsKey,
         _financialsKey,
         _notificationsKey,
@@ -213,6 +215,7 @@ class _NavigationSideState extends State<NavigationSide> {
     Destination.liveAssistant: '/live_assistant',
     Destination.patients: '/patients',
     Destination.doctors: '/doctors',
+    Destination.departments: '/departments',
     Destination.staff: '/staff',
     Destination.invitations: '/invitations',
     Destination.sessions: '/sessions',
@@ -546,6 +549,10 @@ class _NavigationSideState extends State<NavigationSide> {
                                       showcaseKey = _doctorsKey;
                                       description =
                                           'Manage doctor profiles, specializations, and assignments.';
+                                    } else if (e == Destination.departments) {
+                                      showcaseKey = _departmentsKey;
+                                      description =
+                                          'Manage clinical departments and staff organization.';
                                     } else if (e ==
                                         Destination.clinicalReports) {
                                       showcaseKey = _clinicalReportsKey;

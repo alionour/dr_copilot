@@ -1,7 +1,6 @@
 const admin = require('firebase-admin');
 
 // Initialize Firebase using Doppler Secret
-// We expect a secret named 'FIREBASE_SERVICE_ACCOUNT' containing the JSON string
 const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT;
 
 if (!serviceAccountKey) {
@@ -22,254 +21,186 @@ try {
 
 const db = admin.firestore();
 
-
-// ---------------------------------------------------------
-// PERMISSION DEFINITIONS
-// ---------------------------------------------------------
-
-// 1. Medical Files
-const PERMS_MEDICAL = [
-    'viewMedicalFiles', 'addMedicalFile', 'editMedicalFile', 'deleteMedicalFile'
-];
-
-// 2. Medications
-const PERMS_MEDICATIONS = [
-    'viewMedications', 'addMedication', 'editMedication', 'deleteMedication'
-];
-
-// 3. Financials
-// Note: manageInvoices is deprecated but kept for safety.
-const PERMS_FINANCIALS_VIEW = ['viewFinancials', 'viewReports', 'viewCharts'];
-const PERMS_FINANCIALS_MANAGE = ['addFinancialEntry', 'editFinancialEntry', 'deleteFinancialEntry', 'manageInvoices'];
-
-// 4. Recycle Bin
-const PERMS_RECYCLE_BIN = [
-    'viewRecycleBin', 'restoreRecycleBinItem', 'permanentDeleteRecycleBinItem'
-];
-
-// 5. Clinical Reports (New Phase 2)
-const PERMS_CLINICAL_REPORTS = [
-    'viewClinicalReports', 'addClinicalReport', 'editClinicalReport', 'deleteClinicalReport'
-];
-
-// 6. Doctors (New Phase 2)
-const PERMS_DOCTORS = ['viewDoctors', 'manageDoctors'];
-
-// 7. Invitations (New Phase 2)
-const PERMS_INVITATIONS = ['viewInvitations', 'sendInvitation', 'revokeInvitation'];
-
-// 8. Subscription (New Phase 2)
-const PERMS_SUBSCRIPTION = ['viewSubscription', 'manageSubscription'];
-
-// 9. Admin/Settings
-const PERMS_ADMIN = [
-    'manageStaff', 'manageUsers', 'assignRoles', 'assignPermissions', 'manageSettings',
-    'viewSettings', 'editSettings'
-];
-
-// 10. Patients & Sessions (Legacy/Core)
-const PERMS_CORE_READ = ['viewAllPatients', 'viewOwnPatients', 'viewAllSessions', 'viewOwnSessions', 'viewAllEvaluations', 'viewOwnEvaluations'];
-const PERMS_CORE_WRITE = ['createPatient', 'updatePatient', 'createSession', 'updateSession', 'createEvaluation', 'updateEvaluation'];
-
-// 11. Calendar (MISSING IN PREV RUN)
-const PERMS_CALENDAR = [
-    'viewCalendar', 'addCalendarEvent', 'editCalendarEvent', 'deleteCalendarEvent'
-];
-
-// 12. Teams (MISSING IN PREV RUN)
-const PERMS_TEAMS = [
-    'manageTeams', 'createTeam', 'archiveTeam', 'unarchiveTeam'
-];
-
-// 13. Copilot & Notifications & Help
-const PERMS_MISC = [
-    'useCopilot',
-    'viewNotifications', 'manageNotifications', 'sendNotificationMessage', 'sendNotificationAppointment', 'sendNotificationReminder',
-    'viewHelp', 'accessSupport'
-];
-
-// ---------------------------------------------------------
-// ROLE MAPPINGS
-// ---------------------------------------------------------
-
 const ROLE_PERMISSIONS = {
-    // 1. OWNER / ADMIN: Gets EVERYTHING
-    'admin': [
-        ...PERMS_MEDICAL,
-        ...PERMS_MEDICATIONS,
-        ...PERMS_FINANCIALS_VIEW, ...PERMS_FINANCIALS_MANAGE,
-        ...PERMS_RECYCLE_BIN,
-        ...PERMS_CLINICAL_REPORTS,
-        ...PERMS_DOCTORS,
-        ...PERMS_INVITATIONS,
-        ...PERMS_SUBSCRIPTION,
-        ...PERMS_ADMIN,
-        ...PERMS_CALENDAR,
-        ...PERMS_TEAMS,
-        ...PERMS_MISC,
-        ...PERMS_CORE_READ, ...PERMS_CORE_WRITE
-    ],
-    'owner': [ // SAME AS ADMIN
-        ...PERMS_MEDICAL,
-        ...PERMS_MEDICATIONS,
-        ...PERMS_FINANCIALS_VIEW, ...PERMS_FINANCIALS_MANAGE,
-        ...PERMS_RECYCLE_BIN,
-        ...PERMS_CLINICAL_REPORTS,
-        ...PERMS_DOCTORS,
-        ...PERMS_INVITATIONS,
-        ...PERMS_SUBSCRIPTION,
-        ...PERMS_ADMIN,
-        ...PERMS_CALENDAR,
-        ...PERMS_TEAMS,
-        ...PERMS_MISC,
-        ...PERMS_CORE_READ, ...PERMS_CORE_WRITE
-    ],
-
-    // 2. DOCTOR: Medical focus, no Admin/Financial-Delete
-    'doctor': [
-        ...PERMS_MEDICAL, // Full medical access
-        ...PERMS_MEDICATIONS, // Full meds access
-        ...PERMS_CLINICAL_REPORTS, // Full reports access
-        ...PERMS_CALENDAR, // Full Calendar Access
-        'viewDoctors', // Can see directory
-        'viewRecycleBin', // Can see bin
-        'viewFinancials', 'viewReports', 'viewCharts', // Read only financials
-        'useCopilot',
-        'viewNotifications', 'sendNotificationMessage',
-        'viewHelp', 'accessSupport',
-        // Core Clinical
-        'viewAllPatients', 'createPatient', 'updatePatient',
-        'viewOwnSessions', 'createSession', 'updateSession',
-        'viewOwnEvaluations', 'createEvaluation', 'updateEvaluation'
-    ],
-
-    // 3. STAFF / NURSE: Operational
     'staff': [
-        'viewMedicalFiles', 'addMedicalFile',
-        'viewMedications',
-        'viewDoctors',
-        'viewCalendar', 'addCalendarEvent', 'editCalendarEvent', // Scheduling
-        'viewAllPatients', 'createPatient', 'updatePatient', // Front desk
-        'viewAllSessions', 'createSession',
-        'viewNotifications', 'viewHelp'
+        'viewPatients', 'createPatient', 'updatePatient', 'deletePatient',
+        'viewSessions', 'createSession', 'updateSession', 'deleteSession',
+        'viewEvaluations', 'createEvaluation', 'updateEvaluation', 'deleteEvaluation',
+        'viewMedicalFiles', 'createMedicalFile', 'updateMedicalFile', 'deleteMedicalFile',
+        'viewMedications', 'addMedication', 'editMedication', 'deleteMedication',
+        'viewCalendar', 'addCalendarEvent', 'editCalendarEvent', 'deleteCalendarEvent',
+        'viewNotifications', 'viewHelp',
+        'viewDepartments', 'viewTeams',
+        'assignPermissions'
     ],
-    'nurse': [
-        'viewMedicalFiles', 'addMedicalFile', 'editMedicalFile',
-        'viewMedications', 'addMedication',
-        'viewDoctors',
-        'viewCalendar', 'addCalendarEvent', 'editCalendarEvent',
-        'viewAllPatients', 'createPatient', 'updatePatient',
-        'viewAllSessions',
-        'viewNotifications', 'viewHelp'
-    ],
-
-    // 4. FINANCIAL: Accountants
-    'financial': [
-        ...PERMS_FINANCIALS_VIEW, ...PERMS_FINANCIALS_MANAGE,
-        'viewSubscription',
-        'viewAllPatients',
-        'viewNotifications', 'viewHelp'
-    ],
-
-    // 5. READONLY
-    'readonly': [
-        'viewAllPatients', 'viewOwnPatients',
-        'viewAllSessions', 'viewOwnSessions',
-        'viewHelp'
-    ]
 };
 
-// ---------------------------------------------------------
-// MIGRATION LOGIC
-// ---------------------------------------------------------
+const PERMISSION_MAPPING = {
+    // Patients
+    'viewAllPatients': 'viewPatients',
+    'viewOwnPatients': 'viewPatients',
+    'viewPatientsByDoctor': 'viewPatients',
+    'viewPatientsByDepartment': 'viewPatients',
+    'viewPatientsByTeam': 'viewPatients',
+    'manageAllPatients': ['createPatient', 'updatePatient', 'deletePatient'],
+    'manageOwnPatients': ['createPatient', 'updatePatient', 'deletePatient'],
+    'managePatientsByDoctor': ['createPatient', 'updatePatient', 'deletePatient'],
+    'managePatientsByDepartment': ['createPatient', 'updatePatient', 'deletePatient'],
+    'managePatientsByTeam': ['createPatient', 'updatePatient', 'deletePatient'],
+    'managePatients': ['createPatient', 'updatePatient', 'deletePatient'],
 
+    // Sessions
+    'viewAllSessions': 'viewSessions',
+    'viewOwnSessions': 'viewSessions',
+    'manageAllSessions': ['createSession', 'updateSession', 'deleteSession'],
+    'manageOwnSessions': ['createSession', 'updateSession', 'deleteSession'],
+    'manageSessions': ['createSession', 'updateSession', 'deleteSession'],
 
-async function cleanupGlobalUserPermissions() {
-    console.log('Starting Cleanup of User (Global) Permissions...');
-    // We previously incorrectly added permissions to the root 'users' collection.
-    // We should remove them to strictly adhere to clinic-scoped permissions.
-    const usersSnapshot = await db.collection('users').get();
-    let batch = db.batch();
-    let count = 0;
+    // Evaluations
+    'viewAllEvaluations': 'viewEvaluations',
+    'viewOwnEvaluations': 'viewEvaluations',
+    'manageAllEvaluations': ['createEvaluation', 'updateEvaluation', 'deleteEvaluation'],
+    'manageOwnEvaluations': ['createEvaluation', 'updateEvaluation', 'deleteEvaluation'],
+    'manageEvaluations': ['createEvaluation', 'updateEvaluation', 'deleteEvaluation'],
+};
 
-    for (const doc of usersSnapshot.docs) {
-        const data = doc.data();
-        if (data.permissions) {
-            // Remove the 'permissions' field
-            batch.update(doc.ref, { permissions: admin.firestore.FieldValue.delete() });
-            count++;
-
-            if (count >= 400) {
-                await batch.commit();
-                console.log(`Cleaned up permissions for ${count} users...`);
-                batch = db.batch();
-                count = 0;
-            }
-        }
-    }
-
-    if (count > 0) await batch.commit();
-    console.log(`User Permissions Cleanup Complete. Removed permissions field from ${count} users.`);
-}
-
-async function migrateClinicMembers() {
-    console.log('Starting Clinic Members Migration...');
-    const clinicsSnapshot = await db.collection('clinics').get();
-    let totalMembersUpdated = 0;
-
-    for (const clinicDoc of clinicsSnapshot.docs) {
-        const membersRef = clinicDoc.ref.collection('members');
-        const membersSnapshot = await membersRef.get();
-
-        if (membersSnapshot.empty) continue;
-
-        let batch = db.batch();
-        let count = 0;
-
-        for (const memberDoc of membersSnapshot.docs) {
-            const data = memberDoc.data();
-            let role = (data.role || '').toLowerCase();
-
-            // REVERT FIX: Migrate 'owner' back to 'admin' per user request
-            if (role === 'owner') {
-                console.log(`   - Migrating user ${memberDoc.id} from 'owner' back to 'admin'`);
-                role = 'admin';
-                batch.update(memberDoc.ref, { role: 'admin' });
-            }
-
-            // Ensure 'admin' has the exact same permissions as the previous 'owner' concept
-            const permissions = ROLE_PERMISSIONS[role] || [];
-
-            if (permissions.length > 0) {
-                // Deduplicate just in case
-                const uniquePerms = [...new Set(permissions)];
-                batch.update(memberDoc.ref, { permissions: uniquePerms });
-                count++;
-                totalMembersUpdated++;
-            }
-
-            if (count >= 400) {
-                await batch.commit();
-                batch = db.batch();
-                count = 0;
-            }
-        }
-
-        if (count > 0) await batch.commit();
-    }
-    console.log(`Clinic Members Migration Complete. Updated ${totalMembersUpdated} members across all clinics.`);
-}
-
-async function run() {
+async function migrate() {
+    console.log("Starting universal permission and association migration...");
     try {
-        await cleanupGlobalUserPermissions(); // Clean up the mistake
-        await migrateClinicMembers(); // Ensure members are correct
-        console.log('✅ UNIVERSAL PERMISSIONS MIGRATION (CORRECTED) SUCCESSFUL');
-        process.exit(0);
+        const clinicsSnapshot = await db.collection('clinics').get();
+
+        let memberCount = 0;
+        let updateCount = 0;
+
+        for (const clinicDoc of clinicsSnapshot.docs) {
+            const clinicId = clinicDoc.id;
+            const clinicName = clinicDoc.data().name || 'Unnamed';
+            console.log(`\nProcessing clinic: ${clinicId} (${clinicName})`);
+
+            const membersSnapshot = await clinicDoc.ref.collection('members').get();
+
+            for (const memberDoc of membersSnapshot.docs) {
+                memberCount++;
+                const data = memberDoc.data();
+                const permissions = data.permissions || [];
+                const role = data.role ? data.role.toLowerCase() : 'readonly';
+
+                let newPermissions = new Set(permissions);
+                let changed = false;
+
+                // 1. Apply Mapping
+                for (const oldPerm of permissions) {
+                    const unified = PERMISSION_MAPPING[oldPerm];
+                    if (unified) {
+                        if (Array.isArray(unified)) {
+                            unified.forEach(p => newPermissions.has(p) || (newPermissions.add(p), changed = true));
+                        } else {
+                            if (!newPermissions.has(unified)) {
+                                newPermissions.add(unified);
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+
+                // 2. Special Case: Specific Role Defaults
+                if (ROLE_PERMISSIONS[role]) {
+                    ROLE_PERMISSIONS[role].forEach(p => {
+                        if (!newPermissions.has(p)) {
+                            newPermissions.add(p);
+                            changed = true;
+                        }
+                    });
+                }
+
+                // 3. Special Case: Doctors automatically get granular clinical access
+                if (role === 'doctor') {
+                    const doctorPerms = [
+                        'viewPatients', 'createPatient', 'updatePatient', 'deletePatient',
+                        'viewSessions', 'createSession', 'updateSession', 'deleteSession',
+                        'viewEvaluations', 'createEvaluation', 'updateEvaluation', 'deleteEvaluation'
+                    ];
+                    for (const p of doctorPerms) {
+                        if (!newPermissions.has(p)) {
+                            newPermissions.add(p);
+                            changed = true;
+                        }
+                    }
+                }
+
+                // 3. Special Case: manageWorkingHours for admins/owners
+                if (permissions.includes('manageSettings') || permissions.includes('manageStaff') || role === 'admin' || role === 'owner') {
+                    if (!newPermissions.has('manageWorkingHours')) {
+                        newPermissions.add('manageWorkingHours');
+                        changed = true;
+                    }
+                }
+
+                // 4. Association Migration
+                let updateData = {
+                    permissions: Array.from(newPermissions)
+                };
+
+                // Admins and Owners get 'ALL' access to preserve global behavior
+                if (role === 'admin' || role === 'owner') {
+                    if (!data.linkedDoctorIds || !data.linkedDoctorIds.includes('ALL')) {
+                        updateData.linkedDoctorIds = ['ALL'];
+                        changed = true;
+                    }
+                    if (!data.departmentIds || !data.departmentIds.includes('ALL')) {
+                        updateData.departmentIds = ['ALL'];
+                        changed = true;
+                    }
+                    if (!data.teamIds || !data.teamIds.includes('ALL')) {
+                        updateData.teamIds = ['ALL'];
+                        changed = true;
+                    }
+                } else if (role === 'doctor') {
+                    // Doctors should be linked to themselves if not already
+                    const doctorIds = data.linkedDoctorIds || [];
+                    if (!doctorIds.includes(memberDoc.id)) {
+                        updateData.linkedDoctorIds = [...doctorIds, memberDoc.id];
+                        changed = true;
+                    }
+                } else {
+                    // For Staff/Readonly:
+                    // If they previously had empty lists (which meant ALL), 
+                    // we migrate them to ['ALL'] if they have clinical view permissions,
+                    // OR we leave them empty if they were meant to be restricted.
+                    // Given the old system defaulted to ALL, we'll assign 'ALL' to avoid breakage,
+                    // but ONLY if the lists are truly missing or empty.
+                    
+                    if (newPermissions.has('viewPatients')) {
+                        if (!data.linkedDoctorIds || data.linkedDoctorIds.length === 0) {
+                            updateData.linkedDoctorIds = ['ALL'];
+                            changed = true;
+                        }
+                        if (!data.departmentIds || data.departmentIds.length === 0) {
+                            updateData.departmentIds = ['ALL'];
+                            changed = true;
+                        }
+                        if (!data.teamIds || data.teamIds.length === 0) {
+                            updateData.teamIds = ['ALL'];
+                            changed = true;
+                        }
+                    }
+                }
+
+                if (changed) {
+                    console.log(`  -> Updating member ${memberDoc.id} (${role}): ${permissions.length} -> ${newPermissions.size} perms`);
+                    await memberDoc.ref.update(updateData);
+                    updateCount++;
+                }
+            }
+        }
+
+        console.log(`\nMigration complete.`);
+        console.log(`Total members scanned: ${memberCount}`);
+        console.log(`Total members updated: ${updateCount}`);
     } catch (error) {
-        console.error('❌ Migration Failed:', error);
+        console.error("Migration failed:", error);
         process.exit(1);
     }
 }
 
-run();
+migrate().then(() => process.exit(0));

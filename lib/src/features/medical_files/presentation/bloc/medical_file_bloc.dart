@@ -32,6 +32,16 @@ class AddMedicalFile extends MedicalFileEvent {
   List<Object?> get props => [medicalFile, file];
 }
 
+class UpdateMedicalFile extends MedicalFileEvent {
+  final MedicalFileModel medicalFile;
+  final File? file;
+
+  const UpdateMedicalFile({required this.medicalFile, this.file});
+
+  @override
+  List<Object?> get props => [medicalFile, file];
+}
+
 class DeleteMedicalFile extends MedicalFileEvent {
   final MedicalFileModel medicalFile;
 
@@ -86,6 +96,7 @@ class MedicalFileBloc extends Bloc<MedicalFileEvent, MedicalFileState> {
   MedicalFileBloc(this._repository) : super(MedicalFileInitial()) {
     on<LoadMedicalFiles>(_onLoadMedicalFiles);
     on<AddMedicalFile>(_onAddMedicalFile);
+    on<UpdateMedicalFile>(_onUpdateMedicalFile);
     on<DeleteMedicalFile>(_onDeleteMedicalFile);
   }
 
@@ -135,6 +146,42 @@ class MedicalFileBloc extends Bloc<MedicalFileEvent, MedicalFileState> {
       // Emit Success specifically to trigger navigation/snackbars
       emit(const MedicalFileOperationSuccess('File added successfully'));
       // Then reload the list
+      add(LoadMedicalFiles(medicalFile.patientId));
+    });
+  }
+
+  Future<void> _onUpdateMedicalFile(
+    UpdateMedicalFile event,
+    Emitter<MedicalFileState> emit,
+  ) async {
+    emit(MedicalFileLoading());
+
+    var medicalFile = event.medicalFile;
+
+    // 1. Upload file if a new one is provided
+    if (event.file != null) {
+      final uploadResult = await _repository.uploadFile(
+        file: event.file!,
+        patientId: medicalFile.patientId,
+      );
+
+      if (uploadResult.isLeft()) {
+        uploadResult.fold(
+          (failure) => emit(MedicalFileError(failure.message)),
+          (_) {},
+        );
+        return;
+      }
+
+      final downloadUrl = uploadResult.getOrElse(() => '');
+      medicalFile = medicalFile.copyWith(fileUrl: downloadUrl);
+    }
+
+    // 2. Save metadata to Firestore
+    final result = await _repository.updateMedicalFile(medicalFile);
+
+    result.fold((failure) => emit(MedicalFileError(failure.message)), (_) {
+      emit(const MedicalFileOperationSuccess('File updated successfully'));
       add(LoadMedicalFiles(medicalFile.patientId));
     });
   }

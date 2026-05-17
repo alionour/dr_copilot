@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dr_copilot/firebase_options.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/role_defaults.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,83 +40,18 @@ class _MigrationRunnerState extends State<MigrationRunner> {
   String _status = 'Ready to migrate permissions.';
   bool _isLoading = false;
 
-  // Full permissions for Owners
-  final List<String> _allPermissions = [
-    // Medical Files
-    'viewMedicalFiles',
-    'addMedicalFile',
-    'editMedicalFile',
-    'deleteMedicalFile',
-    // Medications
-    'viewMedications',
-    'addMedication',
-    'editMedication',
-    'deleteMedication',
-    // Recycle Bin
-    'viewRecycleBin',
-    'restoreRecycleBinItem',
-    'permanentDeleteRecycleBinItem',
-    // Financials
-    'addFinancialEntry',
-    'editFinancialEntry',
-    'deleteFinancialEntry',
-    'viewFinancials',
-    // Clinical Reports
-    'viewClinicalReports',
-    'addClinicalReport',
-    'editClinicalReport',
-    'deleteClinicalReport',
-    // Doctors
-    'viewDoctors',
-    'manageDoctors',
-    // Invitations
-    'viewInvitations',
-    'sendInvitation',
-    'revokeInvitation',
-    // Subscription
-    'viewSubscription',
-    'manageSubscription',
-    // Admin
-    'manageStaff',
-    'manageUsers',
-    'assignRoles',
-    'assignPermissions',
-    'manageSettings',
-  ];
+  // Dynamically load permissions from RoleDefaults
+  List<String> get _allPermissions => RoleDefaults.getPermissionsForRole(AppRole.admin)
+      .map((e) => e.name)
+      .toList();
 
-  // Specific permissions for Doctors
-  final List<String> _doctorPermissions = [
-    'viewMedicalFiles',
-    'addMedicalFile',
-    'editMedicalFile',
-    'viewMedications',
-    'addMedication',
-    'editMedication',
-    'viewRecycleBin', // Maybe restrictive?
-    'viewClinicalReports',
-    'addClinicalReport',
-    'editClinicalReport',
-    'viewDoctors',
-    'viewAllPatients',
-    'createPatient',
-    'updatePatient',
-    'createSession',
-    'viewAllSessions',
-    'createEvaluation',
-    'viewAllEvaluations',
-  ];
+  List<String> get _doctorPermissions => RoleDefaults.getPermissionsForRole(AppRole.doctor)
+      .map((e) => e.name)
+      .toList();
 
-  // Specific permissions for Staff (General)
-  final List<String> _staffPermissions = [
-    'viewMedicalFiles',
-    'addMedicalFile',
-    'viewMedications',
-    'viewDoctors',
-    'viewAllPatients',
-    'createPatient',
-    'updatePatient',
-    'viewAllSessions', // maybe restrictive
-  ];
+  List<String> get _staffPermissions => RoleDefaults.getPermissionsForRole(AppRole.staff)
+      .map((e) => e.name)
+      .toList();
 
   Future<void> _runMigration() async {
     setState(() {
@@ -131,10 +69,10 @@ class _MigrationRunnerState extends State<MigrationRunner> {
       final usersSnapshot = await firestore.collection('users').get();
 
       for (var doc in usersSnapshot.docs) {
-        // Owners get ALL permissions
-        await _updateDocumentPermissions(
+        // Global owners always get ALL permissions
+        bool changed = await _updateDocumentPermissions(
             doc.reference, doc.data(), _allPermissions);
-        ownersUpdated++;
+        if (changed) ownersUpdated++;
       }
 
       // 2. Update Clinic Members (Doctors, Staff, etc.)
@@ -151,7 +89,7 @@ class _MigrationRunnerState extends State<MigrationRunner> {
 
           List<String> targetPermissions = [];
 
-          if (role == 'owner') {
+          if (role == 'admin' || role == 'owner') {
             targetPermissions = _allPermissions;
           } else if (role == 'doctor') {
             targetPermissions = _doctorPermissions;
@@ -161,7 +99,6 @@ class _MigrationRunnerState extends State<MigrationRunner> {
             targetPermissions = _staffPermissions;
           } else {
             // Unknown role? Skip or give basic view?
-            // Let's skip to avoid over-granting.
             continue;
           }
 
@@ -172,7 +109,7 @@ class _MigrationRunnerState extends State<MigrationRunner> {
       }
 
       _status =
-          'Migration Complete!\nUpdated $ownersUpdated Owners.\nUpdated $membersUpdated Clinic Members.';
+          'Migration Complete!\nUpdated $ownersUpdated Owners in users collection.\nUpdated $membersUpdated Clinic Members.';
     } catch (e) {
       _status = 'Error: $e';
     } finally {
@@ -207,9 +144,12 @@ class _MigrationRunnerState extends State<MigrationRunner> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(_status,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16)),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(_status,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16)),
+          ),
           const SizedBox(height: 20),
           if (_isLoading)
             const CircularProgressIndicator()
@@ -222,7 +162,7 @@ class _MigrationRunnerState extends State<MigrationRunner> {
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'This tool will:\n1. Grant ALL permissions to Owners.\n2. Grant DOCTOR permissions to members with role "doctor".\n3. Grant STAFF permissions to members with role "staff/nurse/secretary".',
+              'This tool will:\n1. Grant ALL current permissions to Admins/Owners.\n2. Grant DOCTOR permissions to members with role "doctor".\n3. Grant STAFF permissions to members with role "staff/nurse/secretary".',
               style: TextStyle(color: Colors.grey),
               textAlign: TextAlign.center,
             ),

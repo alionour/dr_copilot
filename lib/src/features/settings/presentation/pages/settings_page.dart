@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/foundation.dart'; // For defaultTargetPlatform
 import 'dart:convert'; // For jsonEncode
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -148,30 +150,32 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text('appearance'.tr()),
                 onTap: () => context.push('/settings/appearance'),
               ),
-              _buildSectionHeader('Copilot Intelligence'),
-              ListTile(
-                leading: const Icon(Icons.psychology_outlined),
-                title: const Text('Copilot Preferences'),
-                subtitle: const Text(
-                    'Configure required fields for AI (Patients, Sessions, Evaluations)'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => context.push('/settings/copilot_preferences'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.tablet_mac),
-                title: Text('kioskManagement'.tr()),
-                subtitle: const Text('Manage waiting room kiosk links'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => context.push('/settings/kiosk_management'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.local_hospital_outlined),
-                title: const Text('Body Chart Marker Types'),
-                subtitle:
-                    const Text('Customize clinical marker types and icons'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => context.push('/settings/marker_types'),
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.editSettings)) ...[
+                _buildSectionHeader('Copilot Intelligence'),
+                ListTile(
+                  leading: const Icon(Icons.psychology_outlined),
+                  title: const Text('Copilot Preferences'),
+                  subtitle: const Text(
+                      'Configure required fields for AI (Patients, Sessions, Evaluations)'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => context.push('/settings/copilot_preferences'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.tablet_mac),
+                  title: Text('kioskManagement'.tr()),
+                  subtitle: const Text('Manage waiting room kiosk links'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => context.push('/settings/kiosk_management'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.local_hospital_outlined),
+                  title: const Text('Body Chart Marker Types'),
+                  subtitle:
+                      const Text('Customize clinical marker types and icons'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => context.push('/settings/marker_types'),
+                ),
+              ],
               _buildSectionHeader('appSettings'),
               ListTile(
                 leading: const Icon(Icons.tv),
@@ -201,12 +205,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text('subscriptionAndBilling'.tr()),
                 onTap: () => context.push('/settings/subscription'),
               ),
-              ListTile(
-                leading: const Icon(Icons.payment_outlined),
-                title: const Text('Payment Gateway'),
-                subtitle: const Text('Configure booking payments'),
-                onTap: () => context.push('/settings/payment_gateway'),
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.editSettings))
+                ListTile(
+                  leading: const Icon(Icons.payment_outlined),
+                  title: const Text('Payment Gateway'),
+                  subtitle: const Text('Configure booking payments'),
+                  onTap: () => context.push('/settings/payment_gateway'),
+                ),
               ListTile(
                 leading: const Icon(Icons.security_outlined),
                 title: Text('security'.tr()),

@@ -97,6 +97,9 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
       case Destination.inventory:
         emit(state.copyWith(destination: Destination.inventory));
         break;
+      case Destination.departments:
+        emit(state.copyWith(destination: Destination.departments));
+        break;
       case Destination.tasks:
         emit(state.copyWith(destination: Destination.tasks));
         break;

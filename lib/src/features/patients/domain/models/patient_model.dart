@@ -17,6 +17,8 @@ class PatientModel {
   final String? alternativePhoneNumber;
   final String? treatingDoctor;
   final String? treatingDoctorId;
+  final String? departmentId;
+  final String? teamId;
   final String? occupation;
 
   @TimestampConverter()
@@ -45,6 +47,8 @@ class PatientModel {
     this.alternativePhoneNumber,
     this.treatingDoctor,
     this.treatingDoctorId,
+    this.departmentId,
+    this.teamId,
     this.occupation,
     this.createdAt,
     this.updatedAt,
@@ -74,6 +78,8 @@ class PatientModel {
     String? alternativePhoneNumber,
     String? treatingDoctor,
     String? treatingDoctorId,
+    String? departmentId,
+    String? teamId,
     String? occupation,
     Timestamp? createdAt,
     Timestamp? updatedAt,
@@ -95,6 +101,8 @@ class PatientModel {
           alternativePhoneNumber ?? this.alternativePhoneNumber,
       treatingDoctor: treatingDoctor ?? this.treatingDoctor,
       treatingDoctorId: treatingDoctorId ?? this.treatingDoctorId,
+      departmentId: departmentId ?? this.departmentId,
+      teamId: teamId ?? this.teamId,
       occupation: occupation ?? this.occupation,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

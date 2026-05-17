@@ -10,6 +10,8 @@ class InvitationModel extends Invitation {
     required super.roles,
     required super.permissions,
     super.linkedDoctorIds,
+    super.departmentIds,
+    super.teamIds,
     required super.status,
     required super.createdAt,
     super.acceptedAt,
@@ -25,6 +27,8 @@ class InvitationModel extends Invitation {
       roles: List<String>.from(data['roles'] ?? []),
       permissions: List<String>.from(data['permissions'] ?? []),
       linkedDoctorIds: List<String>.from(data['linkedDoctorIds'] ?? []),
+      departmentIds: List<String>.from(data['departmentIds'] ?? []),
+      teamIds: List<String>.from(data['teamIds'] ?? []),
       status: data['status'] ?? 'pending',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       acceptedAt: data['acceptedAt'] != null
@@ -42,6 +46,8 @@ class InvitationModel extends Invitation {
       roles: List<String>.from(json['roles'] ?? []),
       permissions: List<String>.from(json['permissions'] ?? []),
       linkedDoctorIds: List<String>.from(json['linkedDoctorIds'] ?? []),
+      departmentIds: List<String>.from(json['departmentIds'] ?? []),
+      teamIds: List<String>.from(json['teamIds'] ?? []),
       status: json['status'] ?? 'pending',
       createdAt: json['createdAt'] is Timestamp
           ? (json['createdAt'] as Timestamp).toDate()
@@ -63,6 +69,8 @@ class InvitationModel extends Invitation {
       'roles': roles,
       'permissions': permissions,
       'linkedDoctorIds': linkedDoctorIds,
+      'departmentIds': departmentIds,
+      'teamIds': teamIds,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,

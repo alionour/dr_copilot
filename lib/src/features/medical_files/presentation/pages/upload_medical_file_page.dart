@@ -12,8 +12,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class UploadMedicalFilePage extends StatefulWidget {
   final String patientId;
+  final MedicalFileModel? existingFile;
 
-  const UploadMedicalFilePage({super.key, required this.patientId});
+  const UploadMedicalFilePage({super.key, required this.patientId, this.existingFile});
 
   @override
   State<UploadMedicalFilePage> createState() => _UploadMedicalFilePageState();
@@ -36,6 +37,20 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
   @override
   void initState() {
     super.initState();
+    if (widget.existingFile != null) {
+      final file = widget.existingFile!;
+      _titleController.text = file.title;
+      _descriptionController.text = file.description ?? '';
+      _selectedType = file.type;
+      _selectedDate = file.date;
+      if (file.metadata != null) {
+        file.metadata!.forEach((key, value) {
+          final keyController = TextEditingController(text: key);
+          final valueController = TextEditingController(text: value);
+          _keyValueControllers.add(MapEntry(keyController, valueController));
+        });
+      }
+    }
     _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
   }
 
@@ -97,7 +112,7 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedFile == null && _keyValueControllers.isEmpty) {
+      if (_selectedFile == null && _keyValueControllers.isEmpty && widget.existingFile?.fileUrl == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -115,29 +130,38 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
         }
       }
 
+      final isEdit = widget.existingFile != null;
+
       final medicalFile = MedicalFileModel(
-        id: const Uuid().v4(),
+        id: isEdit ? widget.existingFile!.id : const Uuid().v4(),
         patientId: widget.patientId,
         title: _titleController.text,
         type: _selectedType,
-        fileUrl: null, // Will be set by Bloc if file exists
+        fileUrl: isEdit ? widget.existingFile!.fileUrl : null, // Will be set by Bloc if file exists and changed
         date: _selectedDate,
         description: _descriptionController.text,
-        uploadedBy: FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
+        uploadedBy: isEdit ? widget.existingFile!.uploadedBy : (FirebaseAuth.instance.currentUser?.uid ?? 'unknown'),
         metadata: metadata.isNotEmpty ? metadata : null,
-        createdAt: DateTime.now(),
+        createdAt: isEdit ? widget.existingFile!.createdAt : DateTime.now(),
       );
 
-      context.read<MedicalFileBloc>().add(
-        AddMedicalFile(medicalFile: medicalFile, file: _selectedFile),
-      );
+      if (isEdit) {
+        context.read<MedicalFileBloc>().add(
+          UpdateMedicalFile(medicalFile: medicalFile, file: _selectedFile),
+        );
+      } else {
+        context.read<MedicalFileBloc>().add(
+          AddMedicalFile(medicalFile: medicalFile, file: _selectedFile),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.existingFile != null;
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Medical Record')),
+      appBar: AppBar(title: Text(isEdit ? 'editMedicalRecord'.tr() : 'Add Medical Record')),
       body: BlocListener<MedicalFileBloc, MedicalFileState>(
         listener: (context, state) {
           if (state is MedicalFileOperationSuccess) {
@@ -215,6 +239,15 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
                               icon: const Icon(Icons.close),
                               onPressed: () =>
                                   setState(() => _selectedFile = null),
+                            ),
+                          )
+                        else if (widget.existingFile?.fileUrl != null)
+                          ListTile(
+                            leading: const Icon(Icons.link),
+                            title: const Text('Existing File Uploaded'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: _pickFile,
                             ),
                           )
                         else

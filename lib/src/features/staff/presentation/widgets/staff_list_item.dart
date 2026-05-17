@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class StaffListItem extends StatefulWidget {
   final StaffModel staffModel;
@@ -117,17 +119,19 @@ class _StaffListItemState extends State<StaffListItem> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          context.go('/staff/${widget.staffModel.id}');
-                        },
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: Text('edit'.tr()),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.primary,
-                          side: BorderSide(color: colorScheme.primary),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.manageUsers))
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            context.go('/staff/${widget.staffModel.id}');
+                          },
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: Text('edit'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.primary,
+                            side: BorderSide(color: colorScheme.primary),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

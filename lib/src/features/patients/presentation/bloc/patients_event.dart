@@ -23,12 +23,22 @@ class SearchPatients extends PatientsEvent {
   final int? maxAge;
   final String? address;
   final String? gender;
+  final String? departmentId;
+  final String? teamId;
 
-  const SearchPatients(
-      {this.name, this.minAge, this.maxAge, this.address, this.gender});
+  const SearchPatients({
+    this.name,
+    this.minAge,
+    this.maxAge,
+    this.address,
+    this.gender,
+    this.departmentId,
+    this.teamId,
+  });
 
   @override
-  List<Object?> get props => [name, minAge, maxAge, address, gender];
+  List<Object?> get props =>
+      [name, minAge, maxAge, address, gender, departmentId, teamId];
 }
 
 class AddPatient extends PatientsEvent {

@@ -14,6 +14,10 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+import 'package:dr_copilot/src/features/departments/domain/repositories/abstract_departments_repository.dart';
+import 'package:dr_copilot/src/features/teams/domain/repositories/abstract_custom_teams_repository.dart';
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 /// A page that displays a list of patients and allows searching through them.
 class PatientsPage extends StatefulWidget {
@@ -35,6 +39,10 @@ class _PatientsPageState extends State<PatientsPage> {
   int? _minAge;
   int? _maxAge;
   String? _selectedAddress;
+  String? _selectedDepartmentId;
+  String? _selectedTeamId;
+  List<Map<String, dynamic>> _departments = [];
+  List<Map<String, dynamic>> _teams = [];
   bool _canLoadMore = true;
   int? _firestorePatientsCount;
 
@@ -50,6 +58,34 @@ class _PatientsPageState extends State<PatientsPage> {
 
     context.read<PatientsBloc>().add(const GetPatients());
     context.read<PatientsBloc>().add(GetPatientsCount());
+    _loadMetadata();
+  }
+
+  Future<void> _loadMetadata() async {
+    final ownerNotifier = context.read<OwnerNotifier>();
+    final clinicId = ownerNotifier.clinicId;
+    if (clinicId == null) return;
+
+
+    try {
+      final deptResult =
+          await sl<AbstractDepartmentsRepository>().getDepartments(clinicId);
+      final teamResult =
+          await sl<AbstractCustomTeamsRepository>().getTeamsForClinic(clinicId);
+
+      setState(() {
+        _departments = deptResult.fold(
+          (f) => [],
+          (list) => list.map((d) => {'id': d.id, 'name': d.name}).toList(),
+        );
+        _teams = teamResult.fold(
+          (f) => [],
+          (list) => list.map((t) => {'id': t.id, 'name': t.name}).toList(),
+        );
+      });
+    } catch (e) {
+      debugPrint('Error loading metadata: $e');
+    }
   }
 
   @override
@@ -458,6 +494,8 @@ class _PatientsPageState extends State<PatientsPage> {
                   _minAge = null;
                   _maxAge = null;
                   _selectedAddress = null;
+                  _selectedDepartmentId = null;
+                  _selectedTeamId = null;
                 });
                 context.read<PatientsBloc>().add(const GetPatients());
               },
@@ -743,6 +781,119 @@ class _PatientsPageState extends State<PatientsPage> {
                               );
                             },
                           ),
+                          IconButton(
+                            icon: Row(
+                              children: [
+                                const Icon(Icons.business),
+                                if (_selectedDepartmentId != null)
+                                  Text(
+                                    _departments.firstWhere(
+                                      (d) => d['id'] == _selectedDepartmentId,
+                                      orElse: () => {'name': ''},
+                                    )['name'],
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                              ],
+                            ),
+                            tooltip: 'department'.tr(),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('department'.tr()),
+                                    content: SizedBox(
+                                      width: 300,
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: _departments.length,
+                                        itemBuilder: (context, index) {
+                                          final dept = _departments[index];
+                                          return ListTile(
+                                            title: Text(dept['name']),
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedDepartmentId =
+                                                    dept['id'];
+                                                _selectedDate = null;
+                                                _selectedGender = null;
+                                                _minAge = null;
+                                                _maxAge = null;
+                                                _selectedAddress = null;
+                                                _selectedTeamId = null;
+                                              });
+                                              context.read<PatientsBloc>().add(
+                                                    SearchPatients(
+                                                      departmentId: dept['id'],
+                                                    ),
+                                                  );
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Row(
+                              children: [
+                                const Icon(Icons.group),
+                                if (_selectedTeamId != null)
+                                  Text(
+                                    _teams.firstWhere(
+                                      (t) => t['id'] == _selectedTeamId,
+                                      orElse: () => {'name': ''},
+                                    )['name'],
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                              ],
+                            ),
+                            tooltip: 'team'.tr(),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('team'.tr()),
+                                    content: SizedBox(
+                                      width: 300,
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: _teams.length,
+                                        itemBuilder: (context, index) {
+                                          final team = _teams[index];
+                                          return ListTile(
+                                            title: Text(team['name']),
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedTeamId = team['id'];
+                                                _selectedDate = null;
+                                                _selectedGender = null;
+                                                _minAge = null;
+                                                _maxAge = null;
+                                                _selectedAddress = null;
+                                                _selectedDepartmentId = null;
+                                              });
+                                              context.read<PatientsBloc>().add(
+                                                    SearchPatients(
+                                                      teamId: team['id'],
+                                                    ),
+                                                  );
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ],
                       ],
                     ),
@@ -974,10 +1125,16 @@ class _PatientsPageState extends State<PatientsPage> {
                       return EmptyStateWidget(
                         message: 'noPatients'.tr(),
                         title: 'noPatientsFound'.tr(),
-                        actionLabel: 'addPatient'.tr(),
-                        onActionPressed: () {
-                          context.push('/patients/new');
-                        },
+                        actionLabel: OwnerNotifier()
+                                .hasPermission(AppPermission.createPatient)
+                            ? 'addPatient'.tr()
+                            : null,
+                        onActionPressed: OwnerNotifier()
+                                .hasPermission(AppPermission.createPatient)
+                            ? () {
+                                context.push('/patients/new');
+                              }
+                            : null,
                       );
                     },
                   ),
@@ -987,12 +1144,15 @@ class _PatientsPageState extends State<PatientsPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/patients/new');
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          OwnerNotifier().hasPermission(AppPermission.createPatient)
+              ? FloatingActionButton(
+                  onPressed: () {
+                    context.push('/patients/new');
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
     );
   }
 

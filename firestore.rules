@@ -101,6 +101,18 @@ service cloud.firestore {
                          get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerId == request.auth.uid;
       }
       
+      // Departments
+      match /departments/{deptId} {
+        allow read: if isClinicMember(clinicId);
+        allow write: if hasPermission(clinicId, 'manageDepartments');
+      }
+
+      // Teams (Subcollection)
+      match /custom_teams/{teamId} {
+        allow read: if isClinicMember(clinicId);
+        allow write: if hasPermission(clinicId, 'manageTeams');
+      }
+      
        // Patients (subcollection style if used)
       match /patients/{patientId} {
         allow read: if hasPermission(clinicId, 'viewAllPatients') || hasPermission(clinicId, 'viewOwnPatients');

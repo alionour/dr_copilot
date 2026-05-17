@@ -13,6 +13,8 @@ import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_
 import 'package:dr_copilot/src/features/medications/presentation/bloc/medication_bloc.dart';
 import 'package:dr_copilot/src/features/medical_files/presentation/widgets/medical_file_list_widget.dart';
 import 'package:dr_copilot/src/features/medications/presentation/widgets/medication_list_widget.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 final getIt = GetIt.instance;
 
@@ -142,12 +144,13 @@ class PatientDetailsPage extends StatelessWidget {
                 'associatedClinicalReports'.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  context.go('/clinical_reports/new', extra: patientId);
-                },
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.addClinicalReport))
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    context.go('/clinical_reports/new', extra: patientId);
+                  },
+                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -222,12 +225,13 @@ class PatientDetailsPage extends StatelessWidget {
                 'Medical Records',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  context.push('/patients/$patientId/upload-file');
-                },
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.addMedicalFile))
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    context.push('/patients/$patientId/upload-file');
+                  },
+                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -254,12 +258,13 @@ class PatientDetailsPage extends StatelessWidget {
                 'Medications',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  context.push('/patients/$patientId/add-medication');
-                },
-              ),
+              if (OwnerNotifier().hasPermission(AppPermission.addMedication))
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    context.push('/patients/$patientId/add-medication');
+                  },
+                ),
             ],
           ),
           const SizedBox(height: 16),

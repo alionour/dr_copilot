@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class EvaluationsPage extends StatefulWidget {
   const EvaluationsPage({super.key});
@@ -380,20 +382,29 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
             return EmptyStateWidget(
               message: 'noEvaluations'.tr(),
               title: 'noEvaluationsFound'.tr(),
-              actionLabel: 'addEvaluation'.tr(),
-              onActionPressed: () {
-                context.push('/evaluations/new');
-              },
+              actionLabel: OwnerNotifier()
+                      .hasPermission(AppPermission.createEvaluation)
+                  ? 'addEvaluation'.tr()
+                  : null,
+              onActionPressed: OwnerNotifier()
+                      .hasPermission(AppPermission.createEvaluation)
+                  ? () {
+                      context.push('/evaluations/new');
+                    }
+                  : null,
             );
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/evaluations/new');
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          OwnerNotifier().hasPermission(AppPermission.createEvaluation)
+              ? FloatingActionButton(
+                  onPressed: () {
+                    context.push('/evaluations/new');
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
     );
   }
 

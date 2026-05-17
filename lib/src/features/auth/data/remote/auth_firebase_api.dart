@@ -375,14 +375,31 @@ class AuthFirebaseApi {
         // Fetch the user doc again after creation
         final createdDoc = await userDocRef.get();
         final data = createdDoc.data() as Map<String, dynamic>?;
-        clinicIds =
-            (data?['clinicIds'] as List<dynamic>?)?.cast<String>() ?? [];
+        richClinics = (data?['clinics'] as List<dynamic>?)
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .map((clinic) {
+              if (clinic['joinedAt'] is Timestamp) {
+                clinic['joinedAt'] =
+                    (clinic['joinedAt'] as Timestamp).toDate().toIso8601String();
+              }
+              return clinic;
+            }).toList() ??
+            [];
+
+        final Set<String> allClinicIds = {};
+        for (var clinic in richClinics) {
+          if (clinic['clinicId'] != null) {
+            allClinicIds.add(clinic['clinicId'] as String);
+          }
+        }
+        clinicIds = allClinicIds.toList();
         primaryClinicId = data?['primaryClinicId'] as String?;
       } else {
         // No invitation: sign up as owner (admin) for a new clinic
         final result = await _createOwnerAndClinic(user, userDocRef);
-        clinicIds = result['clinicIds'];
+        clinicIds = List<String>.from(result['clinicIds']);
         primaryClinicId = result['primaryClinicId'];
+        richClinics = List<Map<String, dynamic>>.from(result['clinics']);
       }
     }
     return UserModel(
@@ -436,6 +453,11 @@ class AuthFirebaseApi {
       'photoURL': user.photoURL,
       'createdAt': Timestamp.fromDate(DateTime.now().toUtc()),
       'primaryClinicId': primaryClinicId,
+      'clinics': allClinicIds.map((cid) => {
+        'clinicId': cid,
+        'clinicName': 'Clinic',
+        'joinedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+      }).toList(),
     });
   }
 
@@ -497,7 +519,17 @@ class AuthFirebaseApi {
       // We might want to rethrow or handle this more gracefully
     }
 
-    return {'primaryClinicId': primaryClinicId};
+    return {
+      'primaryClinicId': primaryClinicId,
+      'clinicIds': [primaryClinicId],
+      'clinics': [
+        {
+          'clinicId': primaryClinicId,
+          'clinicName': user.displayName ?? user.email ?? 'Clinic',
+          'joinedAt': DateTime.now().toUtc().toIso8601String(),
+        },
+      ],
+    };
   }
 
   /// Saves authentication tokens (accessToken, idToken) to local storage.
@@ -659,7 +691,17 @@ class AuthFirebaseApi {
     return _firebaseAuth.authStateChanges().asyncMap((user) async {
       if (user == null) return null;
       try {
-        final userDoc = await _usersCollection.doc(user.uid).get();
+        var userDoc = await _usersCollection.doc(user.uid).get();
+        // If logged in but the Firestore user document is still being created/onboarded,
+        // retry a few times to prevent the signup/onboarding race condition.
+        int retries = 0;
+        while (!userDoc.exists && retries < 5) {
+          debugPrint('[AuthFirebaseApi] User doc does not exist yet. Retrying in 200ms... (Attempt ${retries + 1}/5)');
+          await Future.delayed(const Duration(milliseconds: 200));
+          userDoc = await _usersCollection.doc(user.uid).get();
+          retries++;
+        }
+
         if (userDoc.exists) {
           final data = userDoc.data() as Map<String, dynamic>?;
 

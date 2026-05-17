@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class SessionListItem extends StatefulWidget {
   final SessionModel sessionModel;
@@ -130,30 +132,36 @@ class _SessionListItemState extends State<SessionListItem> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          context.pushNamed(
-                            'edit_session',
-                            extra: widget.sessionModel,
-                          );
-                        },
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: Text('edit'.tr()),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.primary,
-                          side: BorderSide(color: colorScheme.primary),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.updateSession))
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            context.pushNamed(
+                              'edit_session',
+                              extra: widget.sessionModel,
+                            );
+                          },
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: Text('edit'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.primary,
+                            side: BorderSide(color: colorScheme.primary),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: () => _showDeleteConfirmation(context),
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        label: Text('delete'.tr()),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.error,
-                          side: BorderSide(color: colorScheme.error),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.updateSession))
+                        const SizedBox(width: 12),
+                      if (OwnerNotifier()
+                          .hasPermission(AppPermission.deleteSession))
+                        OutlinedButton.icon(
+                          onPressed: () => _showDeleteConfirmation(context),
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          label: Text('delete'.tr()),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.error,
+                            side: BorderSide(color: colorScheme.error),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

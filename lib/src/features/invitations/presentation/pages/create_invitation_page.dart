@@ -16,6 +16,8 @@ import 'package:dr_copilot/src/features/staff/domain/usecases/staff_usecase.dart
 import 'package:dr_copilot/src/core/services/backend_service.dart';
 import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:dr_copilot/src/features/departments/domain/repositories/abstract_departments_repository.dart';
+import 'package:dr_copilot/src/features/teams/domain/repositories/abstract_custom_teams_repository.dart';
 import 'dart:developer';
 
 // Person model to combine staff and doctors for selection
@@ -55,11 +57,19 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   final Set<AppPermission> _selectedPermissions = {};
 
   final List<String> _selectedDoctorIds = [];
+  final List<String> _selectedDepartmentIds = [];
+  final List<String> _selectedTeamIds = [];
   bool _isAllDoctors = true;
+  bool _isAllDepartments = true;
+  bool _isAllTeams = true;
 
   List<PersonOption> _availablePeople = [];
+  List<Map<String, dynamic>> _availableDepartments = [];
+  List<Map<String, dynamic>> _availableTeams = [];
   bool _isLoadingPeople = true;
+  bool _isLoadingMetadata = true;
   bool _useManualEntry = false;
+  bool _showAllPermissions = false;
   PersonOption? _selectedPerson;
 
   int _currentStep = 0;
@@ -90,7 +100,40 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   Future<void> _loadInitialData() async {
     // Fetch both staff/doctors and clinic name concurrently
-    await Future.wait([_loadStaffAndDoctors(), _fetchClinicName()]);
+    await Future.wait([
+      _loadStaffAndDoctors(),
+      _fetchClinicName(),
+      _loadDepartmentsAndTeams(),
+    ]);
+  }
+
+  Future<void> _loadDepartmentsAndTeams() async {
+    try {
+      final deptRepo = sl<AbstractDepartmentsRepository>();
+      final teamRepo = sl<AbstractCustomTeamsRepository>();
+
+      final deptResult = await deptRepo.getDepartments(widget.clinicId);
+      final teamResult = await teamRepo.getTeamsForClinic(widget.clinicId);
+
+      if (mounted) {
+        setState(() {
+          _availableDepartments = deptResult.fold(
+            (f) => [],
+            (list) => list.map((d) => {'id': d.id, 'name': d.name}).toList(),
+          );
+          _availableTeams = teamResult.fold(
+            (f) => [],
+            (list) => list.map((t) => {'id': t.id, 'name': t.name}).toList(),
+          );
+          _isLoadingMetadata = false;
+        });
+      }
+    } catch (e) {
+      log('Error loading metadata: $e');
+      if (mounted) {
+        setState(() => _isLoadingMetadata = false);
+      }
+    }
   }
 
   Future<void> _loadStaffAndDoctors() async {
@@ -208,7 +251,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       invitedBy: widget.currentUserId,
       roles: _selectedRole != null ? [_selectedRole!.name] : [],
       permissions: _selectedPermissions.map((p) => p.name).toList(),
-      linkedDoctorIds: _isAllDoctors ? [] : _selectedDoctorIds,
+      linkedDoctorIds: _isAllDoctors ? ['ALL'] : _selectedDoctorIds,
+      departmentIds: _isAllDepartments ? ['ALL'] : _selectedDepartmentIds,
+      teamIds: _isAllTeams ? ['ALL'] : _selectedTeamIds,
       status: 'pending',
       createdAt: DateTime.now(),
     );
@@ -300,6 +345,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       body: Form(
         key: _formKey,
         child: Stepper(
+          key: ValueKey(getSteps().length),
           type: StepperType.vertical,
           currentStep: _currentStep,
           onStepTapped: (step) => setState(() => _currentStep = step),
@@ -355,6 +401,28 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
     );
   }
 
+  bool get _needsDoctorScope =>
+      _selectedPermissions.contains(AppPermission.viewPatients) ||
+      _selectedPermissions.contains(AppPermission.createPatient) ||
+      _selectedPermissions.contains(AppPermission.updatePatient) ||
+      _selectedPermissions.contains(AppPermission.deletePatient) ||
+      _selectedPermissions.contains(AppPermission.viewSessions) ||
+      _selectedPermissions.contains(AppPermission.createSession) ||
+      _selectedPermissions.contains(AppPermission.updateSession) ||
+      _selectedPermissions.contains(AppPermission.deleteSession) ||
+      _selectedPermissions.contains(AppPermission.viewEvaluations) ||
+      _selectedPermissions.contains(AppPermission.createEvaluation) ||
+      _selectedPermissions.contains(AppPermission.updateEvaluation) ||
+      _selectedPermissions.contains(AppPermission.deleteEvaluation) ||
+      _selectedPermissions.contains(AppPermission.viewClinicalReports) ||
+      _selectedPermissions.contains(AppPermission.createClinicalReport) ||
+      _selectedPermissions.contains(AppPermission.updateClinicalReport) ||
+      _selectedPermissions.contains(AppPermission.deleteClinicalReport);
+
+  bool get _needsDeptScope => _needsDoctorScope;
+
+  bool get _needsTeamScope => _needsDoctorScope;
+
   List<Step> getSteps() {
     final List<Step> steps = [
       Step(
@@ -371,13 +439,35 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       ),
     ];
 
-    if (_selectedRole == AppRole.staff) {
+    if (_needsDoctorScope) {
       steps.add(
         Step(
           title: Text('doctorAssociation'.tr()),
           content: _buildDoctorAssociationSection(),
-          isActive: _currentStep >= 2,
-          state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+          isActive: _currentStep >= steps.length,
+          state: _currentStep > steps.length ? StepState.complete : StepState.indexed,
+        ),
+      );
+    }
+
+    if (_needsDeptScope) {
+      steps.add(
+        Step(
+          title: Text('departmentAssociation'.tr()),
+          content: _buildDepartmentAssociationSection(),
+          isActive: _currentStep >= steps.length,
+          state: _currentStep > steps.length ? StepState.complete : StepState.indexed,
+        ),
+      );
+    }
+
+    if (_needsTeamScope) {
+      steps.add(
+        Step(
+          title: Text('teamAssociation'.tr()),
+          content: _buildTeamAssociationSection(),
+          isActive: _currentStep >= steps.length,
+          state: _currentStep > steps.length ? StepState.complete : StepState.indexed,
         ),
       );
     }
@@ -426,8 +516,6 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           else
             Column(
               children: doctors.map((doctor) {
-                // Since we don't have UID here easily, we might need to fetch doctors specifically
-                // with their UIDs. Let's re-load doctors with UIDs.
                 return CheckboxListTile(
                   title: Text(doctor.name),
                   subtitle: Text(doctor.email),
@@ -438,6 +526,108 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                         _selectedDoctorIds.add(doctor.id);
                       } else {
                         _selectedDoctorIds.remove(doctor.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDepartmentAssociationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'departmentScopeDescription'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        RadioListTile<bool>(
+          title: Text('allDepartments'.tr()),
+          value: true,
+          groupValue: _isAllDepartments,
+          onChanged: (value) => setState(() => _isAllDepartments = value!),
+        ),
+        RadioListTile<bool>(
+          title: Text('specificDepartments'.tr()),
+          value: false,
+          groupValue: _isAllDepartments,
+          onChanged: (value) => setState(() => _isAllDepartments = value!),
+        ),
+        if (!_isAllDepartments) ...[
+          const SizedBox(height: 16),
+          if (_availableDepartments.isEmpty)
+            Text(
+              'noDepartmentsInClinic'.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            )
+          else
+            Column(
+              children: _availableDepartments.map((dept) {
+                return CheckboxListTile(
+                  title: Text(dept['name']),
+                  value: _selectedDepartmentIds.contains(dept['id']),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == true) {
+                        _selectedDepartmentIds.add(dept['id']);
+                      } else {
+                        _selectedDepartmentIds.remove(dept['id']);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTeamAssociationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'teamScopeDescription'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        RadioListTile<bool>(
+          title: Text('allTeams'.tr()),
+          value: true,
+          groupValue: _isAllTeams,
+          onChanged: (value) => setState(() => _isAllTeams = value!),
+        ),
+        RadioListTile<bool>(
+          title: Text('specificTeams'.tr()),
+          value: false,
+          groupValue: _isAllTeams,
+          onChanged: (value) => setState(() => _isAllTeams = value!),
+        ),
+        if (!_isAllTeams) ...[
+          const SizedBox(height: 16),
+          if (_availableTeams.isEmpty)
+            Text(
+              'noTeamsInClinic'.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            )
+          else
+            Column(
+              children: _availableTeams.map((team) {
+                return CheckboxListTile(
+                  title: Text(team['name']),
+                  value: _selectedTeamIds.contains(team['id']),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == true) {
+                        _selectedTeamIds.add(team['id']);
+                      } else {
+                        _selectedTeamIds.remove(team['id']);
                       }
                     });
                   },
@@ -469,16 +659,40 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
               ? 'noRoleSelected'.tr()
               : _getRoleDisplayName(_selectedRole!),
         ),
-        if (_selectedRole == AppRole.staff) ...[
+        if (_needsDoctorScope) ...[
           const Divider(height: 24),
           _buildReviewTile(
-            icon: Icons.people_outline,
+            icon: Icons.person_outline,
             title: 'linkedDoctors'.tr(),
             subtitle: _isAllDoctors
                 ? 'allDoctors'.tr()
                 : _selectedDoctorIds.isEmpty
                     ? 'none'.tr()
-                    : _selectedDoctorIds.join(', '),
+                    : '${_selectedDoctorIds.length} doctors selected',
+          ),
+        ],
+        if (_needsDeptScope) ...[
+          const Divider(height: 24),
+          _buildReviewTile(
+            icon: Icons.business_outlined,
+            title: 'linkedDepartments'.tr(),
+            subtitle: _isAllDepartments
+                ? 'allDepartments'.tr()
+                : _selectedDepartmentIds.isEmpty
+                    ? 'none'.tr()
+                    : '${_selectedDepartmentIds.length} departments selected',
+          ),
+        ],
+        if (_needsTeamScope) ...[
+          const Divider(height: 24),
+          _buildReviewTile(
+            icon: Icons.groups_outlined,
+            title: 'linkedTeams'.tr(),
+            subtitle: _isAllTeams
+                ? 'allTeams'.tr()
+                : _selectedTeamIds.isEmpty
+                    ? 'none'.tr()
+                    : '${_selectedTeamIds.length} teams selected',
           ),
         ],
         const Divider(height: 24),
@@ -751,6 +965,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
           onChanged: (AppRole? value) {
             setState(() {
               _selectedRole = value;
+              _currentStep = 1; // Stay on the current step but force rebuild
               _updatePermissionsBasedOnRoles();
             });
           },
@@ -784,28 +999,77 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  children: AppPermission.values.map((permission) {
-                    final isSelected = _selectedPermissions.contains(
-                      permission,
-                    );
-                    return CheckboxListTile(
-                      title: Text(_getPermissionDisplayName(permission)),
-                      subtitle: Text(
-                        _getPermissionDescription(permission),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      value: isSelected,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            _selectedPermissions.add(permission);
-                          } else {
-                            _selectedPermissions.remove(permission);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () => setState(
+                              () => _showAllPermissions = !_showAllPermissions),
+                          icon: Icon(_showAllPermissions
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
+                          label: Text(_showAllPermissions
+                              ? 'showRelevant'.tr()
+                              : 'showAll'.tr()),
+                        ),
+                      ],
+                    ),
+                    ...AppPermissionCategory.values.map((category) {
+                      final categoryPermissions = AppPermission.values
+                          .where((p) => p.category == category)
+                          .where((p) =>
+                              _showAllPermissions ||
+                              p.isMeaningfulFor(_selectedRole!))
+                          .toList();
+
+                      if (categoryPermissions.isEmpty) return const SizedBox();
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              _getCategoryDisplayName(category),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                          ...categoryPermissions.map((permission) {
+                            final isSelected = _selectedPermissions.contains(
+                              permission,
+                            );
+                            return CheckboxListTile(
+                              title:
+                                  Text(_getPermissionDisplayName(permission)),
+                              subtitle: Text(
+                                _getPermissionDescription(permission),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              value: isSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    _selectedPermissions.add(permission);
+                                  } else {
+                                    _selectedPermissions.remove(permission);
+                                  }
+                                });
+                              },
+                            );
+                          }),
+                          const Divider(),
+                        ],
+                      );
+                    }),
+                  ],
                 ),
               ),
             ],
@@ -844,21 +1108,8 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
         .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)!}')
         .trim();
 
-    List<String> words = formattedName.split(' ');
-
-    // Apply pluralization for specific words
-    words = words.map((word) {
-      if (word == 'Patient') {
-        return 'Patients';
-      } else if (word == 'Session') {
-        return 'Sessions';
-      } else if (word == 'Event') {
-        return 'Events';
-      }
-      return word;
-    }).toList();
-
-    return words
+    return formattedName
+        .split(' ')
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
   }
@@ -866,40 +1117,34 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   String _getPermissionDescription(AppPermission permission) {
     switch (permission) {
       // Patient management
-      case AppPermission.viewAllPatients:
-        return 'Allows viewing patient profiles and their complete medical records.';
-      case AppPermission.viewOwnPatients:
-        return 'Allows viewing only your own patient profiles.';
+      case AppPermission.viewPatients:
+        return 'Allows viewing patient profiles and their medical records.';
+      case AppPermission.createPatient:
+        return 'Allows adding new patients to the clinic\'s database.';
       case AppPermission.updatePatient:
         return 'Allows editing patient demographic and contact information.';
       case AppPermission.deletePatient:
-        return 'Allows permanently deleting a patient and all their associated data.';
-      case AppPermission.createPatient:
-        return 'Allows adding new patients to the clinic\'s database.';
+        return 'Allows permanently deleting a patient record.';
 
       // Session management
-      case AppPermission.viewAllSessions:
+      case AppPermission.viewSessions:
         return 'Allows viewing details of patient therapy or consultation sessions.';
-      case AppPermission.viewOwnSessions:
-        return 'Allows viewing only your own sessions.';
+      case AppPermission.createSession:
+        return 'Allows creating new sessions for patients.';
       case AppPermission.updateSession:
         return 'Allows modifying details of existing patient sessions.';
       case AppPermission.deleteSession:
-        return 'Allows deleting patient sessions from their record.';
-      case AppPermission.createSession:
-        return 'Allows creating new sessions for patients.';
+        return 'Allows deleting patient sessions.';
 
       // Evaluation management
-      case AppPermission.viewAllEvaluations:
+      case AppPermission.viewEvaluations:
         return 'Allows viewing patient assessment and evaluation results.';
-      case AppPermission.viewOwnEvaluations:
-        return 'Allows viewing only your own evaluations.';
+      case AppPermission.createEvaluation:
+        return 'Allows adding new patient evaluations.';
       case AppPermission.updateEvaluation:
         return 'Allows editing patient evaluation data and conclusions.';
       case AppPermission.deleteEvaluation:
         return 'Allows deleting evaluation records.';
-      case AppPermission.createEvaluation:
-        return 'Allows adding new patient evaluations.';
 
       // Financials
       case AppPermission.viewFinancials:
@@ -931,7 +1176,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       case AppPermission.viewNotifications:
         return 'Allows viewing system notifications and alerts.';
       case AppPermission.manageNotifications:
-        return 'Allows sending or configuring system-wide notifications.';
+        return 'Allows configuring system-wide notifications.';
 
       // Settings
       case AppPermission.viewSettings:
@@ -944,9 +1189,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       // Medical Files
       case AppPermission.viewMedicalFiles:
         return 'Allows viewing medical files.';
-      case AppPermission.addMedicalFile:
+      case AppPermission.createMedicalFile:
         return 'Allows uploading or adding new medical files.';
-      case AppPermission.editMedicalFile:
+      case AppPermission.updateMedicalFile:
         return 'Allows editing medical file details.';
       case AppPermission.deleteMedicalFile:
         return 'Allows deleting medical files.';
@@ -988,9 +1233,9 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       // Clinical Reports
       case AppPermission.viewClinicalReports:
         return 'Allows viewing clinical reports.';
-      case AppPermission.addClinicalReport:
+      case AppPermission.createClinicalReport:
         return 'Allows creating new clinical reports.';
-      case AppPermission.editClinicalReport:
+      case AppPermission.updateClinicalReport:
         return 'Allows editing existing clinical reports.';
       case AppPermission.deleteClinicalReport:
         return 'Allows deleting clinical reports.';
@@ -1019,41 +1264,63 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
       case AppPermission.viewHelp:
         return 'Allows access to the help and documentation section.';
       case AppPermission.accessSupport:
-        return 'accessSupport'.tr();
+        return 'Allows contacting support.';
       case AppPermission.sendNotificationMessage:
-        return 'sendNotificationMessage'.tr();
+        return 'Allows sending manual message notifications.';
       case AppPermission.sendNotificationAppointment:
-        return 'sendNotificationAppointment'.tr();
+        return 'Allows sending appointment reminders.';
       case AppPermission.sendNotificationReminder:
-        return 'sendNotificationReminder'.tr();
+        return 'Allows sending general reminders.';
+      case AppPermission.viewTeams:
+        return 'Allows viewing teams.';
       case AppPermission.manageTeams:
-        return 'manageTeams'.tr();
+        return 'Allows managing teams.';
       case AppPermission.createTeam:
-        return 'Allows creating new teams for clinic collaboration.';
+        return 'Allows creating new teams.';
       case AppPermission.archiveTeam:
-        return 'Allows archiving teams to remove them from active view.';
+        return 'Allows archiving teams.';
       case AppPermission.unarchiveTeam:
         return 'Allows restoring archived teams.';
 
       // Inventory
       case AppPermission.viewInventory:
-        return 'Allows viewing inventory items and stock levels.';
+        return 'Allows viewing inventory items.';
       case AppPermission.manageInventory:
-        return 'Allows adding, editing, or deleting inventory items.';
+        return 'Allows managing inventory.';
       case AppPermission.adjustInventoryStock:
-        return 'Allows adjusting stock quantities for inventory items.';
+        return 'Allows adjusting stock quantities.';
+
+      // Departments
+      case AppPermission.viewDepartments:
+        return 'Allows viewing departments.';
+      case AppPermission.manageDepartments:
+        return 'Allows managing departments.';
+
       case AppPermission.manageWorkingHours:
-        return 'Allows editing working hours and appointment duration/price.';
+        return 'Allows editing working hours.';
       case AppPermission.manageBookingAvailability:
-        return 'Allows managing doctor booking availability.';
-      case AppPermission.viewPatientsByDoctor:
-        return 'viewPatientsByDoctor'.tr();
-      case AppPermission.managePatientsForDoctor:
-        return 'managePatientsForDoctor'.tr();
-      case AppPermission.viewMedicalFilesByDoctor:
-        return 'viewMedicalFilesByDoctor'.tr();
-      case AppPermission.manageMedicalFilesForDoctor:
-        return 'manageMedicalFilesForDoctor'.tr();
+        return 'Allows managing booking availability.';
+    }
+  }
+
+  String _getCategoryDisplayName(AppPermissionCategory category) {
+    switch (category) {
+      case AppPermissionCategory.patientManagement:
+        return 'patientManagement'.tr();
+      case AppPermissionCategory.clinical:
+        return 'clinical'.tr();
+      case AppPermissionCategory.financial:
+        return 'financial'.tr();
+      case AppPermissionCategory.administrative:
+        return 'administrative'.tr();
+      case AppPermissionCategory.scopedAccess:
+        return 'scopedAccess'.tr();
+      case AppPermissionCategory.inventory:
+        return 'inventory'.tr();
+      case AppPermissionCategory.teamCollab:
+        return 'teamCollab'.tr();
+      case AppPermissionCategory.system:
+        return 'system'.tr();
     }
   }
 }

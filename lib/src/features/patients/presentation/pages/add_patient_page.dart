@@ -16,6 +16,9 @@ import 'package:provider/provider.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
 import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/features/departments/domain/repositories/abstract_departments_repository.dart';
+import 'package:dr_copilot/src/features/teams/domain/repositories/abstract_custom_teams_repository.dart';
 
 // AddPatientPage StatefulWidget
 class AddPatientPage extends StatefulWidget {
@@ -54,7 +57,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
   String _selectedGender = 'Male';
   String? _selectedClinicId;
   String? _treatingDoctorId;
+  String? _selectedDepartmentId;
+  String? _selectedTeamId;
   List<DoctorModel> _doctors = [];
+  List<Map<String, dynamic>> _departments = [];
+  List<Map<String, dynamic>> _teams = [];
   bool _isLoadingDoctors = false;
 
   @override
@@ -72,12 +79,18 @@ class _AddPatientPageState extends State<AddPatientPage> {
       _occupationController.text = widget.patient!.occupation ?? '';
       _selectedGender = widget.patient!.gender ?? 'Male';
       _selectedClinicId = widget.patient!.clinicId;
+      _selectedDepartmentId = widget.patient!.departmentId;
+      _selectedTeamId = widget.patient!.teamId;
     }
-    _loadDoctors();
+    _loadInitialData();
     // Request focus to the name field when the page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_nameFocusNode);
     });
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([_loadDoctors(), _loadDepartmentsAndTeams()]);
   }
 
   Future<void> _loadDoctors() async {
@@ -96,7 +109,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           _isLoadingDoctors = false;
 
           // If scoped staff and exactly one doctor, auto-select
-          if (ownerNotifier.isDoctorScoped &&
+          if (ownerNotifier.isScoped &&
               ownerNotifier.linkedDoctorIds.length == 1 &&
               widget.patient == null) {
             final linkedId = ownerNotifier.linkedDoctorIds.first;
@@ -112,6 +125,44 @@ class _AddPatientPageState extends State<AddPatientPage> {
         });
       },
     );
+  }
+
+  Future<void> _loadDepartmentsAndTeams() async {
+    final ownerNotifier = Provider.of<OwnerNotifier>(context, listen: false);
+    final clinicId = _selectedClinicId ?? ownerNotifier.clinicId;
+    if (clinicId == null) return;
+
+
+    try {
+      final deptRepo = sl<AbstractDepartmentsRepository>();
+      final teamRepo = sl<AbstractCustomTeamsRepository>();
+
+      final deptResult = await deptRepo.getDepartments(clinicId);
+      final teamResult = await teamRepo.getTeamsForClinic(clinicId);
+
+      setState(() {
+        _departments = deptResult.fold(
+          (f) => [],
+          (list) => list.map((d) => {'id': d.id, 'name': d.name}).toList(),
+        );
+        _teams = teamResult.fold(
+          (f) => [],
+          (list) => list.map((t) => {'id': t.id, 'name': t.name}).toList(),
+        );
+
+        // Auto-select if scoped and only one
+        if (ownerNotifier.isScoped && widget.patient == null) {
+          if (ownerNotifier.departmentIds.length == 1) {
+            _selectedDepartmentId = ownerNotifier.departmentIds.first;
+          }
+          if (ownerNotifier.teamIds.length == 1) {
+            _selectedTeamId = ownerNotifier.teamIds.first;
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading metadata: $e');
+    }
   }
 
   // Build method for the UI
@@ -182,7 +233,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      initialValue: _selectedClinicId ??
+                                      value: _selectedClinicId ??
                                           ownerNotifier.clinicId,
                                       decoration: InputDecoration(
                                         labelText: 'clinic'.tr(),
@@ -386,6 +437,86 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               },
                             ),
                             const SizedBox(height: 16.0),
+                            // Department Selection
+                            Consumer<OwnerNotifier>(
+                              builder: (context, ownerNotifier, _) {
+                                final filteredDepts = _departments
+                                    .where(
+                                      (d) =>
+                                          ownerNotifier.departmentIds.isEmpty ||
+                                          ownerNotifier.departmentIds.contains(
+                                            d['id'],
+                                          ),
+                                    )
+                                    .toList();
+
+                                if (filteredDepts.isEmpty &&
+                                    !ownerNotifier.hasPermission(
+                                      AppPermission.viewPatients,
+                                    )) {
+                                  return const SizedBox();
+                                }
+
+                                return DropdownButtonFormField<String>(
+                                  value: _selectedDepartmentId,
+                                  decoration: InputDecoration(
+                                    labelText: 'department'.tr(),
+                                    border: const OutlineInputBorder(),
+                                    hintText: null,
+                                  ),
+                                  items: filteredDepts.map((dept) {
+                                    return DropdownMenuItem<String>(
+                                      value: dept['id'] as String,
+                                      child: Text(dept['name'] as String),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() => _selectedDepartmentId = value);
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
+                            // Team Selection
+                            Consumer<OwnerNotifier>(
+                              builder: (context, ownerNotifier, _) {
+                                final filteredTeams = _teams
+                                    .where(
+                                      (t) =>
+                                          ownerNotifier.teamIds.isEmpty ||
+                                          ownerNotifier.teamIds.contains(
+                                            t['id'],
+                                          ),
+                                    )
+                                    .toList();
+
+                                if (filteredTeams.isEmpty &&
+                                    !ownerNotifier.hasPermission(
+                                      AppPermission.viewPatients,
+                                    )) {
+                                  return const SizedBox();
+                                }
+
+                                return DropdownButtonFormField<String>(
+                                  value: _selectedTeamId,
+                                  decoration: InputDecoration(
+                                    labelText: 'team'.tr(),
+                                    border: const OutlineInputBorder(),
+                                    hintText: null,
+                                  ),
+                                  items: filteredTeams.map((team) {
+                                    return DropdownMenuItem<String>(
+                                      value: team['id'] as String,
+                                      child: Text(team['name'] as String),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() => _selectedTeamId = value);
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16.0),
                             TextFormField(
                               controller: _occupationController,
                               focusNode: _occupationFocusNode,
@@ -528,6 +659,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
               ? _treatingDoctorController.text
               : null,
           treatingDoctorId: _treatingDoctorId,
+          departmentId: _selectedDepartmentId,
+          teamId: _selectedTeamId,
           occupation: _occupationController.text.isNotEmpty
               ? _occupationController.text
               : null,

@@ -26,23 +26,64 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Query _applyPatientFilter(Query queryRef, User user) {
-    if (OwnerNotifier().hasPermission(AppPermission.viewAllPatients)) {
+    final notifier = OwnerNotifier();
+
+    // 1. Check if user has basic view permission
+    if (!notifier.hasPermission(AppPermission.viewPatients)) {
+      // If no permission, return no results
+      return queryRef.where(FieldPath.documentId, isEqualTo: 'PERMISSION_DENIED');
+    }
+
+    // 2. Global Access Check
+    if (notifier.hasAllDoctorsAccess ||
+        notifier.hasAllDepartmentsAccess ||
+        notifier.hasAllTeamsAccess) {
       return queryRef;
-    } else if (OwnerNotifier()
-        .hasPermission(AppPermission.viewPatientsByDoctor)) {
-      final linkedDoctorIds = OwnerNotifier().linkedDoctorIds;
-      if (linkedDoctorIds.isEmpty) {
-        // Staff linked to "All Doctors" - no filter
-        return queryRef;
-      } else {
-        // Staff linked to specific doctors
-        return queryRef.where('treatingDoctorId', whereIn: linkedDoctorIds);
-      }
+    }
+
+    // 3. Association Scoping
+    List<Filter> scopeFilters = [];
+
+    if (notifier.linkedDoctorIds.isNotEmpty) {
+      scopeFilters.add(
+        Filter('treatingDoctorId', whereIn: notifier.linkedDoctorIds),
+      );
+    }
+
+    if (notifier.departmentIds.isNotEmpty) {
+      scopeFilters.add(Filter('departmentId', whereIn: notifier.departmentIds));
+    }
+
+    if (notifier.teamIds.isNotEmpty) {
+      scopeFilters.add(Filter('teamId', whereIn: notifier.teamIds));
+    }
+
+    // 4. Flexible Model: If user has at least one association, also allow seeing patients with null doctor
+    if (scopeFilters.isNotEmpty) {
+      scopeFilters.add(Filter('treatingDoctorId', isNull: true));
+    }
+
+    // 5. Apply filters
+    if (scopeFilters.isEmpty) {
+      return queryRef.where(
+        FieldPath.documentId,
+        isEqualTo: 'NO_ASSOCIATIONS_ACCESS',
+      );
+    }
+
+    if (scopeFilters.length == 1) {
+      return queryRef.where(scopeFilters.first);
+    } else if (scopeFilters.length == 2) {
+      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1]));
+    } else if (scopeFilters.length == 3) {
+      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1], scopeFilters[2]));
     } else {
-      // Fallback to legacy "view own patients" or restrictive access
-      return queryRef.where('createdBy', isEqualTo: user.uid);
+      return queryRef.where(
+        Filter.or(scopeFilters[0], scopeFilters[1], scopeFilters[2], scopeFilters[3]),
+      );
     }
   }
+
 
   @override
   Future<Either<Failure, Tuple2<List<PatientModel>, DocumentSnapshot?>>>
@@ -106,6 +147,9 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
   @override
   Future<Either<Failure, PatientModel>> addPatient(PatientModel patient) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.createPatient)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (clinicId == null) {
@@ -113,7 +157,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       }
       if (user != null) {
         final data = patient.toJson();
-        data.remove('id'); // Exclude the `id` field from the document data
+        data.remove('id');
         final docRef = await _patientsCollection.add({
           ...data,
           'userId': user.uid,
@@ -121,8 +165,8 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           'clinicId': clinicId,
         });
         final createdPatient = patient.copyWith(
-          id: docRef.id, // Assign the generated document ID
-          ownerId: user.uid, // Ensure userId is set
+          id: docRef.id,
+          ownerId: user.uid,
         );
         return Right(createdPatient);
       }
@@ -135,29 +179,28 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   @override
   Future<Either<Failure, PatientModel>> updatePatient(
       String id, PatientModel patient) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.updatePatient)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await _patientsCollection.doc(id).get();
 
         if (doc.exists) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            return Left(ServerFailure('Document data is null', 400));
+          // Apply scope check before update
+          Query checkQuery =
+              _patientsCollection.where(FieldPath.documentId, isEqualTo: id);
+          checkQuery = _applyPatientFilter(checkQuery, user);
+          final checkResult = await checkQuery.get();
+
+          if (checkResult.docs.isEmpty) {
+            return Left(ServerFailure('Access denied to this patient', 403));
           }
 
-          // We don't strictly enforce userId check for updates in this context,
-          // or we can check if the user belongs to the same clinic.
-          // For now, assuming if they can read it (filtered by clinicId), they can update it.
-          // Or we can keep the original check if needed.
-          // The original check was: if (userId == user.uid)
-          // But in a clinic setting, other doctors might update patients.
-          // Let's relax it to just authentication for now, or check clinicId match if we want strictness.
-
           final updatedData = patient.toJson();
-          updatedData.remove('id'); // Exclude the `id` field from the update
-          updatedData['updatedAt'] =
-              Timestamp.fromDate(DateTime.now().toUtc()); // Add updatedAt field
+          updatedData.remove('id');
+          updatedData['updatedAt'] = Timestamp.fromDate(DateTime.now().toUtc());
           await _patientsCollection.doc(id).update(updatedData);
 
           return Right(patient.copyWith(id: id));
@@ -173,10 +216,28 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
   @override
   Future<Either<Failure, void>> deletePatient(String id) async {
+    if (!OwnerNotifier().hasPermission(AppPermission.deletePatient)) {
+      return Left(ServerFailure('Permission denied', 403));
+    }
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Similar to update, we might want to allow deletion if they are in the same clinic.
+        // Ensure patient is within user's scope
+        final doc = await _patientsCollection.doc(id).get();
+        if (!doc.exists) {
+          return Left(ServerFailure('Patient not found', 404));
+        }
+
+        // Apply scope check before deletion
+        Query checkQuery =
+            _patientsCollection.where(FieldPath.documentId, isEqualTo: id);
+        checkQuery = _applyPatientFilter(checkQuery, user);
+        final checkResult = await checkQuery.get();
+
+        if (checkResult.docs.isEmpty) {
+          return Left(ServerFailure('Access denied to this patient', 403));
+        }
+
         await _patientsCollection.doc(id).delete();
         return const Right(null);
       }
@@ -193,6 +254,8 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     int? maxAge,
     String? address,
     String? gender,
+    String? departmentId,
+    String? teamId,
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -225,6 +288,14 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
         if (gender != null && gender.isNotEmpty) {
           queryRef = queryRef.where('gender', isEqualTo: gender);
+        }
+
+        if (departmentId != null && departmentId.isNotEmpty) {
+          queryRef = queryRef.where('departmentId', isEqualTo: departmentId);
+        }
+
+        if (teamId != null && teamId.isNotEmpty) {
+          queryRef = queryRef.where('teamId', isEqualTo: teamId);
         }
 
         debugPrint('Executing query: $queryRef');
