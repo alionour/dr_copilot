@@ -15,6 +15,7 @@ class DoctorModel extends Equatable {
   final double? consultationPrice;
   final bool isAvailableForBooking;
   final String? currencyProfileId;
+  final List<String> departmentIds;
 
   const DoctorModel({
     required this.id,
@@ -30,6 +31,7 @@ class DoctorModel extends Equatable {
     this.consultationPrice,
     this.isAvailableForBooking = true,
     this.currencyProfileId,
+    this.departmentIds = const [],
   });
 
   DoctorModel copyWith({
@@ -46,6 +48,7 @@ class DoctorModel extends Equatable {
     double? consultationPrice,
     bool? isAvailableForBooking,
     String? currencyProfileId,
+    List<String>? departmentIds,
   }) {
     return DoctorModel(
       id: id ?? this.id,
@@ -62,6 +65,7 @@ class DoctorModel extends Equatable {
       isAvailableForBooking:
           isAvailableForBooking ?? this.isAvailableForBooking,
       currencyProfileId: currencyProfileId ?? this.currencyProfileId,
+      departmentIds: departmentIds ?? this.departmentIds,
     );
   }
 
@@ -80,6 +84,7 @@ class DoctorModel extends Equatable {
       'consultationPrice': consultationPrice,
       'isAvailableForBooking': isAvailableForBooking,
       'currencyProfileId': currencyProfileId,
+      'departmentIds': departmentIds,
     };
   }
 
@@ -99,6 +104,7 @@ class DoctorModel extends Equatable {
       consultationPrice: (data['consultationPrice'] as num?)?.toDouble(),
       isAvailableForBooking: data['isAvailableForBooking'] as bool? ?? true,
       currencyProfileId: data['currencyProfileId'] as String?,
+      departmentIds: List<String>.from(data['departmentIds'] ?? []),
     );
   }
 
@@ -117,5 +123,7 @@ class DoctorModel extends Equatable {
         consultationPrice,
         isAvailableForBooking,
         currencyProfileId,
+        departmentIds,
       ];
 }
+

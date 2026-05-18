@@ -137,11 +137,9 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                     final allMembers = membersSnapshot.data ?? [];
                     final allPatients = patientsSnapshot.data ?? [];
 
-                    // Filter department doctors: members having role 'doctor' and departmentIds contains departmentId
-                    final deptDoctors = allMembers.where((m) {
-                      final roles = (m['role'] ?? '').toString().toLowerCase();
-                      final deptIds = List<String>.from(m['departmentIds'] ?? []);
-                      return roles == 'doctor' && (deptIds.contains(departmentId) || deptIds.contains('ALL'));
+                    // Filter department doctors: profiles having departmentIds contains departmentId
+                    final deptDoctors = _allClinicDoctors.where((doc) {
+                      return doc.departmentIds.contains(departmentId) || doc.departmentIds.contains('ALL');
                     }).toList();
 
                     // Filter department staff: members not having role 'doctor' and departmentIds contains departmentId
@@ -181,7 +179,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                           child: TabBarView(
                             children: [
                               _buildOverviewTab(deptDoctors.length, deptStaff.length, deptPatients),
-                              _buildDoctorsTab(deptDoctors, allMembers, canManage),
+                              _buildDoctorsTab(deptDoctors, canManage),
                               _buildStaffTab(deptStaff, allMembers, canManage),
                               _buildPatientsTab(deptPatients, allPatients, canManage),
                             ],
@@ -503,10 +501,10 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
     );
   }
 
-  Widget _buildDoctorsTab(List<Map<String, dynamic>> deptDoctors, List<Map<String, dynamic>> allMembers, bool canManage) {
+  Widget _buildDoctorsTab(List<DoctorModel> deptDoctors, bool canManage) {
     final filteredDoctors = deptDoctors.where((doc) {
-      final name = (doc['displayName'] ?? '').toString().toLowerCase();
-      final email = (doc['email'] ?? '').toString().toLowerCase();
+      final name = doc.name.toLowerCase();
+      final email = doc.email.toLowerCase();
       return name.contains(_doctorQuery.trim().toLowerCase()) || email.contains(_doctorQuery.trim().toLowerCase());
     }).toList();
 
@@ -531,7 +529,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
               if (canManage) ...[
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
-                  onPressed: () => _showManageDoctorsDialog(allMembers),
+                  onPressed: () => _showManageDoctorsDialog(),
                   icon: const Icon(Icons.add),
                   label: Text('assignDoctors'.tr()),
                   style: ElevatedButton.styleFrom(
@@ -552,23 +550,10 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: filteredDoctors.length,
                   itemBuilder: (context, index) {
-                    final member = filteredDoctors[index];
-                    final memberId = member['id'] as String;
-                    final displayName = member['displayName'] ?? 'Unknown Member';
-                    final email = member['email'] ?? '';
-
-                    // Find corresponding DoctorModel to display specialty
-                    final doctorProfile = _allClinicDoctors.firstWhere((d) => d.id == memberId,
-                        orElse: () => DoctorModel(
-                              id: '',
-                              name: '',
-                              specialty: '',
-                              clinicId: '',
-                              email: '',
-                              phoneNumber: '',
-                              createdAt: Timestamp.now(),
-                              updatedAt: Timestamp.now(),
-                            ));
+                    final doctor = filteredDoctors[index];
+                    final doctorId = doctor.id;
+                    final displayName = doctor.name;
+                    final specialty = doctor.specialty;
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -578,13 +563,13 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                         ),
                         title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(
-                          doctorProfile.specialty.isNotEmpty ? doctorProfile.specialty : email,
+                          specialty.isNotEmpty ? specialty : doctor.email,
                           style: const TextStyle(fontSize: 13),
                         ),
                         trailing: canManage
                             ? IconButton(
                                 icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                onPressed: () => _removeMemberFromDepartment(memberId, displayName),
+                                onPressed: () => _removeDoctorFromDepartment(doctorId, displayName),
                                 tooltip: 'Remove from department',
                               )
                             : null,
@@ -845,11 +830,10 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
     }
   }
 
-  void _showManageDoctorsDialog(List<Map<String, dynamic>> allMembers) {
-    final doctorsInClinic = allMembers.where((m) => (m['role'] ?? '').toString().toLowerCase() == 'doctor').toList();
-    final initialSelectedIds = doctorsInClinic
-        .where((m) => List<String>.from(m['departmentIds'] ?? []).contains(widget.department.id))
-        .map((m) => m['id'] as String)
+  void _showManageDoctorsDialog() {
+    final initialSelectedIds = _allClinicDoctors
+        .where((doc) => doc.departmentIds.contains(widget.department.id))
+        .map((doc) => doc.id)
         .toList();
 
     showDialog(
@@ -863,18 +847,20 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
               content: SizedBox(
                 width: 400,
                 height: 400,
-                child: doctorsInClinic.isEmpty
+                child: _allClinicDoctors.isEmpty
                     ? Center(child: Text('noDoctorsInClinic'.tr()))
                     : ListView.builder(
-                        itemCount: doctorsInClinic.length,
+                        itemCount: _allClinicDoctors.length,
                         itemBuilder: (context, index) {
-                          final doc = doctorsInClinic[index];
-                          final id = doc['id'] as String;
-                          final name = doc['displayName'] ?? 'Unknown Doctor';
+                          final doc = _allClinicDoctors[index];
+                          final id = doc.id;
+                          final name = doc.name;
+                          final specialty = doc.specialty;
                           final isChecked = selectedIds.contains(id);
 
                           return CheckboxListTile(
                             title: Text(name),
+                            subtitle: specialty.isNotEmpty ? Text(specialty) : null,
                             value: isChecked,
                             onChanged: (val) {
                               dialogSetState(() {
@@ -894,7 +880,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                 FilledButton(
                   onPressed: () async {
                     Navigator.pop(context);
-                    await _saveMembersAssociation(doctorsInClinic.map((d) => d['id'] as String).toList(), selectedIds);
+                    await _saveDoctorsAssociation(_allClinicDoctors.map((d) => d.id).toList(), selectedIds);
                   },
                   child: Text('saveChanges'.tr()),
                 ),
@@ -904,6 +890,79 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
         );
       },
     );
+  }
+
+  Future<void> _saveDoctorsAssociation(List<String> allEligibleIds, List<String> selectedIds) async {
+    final batch = FirebaseFirestore.instance.batch();
+    final departmentId = widget.department.id;
+
+    try {
+      for (final id in allEligibleIds) {
+        final docRef = FirebaseFirestore.instance.collection('doctors').doc(id);
+
+        if (selectedIds.contains(id)) {
+          batch.update(docRef, {
+            'departmentIds': FieldValue.arrayUnion([departmentId]),
+          });
+        } else {
+          batch.update(docRef, {
+            'departmentIds': FieldValue.arrayRemove([departmentId]),
+          });
+        }
+      }
+
+      await batch.commit();
+      _loadClinicDoctors();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('saveSuccess'.tr()), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('somethingWentWrong'.tr()), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeDoctorFromDepartment(String doctorId, String name) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Remove Doctor'),
+        content: Text('Are you sure you want to remove Dr. $name from the $_deptName department?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('cancel'.tr())),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await FirebaseFirestore.instance.collection('doctors').doc(doctorId).update({
+          'departmentIds': FieldValue.arrayRemove([widget.department.id]),
+        });
+        _loadClinicDoctors();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Doctor removed from department successfully'), backgroundColor: Colors.green),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('somethingWentWrong'.tr()), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
   }
 
   void _showManageStaffDialog(List<Map<String, dynamic>> allMembers) {
