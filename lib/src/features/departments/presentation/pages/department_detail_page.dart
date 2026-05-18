@@ -28,6 +28,11 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
   late String _deptDesc;
   List<DoctorModel> _allClinicDoctors = [];
 
+  // Firestore streams cached to prevent infinite rebuild loops
+  late final Stream<DocumentSnapshot> _departmentStream;
+  late final Stream<List<Map<String, dynamic>>> _membersStream;
+  late final Stream<List<PatientModel>> _patientsStream;
+
   // Search queries
   String _doctorQuery = '';
   String _staffQuery = '';
@@ -38,6 +43,37 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
     super.initState();
     _deptName = widget.department.name;
     _deptDesc = widget.department.description ?? '';
+    
+    final clinicId = widget.department.clinicId;
+    final departmentId = widget.department.id;
+
+    // Initialize streams once
+    _departmentStream = FirebaseFirestore.instance
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('departments')
+        .doc(departmentId)
+        .snapshots();
+
+    _membersStream = FirebaseFirestore.instance
+        .collection('clinics')
+        .doc(clinicId)
+        .collection('members')
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
+
+    _patientsStream = FirebaseFirestore.instance
+        .collection('patients')
+        .where('clinicId', isEqualTo: clinicId)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) {
+              final data = doc.data();
+              return PatientModel.fromJson({
+                ...data,
+                'id': doc.id,
+              });
+            }).toList());
+
     _loadClinicDoctors();
   }
 
@@ -61,42 +97,11 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final clinicId = widget.department.clinicId;
-    final departmentId = widget.department.id;
     final ownerNotifier = OwnerNotifier();
     final canManage = ownerNotifier.hasPermission(AppPermission.manageDepartments);
 
-    // Dynamic stream for department document changes (e.g. if edited)
-    final departmentStream = FirebaseFirestore.instance
-        .collection('clinics')
-        .doc(clinicId)
-        .collection('departments')
-        .doc(departmentId)
-        .snapshots();
-
-    // Stream for all clinic members
-    final membersStream = FirebaseFirestore.instance
-        .collection('clinics')
-        .doc(clinicId)
-        .collection('members')
-        .snapshots()
-        .map((snap) => snap.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
-
-    // Stream for patients belonging to this clinic
-    final patientsStream = FirebaseFirestore.instance
-        .collection('patients')
-        .where('clinicId', isEqualTo: clinicId)
-        .snapshots()
-        .map((snap) => snap.docs.map((doc) {
-              final data = doc.data();
-              return PatientModel.fromJson({
-                ...data,
-                'id': doc.id,
-              });
-            }).toList());
-
     return StreamBuilder<DocumentSnapshot>(
-      stream: departmentStream,
+      stream: _departmentStream,
       builder: (context, deptSnapshot) {
         if (deptSnapshot.hasData && deptSnapshot.data!.exists) {
           final data = deptSnapshot.data!.data() as Map<String, dynamic>;
@@ -120,10 +125,10 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),
             body: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: membersStream,
+              stream: _membersStream,
               builder: (context, membersSnapshot) {
                 return StreamBuilder<List<PatientModel>>(
-                  stream: patientsStream,
+                  stream: _patientsStream,
                   builder: (context, patientsSnapshot) {
                     if (membersSnapshot.connectionState == ConnectionState.waiting ||
                         patientsSnapshot.connectionState == ConnectionState.waiting) {

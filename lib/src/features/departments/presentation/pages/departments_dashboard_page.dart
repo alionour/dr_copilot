@@ -172,11 +172,12 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
   }
 
   void _navigateToDepartmentDetail(DepartmentModel department) {
+    final departmentsBloc = context.read<DepartmentsBloc>();
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: context.read<DepartmentsBloc>(),
+        builder: (_) => BlocProvider.value(
+          value: departmentsBloc,
           child: DepartmentDetailPage(department: department),
         ),
       ),
