@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:get_it/get_it.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
-import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
 import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
@@ -99,6 +97,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
   Widget build(BuildContext context) {
     final ownerNotifier = OwnerNotifier();
     final canManage = ownerNotifier.hasPermission(AppPermission.manageDepartments);
+    final departmentId = widget.department.id;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: _departmentStream,
@@ -756,12 +755,11 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
   }
 
   void _editDepartment(BuildContext context) async {
-    final departmentsBloc = context.read<DepartmentsBloc>();
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: departmentsBloc,
+        builder: (_) => BlocProvider(
+          create: (_) => sl<DepartmentsBloc>(),
           child: CreateEditDepartmentPage(department: widget.department),
         ),
       ),
