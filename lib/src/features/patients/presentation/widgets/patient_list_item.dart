@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart' hide State;
+import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/presentation/bloc/patients_bloc.dart';
 import 'package:flutter/material.dart';
@@ -77,12 +80,30 @@ class _PatientListItemState extends State<PatientListItem> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '${'age'.tr()}: ${widget.patientModel.age ?? 'N/A'} • ${widget.patientModel.gender ?? 'N/A'}',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        Builder(
+                          builder: (context) {
+                            final isAgeEmpty = widget.patientModel.age == null;
+                            final isGenderEmpty = widget.patientModel.gender == null || widget.patientModel.gender!.trim().isEmpty;
+                            final ageVal = isAgeEmpty ? 'not_available'.tr() : widget.patientModel.age.toString();
+                            String genderVal = 'not_available'.tr();
+                            if (!isGenderEmpty) {
+                              final gender = widget.patientModel.gender!.toLowerCase();
+                              if (gender == 'male') {
+                                genderVal = 'male'.tr();
+                              } else if (gender == 'female') {
+                                genderVal = 'female'.tr();
+                              } else {
+                                genderVal = widget.patientModel.gender!;
+                              }
+                            }
+                            return Text(
+                              '${'age'.tr()}: $ageVal • $genderVal',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -114,21 +135,16 @@ class _PatientListItemState extends State<PatientListItem> {
                   _buildDetailRow(
                     context,
                     Icons.phone_outlined,
-                    'phoneNumber'.tr(),
-                    widget.patientModel.phoneNumber,
+                    '${'phoneNumber'.tr()} 1',
+                    widget.patientModel.phone1,
                   ),
                   _buildDetailRow(
                     context,
                     Icons.phone_iphone_outlined,
-                    'alternativePhoneNumber'.tr(),
-                    widget.patientModel.alternativePhoneNumber,
+                    '${'phoneNumber'.tr()} 2',
+                    widget.patientModel.phone2,
                   ),
-                  _buildDetailRow(
-                    context,
-                    Icons.medical_services_outlined,
-                    'treatingDoctor'.tr(),
-                    widget.patientModel.treatingDoctor,
-                  ),
+                  _buildDoctorRow(context),
                   _buildDetailRow(
                     context,
                     Icons.work_outline,
@@ -200,13 +216,45 @@ class _PatientListItemState extends State<PatientListItem> {
     );
   }
 
+  Widget _buildDoctorRow(BuildContext context) {
+    if (widget.patientModel.treatingDoctorId == null) {
+      return _buildDetailRow(
+        context,
+        Icons.medical_services_outlined,
+        'treatingDoctor'.tr(),
+        null,
+      );
+    }
+
+    return FutureBuilder(
+      future: sl<DoctorsUseCase>().getDoctor(widget.patientModel.treatingDoctorId!),
+      builder: (context, snapshot) {
+        String? doctorName;
+        if (snapshot.hasData) {
+          final result = snapshot.data as Either;
+          result.fold(
+            (l) => null,
+            (r) => doctorName = r.name,
+          );
+        }
+        return _buildDetailRow(
+          context,
+          Icons.medical_services_outlined,
+          'treatingDoctor'.tr(),
+          doctorName,
+        );
+      },
+    );
+  }
+
   Widget _buildDetailRow(
     BuildContext context,
     IconData icon,
     String label,
     String? value,
   ) {
-    final displayValue = value ?? 'N/A';
+    final isValueEmpty = value == null || value.trim().isEmpty;
+    final displayValue = isValueEmpty ? 'not_available'.tr() : value;
     final theme = Theme.of(context);
 
     return Padding(
@@ -232,7 +280,10 @@ class _PatientListItemState extends State<PatientListItem> {
                   displayValue,
                   style: GoogleFonts.inter(
                     fontSize: 15,
-                    color: theme.colorScheme.onSurface,
+                    color: isValueEmpty
+                        ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+                        : theme.colorScheme.onSurface,
+                    fontStyle: isValueEmpty ? FontStyle.italic : FontStyle.normal,
                   ),
                 ),
               ],

@@ -82,10 +82,10 @@ class PatientDetailsPage extends StatelessWidget {
                                         title: Text(patient.gender!),
                                         subtitle: Text('gender'.tr()),
                                       ),
-                                    if (patient.phoneNumber != null)
+                                    if (patient.phone1 != null)
                                       ListTile(
-                                        title: Text(patient.phoneNumber!),
-                                        subtitle: Text('phoneNumber'.tr()),
+                                        title: Text(patient.phone1!),
+                                        subtitle: Text('phone1'.tr()),
                                       ),
                                   ],
                                 ),
@@ -133,6 +133,13 @@ class PatientDetailsPage extends StatelessWidget {
   }
 
   Widget _buildClinicalReportsTab(BuildContext context, String patientId) {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewClinicalReports)) {
+      return _buildAccessRestrictedWidget(
+        context: context,
+        title: 'accessRestricted'.tr(),
+        message: 'noPermissionToViewSection'.tr(),
+      );
+    }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -208,6 +215,13 @@ class PatientDetailsPage extends StatelessWidget {
   }
 
   Widget _buildMedicalFilesTab(BuildContext context, String patientId) {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewMedicalFiles)) {
+      return _buildAccessRestrictedWidget(
+        context: context,
+        title: 'accessRestricted'.tr(),
+        message: 'noPermissionToViewSection'.tr(),
+      );
+    }
     // Lazy load approach not strictly needed if we use BlocProvider in main
     // But for now we rely on the widget to trigger load event if needed or we trigger it here.
     // Ideally, we wrap with BlocProvider.value if already provided, or create it.
@@ -247,6 +261,13 @@ class PatientDetailsPage extends StatelessWidget {
   }
 
   Widget _buildMedicationsTab(BuildContext context, String patientId) {
+    if (!OwnerNotifier().hasPermission(AppPermission.viewMedications)) {
+      return _buildAccessRestrictedWidget(
+        context: context,
+        title: 'accessRestricted'.tr(),
+        message: 'noPermissionToViewSection'.tr(),
+      );
+    }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -279,33 +300,109 @@ class PatientDetailsPage extends StatelessWidget {
   }
 
   Widget _buildFullInfoTab(BuildContext context, PatientModel patient) {
+    final hasAddress = patient.address != null && patient.address!.trim().isNotEmpty;
+    final hasAltPhone = patient.phone2 != null && patient.phone2!.trim().isNotEmpty;
+    final hasDoctor = patient.treatingDoctorId != null && patient.treatingDoctorId!.trim().isNotEmpty;
+    final hasOccupation = patient.occupation != null && patient.occupation!.trim().isNotEmpty;
+
+    if (!hasAddress && !hasAltPhone && !hasDoctor && !hasOccupation) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'noData'.tr(),
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          if (patient.address != null)
+          if (hasAddress)
             ListTile(
               title: Text(patient.address!),
               subtitle: Text('address'.tr()),
             ),
-          if (patient.alternativePhoneNumber != null)
+          if (hasAltPhone)
             ListTile(
-              title: Text(patient.alternativePhoneNumber!),
-              subtitle: Text('alternativePhoneNumber'.tr()),
+              title: Text(patient.phone2!),
+              subtitle: Text('phone2'.tr()),
             ),
-          if (patient.treatingDoctor != null)
+          if (hasDoctor)
             ListTile(
-              title: Text(patient.treatingDoctor!),
-              subtitle: Text('treatingDoctor'.tr()),
+              title: Text(patient.treatingDoctorId!),
+              subtitle: Text('treatingDoctorId'.tr()),
             ),
-          if (patient.occupation != null)
+          if (hasOccupation)
             ListTile(
               title: Text(patient.occupation!),
               subtitle: Text('occupation'.tr()),
             ),
-
-          // Add more details as needed
         ],
+      ),
+    );
+  }
+
+  Widget _buildAccessRestrictedWidget({
+    required BuildContext context,
+    required String title,
+    required String message,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+        child: Container(
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.lock_outline_rounded,
+                  size: 40,
+                  color: Colors.amber.shade700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

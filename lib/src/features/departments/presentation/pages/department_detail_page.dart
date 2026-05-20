@@ -664,7 +664,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
   Widget _buildPatientsTab(List<PatientModel> deptPatients, List<PatientModel> allPatients, bool canManage) {
     final filteredPatients = deptPatients.where((pat) {
       final name = pat.name.toLowerCase();
-      final phone = (pat.phoneNumber ?? '').toLowerCase();
+      final phone = (pat.phone1 ?? '').toLowerCase();
       return name.contains(_patientQuery.trim().toLowerCase()) || phone.contains(_patientQuery.trim().toLowerCase());
     }).toList();
 
@@ -722,7 +722,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                           child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'P'),
                         ),
                         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('$gender • $age • ${patient.phoneNumber ?? 'noPhoneNumber'.tr()}', style: const TextStyle(fontSize: 13)),
+                        subtitle: Text('$gender • $age • ${patient.phone1 ?? 'noPhoneNumber'.tr()}', style: const TextStyle(fontSize: 13)),
                         trailing: canManage
                             ? IconButton(
                                 icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
@@ -1094,7 +1094,7 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
 
                           return CheckboxListTile(
                             title: Text(patient.name),
-                            subtitle: patient.phoneNumber != null ? Text(patient.phoneNumber!) : null,
+                            subtitle: patient.phone1 != null ? Text(patient.phone1!) : null,
                             value: isChecked,
                             onChanged: (val) {
                               dialogSetState(() {

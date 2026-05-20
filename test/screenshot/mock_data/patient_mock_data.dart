@@ -92,11 +92,11 @@ class PatientMockData {
           age: 20 + (i * 3) % 60, // Ages between 20-80
           gender: gender,
           address: addresses[i % addresses.length],
-          phoneNumber: '+20 ${100 + i} ${200 + i} ${300 + i}',
-          alternativePhoneNumber:
+          phone1: '+20 ${100 + i} ${200 + i} ${300 + i}',
+          phone2:
               i % 3 == 0 ? '+20 ${150 + i} ${250 + i} ${350 + i}' : null,
           occupation: occupations[i % occupations.length],
-          treatingDoctor: doctors[i % doctors.length],
+          treatingDoctorId: doctors[i % doctors.length],
           ownerId: 'mock_owner_id',
           clinicId: 'mock_clinic_id',
           createdAt: Timestamp.fromDate(creationDate),
@@ -125,10 +125,10 @@ class PatientMockData {
     int? age,
     String? gender,
     String? address,
-    String? phoneNumber,
-    String? alternativePhoneNumber,
+    String? phone1,
+    String? phone2,
     String? occupation,
-    String? treatingDoctor,
+    String? treatingDoctorId,
     DateTime? createdAt,
   }) {
     return PatientModel(
@@ -137,10 +137,10 @@ class PatientMockData {
       age: age,
       gender: gender,
       address: address,
-      phoneNumber: phoneNumber,
-      alternativePhoneNumber: alternativePhoneNumber,
+      phone1: phone1,
+      phone2: phone2,
       occupation: occupation,
-      treatingDoctor: treatingDoctor,
+      treatingDoctorId: treatingDoctorId,
       ownerId: 'mock_owner_id',
       clinicId: 'mock_clinic_id',
       createdAt: createdAt != null ? Timestamp.fromDate(createdAt) : null,

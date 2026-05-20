@@ -8,6 +8,8 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_e
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_event.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_state.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 final getIt = GetIt.instance;
 
@@ -128,7 +130,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
                                   return ListTile(
                                     title: Text(patient.name),
                                     subtitle: Text(
-                                      patient.phoneNumber ??
+                                      patient.phone1 ??
                                           'noPhoneNumber'.tr(),
                                     ),
                                     onTap: () {
@@ -306,7 +308,7 @@ class _CreateClinicalReportViewState extends State<CreateClinicalReportView> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: _createClinicalReport,
+                          onPressed: _createClinicalReport.throttle(),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),

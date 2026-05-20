@@ -37,12 +37,14 @@ class PatientActionHandler extends BaseActionHandler {
     final patient = PatientModel(
       id: const Uuid().v4(),
       name: args['name'],
-      age: args['age'],
+      age: args['age'] is int
+          ? args['age']
+          : (args['age'] != null ? int.tryParse(args['age'].toString()) : null),
       gender: args['gender'],
       address: args['address'],
-      phoneNumber: args['phoneNumber'],
-      alternativePhoneNumber: args['alternativePhoneNumber'],
-      treatingDoctor: args['treatingDoctor'],
+      phone1: args['phoneNumber'],
+      phone2: args['alternativePhoneNumber'],
+      treatingDoctorId: args['treatingDoctor'],
       occupation: args['occupation'],
       ownerId: ownerId,
       clinicId: clinicId,
@@ -100,28 +102,40 @@ class PatientActionHandler extends BaseActionHandler {
       }
     }
 
-    final patient = PatientModel(
-      id: patientId!,
-      name: args['name'] ?? '',
-      age: args['age'],
-      gender: args['gender'],
-      address: args['address'],
-      phoneNumber: args['phoneNumber'],
-      alternativePhoneNumber: args['alternativePhoneNumber'],
-      treatingDoctor: args['treatingDoctor'],
-      occupation: args['occupation'],
-      ownerId: ownerId,
-      clinicId: clinicId,
-      updatedAt: Timestamp.fromDate(DateTime.now()),
-      createdAt: Timestamp.fromDate(
-          DateTime.now()), // Dummy, won't be used for update usually
-    );
+    // Get existing patient data
+    final existingResult = await patientsUseCase.getPatientById(patientId!);
 
-    final result = await patientsUseCase.updatePatient(patient.id, patient);
-    return result.fold(
-      (failure) => {'error': failure.message},
-      (success) =>
-          {'status': 'success', 'message': 'Patient updated successfully'},
+    return await existingResult.fold(
+      (failure) => {'error': 'Patient not found: ${failure.message}'},
+      (existingPatient) async {
+        // Construct updated patient model using copyWith to preserve existing fields
+        final updatedPatient = existingPatient.copyWith(
+          name: args['name'] ?? existingPatient.name,
+          age: args['age'] is int
+              ? args['age']
+              : (args['age'] != null
+                  ? int.tryParse(args['age'].toString())
+                  : existingPatient.age),
+          gender: args['gender'] ?? existingPatient.gender,
+          address: args['address'] ?? existingPatient.address,
+          phone1: args['phoneNumber'] ?? existingPatient.phone1,
+          phone2:
+              args['alternativePhoneNumber'] ?? existingPatient.phone2,
+          treatingDoctorId: args['treatingDoctor'] ?? existingPatient.treatingDoctorId,
+          occupation: args['occupation'] ?? existingPatient.occupation,
+          updatedAt: Timestamp.fromDate(DateTime.now()),
+        );
+
+        final result =
+            await patientsUseCase.updatePatient(updatedPatient.id, updatedPatient);
+        return result.fold(
+          (failure) => {'error': failure.message},
+          (success) => {
+            'status': 'success',
+            'message': 'Patient updated successfully'
+          },
+        );
+      },
     );
   }
 

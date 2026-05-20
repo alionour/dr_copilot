@@ -13,7 +13,9 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+
 import 'package:dr_copilot/src/features/doctors/domain/usecases/doctors_usecase.dart';
 import 'package:dr_copilot/src/features/doctors/domain/models/doctor_model.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
@@ -53,9 +55,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
   final _ageController = TextEditingController();
   final _genderController = TextEditingController();
   final _addressController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _alternativePhoneNumberController = TextEditingController();
-  final _treatingDoctorController = TextEditingController();
+  final _phone1Controller = TextEditingController();
+  final _phone2Controller = TextEditingController();
   final _occupationController = TextEditingController();
 
   // Focus nodes for form fields
@@ -63,9 +64,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
   final _ageFocusNode = FocusNode();
   final _genderFocusNode = FocusNode();
   final _addressFocusNode = FocusNode();
-  final _phoneNumberFocusNode = FocusNode();
-  final _alternativePhoneNumberFocusNode = FocusNode();
-  final _treatingDoctorFocusNode = FocusNode();
+  final _phone1FocusNode = FocusNode();
+  final _phone2FocusNode = FocusNode();
   final _occupationFocusNode = FocusNode();
 
   String _selectedGender = 'Male';
@@ -85,10 +85,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
       _nameController.text = widget.patient!.name;
       _ageController.text = widget.patient!.age?.toString() ?? '';
       _addressController.text = widget.patient!.address ?? '';
-      _phoneNumberController.text = widget.patient!.phoneNumber ?? '';
-      _alternativePhoneNumberController.text =
-          widget.patient!.alternativePhoneNumber ?? '';
-      _treatingDoctorController.text = widget.patient!.treatingDoctor ?? '';
+      _phone1Controller.text = widget.patient!.phone1 ?? '';
+      _phone2Controller.text = widget.patient!.phone2 ?? '';
       _treatingDoctorId = widget.patient!.treatingDoctorId;
       _occupationController.text = widget.patient!.occupation ?? '';
       _selectedGender = widget.patient!.gender ?? 'Male';
@@ -100,16 +98,18 @@ class _AddPatientPageState extends State<AddPatientPage> {
       if (data['name'] != null) _nameController.text = data['name'].toString();
       if (data['age'] != null) _ageController.text = data['age'].toString();
       if (data['address'] != null) _addressController.text = data['address'].toString();
-      if (data['phoneNumber'] != null) {
-        _phoneNumberController.text = data['phoneNumber'].toString();
-      } else if (data['phone'] != null) {
-        _phoneNumberController.text = data['phone'].toString();
+      if (data['phone1'] != null) {
+        _phone1Controller.text = data['phone1'].toString();
+      } else if (data['phoneNumber'] != null) {
+        _phone1Controller.text = data['phoneNumber'].toString();
       }
-      if (data['alternativePhoneNumber'] != null) {
-        _alternativePhoneNumberController.text = data['alternativePhoneNumber'].toString();
+      if (data['phone2'] != null) {
+        _phone2Controller.text = data['phone2'].toString();
+      } else if (data['alternativePhoneNumber'] != null) {
+        _phone2Controller.text = data['alternativePhoneNumber'].toString();
       }
-      if (data['treatingDoctor'] != null) {
-        _treatingDoctorController.text = data['treatingDoctor'].toString();
+      if (data['treatingDoctorId'] != null) {
+        _treatingDoctorId = data['treatingDoctorId'].toString();
       }
       if (data['gender'] != null) {
         final g = data['gender'].toString().toLowerCase();
@@ -126,9 +126,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
     _nameController.addListener(_notifyFormDataChange);
     _ageController.addListener(_notifyFormDataChange);
     _addressController.addListener(_notifyFormDataChange);
-    _phoneNumberController.addListener(_notifyFormDataChange);
-    _alternativePhoneNumberController.addListener(_notifyFormDataChange);
-    _treatingDoctorController.addListener(_notifyFormDataChange);
+    _phone1Controller.addListener(_notifyFormDataChange);
+    _phone2Controller.addListener(_notifyFormDataChange);
     _occupationController.addListener(_notifyFormDataChange);
     _loadInitialData();
     // Request focus to the name field when the page is loaded
@@ -144,9 +143,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
         'age': int.tryParse(_ageController.text),
         'gender': _selectedGender,
         'address': _addressController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'alternativePhoneNumber': _alternativePhoneNumberController.text,
-        'treatingDoctor': _treatingDoctorController.text,
+        'phone1': _phone1Controller.text,
+        'phone2': _phone2Controller.text,
         'occupation': _occupationController.text,
         'treatingDoctorId': _treatingDoctorId,
         'departmentId': _selectedDepartmentId,
@@ -186,7 +184,6 @@ class _AddPatientPageState extends State<AddPatientPage> {
             );
             if (doctor != null) {
               _treatingDoctorId = doctor.id;
-              _treatingDoctorController.text = doctor.name;
             }
           }
         });
@@ -219,10 +216,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
 
         // Auto-select if scoped and only one
         if (ownerNotifier.isScoped && widget.patient == null) {
-          if (ownerNotifier.departmentIds.length == 1) {
+          if (ownerNotifier.departmentIds.length == 1 &&
+              ownerNotifier.departmentIds.first != 'ALL') {
             _selectedDepartmentId = ownerNotifier.departmentIds.first;
           }
-          if (ownerNotifier.teamIds.length == 1) {
+          if (ownerNotifier.teamIds.length == 1 &&
+              ownerNotifier.teamIds.first != 'ALL') {
             _selectedTeamId = ownerNotifier.teamIds.first;
           }
         }
@@ -242,9 +241,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
           _nameController.clear();
           _ageController.clear();
           _addressController.clear();
-          _phoneNumberController.clear();
-          _alternativePhoneNumberController.clear();
-          _treatingDoctorController.clear();
+          _phone1Controller.clear();
+          _phone2Controller.clear();
           _occupationController.clear();
           setState(() {
             _selectedGender = 'Male';
@@ -386,15 +384,15 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               onFieldSubmitted: (_) {
                                 FocusScope.of(
                                   context,
-                                ).requestFocus(_phoneNumberFocusNode);
+                                ).requestFocus(_phone1FocusNode);
                               },
                             ),
                             const SizedBox(height: 16.0),
                             TextFormField(
-                              controller: _phoneNumberController,
-                              focusNode: _phoneNumberFocusNode,
+                              controller: _phone1Controller,
+                              focusNode: _phone1FocusNode,
                               decoration: InputDecoration(
-                                labelText: 'phoneNumber'.tr(),
+                                labelText: '${'phoneNumber'.tr()} 1',
                                 border: const OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.phone,
@@ -409,16 +407,16 @@ class _AddPatientPageState extends State<AddPatientPage> {
                               },
                               onFieldSubmitted: (_) {
                                 FocusScope.of(context).requestFocus(
-                                  _alternativePhoneNumberFocusNode,
+                                  _phone2FocusNode,
                                 );
                               },
                             ),
                             const SizedBox(height: 16.0),
                             TextFormField(
-                              controller: _alternativePhoneNumberController,
-                              focusNode: _alternativePhoneNumberFocusNode,
+                              controller: _phone2Controller,
+                              focusNode: _phone2FocusNode,
                               decoration: InputDecoration(
-                                labelText: 'alternativePhoneNumber'.tr(),
+                                labelText: '${'phoneNumber'.tr()} 2',
                                 border: const OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.phone,
@@ -426,75 +424,44 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
                               onFieldSubmitted: (_) {
-                                FocusScope.of(
-                                  context,
-                                ).requestFocus(_treatingDoctorFocusNode);
+                                FocusScope.of(context).unfocus();
                               },
                             ),
                             const SizedBox(height: 16.0),
                             Consumer<OwnerNotifier>(
                               builder: (context, ownerNotifier, _) {
-                                if (ownerNotifier.isDoctorScoped) {
-                                  // Scoped staff member
-                                  final linkedDoctorIds =
-                                      ownerNotifier.linkedDoctorIds;
-                                  final filteredDoctors = _doctors
-                                      .where(
-                                        (d) =>
-                                            linkedDoctorIds.isEmpty ||
-                                            linkedDoctorIds.contains(d.id),
-                                      )
-                                      .toList();
+                                // List of doctors
+                                final filteredDoctors = ownerNotifier.isDoctorScoped
+                                    ? _doctors
+                                        .where(
+                                          (d) => ownerNotifier.linkedDoctorIds
+                                              .contains(d.id),
+                                        )
+                                        .toList()
+                                    : _doctors;
 
-                                  return DropdownButtonFormField<String>(
-                                    initialValue: _treatingDoctorId,
-                                    decoration: InputDecoration(
-                                      labelText: 'treatingDoctor'.tr(),
-                                      border: const OutlineInputBorder(),
-                                      hintText: _isLoadingDoctors
-                                          ? 'loadingDoctors'.tr()
-                                          : null,
-                                    ),
-                                    items: filteredDoctors.map((doctor) {
-                                      return DropdownMenuItem<String>(
-                                        value: doctor.id,
-                                        child: Text(doctor.name),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _treatingDoctorId = value;
-                                        final doctor = _doctors.firstWhere(
-                                          (d) => d.id == value,
-                                        );
-                                        _treatingDoctorController.text =
-                                            doctor.name;
-                                        _notifyFormDataChange();
-                                      });
-                                    },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'pleaseSelectDoctor'.tr();
-                                      }
-                                      return null;
-                                    },
-                                  );
-                                } else {
-                                  // Non-scoped user (Doctor, Admin, or staff with viewAllPatients)
-                                  return TextFormField(
-                                    controller: _treatingDoctorController,
-                                    focusNode: _treatingDoctorFocusNode,
-                                    decoration: InputDecoration(
-                                      labelText: 'treatingDoctor'.tr(),
-                                      border: const OutlineInputBorder(),
-                                    ),
-                                    onFieldSubmitted: (_) {
-                                      FocusScope.of(
-                                        context,
-                                      ).requestFocus(_occupationFocusNode);
-                                    },
-                                  );
-                                }
+                                return DropdownButtonFormField<String>(
+                                  value: _treatingDoctorId,
+                                  decoration: InputDecoration(
+                                    labelText: 'treatingDoctor'.tr(),
+                                    border: const OutlineInputBorder(),
+                                    hintText: _isLoadingDoctors
+                                        ? 'loadingDoctors'.tr()
+                                        : null,
+                                  ),
+                                  items: filteredDoctors.map((doctor) {
+                                    return DropdownMenuItem<String>(
+                                      value: doctor.id,
+                                      child: Text(doctor.name),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _treatingDoctorId = value;
+                                      _notifyFormDataChange();
+                                    });
+                                  },
+                                );
                               },
                             ),
                             const SizedBox(height: 16.0),
@@ -504,7 +471,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 final filteredDepts = _departments
                                     .where(
                                       (d) =>
-                                          ownerNotifier.departmentIds.isEmpty ||
+                                          ownerNotifier.hasAllDepartmentsAccess ||
                                           ownerNotifier.departmentIds.contains(
                                             d['id'],
                                           ),
@@ -518,8 +485,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   return const SizedBox();
                                 }
 
+                                // Guard: only pass value if it exists in the filtered list
+                                final hasSelectedDept = filteredDepts
+                                    .any((d) => d['id'] == _selectedDepartmentId);
+
                                 return DropdownButtonFormField<String>(
-                                  value: _selectedDepartmentId,
+                                  value: hasSelectedDept ? _selectedDepartmentId : null,
                                   decoration: InputDecoration(
                                     labelText: 'department'.tr(),
                                     border: const OutlineInputBorder(),
@@ -547,7 +518,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                 final filteredTeams = _teams
                                     .where(
                                       (t) =>
-                                          ownerNotifier.teamIds.isEmpty ||
+                                          ownerNotifier.hasAllTeamsAccess ||
                                           ownerNotifier.teamIds.contains(
                                             t['id'],
                                           ),
@@ -561,8 +532,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   return const SizedBox();
                                 }
 
+                                // Guard: only pass value if it exists in the filtered list
+                                final hasSelectedTeam = filteredTeams
+                                    .any((t) => t['id'] == _selectedTeamId);
+
                                 return DropdownButtonFormField<String>(
-                                  value: _selectedTeamId,
+                                  value: hasSelectedTeam ? _selectedTeamId : null,
                                   decoration: InputDecoration(
                                     labelText: 'team'.tr(),
                                     border: const OutlineInputBorder(),
@@ -657,7 +632,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _submitForm,
+                                onPressed: _submitForm.throttle(),
                                 child: Text(
                                   widget.patient != null
                                       ? 'saveChanges'.tr()
@@ -730,23 +705,20 @@ class _AddPatientPageState extends State<AddPatientPage> {
 
         const uuid = Uuid();
         final patientModel = PatientModel(
-          id: uuid.v4(), // Generate a unique ID
+          id: widget.patient?.id ?? uuid.v4(),
           name: _nameController.text,
           age: int.tryParse(_ageController.text),
-          createdAt: Timestamp.fromDate(DateTime.now().toUtc()),
+          createdAt: widget.patient?.createdAt ??
+              Timestamp.fromDate(DateTime.now().toUtc()),
           gender: _selectedGender,
           address: _addressController.text,
           ownerId: ownerId,
           clinicId: clinicId,
-          phoneNumber: _phoneNumberController.text.isNotEmpty
-              ? _phoneNumberController.text
+          phone1: _phone1Controller.text.isNotEmpty
+              ? _phone1Controller.text
               : null,
-          alternativePhoneNumber:
-              _alternativePhoneNumberController.text.isNotEmpty
-                  ? _alternativePhoneNumberController.text
-                  : null,
-          treatingDoctor: _treatingDoctorController.text.isNotEmpty
-              ? _treatingDoctorController.text
+          phone2: _phone2Controller.text.isNotEmpty
+              ? _phone2Controller.text
               : null,
           treatingDoctorId: _treatingDoctorId,
           departmentId: _selectedDepartmentId,
@@ -754,13 +726,16 @@ class _AddPatientPageState extends State<AddPatientPage> {
           occupation: _occupationController.text.isNotEmpty
               ? _occupationController.text
               : null,
+          createdBy: widget.patient?.createdBy,
+          updatedAt: Timestamp.fromDate(DateTime.now().toUtc()),
+          deletedAt: widget.patient?.deletedAt,
         );
         if (widget.patient != null) {
           if (mounted) {
             BlocProvider.of<PatientsBloc>(context).add(
               UpdatePatient(
                 widget.patient!.id,
-                patientModel.copyWith(id: widget.patient!.id),
+                patientModel,
               ),
             );
           }
@@ -809,9 +784,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
     _nameController.removeListener(_notifyFormDataChange);
     _ageController.removeListener(_notifyFormDataChange);
     _addressController.removeListener(_notifyFormDataChange);
-    _phoneNumberController.removeListener(_notifyFormDataChange);
-    _alternativePhoneNumberController.removeListener(_notifyFormDataChange);
-    _treatingDoctorController.removeListener(_notifyFormDataChange);
+    _phone1Controller.removeListener(_notifyFormDataChange);
+    _phone2Controller.removeListener(_notifyFormDataChange);
     _occupationController.removeListener(_notifyFormDataChange);
 
     // Dispose the controllers
@@ -819,18 +793,16 @@ class _AddPatientPageState extends State<AddPatientPage> {
     _ageController.dispose();
     _genderController.dispose();
     _addressController.dispose();
-    _phoneNumberController.dispose();
-    _alternativePhoneNumberController.dispose();
-    _treatingDoctorController.dispose();
+    _phone1Controller.dispose();
+    _phone2Controller.dispose();
     _occupationController.dispose();
     // Dispose the focus nodes
     _nameFocusNode.dispose();
     _ageFocusNode.dispose();
     _genderFocusNode.dispose();
     _addressFocusNode.dispose();
-    _phoneNumberFocusNode.dispose();
-    _alternativePhoneNumberFocusNode.dispose();
-    _treatingDoctorFocusNode.dispose();
+    _phone1FocusNode.dispose();
+    _phone2FocusNode.dispose();
     _occupationFocusNode.dispose();
     super.dispose();
   }
