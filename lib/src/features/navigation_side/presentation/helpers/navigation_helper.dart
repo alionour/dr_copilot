@@ -81,7 +81,11 @@ class NavigationHelper {
             isAllowed = notifier.hasPermission(AppPermission.viewInventory);
             break;
           case Destination.tasks:
-            isAllowed = true; // Tasks are currently shared/public or have own logic
+            isAllowed = notifier.hasPermission(AppPermission.viewAllTasks) ||
+                notifier.hasPermission(AppPermission.viewOwnTasks) ||
+                notifier.hasPermission(AppPermission.createTask) ||
+                notifier.hasPermission(AppPermission.updateTask) ||
+                notifier.hasPermission(AppPermission.deleteTask);
             break;
           case Destination.sessions:
             isAllowed = notifier.hasPermission(AppPermission.viewSessions);
@@ -100,7 +104,10 @@ class NavigationHelper {
             isAllowed = true;
             break;
           case Destination.teamChat:
-            isAllowed = true; // Basic collab usually allowed for all
+            isAllowed = notifier.hasPermission(AppPermission.viewTeamMessages) ||
+                notifier.hasPermission(AppPermission.viewTeams) ||
+                notifier.hasPermission(AppPermission.manageTeams) ||
+                notifier.hasPermission(AppPermission.createTeam);
             break;
           case Destination.teams:
             isAllowed = notifier.hasPermission(AppPermission.viewTeams) ||

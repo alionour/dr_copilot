@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/app/notifiers/owner_notifier.dart';
+import '../../../../features/auth/domain/models/permission_enum.dart';
 import '../../../../core/injections.dart';
 import '../bloc/tasks_bloc.dart';
 import '../widgets/task_item_widget.dart';
@@ -18,14 +19,40 @@ class TasksDashboardPage extends StatefulWidget {
 
 class _TasksDashboardPageState extends State<TasksDashboardPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
   late TasksBloc _tasksBloc;
+  bool _canViewAll = false;
+  bool _canCreate = false;
+  bool _hasAnyPermission = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _tasksBloc = sl<TasksBloc>();
+    
+    // We'll initialize controller in didChangeDependencies or build 
+    // because we need access to OwnerNotifier via context.
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ownerNotifier = context.watch<OwnerNotifier>();
+    
+    _canViewAll = ownerNotifier.hasPermission(AppPermission.viewAllTasks);
+    _canCreate = ownerNotifier.hasPermission(AppPermission.createTask);
+    _hasAnyPermission = _canViewAll || 
+                       ownerNotifier.hasPermission(AppPermission.viewOwnTasks) ||
+                       _canCreate ||
+                       ownerNotifier.hasPermission(AppPermission.updateTask) ||
+                       ownerNotifier.hasPermission(AppPermission.deleteTask);
+
+    final tabCount = _canViewAll ? 2 : 1;
+    if (_tabController == null || _tabController!.length != tabCount) {
+      _tabController?.dispose();
+      _tabController = TabController(length: tabCount, vsync: this);
+    }
+
     _fetchTasks();
   }
 
@@ -38,7 +65,11 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
         '📋 TasksDashboard: Fetching tasks - clinicId: $clinicId, userId: $userId');
 
     if (clinicId.isNotEmpty) {
-      _tasksBloc.add(StreamTasks(clinicId, userId: userId));
+      if (_tabController?.index == 0 || !_canViewAll) {
+        _tasksBloc.add(StreamTasks(clinicId, userId: userId));
+      } else {
+        _tasksBloc.add(StreamTasks(clinicId, userId: null));
+      }
     } else {
       debugPrint('⚠️ TasksDashboard: Clinic ID is empty!');
     }
@@ -52,10 +83,8 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
     if (index == 0) {
       // My Tasks
       _tasksBloc.add(StreamTasks(clinicId, userId: userId));
-    } else {
+    } else if (_canViewAll) {
       // All Tasks (Team Tasks)
-      // Only if admin/manager? Or visible to all? usually visible to all but only editable by owner/admin.
-      // Let's allow viewing all.
       _tasksBloc
           .add(StreamTasks(clinicId, userId: null)); // userId null means all
     }
@@ -63,38 +92,43 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     _tasksBloc.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // We need to listen to tab changes to switch data
-    // But TabController doesn't automatically trigger rebuilds or events.
-    // Let's add listener in initState? better:
-    // Just use `TabBar(onTap: ...)`
+    if (!_hasAnyPermission) {
+      return Scaffold(
+        appBar: AppBar(title: Text('tasks'.tr())),
+        body: Center(child: Text('noPermissionToViewTasks'.tr())),
+      );
+    }
 
     return BlocProvider.value(
       value: _tasksBloc,
       child: Scaffold(
         appBar: AppBar(
           title: Text('tasks'.tr()),
-          bottom: TabBar(
-            controller: _tabController,
-            onTap: _onTabChanged,
-            tabs: [
-              Tab(text: 'myTasks'.tr()),
-              Tab(text: 'allTasks'.tr()),
-            ],
-          ),
+          bottom: _canViewAll
+              ? TabBar(
+                  controller: _tabController,
+                  onTap: _onTabChanged,
+                  tabs: [
+                    Tab(text: 'myTasks'.tr()),
+                    Tab(text: 'allTasks'.tr()),
+                  ],
+                )
+              : null,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                context.pushNamed('add_task');
-              },
-            ),
+            if (_canCreate)
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  context.pushNamed('add_task');
+                },
+              ),
           ],
         ),
         body: BlocConsumer<TasksBloc, TasksState>(

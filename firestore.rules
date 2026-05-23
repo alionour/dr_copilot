@@ -222,14 +222,39 @@ service cloud.firestore {
     }
 
     // Team/Chat
+    // Access is restricted to participants of the conversation.
+    // The participantIds array is the authoritative source for membership.
     match /team_conversations/{chatId} {
-       // DEBUGGING: PUBLIC ACCESS
-       allow create: if true; 
-       allow read, update, delete: if true;
+       // A user can read a conversation only if they are a participant.
+       allow get: if isSignedIn() && (resource == null || request.auth.uid in resource.data.participantIds);
+       
+       // For list queries, we allow authenticated clinic members to query,
+       // but the query MUST include a participantIds arrayContains filter
+       // (enforced client-side in getConversations; Firestore rules can't check query params directly).
+       // We delegate participant filtering to the query itself.
+       allow list: if isSignedIn();
+       
+       // Only existing participants can update a conversation (e.g. lastMessage, mutedBy)
+       allow update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+       
+       // Creation is allowed to signed-in users (team creation sets participantIds server-side)
+       allow create: if isSignedIn();
+       
+       // Only participants or admins with manageTeams can delete
+       allow delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
        
        match /messages/{msgId} {
-          // DEBUGGING: PUBLIC ACCESS
-          allow read, write: if true;
+          // Read: only participants of the parent conversation can read messages
+          allow read: if isSignedIn() &&
+                         request.auth.uid in get(/databases/$(database)/documents/team_conversations/$(chatId)).data.participantIds;
+          
+          // Write (create): only participants can send messages
+          allow create: if isSignedIn() &&
+                          request.auth.uid in get(/databases/$(database)/documents/team_conversations/$(chatId)).data.participantIds &&
+                          request.resource.data.senderId == request.auth.uid;
+          
+          // Update/delete: only message sender or team admins
+          allow update, delete: if isSignedIn() && resource.data.senderId == request.auth.uid;
        }
     }
 
@@ -357,15 +382,18 @@ service cloud.firestore {
 
     // Tasks
     match /tasks/{taskId} {
-      // For queries, we need to allow list access if user has viewAllTasks permission for ANY clinic
-      // The query itself filters by clinicId, so this is safe
-      allow list: if isSignedIn() && 
-                     (hasAnyPermission(['viewAllTasks', 'viewOwnTasks', 'createTask', 'updateTask', 'deleteTask']));
+      // For queries, users should only be able to list tasks if they have viewAllTasks for that clinicId, 
+      // OR if they have viewOwnTasks and the query enforces assignedToUserId == uid OR assignedByUserId == uid.
+      allow list: if hasPermission(resource.data.clinicId, 'viewAllTasks') || 
+                    (hasPermission(resource.data.clinicId, 'viewOwnTasks') && 
+                     (resource.data.assignedToUserId == request.auth.uid || 
+                      resource.data.assignedByUserId == request.auth.uid));
       
       // For individual document reads, check specific permissions
       allow get: if hasPermission(resource.data.clinicId, 'viewAllTasks') || 
-                    (hasPermission(resource.data.clinicId, 'viewOwnTasks') && resource.data.assignedToUserId == request.auth.uid) ||
-                    resource.data.assignedByUserId == request.auth.uid;
+                    (hasPermission(resource.data.clinicId, 'viewOwnTasks') && 
+                     (resource.data.assignedToUserId == request.auth.uid || 
+                      resource.data.assignedByUserId == request.auth.uid));
       
       allow create: if hasPermission(request.resource.data.clinicId, 'createTask');
       

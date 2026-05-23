@@ -11,13 +11,16 @@ class TaskFirebaseApi {
       _firestore.collection('tasks');
 
   /// Stream tasks for a specific clinic.
-  /// Optionally filtered by user ID (assignedToUserId).
+  /// Optionally filtered by user ID (assignedToUserId or assignedByUserId).
   Stream<List<TaskModel>> streamTasks(String clinicId, {String? userId}) {
     Query<Map<String, dynamic>> query =
         _tasksCollection.where('clinicId', isEqualTo: clinicId);
 
     if (userId != null) {
-      query = query.where('assignedToUserId', isEqualTo: userId);
+      query = query.where(Filter.or(
+        Filter('assignedToUserId', isEqualTo: userId),
+        Filter('assignedByUserId', isEqualTo: userId),
+      ));
     }
 
     // Order by createdAt descending by default (newest first)

@@ -7,6 +7,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/app/notifiers/owner_notifier.dart';
 import '../../domain/models/task_model.dart';
 import '../bloc/tasks_bloc.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
+
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class AddEditTaskPage extends StatefulWidget {
   final TaskModel? task;
@@ -26,6 +30,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   String? _assignedToUserId;
   List<Map<String, String>> _teamMembers = [];
   bool _loadingMembers = true;
+  bool _hasPermission = true;
 
   @override
   void initState() {
@@ -36,7 +41,17 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     _priority = widget.task?.priority ?? 'medium';
     _dueDate = widget.task?.dueDate;
     _assignedToUserId = widget.task?.assignedToUserId;
+    _checkPermission();
     _loadTeamMembers();
+  }
+
+  void _checkPermission() {
+    final ownerNotifier = context.read<OwnerNotifier>();
+    if (widget.task == null) {
+      _hasPermission = ownerNotifier.hasPermission(AppPermission.createTask);
+    } else {
+      _hasPermission = ownerNotifier.hasPermission(AppPermission.updateTask);
+    }
   }
 
   Future<void> _loadTeamMembers() async {
@@ -122,12 +137,18 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_hasPermission) {
+      return Scaffold(
+        appBar: AppBar(title: Text('tasks'.tr())),
+        body: Center(child: Text('noPermission'.tr())),
+      );
+    }
     final isEdit = widget.task != null;
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? 'editTask'.tr() : 'addTask'.tr()),
         actions: [
-          IconButton(onPressed: _save, icon: const Icon(Icons.check)),
+          IconButton(onPressed: _save.throttle(), icon: const Icon(Icons.check)),
         ],
       ),
       body: SingleChildScrollView(
@@ -268,7 +289,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _save,
+                  onPressed: _save.throttle(),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
