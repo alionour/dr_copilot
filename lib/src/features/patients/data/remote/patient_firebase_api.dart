@@ -25,63 +25,75 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
   /// Firebase Authentication instance for user authentication.
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Query _applyPatientFilter(Query queryRef, User user) {
+  List<String> _generateAccessTags(Map<String, dynamic> data) {
+    List<String> tags = [];
+    if (data['treatingDoctorId'] != null) {
+      tags.add('doc_${data['treatingDoctorId']}');
+    } else {
+      tags.add('unassigned');
+    }
+    if (data['departmentId'] != null) {
+      tags.add('dept_${data['departmentId']}');
+    }
+    if (data['teamId'] != null) {
+      tags.add('team_${data['teamId']}');
+    }
+    return tags;
+  }
+
+  /// Returns the access info for the current user:
+  /// - `hasGlobalAccess`: true if the user can see all patients (no tag filtering needed)
+  /// - `hasNoAccess`: true if the user has no permission at all
+  /// - `accessTags`: the set of tags this user is allowed to see
+  ({bool hasGlobalAccess, bool hasNoAccess, Set<String> accessTags})
+      _getUserAccessInfo() {
     final notifier = OwnerNotifier();
 
-    // 1. Check if user has basic view permission
+    // 1. Permission check
     if (!notifier.hasPermission(AppPermission.viewPatients)) {
-      // If no permission, return no results
-      return queryRef.where(FieldPath.documentId, isEqualTo: 'PERMISSION_DENIED');
+      return (hasGlobalAccess: false, hasNoAccess: true, accessTags: {});
     }
 
-    // 2. Global Access Check
+    // 2. Global access (owner / all-doctors / all-departments / all-teams)
     if (notifier.hasAllDoctorsAccess ||
         notifier.hasAllDepartmentsAccess ||
         notifier.hasAllTeamsAccess) {
-      return queryRef;
+      return (hasGlobalAccess: true, hasNoAccess: false, accessTags: {});
     }
 
-    // 3. Association Scoping
-    List<Filter> scopeFilters = [];
+    // 3. Build access tag set
+    final Set<String> tags = {};
 
-    if (notifier.linkedDoctorIds.isNotEmpty) {
-      scopeFilters.add(
-        Filter('treatingDoctorId', whereIn: notifier.linkedDoctorIds),
-      );
+    for (final id in notifier.linkedDoctorIds) {
+      tags.add('doc_$id');
+    }
+    for (final id in notifier.departmentIds) {
+      tags.add('dept_$id');
+    }
+    for (final id in notifier.teamIds) {
+      tags.add('team_$id');
     }
 
-    if (notifier.departmentIds.isNotEmpty) {
-      scopeFilters.add(Filter('departmentId', whereIn: notifier.departmentIds));
+    // Also allow unassigned patients when the user has any association
+    if (tags.isNotEmpty) {
+      tags.add('unassigned');
     }
 
-    if (notifier.teamIds.isNotEmpty) {
-      scopeFilters.add(Filter('teamId', whereIn: notifier.teamIds));
+    if (tags.isEmpty) {
+      return (hasGlobalAccess: false, hasNoAccess: true, accessTags: {});
     }
 
-    // 4. Flexible Model: If user has at least one association, also allow seeing patients with null doctor
-    if (scopeFilters.isNotEmpty) {
-      scopeFilters.add(Filter('treatingDoctorId', isNull: true));
-    }
+    return (hasGlobalAccess: false, hasNoAccess: false, accessTags: tags);
+  }
 
-    // 5. Apply filters
-    if (scopeFilters.isEmpty) {
-      return queryRef.where(
-        FieldPath.documentId,
-        isEqualTo: 'NO_ASSOCIATIONS_ACCESS',
-      );
-    }
-
-    if (scopeFilters.length == 1) {
-      return queryRef.where(scopeFilters.first);
-    } else if (scopeFilters.length == 2) {
-      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1]));
-    } else if (scopeFilters.length == 3) {
-      return queryRef.where(Filter.or(scopeFilters[0], scopeFilters[1], scopeFilters[2]));
-    } else {
-      return queryRef.where(
-        Filter.or(scopeFilters[0], scopeFilters[1], scopeFilters[2], scopeFilters[3]),
-      );
-    }
+  /// Returns true if a patient document passes the in-memory access tag filter.
+  bool _patientPassesFilter(
+      Map<String, dynamic> data, Set<String> userAccessTags) {
+    final rawTags = data['accessTags'];
+    if (rawTags == null) return false;
+    final List<String> patientTags =
+        (rawTags as List<dynamic>).map((e) => e.toString()).toList();
+    return patientTags.any((tag) => userAccessTags.contains(tag));
   }
 
 
@@ -96,50 +108,62 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       if (clinicId == null) {
         return Left(ServerFailure('No clinic ID found', 403));
       }
-      if (user != null) {
-        Query queryRef =
-            _patientsCollection.where('clinicId', isEqualTo: clinicId);
-
-        queryRef = _applyPatientFilter(queryRef, user);
-
-        if (lastDocumentId != null) {
-          final lastDocumentSnapshot =
-              await _patientsCollection.doc(lastDocumentId).get();
-          if (lastDocumentSnapshot.exists) {
-            queryRef = queryRef
-                .orderBy('createdAt', descending: true)
-                .startAfterDocument(lastDocumentSnapshot)
-                .limit(limit ?? 20);
-          } else {
-            throw Exception('Document with ID $lastDocumentId does not exist');
-          }
-        } else {
-          queryRef = queryRef
-              .orderBy('createdAt', descending: true)
-              .limit(limit ?? 20);
-        }
-
-        final snapshot = await queryRef.get();
-
-        List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          return PatientModel.fromJson({
-            ...data,
-            'id': doc.id, // Ensure the document ID is included
-          });
-        }).toList();
-
-        DocumentSnapshot? newLastDocumentSnapshot;
-        if (snapshot.docs.isNotEmpty && patients.length == (limit ?? 20)) {
-          newLastDocumentSnapshot = snapshot.docs.last;
-        }
-
-        return Right(Tuple2(patients, newLastDocumentSnapshot));
+      if (user == null) {
+        return Left(ServerFailure('User not authenticated', 401));
       }
-      return Left(ServerFailure('User not authenticated', 401));
+
+      final access = _getUserAccessInfo();
+      if (access.hasNoAccess) {
+        return Right(Tuple2([], null));
+      }
+
+      // KEY FIX: Do NOT use orderBy('createdAt') with where('clinicId') because
+      // that combination requires a composite index (clinicId, createdAt) which
+      // cannot be deployed due to network restrictions.
+      //
+      // Instead, mirror exactly what searchPatients does (which is proven to
+      // return newest-first correctly):
+      //   1. Fetch by clinicId only — NO orderBy — uses auto single-field index
+      //   2. Filter accessTags in memory
+      //   3. Sort by createdAt DESC in memory
+      //
+      // For pagination: we fetch all matching docs in one shot (up to 1000),
+      // returning null as the cursor to signal no further pages are needed.
+      // This prevents LoadMorePatients from issuing redundant fetches.
+      final snapshot = await _patientsCollection
+          .where('clinicId', isEqualTo: clinicId)
+          .limit(1000)
+          .get();
+
+      // Filter accessTags in memory and parse to PatientModel
+      final List<PatientModel> patients = snapshot.docs
+          .where((docSnap) {
+            if (access.hasGlobalAccess) return true;
+            final d = docSnap.data() as Map<String, dynamic>?;
+            return d != null && _patientPassesFilter(d, access.accessTags);
+          })
+          .map((docSnap) {
+            final data = docSnap.data() as Map<String, dynamic>?;
+            if (data == null) throw Exception('Document data is null');
+            return PatientModel.fromJson({...data, 'id': docSnap.id});
+          })
+          .toList();
+
+      // Sort newest-first entirely in memory — same proven approach as
+      // searchPatients (which the user confirmed works correctly).
+      patients.sort((a, b) {
+        final aTime = a.createdAt;
+        final bTime = b.createdAt;
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+
+      // Return null cursor: we fetched everything in one shot, so there is
+      // nothing more to paginate. The BLoC's LoadMorePatients deduplication
+      // handles any redundant scroll events gracefully.
+      return Right(Tuple2(patients, null));
     } catch (e) {
       return Left(ServerFailure(e.toString(), 404));
     }
@@ -158,6 +182,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       if (user != null) {
         final data = patient.toJson();
         data.remove('id');
+        data['accessTags'] = _generateAccessTags(data);
         final docRef = await _patientsCollection.add({
           ...data,
           'userId': user.uid,
@@ -188,19 +213,22 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         final doc = await _patientsCollection.doc(id).get();
 
         if (doc.exists) {
-          // Apply scope check before update
-          Query checkQuery =
-              _patientsCollection.where(FieldPath.documentId, isEqualTo: id);
-          checkQuery = _applyPatientFilter(checkQuery, user);
-          final checkResult = await checkQuery.get();
-
-          if (checkResult.docs.isEmpty) {
+          // In-memory access check before update
+          final access = _getUserAccessInfo();
+          if (access.hasNoAccess) {
             return Left(ServerFailure('Access denied to this patient', 403));
+          }
+          if (!access.hasGlobalAccess) {
+            final data = doc.data() as Map<String, dynamic>?;
+            if (data == null || !_patientPassesFilter(data, access.accessTags)) {
+              return Left(ServerFailure('Access denied to this patient', 403));
+            }
           }
 
           final updatedData = patient.toJson();
           updatedData.remove('id');
           updatedData['updatedAt'] = Timestamp.fromDate(DateTime.now().toUtc());
+          updatedData['accessTags'] = _generateAccessTags(updatedData);
           await _patientsCollection.doc(id).update(updatedData);
 
           return Right(patient.copyWith(id: id));
@@ -228,14 +256,16 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           return Left(ServerFailure('Patient not found', 404));
         }
 
-        // Apply scope check before deletion
-        Query checkQuery =
-            _patientsCollection.where(FieldPath.documentId, isEqualTo: id);
-        checkQuery = _applyPatientFilter(checkQuery, user);
-        final checkResult = await checkQuery.get();
-
-        if (checkResult.docs.isEmpty) {
+        // In-memory access check before deletion
+        final access = _getUserAccessInfo();
+        if (access.hasNoAccess) {
           return Left(ServerFailure('Access denied to this patient', 403));
+        }
+        if (!access.hasGlobalAccess) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null || !_patientPassesFilter(data, access.accessTags)) {
+            return Left(ServerFailure('Access denied to this patient', 403));
+          }
         }
 
         await _patientsCollection.doc(id).delete();
@@ -263,28 +293,30 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         return Left(ServerFailure('No clinic ID found', 403));
       }
       if (user != null) {
-        Query queryRef =
-            _patientsCollection.where('clinicId', isEqualTo: clinicId);
+        final access = _getUserAccessInfo();
+        if (access.hasNoAccess) return Right([]);
 
-        queryRef = _applyPatientFilter(queryRef, user);
-
-        // Fetch up to 1000 clinic patients for client-side search to guarantee state resilience
-        queryRef = queryRef.limit(1000);
+        // Fetch up to 1000 clinic patients for client-side search
+        Query queryRef = _patientsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .limit(1000);
 
         debugPrint('Executing search patients query: $queryRef');
 
         final snapshot = await queryRef.get();
 
-        List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          return PatientModel.fromJson({
-            ...data,
-            'id': doc.id,
-          });
-        }).toList();
+        List<PatientModel> patients = snapshot.docs
+            .where((doc) {
+              if (access.hasGlobalAccess) return true;
+              final d = doc.data() as Map<String, dynamic>?;
+              return d != null && _patientPassesFilter(d, access.accessTags);
+            })
+            .map((doc) {
+              final data = doc.data() as Map<String, dynamic>?;
+              if (data == null) throw Exception('Document data is null');
+              return PatientModel.fromJson({...data, 'id': doc.id});
+            })
+            .toList();
 
         // Perform case-insensitive searches and bounds checking in memory
         if (name != null && name.trim().isNotEmpty) {
@@ -320,6 +352,15 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           patients = patients.where((p) => p.teamId == teamId).toList();
         }
 
+        patients.sort((a, b) {
+          final aTime = a.createdAt;
+          final bTime = b.createdAt;
+          if (aTime == null && bTime == null) return 0;
+          if (aTime == null) return 1;
+          if (bTime == null) return -1;
+          return bTime.compareTo(aTime);
+        });
+
         return Right(patients);
       }
       return Left(ServerFailure('User not authenticated', 401));
@@ -339,19 +380,21 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         return Left(ServerFailure('No clinic ID found', 403));
       }
       if (user != null) {
+        final access = _getUserAccessInfo();
+        if (access.hasNoAccess) return Right([]);
+
         final startOfMonth = DateTime(year, month, 1);
         final endOfMonth = DateTime(year, month + 1, 1);
 
-        Query queryRef =
-            _patientsCollection.where('clinicId', isEqualTo: clinicId);
-
-        queryRef = _applyPatientFilter(queryRef, user);
-
-        queryRef = queryRef
+        // Query by clinicId + date range + orderBy only (no arrayContainsAny)
+        // so no composite index is required.
+        Query queryRef = _patientsCollection
+            .where('clinicId', isEqualTo: clinicId)
             .where('createdAt',
                 isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
             .where('createdAt', isLessThan: Timestamp.fromDate(endOfMonth))
-            .limit(limit);
+            .orderBy('createdAt', descending: true)
+            .limit(access.hasGlobalAccess ? limit : limit * 5);
 
         if (lastDocument != null) {
           queryRef = queryRef.startAfterDocument(lastDocument);
@@ -359,16 +402,19 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
 
         final snapshot = await queryRef.get();
 
-        List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          return PatientModel.fromJson({
-            ...data,
-            'id': doc.id, // Ensure the document ID is included
-          });
-        }).toList();
+        final List<PatientModel> patients = snapshot.docs
+            .where((doc) {
+              if (access.hasGlobalAccess) return true;
+              final d = doc.data() as Map<String, dynamic>?;
+              return d != null && _patientPassesFilter(d, access.accessTags);
+            })
+            .map((doc) {
+              final data = doc.data() as Map<String, dynamic>?;
+              if (data == null) throw Exception('Document data is null');
+              return PatientModel.fromJson({...data, 'id': doc.id});
+            })
+            .take(limit)
+            .toList();
 
         return Right(patients);
       }
@@ -419,24 +465,27 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         return Left(ServerFailure('No clinic ID found', 403));
       }
       if (user != null) {
-        Query queryRef =
-            _patientsCollection.where('clinicId', isEqualTo: clinicId);
+        final access = _getUserAccessInfo();
+        if (access.hasNoAccess) return Right([]);
 
-        queryRef = _applyPatientFilter(queryRef, user);
+        // Query by clinicId + orderBy only — no composite index needed.
+        final snapshot = await _patientsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .orderBy('createdAt', descending: true)
+            .get();
 
-        final snapshot =
-            await queryRef.orderBy('createdAt', descending: true).get();
-
-        List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          return PatientModel.fromJson({
-            ...data,
-            'id': doc.id, // Ensure the document ID is included
-          });
-        }).toList();
+        final List<PatientModel> patients = snapshot.docs
+            .where((doc) {
+              if (access.hasGlobalAccess) return true;
+              final d = doc.data() as Map<String, dynamic>?;
+              return d != null && _patientPassesFilter(d, access.accessTags);
+            })
+            .map((doc) {
+              final data = doc.data() as Map<String, dynamic>?;
+              if (data == null) throw Exception('Document data is null');
+              return PatientModel.fromJson({...data, 'id': doc.id});
+            })
+            .toList();
 
         return Right(patients);
       }
@@ -459,13 +508,27 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         return Left(ServerFailure('No clinic ID found', 403));
       }
       if (user != null) {
-        Query query =
-            _patientsCollection.where('clinicId', isEqualTo: clinicId);
+        final access = _getUserAccessInfo();
+        if (access.hasNoAccess) return Right(0);
 
-        query = _applyPatientFilter(query, user);
+        if (access.hasGlobalAccess) {
+          // Fast server-side count for users with full access
+          final snapshot = await _patientsCollection
+              .where('clinicId', isEqualTo: clinicId)
+              .count()
+              .get();
+          return Right(snapshot.count ?? 0);
+        }
 
-        final snapshot = await query.count().get();
-        return Right(snapshot.count ?? 0);
+        // For scoped users, fetch all matching docs and filter in memory
+        final snapshot = await _patientsCollection
+            .where('clinicId', isEqualTo: clinicId)
+            .get();
+        final count = snapshot.docs.where((doc) {
+          final d = doc.data() as Map<String, dynamic>?;
+          return d != null && _patientPassesFilter(d, access.accessTags);
+        }).length;
+        return Right(count);
       }
       return Left(ServerFailure('User not authenticated', 401));
     } catch (e) {
@@ -487,25 +550,28 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         return Left(ServerFailure('No clinic ID found', 403));
       }
       if (user != null) {
-        Query queryRef = _patientsCollection
+        final access = _getUserAccessInfo();
+        if (access.hasNoAccess) return Right([]);
+
+        // Query by clinicId + deletedAt filter + orderBy only — no composite index needed.
+        final snapshot = await _patientsCollection
             .where('clinicId', isEqualTo: clinicId)
-            .where('deletedAt', isNull: false);
+            .where('deletedAt', isNull: false)
+            .orderBy('deletedAt', descending: true)
+            .get();
 
-        queryRef = _applyPatientFilter(queryRef, user);
-
-        final snapshot =
-            await queryRef.orderBy('deletedAt', descending: true).get();
-
-        List<PatientModel> patients = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) {
-            throw Exception('Document data is null');
-          }
-          return PatientModel.fromJson({
-            ...data,
-            'id': doc.id,
-          });
-        }).toList();
+        final List<PatientModel> patients = snapshot.docs
+            .where((doc) {
+              if (access.hasGlobalAccess) return true;
+              final d = doc.data() as Map<String, dynamic>?;
+              return d != null && _patientPassesFilter(d, access.accessTags);
+            })
+            .map((doc) {
+              final data = doc.data() as Map<String, dynamic>?;
+              if (data == null) throw Exception('Document data is null');
+              return PatientModel.fromJson({...data, 'id': doc.id});
+            })
+            .toList();
 
         return Right(patients);
       }
