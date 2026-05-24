@@ -76,6 +76,7 @@ class CopilotView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final numberFormat = NumberFormat.compact();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -134,226 +135,238 @@ class CopilotView extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Row(
-              children: [
-                // Chat Area
-                Expanded(
-                  child: Column(
-                    children: <Widget>[
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 8.0,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 700;
+                final chatArea = Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: MessageListView(
-                              scrollController: scrollController,
-                              messages: messages,
-                              isLoading: isLoading,
-                              onEdit: onEditMessage,
-                              currentUserPhotoUrl: currentUserPhotoUrl,
-                              currentUserDisplayName: currentUserDisplayName,
-                              userPermissions: userPermissions,
-                            ),
+                          child: MessageListView(
+                            scrollController: scrollController,
+                            messages: messages,
+                            isLoading: isLoading,
+                            onEdit: onEditMessage,
+                            currentUserPhotoUrl: currentUserPhotoUrl,
+                            currentUserDisplayName: currentUserDisplayName,
+                            userPermissions: userPermissions,
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              height: MediaQuery.of(context).size.height * 0.08,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: tokenUsage >= tokenLimit
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.lock_outline,
-                                            color: Colors.red),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Monthly quota exceeded. Upgrade to continue.',
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .error,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            height: MediaQuery.of(context).size.height * 0.08,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: tokenUsage >= tokenLimit
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.lock_outline,
+                                          color: Colors.red),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Monthly quota exceeded. Upgrade to continue.',
+                                          style: TextStyle(
+                                            color: colorScheme.error,
+                                            fontWeight: FontWeight.bold,
                                           ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(width: 8),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            context
-                                                .push('/settings/subscription');
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            foregroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 16),
-                                          ),
-                                          child: const Text('Upgrade'),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          context
+                                              .push('/settings/subscription');
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: colorScheme.primary,
+                                          foregroundColor:
+                                              colorScheme.onPrimary,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16),
                                         ),
-                                      ],
-                                    )
-                                  : Row(
-                                      children: [
-                                        if (pickedImage != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 8.0),
-                                            child: Stack(
-                                              children: [
-                                                SizedBox(
-                                                  height: 60,
-                                                  width: 60,
-                                                  child: Image.memory(
-                                                      pickedImage!),
-                                                ),
-                                                Positioned(
-                                                  top: 0,
-                                                  right: 0,
-                                                  child: Material(
-                                                    color: Colors.transparent,
-                                                    child: InkWell(
-                                                      onTap: onCancelImage,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20),
-                                                      child: const Padding(
-                                                        padding:
-                                                            EdgeInsets.all(2.0),
-                                                        child: Icon(
-                                                          Icons.cancel_outlined,
-                                                          color: Colors.red,
-                                                          size: 20,
-                                                        ),
+                                        child: const Text('Upgrade'),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    children: [
+                                      if (pickedImage != null)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8.0),
+                                          child: Stack(
+                                            children: [
+                                              SizedBox(
+                                                height: 60,
+                                                width: 60,
+                                                child:
+                                                    Image.memory(pickedImage!),
+                                              ),
+                                              Positioned(
+                                                top: 0,
+                                                right: 0,
+                                                child: Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    onTap: onCancelImage,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                    child: const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(2.0),
+                                                      child: Icon(
+                                                        Icons.cancel_outlined,
+                                                        color: Colors.red,
+                                                        size: 20,
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0,
-                                            ),
-                                            child: TextFormField(
-                                              controller: textController,
-                                              enabled:
-                                                  !isLoading, // Disable during loading
-                                              // focusNode: _focusNode,
-                                              decoration: InputDecoration(
-                                                hintText:
-                                                    "messageDrCopilot".tr(),
-                                                border: InputBorder.none,
-                                                hintStyle: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
-                                              ),
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
-                                              ),
-                                              maxLines: 1,
-                                              textInputAction:
-                                                  TextInputAction.send,
-                                              onFieldSubmitted: (value) =>
-                                                  isLoading
-                                                      ? null
-                                                      : onSendMessage(),
-                                            ),
-                                          ),
-                                        ),
-                                        // Send / Stop / Mic buttons
-                                        if (isLoading)
-                                          IconButton(
-                                            onPressed: onStopGeneration,
-                                            icon: const Icon(Icons.stop_circle),
-                                            color: Colors.red,
-                                            tooltip: 'Stop generating',
-                                          )
-                                        else if (textController
-                                                .text.isNotEmpty ||
-                                            pickedImage != null)
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                onPressed: onSendMessage,
-                                                icon: const Icon(Icons.send),
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              GestureDetector(
-                                                onLongPressStart: (_) =>
-                                                    onSpeechStart?.call(),
-                                                onLongPressEnd: (_) =>
-                                                    onSpeechStop?.call(),
-                                                child: Icon(Icons.mic,
-                                                    color: isListeningSpeech
-                                                        ? Colors.red
-                                                        : Theme.of(context)
-                                                            .colorScheme
-                                                            .onSurfaceVariant),
                                               ),
                                             ],
-                                          )
-                                        else
-                                          GestureDetector(
-                                            onLongPressStart: (_) =>
-                                                onSpeechStart?.call(),
-                                            onLongPressEnd: (_) =>
-                                                onSpeechStop?.call(),
-                                            child: Icon(Icons.mic,
-                                                color: isListeningSpeech
-                                                    ? Colors.red
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurfaceVariant),
                                           ),
-                                      ],
-                                    ),
-                            ),
-                          ],
+                                        ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0,
+                                          ),
+                                          child: TextFormField(
+                                            controller: textController,
+                                            enabled:
+                                                !isLoading, // Disable during loading
+                                            // focusNode: _focusNode,
+                                            decoration: InputDecoration(
+                                              hintText: "messageDrCopilot".tr(),
+                                              border: InputBorder.none,
+                                              hintStyle: TextStyle(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                            ),
+                                            style: TextStyle(
+                                              color: colorScheme.onSurface,
+                                            ),
+                                            maxLines: 1,
+                                            textInputAction:
+                                                TextInputAction.send,
+                                            onFieldSubmitted: (value) =>
+                                                isLoading
+                                                    ? null
+                                                    : onSendMessage(),
+                                          ),
+                                        ),
+                                      ),
+                                      // Send / Stop / Mic buttons
+                                      if (isLoading)
+                                        IconButton(
+                                          onPressed: onStopGeneration,
+                                          icon: const Icon(Icons.stop_circle),
+                                          color: Colors.red,
+                                          tooltip: 'Stop generating',
+                                        )
+                                      else if (textController.text.isNotEmpty ||
+                                          pickedImage != null)
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              onPressed: onSendMessage,
+                                              icon: const Icon(Icons.send),
+                                              color: colorScheme.primary,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            GestureDetector(
+                                              onLongPressStart: (_) =>
+                                                  onSpeechStart?.call(),
+                                              onLongPressEnd: (_) =>
+                                                  onSpeechStop?.call(),
+                                              child: Icon(Icons.mic,
+                                                  color: isListeningSpeech
+                                                      ? Colors.red
+                                                      : colorScheme
+                                                          .onSurfaceVariant),
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        GestureDetector(
+                                          onLongPressStart: (_) =>
+                                              onSpeechStart?.call(),
+                                          onLongPressEnd: (_) =>
+                                              onSpeechStop?.call(),
+                                          child: Icon(Icons.mic,
+                                              color: isListeningSpeech
+                                                  ? Colors.red
+                                                  : colorScheme
+                                                      .onSurfaceVariant),
+                                        ),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+
+                if (!isCompact) {
+                  return Row(
+                    children: [
+                      Expanded(child: chatArea),
+                      if (isSidebarVisible && conversationSidebar != null)
+                        conversationSidebar!,
+                    ],
+                  );
+                }
+
+                return Stack(
+                  children: [
+                    Positioned.fill(child: chatArea),
+                    if (isSidebarVisible && conversationSidebar != null) ...[
+                      Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onToggleHistory,
+                          child: ColoredBox(
+                            color: Colors.black.withValues(alpha: 0.32),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: SafeArea(
+                          top: false,
+                          child: conversationSidebar!,
                         ),
                       ),
                     ],
-                  ),
-                ),
-                // Sidebar logic handled by parent (if visible, show it).
-                if (isSidebarVisible && conversationSidebar != null)
-                  conversationSidebar!,
-              ],
+                  ],
+                );
+              },
             ),
           ),
         ],

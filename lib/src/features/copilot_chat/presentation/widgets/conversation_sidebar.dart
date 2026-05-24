@@ -23,8 +23,11 @@ class ConversationSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final availableWidth = MediaQuery.sizeOf(context).width;
+    final sidebarWidth = availableWidth < 280.0 ? availableWidth : 280.0;
+
     return Container(
-      width: 280,
+      width: sidebarWidth,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         border: Border(
@@ -169,7 +172,8 @@ class ConversationSidebar extends StatelessWidget {
               isSelected: conversation.id == currentConversationId,
               onTap: () => onConversationSelected(conversation.id),
               onDelete: () => onDeleteConversation(conversation.id),
-              onRename: () => onRenameConversation(conversation.id, conversation.title),
+              onRename: () =>
+                  onRenameConversation(conversation.id, conversation.title),
             );
           },
         );
@@ -177,4 +181,3 @@ class ConversationSidebar extends StatelessWidget {
     );
   }
 }
-
