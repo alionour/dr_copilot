@@ -296,6 +296,7 @@ class _NavigationSideState extends State<NavigationSide> {
                               context,
                               bloc,
                               onItemTap: _closeMobileNav,
+                              avoidSystemBottomInset: true,
                             ),
                           ),
                         ),
@@ -384,6 +385,7 @@ class _NavigationSideState extends State<NavigationSide> {
     BuildContext context,
     NavigationBloc bloc, {
     VoidCallback? onItemTap,
+    bool avoidSystemBottomInset = false,
   }) {
     return BlocBuilder<NavigationBloc, NavigationState>(
       builder: (context, state) {
@@ -618,11 +620,16 @@ class _NavigationSideState extends State<NavigationSide> {
                                 builder: (context, NavigationState state) {
                                   final String profileImageUrl =
                                       state.user?.photoURL ?? '';
+                                  final bottomInset = avoidSystemBottomInset
+                                      ? MediaQuery.viewPaddingOf(context).bottom
+                                      : 0.0;
 
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0,
-                                      vertical: 8.0,
+                                    padding: EdgeInsets.fromLTRB(
+                                      16.0,
+                                      8.0,
+                                      16.0,
+                                      8.0 + bottomInset,
                                     ),
                                     child: Row(
                                       children: [

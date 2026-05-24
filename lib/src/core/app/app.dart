@@ -175,7 +175,13 @@ class App extends StatelessWidget {
                             ),
                             child: BiometricGuard(
                               child: NoInternetBanner(
-                                child: Stack(children: [child!]),
+                                child: SafeArea(
+                                  top: false,
+                                  left: false,
+                                  right: false,
+                                  bottom: true,
+                                  child: Stack(children: [child!]),
+                                ),
                               ),
                             ),
                           );
