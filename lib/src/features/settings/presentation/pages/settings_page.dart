@@ -18,6 +18,14 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  static const Map<String, Color> _languageIconColors = {
+    'en': Colors.blue,
+    'ar': Colors.green,
+    'es': Colors.orange,
+    'fr': Colors.indigo,
+    'de': Colors.red,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +78,22 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  DropdownMenuItem<String> _buildLanguageMenuItem(String localeCode) {
+    return DropdownMenuItem<String>(
+      value: localeCode,
+      child: Row(
+        children: [
+          Icon(
+            Icons.language_outlined,
+            color: _languageIconColors[localeCode],
+          ),
+          const SizedBox(width: 8),
+          Text('language_$localeCode'.tr()),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final navMenuButton = NavMenuButtonProvider.of(context);
@@ -99,41 +123,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         context.setLocale(Locale(newLocale));
                       }
                     },
-                    items: [
-                      DropdownMenuItem(
-                        value: 'en',
-                        child: Row(
-                          children: [
-                            Icon(Icons.language_outlined, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text('language_en'.tr()),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'ar',
-                        child: Row(
-                          children: [
-                            Icon(Icons.language_outlined, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text('language_ar'.tr()),
-                          ],
-                        ),
-                      ),
-                      // ... (Keep other languages if needed, omitted for brevity but standard logic applies)
-                      DropdownMenuItem(
-                        value: 'es',
-                        child: Text('language_es'.tr()),
-                      ),
-                      DropdownMenuItem(
-                        value: 'fr',
-                        child: Text('language_fr'.tr()),
-                      ),
-                      DropdownMenuItem(
-                        value: 'de',
-                        child: Text('language_de'.tr()),
-                      ),
-                    ],
+                    items: ['en', 'ar', 'es', 'fr', 'de']
+                        .map(_buildLanguageMenuItem)
+                        .toList(),
                     dropdownColor: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     icon: Icon(
