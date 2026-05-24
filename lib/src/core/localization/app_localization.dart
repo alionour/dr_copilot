@@ -13,7 +13,13 @@ const locales = [
 /// A widget that wraps [child] with EasyLocalization configuration for the app.
 class AppLocalization extends StatelessWidget {
   final Widget child;
-  const AppLocalization({super.key, required this.child});
+  final Locale? startLocale;
+
+  const AppLocalization({
+    super.key,
+    required this.child,
+    this.startLocale,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +27,7 @@ class AppLocalization extends StatelessWidget {
       supportedLocales: locales,
       path: 'assets/translations', // <-- translations directory
       fallbackLocale: const Locale('en'),
-      startLocale: const Locale('en'),
+      startLocale: startLocale ?? const Locale('en'),
       child: child,
     );
   }

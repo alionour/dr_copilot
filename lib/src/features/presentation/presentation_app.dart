@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/presentation/presentation/widgets/presentation_screen.dart';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 class PresentationApp extends StatelessWidget {
@@ -19,10 +20,13 @@ class PresentationApp extends StatelessWidget {
     // For now, we wrap in MaterialApp with basic config
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Dr. Copilot - Presentation',
+      title: 'presentationAppTitle'.tr(),
       theme: FlexThemeData.light(scheme: FlexScheme.tealM3),
       darkTheme: FlexThemeData.dark(scheme: FlexScheme.tealM3),
       themeMode: ThemeMode.system, // Or pass from arguments
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
       home: PresentationScreen(windowId: windowId, arguments: arguments),
     );
   }

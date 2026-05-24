@@ -1251,5 +1251,13 @@
   "patientAgeDistribution": "توزيع أعمار المرضى",
   "patientGenderDistribution": "توزيع جنس المرضى",
   "averagePatientAge": "متوسط عمر المرضى",
-  "yearsOld": "سنوات"
+  "yearsOld": "سنوات",
+  "patientCallingScreen": "شاشة نداء المرضى",
+  "openWaitingRoomDisplayWindow": "فتح شاشة عرض غرفة الانتظار (HDMI/كاست)",
+  "presentationAppTitle": "د. كوبايلوت - شاشة العرض",
+  "patientCallingScreenWindowTitle": "د. كوبايلوت - شاشة نداء المرضى",
+  "todaysSchedule": "جدول اليوم",
+  "noAppointments": "لا توجد مواعيد",
+  "notSupportedOnThisPlatform": "غير مدعوم على هذه المنصة",
+  "errorOpeningPatientCallingScreen": "خطأ في فتح شاشة نداء المرضى: {}"
 }

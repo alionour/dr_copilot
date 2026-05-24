@@ -1240,5 +1240,13 @@
   "patientAgeDistribution": "Patient Age Distribution",
   "patientGenderDistribution": "Patient Gender Distribution",
   "averagePatientAge": "Average Patient Age",
-  "yearsOld": "years old"
+  "yearsOld": "years old",
+  "patientCallingScreen": "Patient Calling Screen",
+  "openWaitingRoomDisplayWindow": "Open the waiting room display window (HDMI/Cast)",
+  "presentationAppTitle": "Dr. Copilot - Presentation",
+  "patientCallingScreenWindowTitle": "Dr. Copilot - Patient Calling Screen",
+  "todaysSchedule": "Today's Schedule",
+  "noAppointments": "No appointments",
+  "notSupportedOnThisPlatform": "Not supported on this platform",
+  "errorOpeningPatientCallingScreen": "Error opening patient calling screen: {}"
 }

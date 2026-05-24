@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class WaitingListWidget extends StatelessWidget {
   final List<dynamic> scheduleItems;
@@ -31,7 +32,7 @@ class WaitingListWidget extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'Today\'s Schedule',
+                'todaysSchedule'.tr(),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -52,14 +53,17 @@ class WaitingListWidget extends StatelessWidget {
         Expanded(
           child: scheduleItems.isEmpty
               ? Center(
-                  child: Text('No appointments',
-                      style: Theme.of(context).textTheme.titleLarge))
+                  child: Text(
+                    'noAppointments'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                )
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: scheduleItems.length,
                   itemBuilder: (context, index) {
                     final item = scheduleItems[index] as Map<String, dynamic>;
-                    final title = item['title'] ?? 'Appointment';
+                    final title = item['title'] ?? 'appointment'.tr();
                     final startTimeStr = item['startTime'] as String?;
 
                     String timeDisplay = '--:--';
@@ -104,7 +108,7 @@ class WaitingListWidget extends StatelessWidget {
                           title,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: Text(item['eventType'] ?? 'Appointment'),
+                        subtitle: Text(item['eventType'] ?? 'appointment'.tr()),
                         trailing: isCurrent
                             ? Icon(Icons.arrow_forward_ios,
                                 color: Theme.of(context).primaryColor)

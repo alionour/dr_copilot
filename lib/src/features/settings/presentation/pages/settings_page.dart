@@ -38,7 +38,11 @@ class _SettingsPageState extends State<SettingsPage> {
             defaultTargetPlatform != TargetPlatform.linux &&
             defaultTargetPlatform != TargetPlatform.macOS)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: SelectionArea(child: Text('Not supported on this platform'))),
+        SnackBar(
+          content: SelectionArea(
+            child: Text('notSupportedOnThisPlatform'.tr()),
+          ),
+        ),
       );
       return;
     }
@@ -49,6 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
           'args1': 'SubWindow',
           'args2': 100,
           'args3': true,
+          'localeCode': context.locale.languageCode,
         }),
       ));
 
@@ -59,7 +64,11 @@ class _SettingsPageState extends State<SettingsPage> {
       debugPrint('Error opening window: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Error opening window: $e'))),
+          SnackBar(
+            content: SelectionArea(
+              child: Text('errorOpeningPatientCallingScreen'.tr(args: ['$e'])),
+            ),
+          ),
         );
       }
     }
@@ -169,9 +178,8 @@ class _SettingsPageState extends State<SettingsPage> {
               _buildSectionHeader('appSettings'),
               ListTile(
                 leading: const Icon(Icons.tv),
-                title: const Text('Patient Calling Screen'),
-                subtitle: const Text(
-                    'Open the waiting room display window (HDMI/Cast)'),
+                title: Text('patientCallingScreen'.tr()),
+                subtitle: Text('openWaitingRoomDisplayWindow'.tr()),
                 onTap: _openPresentationWindow,
               ),
               if (OwnerNotifier().hasPermission(AppPermission.manageSettings))

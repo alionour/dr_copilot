@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/presentation/presentation/widgets/video_player_widget.dart';
 import 'package:dr_copilot/src/features/presentation/presentation/widgets/waiting_list_widget.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:window_manager/window_manager.dart';
 
 class PresentationScreen extends StatefulWidget {
@@ -30,7 +31,7 @@ class _PresentationScreenState extends State<PresentationScreen> {
   Future<void> _initWindow() async {
     // Set window title and size
     await windowManager.ensureInitialized();
-    await windowManager.setTitle('Dr. Copilot - Patient Calling Screen');
+    await windowManager.setTitle('patientCallingScreenWindowTitle'.tr());
     await windowManager.setSize(const Size(1280, 720));
     await windowManager.center();
 

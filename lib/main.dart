@@ -27,11 +27,20 @@ import 'package:dr_copilot/src/features/presentation/presentation_app.dart';
 /// Place any necessary setup or initialization logic here before running the app.
 void main(List<String> args) async {
   if (args.firstOrNull == 'multi_window') {
+    WidgetsFlutterBinding.ensureInitialized();
+    await localization.EasyLocalization.ensureInitialized();
+
     final windowId = args[1];
     final argument = args[2].isEmpty
         ? const <String, dynamic>{}
         : jsonDecode(args[2]) as Map<String, dynamic>;
-    runApp(PresentationApp(windowId: windowId, arguments: argument));
+    final localeCode = argument['localeCode'] as String?;
+    runApp(
+      AppLocalization(
+        startLocale: localeCode == null ? null : Locale(localeCode),
+        child: PresentationApp(windowId: windowId, arguments: argument),
+      ),
+    );
     return;
   }
 
