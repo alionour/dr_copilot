@@ -1258,5 +1258,6 @@
   "todaysSchedule": "Agenda de hoy",
   "noAppointments": "No hay citas",
   "notSupportedOnThisPlatform": "No compatible con esta plataforma",
-  "errorOpeningPatientCallingScreen": "Error al abrir la pantalla de llamada de pacientes: {}"
+  "errorOpeningPatientCallingScreen": "Error al abrir la pantalla de llamada de pacientes: {}",
+  "onlyTeamMembersCanViewThisChat": "Solo los miembros del equipo pueden ver este chat."
 }

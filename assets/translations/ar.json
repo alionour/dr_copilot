@@ -1259,5 +1259,6 @@
   "todaysSchedule": "جدول اليوم",
   "noAppointments": "لا توجد مواعيد",
   "notSupportedOnThisPlatform": "غير مدعوم على هذه المنصة",
-  "errorOpeningPatientCallingScreen": "خطأ في فتح شاشة نداء المرضى: {}"
+  "errorOpeningPatientCallingScreen": "خطأ في فتح شاشة نداء المرضى: {}",
+  "onlyTeamMembersCanViewThisChat": "يمكن لأعضاء الفريق فقط عرض هذه الدردشة."
 }

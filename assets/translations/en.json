@@ -1248,5 +1248,6 @@
   "todaysSchedule": "Today's Schedule",
   "noAppointments": "No appointments",
   "notSupportedOnThisPlatform": "Not supported on this platform",
-  "errorOpeningPatientCallingScreen": "Error opening patient calling screen: {}"
+  "errorOpeningPatientCallingScreen": "Error opening patient calling screen: {}",
+  "onlyTeamMembersCanViewThisChat": "Only team members can view this chat."
 }

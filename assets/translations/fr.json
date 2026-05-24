@@ -1258,5 +1258,6 @@
   "todaysSchedule": "Planning du jour",
   "noAppointments": "Aucun rendez-vous",
   "notSupportedOnThisPlatform": "Non pris en charge sur cette plateforme",
-  "errorOpeningPatientCallingScreen": "Erreur lors de l'ouverture de l'écran d'appel des patients : {}"
+  "errorOpeningPatientCallingScreen": "Erreur lors de l'ouverture de l'écran d'appel des patients : {}",
+  "onlyTeamMembersCanViewThisChat": "Seuls les membres de l'équipe peuvent voir ce chat."
 }

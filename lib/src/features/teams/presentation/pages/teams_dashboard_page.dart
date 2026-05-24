@@ -284,7 +284,9 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       if (!isMember && !hasGlobalAccess) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: SelectionArea(child: Text('Only team members can view this chat.')),
+            content: SelectionArea(
+              child: Text('onlyTeamMembersCanViewThisChat'.tr()),
+            ),
             backgroundColor: Colors.orange,
           ),
         );

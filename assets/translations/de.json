@@ -1258,5 +1258,6 @@
   "todaysSchedule": "Heutiger Zeitplan",
   "noAppointments": "Keine Termine",
   "notSupportedOnThisPlatform": "Auf dieser Plattform nicht unterstützt",
-  "errorOpeningPatientCallingScreen": "Fehler beim Öffnen des Patienten-Aufrufbildschirms: {}"
+  "errorOpeningPatientCallingScreen": "Fehler beim Öffnen des Patienten-Aufrufbildschirms: {}",
+  "onlyTeamMembersCanViewThisChat": "Nur Teammitglieder können diesen Chat anzeigen."
 }
