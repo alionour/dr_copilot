@@ -190,7 +190,7 @@ class _CalendarViewState extends State<CalendarView> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(
-                    view.toString().split('.').last, // Simple label
+                    _getViewLabel(view),
                     style: TextStyle(
                       fontWeight: widget.currentView == view
                           ? FontWeight.bold
@@ -241,6 +241,39 @@ class InternalCalendarDataSource extends sf.CalendarDataSource {
     final event = appointments![index] as CalendarEventModel;
     if (event.color != null) {
       try {
+        return Color(int.parse(event.color!.replaceAll('#', '0xFF')));
+      } catch (_) {}
+    }
+
+    // Type-based colors
+    switch (event.type) {
+      case CalendarEventType.session:
+        return Colors.blue;
+      case CalendarEventType.evaluation:
+        return Colors.purple;
+      case CalendarEventType.appointment:
+        return Colors.green;
+      case CalendarEventType.holiday:
+        return Colors.red;
+      case CalendarEventType.vacation:
+        return Colors.orange;
+      case CalendarEventType.clinicClosure:
+        return Colors.red.shade900;
+      case CalendarEventType.unavailable:
+        return Colors.grey;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  @override
+  bool isAllDay(int index) {
+    final event = appointments![index] as CalendarEventModel;
+    return event.type == CalendarEventType.holiday ||
+        event.type == CalendarEventType.vacation;
+  }
+}
+{
         return Color(int.parse(event.color!.replaceAll('#', '0xFF')));
       } catch (_) {}
     }

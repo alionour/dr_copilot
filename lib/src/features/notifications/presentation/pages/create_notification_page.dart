@@ -6,6 +6,8 @@ import 'package:dr_copilot/src/features/notifications/domain/models/notification
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:dr_copilot/src/features/notifications/presentation/bloc/notifications_state.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 import 'package:dr_copilot/src/features/auth/domain/models/role_enum.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
@@ -283,7 +285,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: SelectionArea(child: Text(
-                  'notificationSentToUsers'.tr(args: [state.count.toString()]),
+                  'notificationSentToUsers'.plural(state.count),
                 )),
                 backgroundColor: Colors.green,
               ),
@@ -426,7 +428,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                 ElevatedButton(
                   onPressed: _isLoading || _allowedTypes.isEmpty
                       ? null
-                      : _sendNotification,
+                      : _sendNotification.throttle(),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                     backgroundColor: Theme.of(context).colorScheme.primary,

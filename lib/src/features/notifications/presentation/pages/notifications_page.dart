@@ -12,6 +12,7 @@ import 'package:dr_copilot/src/features/notifications/presentation/widgets/notif
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -116,7 +117,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         },
         builder: (context, state) {
           if (state is NotificationsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerList();
           }
 
           if (state is NotificationsError) {
@@ -201,7 +202,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '${'youHave'.tr()} ${state.unreadCount} ${'unreadNotifications'.tr()}',
+                            'unreadNotifications'.plural(state.unreadCount),
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: Theme.of(context).colorScheme.primary,

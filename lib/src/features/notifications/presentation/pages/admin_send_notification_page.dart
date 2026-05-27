@@ -160,15 +160,11 @@ class _AdminSendNotificationPageState extends State<AdminSendNotificationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: SelectionArea(child: Text(
-                  'notification_sent_to_users'.tr().replaceAll(
-                        '{count}',
-                        state.recipientCount.toString(),
-                      ),
+                  'notification_sent_to_users'.plural(state.recipientCount),
                 )),
                 backgroundColor: Colors.green,
               ),
-            );
-            _titleController.clear();
+            );            _titleController.clear();
             _messageController.clear();
             setState(() {
               _selectedRoles.clear();

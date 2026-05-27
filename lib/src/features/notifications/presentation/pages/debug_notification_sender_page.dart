@@ -188,7 +188,7 @@ class _DebugNotificationSenderPageState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: SelectionArea(child: Text(
-              'sentToUsers'.tr(args: [usersSnapshot.docs.length.toString()]),
+              'sentToUsers'.plural(usersSnapshot.docs.length),
             )),
             backgroundColor: Colors.green,
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/features/inventory/domain/models/inventory_item_model.dart';
@@ -38,7 +39,7 @@ class _InventoryPageState extends State<InventoryPage> {
       body: BlocBuilder<InventoryBloc, InventoryState>(
         builder: (context, state) {
           if (state is InventoryLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerList();
           }
 
           if (state is InventoryError) {
@@ -82,8 +83,7 @@ class _InventoryPageState extends State<InventoryPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'lowStockWarning'.tr(
-                                namedArgs: {'count': lowStockCount.toString()}),
+                            'lowStockWarning'.plural(lowStockCount),
                             style: const TextStyle(
                               color: Colors.orange,
                               fontWeight: FontWeight.bold,
@@ -159,7 +159,7 @@ class _InventoryPageState extends State<InventoryPage> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${item.category} • ${item.supplier ?? 'noSupplier'.tr()}'),
+            Text('${item.category.toLowerCase().tr()} • ${item.supplier ?? 'noSupplier'.tr()}'),
             const SizedBox(height: 4),
             Row(
               children: [

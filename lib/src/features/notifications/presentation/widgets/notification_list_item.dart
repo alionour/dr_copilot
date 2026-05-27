@@ -64,11 +64,11 @@ class NotificationListItem extends StatelessWidget {
     if (difference.inMinutes < 1) {
       return 'justNow'.tr();
     } else if (difference.inMinutes < 60) {
-      return 'minutesAgo'.tr(args: [difference.inMinutes.toString()]);
+      return 'minutesAgo'.plural(difference.inMinutes);
     } else if (difference.inHours < 24) {
-      return 'hoursAgo'.tr(args: [difference.inHours.toString()]);
+      return 'hoursAgo'.plural(difference.inHours);
     } else if (difference.inDays < 7) {
-      return 'daysAgo'.tr(args: [difference.inDays.toString()]);
+      return 'daysAgo'.plural(difference.inDays);
     } else {
       return DateFormat.yMMMd().format(dateTime);
     }
