@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
@@ -214,44 +214,34 @@ class _SessionsPageState extends State<SessionsPage> {
         child: BlocListener<SessionsBloc, SessionsState>(
           listener: (context, state) {
             if (state is SessionsSuccess) {
-              final message = state.message;
-              if (message != null) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+              if (ModalRoute.of(context)?.isCurrent == true) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                }
               }
             } else if (state is SessionsError) {
-              final message = state.message;
-              if (message != null) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+              if (ModalRoute.of(context)?.isCurrent == true) {
+                final message = state.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                }
               }
-            } else if (state is SessionsCountLoaded) {
+            }
+            if (state.totalCount != null) {
               setState(() {
-                _firestoreSessionsCount = state.count;
+                _firestoreSessionsCount = state.totalCount;
               });
             }
           },
           child: BlocBuilder<SessionsBloc, SessionsState>(
             builder: (context, state) {
               if (state is SessionsLoading) {
-                return Shimmer.fromColors(
-                  baseColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest,
-                  highlightColor: Theme.of(context).colorScheme.surface,
-                  child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Container(
-                        height: 50.0,
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
-                  ),
-                );
+                return const ShimmerList(itemCount: 8);
               } else if (state is SessionsLoaded ||
                   state is SessionsLoadingMore ||
                   state is SessionsCountLoaded) {
@@ -259,7 +249,7 @@ class _SessionsPageState extends State<SessionsPage> {
                     ? state.sessions
                     : (state is SessionsLoadingMore)
                         ? state.sessions
-                        : <SessionModel>[];
+                        : (state as SessionsCountLoaded).sessions;
 
                 final groupedSessions = <String, List<SessionModel>>{};
                 for (var session in sessions) {
@@ -382,23 +372,7 @@ class _SessionsPageState extends State<SessionsPage> {
                     ),
                     if (state is SessionsLoaded && state.isLoadingMore ||
                         state is SessionsLoadingMore)
-                      Shimmer.fromColors(
-                        baseColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        highlightColor: Theme.of(context).colorScheme.surface,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            height: 50.0,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                        ),
-                      ),
+                      const ShimmerList(itemCount: 1),
                   ],
                 );
               } else if (state is SessionsError) {

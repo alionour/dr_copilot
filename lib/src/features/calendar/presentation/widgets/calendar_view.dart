@@ -130,6 +130,7 @@ class _CalendarViewState extends State<CalendarView> {
                           setState(() {
                             _headerDate = DateFormat(
                               'MMMM yyyy',
+                              context.locale.toString(),
                             ).format(midDate);
                           });
                         }
@@ -214,6 +215,31 @@ class _CalendarViewState extends State<CalendarView> {
       widget.onViewChanged(selected);
     }
   }
+
+  String _getViewLabel(sf.CalendarView view) {
+    switch (view) {
+      case sf.CalendarView.day:
+        return 'calendarView.day'.tr();
+      case sf.CalendarView.week:
+        return 'calendarView.week'.tr();
+      case sf.CalendarView.workWeek:
+        return 'calendarView.workWeek'.tr();
+      case sf.CalendarView.month:
+        return 'calendarView.month'.tr();
+      case sf.CalendarView.timelineDay:
+        return 'calendarView.timelineDay'.tr();
+      case sf.CalendarView.timelineWeek:
+        return 'calendarView.timelineWeek'.tr();
+      case sf.CalendarView.timelineWorkWeek:
+        return 'calendarView.timelineWorkWeek'.tr();
+      case sf.CalendarView.timelineMonth:
+        return 'calendarView.timelineMonth'.tr();
+      case sf.CalendarView.schedule:
+        return 'calendarView.schedule'.tr();
+      default:
+        return view.toString().split('.').last;
+    }
+  }
 }
 
 class InternalCalendarDataSource extends sf.CalendarDataSource {
@@ -241,39 +267,6 @@ class InternalCalendarDataSource extends sf.CalendarDataSource {
     final event = appointments![index] as CalendarEventModel;
     if (event.color != null) {
       try {
-        return Color(int.parse(event.color!.replaceAll('#', '0xFF')));
-      } catch (_) {}
-    }
-
-    // Type-based colors
-    switch (event.type) {
-      case CalendarEventType.session:
-        return Colors.blue;
-      case CalendarEventType.evaluation:
-        return Colors.purple;
-      case CalendarEventType.appointment:
-        return Colors.green;
-      case CalendarEventType.holiday:
-        return Colors.red;
-      case CalendarEventType.vacation:
-        return Colors.orange;
-      case CalendarEventType.clinicClosure:
-        return Colors.red.shade900;
-      case CalendarEventType.unavailable:
-        return Colors.grey;
-      default:
-        return Colors.blueGrey;
-    }
-  }
-
-  @override
-  bool isAllDay(int index) {
-    final event = appointments![index] as CalendarEventModel;
-    return event.type == CalendarEventType.holiday ||
-        event.type == CalendarEventType.vacation;
-  }
-}
-{
         return Color(int.parse(event.color!.replaceAll('#', '0xFF')));
       } catch (_) {}
     }

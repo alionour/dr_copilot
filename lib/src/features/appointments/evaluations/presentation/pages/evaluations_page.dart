@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
@@ -211,31 +211,16 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
       body: SafeArea(
         child: BlocListener<EvaluationsBloc, EvaluationsState>(
           listener: (context, state) {
-            if (state is EvaluationsCountLoaded) {
+            if (state.totalCount != null) {
               setState(() {
-                _firestoreEvaluationsCount = state.count;
+                _firestoreEvaluationsCount = state.totalCount;
               });
             }
           },
           child: BlocBuilder<EvaluationsBloc, EvaluationsState>(
             builder: (context, state) {
               if (state is EvaluationsLoading) {
-                return Shimmer.fromColors(
-                  baseColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest,
-                  highlightColor: Theme.of(context).colorScheme.surface,
-                  child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Container(
-                        height: 50.0,
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
-                  ),
-                );
+                return const ShimmerList(itemCount: 8);
               } else if (state is EvaluationsLoaded ||
                   state is EvaluationsLoadingMore ||
                   state is EvaluationsCountLoaded) {
@@ -243,7 +228,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                     ? state.evaluations
                     : (state is EvaluationsLoadingMore)
                         ? state.evaluations
-                        : <EvaluationModel>[];
+                        : (state as EvaluationsCountLoaded).evaluations;
   
                 final groupedEvaluations = <String, List<EvaluationModel>>{};
                 for (var evaluation in evaluations) {
@@ -357,23 +342,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                     ),
                     if (state is EvaluationsLoaded && state.isLoadingMore ||
                         state is EvaluationsLoadingMore)
-                      Shimmer.fromColors(
-                        baseColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        highlightColor: Theme.of(context).colorScheme.surface,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            height: 50.0,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                        ),
-                      ),
+                      const ShimmerList(itemCount: 1),
                   ],
                 );
               } else if (state is EvaluationsError) {
