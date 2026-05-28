@@ -132,80 +132,77 @@ class _SessionsPageState extends State<SessionsPage> {
                 context.read<SessionsBloc>().add(const GetSessions());
               },
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                // border: Border.all(
-                //   color: Theme.of(context)
-                //       .colorScheme
-                //       .primary
-                //       .withValues(alpha: 0.3), // Adjusted color to be less intense
-                //   width: 0.3, // Made the border thinner
-                // ),
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.shadow.withValues(alpha: 0.2),
-                    blurRadius: 8.0,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 4.0,
-              ),
-              child: Row(
+            if (!isMobile)
+              Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.filter_alt_outlined),
-                    tooltip: 'toggleFilters'.tr(),
-                    onPressed: () {
-                      setState(() {
-                        _showFilters =
-                            !_showFilters; // Toggle filter visibility
-                      });
-                    },
-                  ),
-                  if (_showFilters) ...[
-                    // Update the filter logic to clear previous filter values when a new filter is selected, unless mixed filters are allowed.
-                    IconButton(
-                      icon: Row(
-                        children: [
-                          const Icon(Icons.calendar_month_outlined),
-                          if (_selectedDate != null)
-                            Text(
-                              _selectedDate!.toLocal().toString().split(' ')[0],
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                        ],
-                      ),
-                      tooltip: 'filterByDate'.tr(),
-                      onPressed: () async {
-                        final selectedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
-                        );
-                        if (selectedDate != null) {
-                          setState(() {
-                            _selectedDate = selectedDate;
-                          });
-                          if (!context.mounted) return;
-
-                          context.read<SessionsBloc>().add(
-                                GetSessionsByDate(date: selectedDate),
-                              );
-                        }
-                      },
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.shadow.withValues(alpha: 0.2),
+                          blurRadius: 8.0,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.filter_alt_outlined),
+                          tooltip: 'toggleFilters'.tr(),
+                          onPressed: () {
+                            setState(() {
+                              _showFilters =
+                                  !_showFilters;
+                            });
+                          },
+                        ),
+                        if (_showFilters) ...[
+                          IconButton(
+                            icon: Row(
+                              children: [
+                                const Icon(Icons.calendar_month_outlined),
+                                if (_selectedDate != null)
+                                  Text(
+                                    _selectedDate!.toLocal().toString().split(' ')[0],
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                              ],
+                            ),
+                            tooltip: 'filterByDate'.tr(),
+                            onPressed: () async {
+                              final selectedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2101),
+                              );
+                              if (selectedDate != null) {
+                                setState(() {
+                                  _selectedDate = selectedDate;
+                                });
+                                if (!context.mounted) return;
+
+                                context.read<SessionsBloc>().add(
+                                      GetSessionsByDate(date: selectedDate),
+                                    );
+                              }
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
             if (navMenuButton != null) navMenuButton,
           ],
         ),
