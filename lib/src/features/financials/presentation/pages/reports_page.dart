@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/financials_bloc.dart';
+import '../widgets/year_selector.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
@@ -94,68 +95,16 @@ class ReportsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .outline
-                              .withValues(alpha: 0.3),
-                          width: 1.2,
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedYear,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 28,
-                          ),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          dropdownColor: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          items: years.map((year) {
-                            return DropdownMenuItem<String>(
-                              value: year,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.calendar_month,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    size: 22,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    year,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                selectedYear = value;
-                              });
-                            }
-                          },
-                        ),
-                      ),
+                    YearSelector(
+                      selectedYear: selectedYear,
+                      years: years,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedYear = value;
+                          });
+                        }
+                      },
                     ),
                   ],
                 ),

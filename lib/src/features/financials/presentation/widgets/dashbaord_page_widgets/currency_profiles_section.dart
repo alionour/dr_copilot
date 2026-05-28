@@ -18,7 +18,7 @@ class CurrencyProfilesSection extends StatefulWidget {
 }
 
 class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
-  List<CurrencyProfileModel> profiles = [];
+  List<CurrencyProfileModel> _profiles = [];
   final List<String> _currencies = [
     'USD',
     'EUR',
@@ -44,7 +44,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
 
   void _showAddProfileSheet() {
     String selectedCurrency = _currencies.firstWhere(
-      (c) => !profiles.any((p) => p.currency == c),
+      (c) => !_profiles.any((p) => p.currency == c),
       orElse: () => _currencies[0],
     );
     final nameController = TextEditingController(
@@ -91,7 +91,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                       items: _currencies
                           .where(
                             (c) =>
-                                !profiles.any((p) => p.currency == c) ||
+                                !_profiles.any((p) => p.currency == c) ||
                                 c == selectedCurrency,
                           )
                           .map(
@@ -160,7 +160,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                         return ElevatedButton(
                           onPressed: (() {
                             if (formKey.currentState!.validate()) {
-                              if (profiles.any(
+                              if (_profiles.any(
                                 (p) => p.currency == selectedCurrency,
                               )) {
                                 Navigator.pop(context);
@@ -250,9 +250,9 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
       builder: (context, state) {
         final profiles = state is FinancialsLoaded 
             ? state.currencyProfiles 
-            : profiles;
+            : _profiles;
         final isLoading = state is FinancialsLoading || 
-            (state is! FinancialsLoaded && profiles.isEmpty);
+            (state is! FinancialsLoaded && _profiles.isEmpty);
         
         if (isLoading) {
           return const ShimmerList(itemCount: 2);
