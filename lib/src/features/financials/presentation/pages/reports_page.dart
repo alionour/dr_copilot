@@ -1,11 +1,24 @@
+import 'package:dr_copilot/src/features/financials/presentation/widgets/year_selector.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/financials_bloc.dart';
-import '../widgets/year_selector.dart';
 
-class ReportsPage extends StatelessWidget {
+class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
+
+  @override
+  State<ReportsPage> createState() => _ReportsPageState();
+}
+
+class _ReportsPageState extends State<ReportsPage> {
+  late String selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedYear = DateTime.now().year.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +36,8 @@ class ReportsPage extends StatelessWidget {
       'month_november',
       'month_december'
     ];
-    months =
-        months.map((month) => month.tr()).toList(); // Translate month names
+    months = months.map((month) => month.tr()).toList();
+
     return BlocBuilder<FinancialsBloc, FinancialsState>(
       builder: (context, state) {
         final revenueByYear = state.revenuePerMonth.keys
@@ -45,159 +58,145 @@ class ReportsPage extends StatelessWidget {
           return map;
         });
 
-        // Debugging: Print the revenue and expenses maps
-        debugPrint('RevenueByYear: \n');
-        revenueByYear.forEach((year, values) {
-          debugPrint('$year: $values');
-        });
-
-        debugPrint('ExpensesByYear: \n');
-        expensesByYear.forEach((year, values) {
-          debugPrint('$year: $values');
-        });
-
-        final List<String> years = revenueByYear.keys.toList();
-
-        // Ensure all years have 12 months populated with default values
-        for (final year in years) {
-          revenueByYear.putIfAbsent(year, () => List<int>.filled(12, 0));
-          expensesByYear.putIfAbsent(year, () => List<int>.filled(12, 0));
+        // Generate a reasonable list of years: current year + any years in data
+        final Set<String> yearsSet = {};
+        // Add last 5 years as default
+        final currentYearInt = DateTime.now().year;
+        for (int i = 0; i < 5; i++) {
+          yearsSet.add((currentYearInt - i).toString());
         }
+        // Add any years from data
+        yearsSet.addAll(revenueByYear.keys);
+        yearsSet.addAll(expensesByYear.keys);
 
-        String selectedYear =
-            years.isNotEmpty ? years.last : DateTime.now().year.toString();
+        final List<String> years = yearsSet.toList()
+          ..sort((a, b) => b.compareTo(a));
 
-        return StatefulBuilder(
-          builder: (context, setState) {
-            // Add a fallback for selectedRevenue and selectedExpenses
-            final List<int> selectedRevenue =
-                revenueByYear[selectedYear] ?? List<int>.filled(12, 0);
-            final List<int> selectedExpenses =
-                expensesByYear[selectedYear] ?? List<int>.filled(12, 0);
-            final int totalRevenue = selectedRevenue.isNotEmpty
-                ? selectedRevenue.reduce((a, b) => a + b)
-                : 0;
-            final int totalExpenses = selectedExpenses.isNotEmpty
-                ? selectedExpenses.reduce((a, b) => a + b)
-                : 0;
+        // Add a fallback for selectedRevenue and selectedExpenses
+        final List<int> selectedRevenue =
+            revenueByYear[selectedYear] ?? List<int>.filled(12, 0);
+        final List<int> selectedExpenses =
+            expensesByYear[selectedYear] ?? List<int>.filled(12, 0);
+        final int totalRevenue = selectedRevenue.isNotEmpty
+            ? selectedRevenue.reduce((a, b) => a + b)
+            : 0;
+        final int totalExpenses = selectedExpenses.isNotEmpty
+            ? selectedExpenses.reduce((a, b) => a + b)
+            : 0;
 
-            return Scaffold(
-              appBar: AppBar(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'financial_reports_for_year'.tr(),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    YearSelector(
-                      selectedYear: selectedYear,
-                      years: years,
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedYear = value;
-                          });
-                        }
-                      },
-                    ),
-                  ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'financial_reports_for_year'.tr(),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
-                centerTitle: true,
-                elevation: 0,
-              ),
-              body: Center(
+                const SizedBox(width: 12),
+                YearSelector(
+                  selectedYear: selectedYear,
+                  years: years,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedYear = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            centerTitle: true,
+            elevation: 0,
+          ),
+          body: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isSmall = constraints.maxWidth < 700;
-                          return Column(
-                            children: [
-                              const SizedBox(height: 8),
-                              isSmall
-                                  ? Column(
-                                      children: [
-                                        _buildTable(
-                                          context,
-                                          title: 'income'.tr(),
-                                          year: selectedYear,
-                                          months: months,
-                                          values: selectedRevenue,
-                                          total: totalRevenue,
-                                          color: Colors.green[100]!,
-                                        ),
-                                        const SizedBox(height: 24),
-                                        _buildTable(
-                                          context,
-                                          title: 'expenses'.tr(),
-                                          year: selectedYear,
-                                          months: months,
-                                          values: selectedExpenses,
-                                          total: totalExpenses,
-                                          color: Colors.red[100]!,
-                                        ),
-                                      ],
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: _buildTable(
-                                            context,
-                                            title: 'income'.tr(),
-                                            year: selectedYear,
-                                            months: months,
-                                            values: selectedRevenue,
-                                            total: totalRevenue,
-                                            color: Colors.green[100]!,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 32),
-                                        Expanded(
-                                          child: _buildTable(
-                                            context,
-                                            title: 'expenses'.tr(),
-                                            year: selectedYear,
-                                            months: months,
-                                            values: selectedExpenses,
-                                            total: totalExpenses,
-                                            color: Colors.red[100]!,
-                                          ),
-                                        ),
-                                      ],
+              padding: const EdgeInsets.all(24),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isSmall = constraints.maxWidth < 700;
+                      return Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          isSmall
+                              ? Column(
+                                  children: [
+                                    _buildTable(
+                                      context,
+                                      title: 'income'.tr(),
+                                      year: selectedYear,
+                                      months: months,
+                                      values: selectedRevenue,
+                                      total: totalRevenue,
+                                      color: Colors.green[100]!,
                                     ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
+                                    const SizedBox(height: 24),
+                                    _buildTable(
+                                      context,
+                                      title: 'expenses'.tr(),
+                                      year: selectedYear,
+                                      months: months,
+                                      values: selectedExpenses,
+                                      total: totalExpenses,
+                                      color: Colors.red[100]!,
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: _buildTable(
+                                        context,
+                                        title: 'income'.tr(),
+                                        year: selectedYear,
+                                        months: months,
+                                        values: selectedRevenue,
+                                        total: totalRevenue,
+                                        color: Colors.green[100]!,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 32),
+                                    Expanded(
+                                      child: _buildTable(
+                                        context,
+                                        title: 'expenses'.tr(),
+                                        year: selectedYear,
+                                        months: months,
+                                        values: selectedExpenses,
+                                        total: totalExpenses,
+                                        color: Colors.red[100]!,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
@@ -214,10 +213,11 @@ class ReportsPage extends StatelessWidget {
   }) {
     final bool isExpenses = title == 'expenses'.tr();
     final Color headerColor = Theme.of(context).colorScheme.primaryContainer;
-    final Color totalRowColor = Theme.of(context).colorScheme.secondaryContainer;
+    final Color totalRowColor =
+        Theme.of(context).colorScheme.secondaryContainer;
     final Color tableBgColor = Theme.of(context).colorScheme.surface;
-    final Color totalTextColor = isExpenses 
-        ? Theme.of(context).colorScheme.error 
+    final Color totalTextColor = isExpenses
+        ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
 
     return Card(
@@ -230,12 +230,12 @@ class ReportsPage extends StatelessWidget {
           children: [
             Text(title,
                 style: TextStyle(
-                  fontWeight: FontWeight.bold, 
+                  fontWeight: FontWeight.bold,
                   fontSize: 18,
                   color: Theme.of(context).colorScheme.onSurface,
                 )),
             const SizedBox(height: 8),
-            Text(year, 
+            Text(year,
                 style: TextStyle(
                   fontSize: 16,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -247,9 +247,11 @@ class ReportsPage extends StatelessWidget {
                 1: FlexColumnWidth(1),
               },
               border: TableBorder.all(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3), 
-                width: 0.5
-              ),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.3),
+                  width: 0.5),
               children: [
                 TableRow(
                   decoration: BoxDecoration(color: headerColor),
@@ -258,15 +260,19 @@ class ReportsPage extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text('month_label'.tr(),
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              color: Theme.of(context).colorScheme.onPrimaryContainer)),
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(title,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              color: Theme.of(context).colorScheme.onPrimaryContainer)),
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer)),
                     ),
                   ],
                 ),
@@ -296,11 +302,13 @@ class ReportsPage extends StatelessWidget {
                   decoration: BoxDecoration(color: totalRowColor),
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: Text('total_label'.tr(),
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              color: Theme.of(context).colorScheme.onSecondaryContainer)),
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -320,4 +328,3 @@ class ReportsPage extends StatelessWidget {
     );
   }
 }
-

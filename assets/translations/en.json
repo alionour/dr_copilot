@@ -1114,6 +1114,7 @@
   "recurrence.yearly": "Yearly",
   "selectDate": "Select Date",
   "selectTime": "Select Time",
+  "select_year": "Select Year",
   "allDay": "All Day",
   "createFirstTeam": "Create your first team to organize members",
   "membersCount": "Members",

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:dr_copilot/src/core/injections.dart';
 
 class ChartsPage extends StatefulWidget {
   const ChartsPage({super.key});
@@ -41,12 +42,21 @@ class _ChartsPageState extends State<ChartsPage> {
         final allKeys = <String>{}
           ..addAll(state.revenuePerMonth.keys)
           ..addAll(state.expensesPerMonth.keys);
-        final years = allKeys.map((k) => k.split('-')[0]).toSet().toList()
-          ..sort();
+        
+        final Set<String> yearsSet = {};
+        // Add last 5 years as default
+        final currentYearInt = DateTime.now().year;
+        for (int i = 0; i < 5; i++) {
+          yearsSet.add((currentYearInt - i).toString());
+        }
+        // Add any years from data
+        yearsSet.addAll(allKeys.map((k) => k.split('-')[0]));
+
+        final List<String> years = yearsSet.toList()
+          ..sort((a, b) => b.compareTo(a));
+
         if (!years.contains(selectedYear)) {
-          selectedYear = years.isNotEmpty
-              ? years.last
-              : DateTime.now().year.toString();
+          selectedYear = years.first;
         }
 
         // Prepare chart data for each month in the selected year
@@ -86,86 +96,22 @@ class _ChartsPageState extends State<ChartsPage> {
                 Text(
                   'financial_reports_for_year'.tr(),
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.2),
-                      width: 1.2,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedYear,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 28,
-                      ),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      dropdownColor: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      items: years.map((year) {
-                        return DropdownMenuItem<String>(
-                          value: year,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_month,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.6),
-                                size: 22,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                year,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedYear = value;
-                          });
-                        }
-                      },
-                    ),
-                  ),
+                YearSelector(
+                  selectedYear: selectedYear,
+                  years: years,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedYear = value;
+                      });
+                    }
+                  },
                 ),
               ],
             ),
@@ -189,6 +135,7 @@ class _BarLineChartSwitcher extends StatefulWidget {
   final double totalRevenue;
   final double totalExpenses;
   const _BarLineChartSwitcher({
+    super.key,
     required this.chartData,
     required this.totalRevenue,
     required this.totalExpenses,
@@ -203,210 +150,202 @@ class _BarLineChartSwitcherState extends State<_BarLineChartSwitcher> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('financialCharts').tr(),
-      //   centerTitle: true,
-      //   backgroundColor: Colors.green[200],
-      //   elevation: 0,
-      // ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SectionTitle('revenueVsExpensesByMonth'.tr()),
-            ChartCard(
-              Stack(
-                children: [
-                  SfCartesianChart(
-                    legend: Legend(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionTitle('revenueVsExpensesByMonth'.tr()),
+          ChartCard(
+            Stack(
+              children: [
+                SfCartesianChart(
+                  legend: const Legend(
+                    isVisible: true,
+                    position: LegendPosition.bottom,
+                  ),
+                  primaryXAxis: const CategoryAxis(),
+                  primaryYAxis: const NumericAxis(),
+                  tooltipBehavior: TooltipBehavior(enable: true),
+                  series: showBar
+                      ? <CartesianSeries<ChartData, String>>[
+                          ColumnSeries<ChartData, String>(
+                            name: 'revenue'.tr(),
+                            dataSource: widget.chartData,
+                            xValueMapper: (d, _) => d.month,
+                            yValueMapper: (d, _) => d.revenue,
+                            color: Colors.green,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(6),
+                            ),
+                          ),
+                          ColumnSeries<ChartData, String>(
+                            name: 'expenses'.tr(),
+                            dataSource: widget.chartData,
+                            xValueMapper: (d, _) => d.month,
+                            yValueMapper: (d, _) => d.expenses,
+                            color: Colors.redAccent,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(6),
+                            ),
+                          ),
+                        ]
+                      : <CartesianSeries<ChartData, String>>[
+                          LineSeries<ChartData, String>(
+                            name: 'revenue'.tr(),
+                            dataSource: widget.chartData,
+                            xValueMapper: (d, _) => d.month,
+                            yValueMapper: (d, _) => d.revenue,
+                            color: Colors.green,
+                            markerSettings: const MarkerSettings(
+                              isVisible: true,
+                            ),
+                          ),
+                          LineSeries<ChartData, String>(
+                            name: 'expenses'.tr(),
+                            dataSource: widget.chartData,
+                            xValueMapper: (d, _) => d.month,
+                            yValueMapper: (d, _) => d.expenses,
+                            color: Colors.redAccent,
+                            markerSettings: const MarkerSettings(
+                              isVisible: true,
+                            ),
+                          ),
+                        ],
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Tooltip(
+                      message: showBar
+                          ? 'showLineChart'.tr()
+                          : 'showBarChart'.tr(),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () {
+                          setState(() {
+                            showBar = !showBar;
+                          });
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            showBar ? Icons.show_chart : Icons.bar_chart,
+                            color: Colors.teal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // RevenueByMonthChart with toggle
+          ChartCard(
+            _ToggleableBarLineChart(
+              chartData: widget.chartData,
+              barName: 'revenue'.tr(),
+              lineName: 'revenue'.tr(),
+              color: Colors.green,
+              yValueMapper: (d) => d.revenue,
+            ),
+          ),
+          const SizedBox(height: 24),
+          // SessionsRevenueByMonthChart with toggle
+          ChartCard(
+            _ToggleableBarLineChart(
+              chartData: widget.chartData,
+              barName: 'sessionsRevenue'.tr(),
+              lineName: 'sessionsRevenue'.tr(),
+              color: Colors.blue,
+              yValueMapper: (d) => d.sessionsRevenue,
+            ),
+          ),
+          const SizedBox(height: 24),
+          // TotalRevenueByMonthChart with toggle
+          ChartCard(
+            _ToggleableBarLineChart(
+              chartData: widget.chartData,
+              barName: 'totalRevenue'.tr(),
+              lineName: 'totalRevenue'.tr(),
+              color: Colors.teal,
+              yValueMapper: (d) => d.totalRevenue,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          SectionTitle('expensesByMonth'.tr()),
+          ChartCard(
+            _ToggleableBarLineChart(
+              chartData: widget.chartData,
+              barName: 'expenses'.tr(),
+              lineName: 'expenses'.tr(),
+              color: Colors.redAccent,
+              yValueMapper: (d) => d.expenses,
+            ),
+          ),
+          SectionTitle('revenueToExpensesRatio'.tr()),
+          SizedBox(
+            height: 260,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SfCircularChart(
+                    legend: const Legend(
                       isVisible: true,
                       position: LegendPosition.bottom,
                     ),
-                    primaryXAxis: CategoryAxis(),
-                    primaryYAxis: NumericAxis(),
-                    tooltipBehavior: TooltipBehavior(enable: true),
-                    series: showBar
-                        ? <CartesianSeries<ChartData, String>>[
-                            ColumnSeries<ChartData, String>(
-                              name: 'revenue'.tr(),
-                              dataSource: widget.chartData,
-                              xValueMapper: (d, _) => d.month,
-                              yValueMapper: (d, _) => d.revenue,
-                              color: Colors.green,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(6),
-                              ),
-                            ),
-                            ColumnSeries<ChartData, String>(
-                              name: 'expenses'.tr(),
-                              dataSource: widget.chartData,
-                              xValueMapper: (d, _) => d.month,
-                              yValueMapper: (d, _) => d.expenses,
-                              color: Colors.redAccent,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(6),
-                              ),
-                            ),
-                          ]
-                        : <CartesianSeries<ChartData, String>>[
-                            LineSeries<ChartData, String>(
-                              name: 'revenue'.tr(),
-                              dataSource: widget.chartData,
-                              xValueMapper: (d, _) => d.month,
-                              yValueMapper: (d, _) => d.revenue,
-                              color: Colors.green,
-                              markerSettings: const MarkerSettings(
-                                isVisible: true,
-                              ),
-                            ),
-                            LineSeries<ChartData, String>(
-                              name: 'expenses'.tr(),
-                              dataSource: widget.chartData,
-                              xValueMapper: (d, _) => d.month,
-                              yValueMapper: (d, _) => d.expenses,
-                              color: Colors.redAccent,
-                              markerSettings: const MarkerSettings(
-                                isVisible: true,
-                              ),
-                            ),
-                          ],
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Tooltip(
-                        message: showBar
-                            ? 'showLineChart'.tr()
-                            : 'showBarChart'.tr(),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(24),
-                          onTap: () {
-                            setState(() {
-                              showBar = !showBar;
-                            });
-                          },
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            child: Icon(
-                              showBar ? Icons.show_chart : Icons.bar_chart,
-                              color: Colors.teal,
-                            ),
+                    series: <CircularSeries<PieData, String>>[
+                      PieSeries<PieData, String>(
+                        dataSource: [
+                          PieData(
+                            'revenue'.tr(),
+                            widget.totalRevenue,
+                            Colors.green,
+                          ),
+                          PieData(
+                            'expenses'.tr(),
+                            widget.totalExpenses,
+                            Colors.redAccent,
+                          ),
+                        ],
+                        xValueMapper: (PieData data, _) => data.label,
+                        yValueMapper: (PieData data, _) => data.value,
+                        pointColorMapper: (PieData data, _) => data.color,
+                        dataLabelSettings: DataLabelSettings(
+                          isVisible: true,
+                          labelPosition: ChartDataLabelPosition.outside,
+                          textStyle: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 13,
+                          ),
+                          connectorLineSettings: const ConnectorLineSettings(
+                            type: ConnectorType.curve,
+                            length: '15%',
                           ),
                         ),
+                        radius: '75%',
+                        explode: true,
+                        explodeIndex: 1,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // RevenueByMonthChart with toggle
-            ChartCard(
-              _ToggleableBarLineChart(
-                chartData: widget.chartData,
-                barName: 'revenue'.tr(),
-                lineName: 'revenue'.tr(),
-                color: Colors.green,
-                yValueMapper: (d) => d.revenue,
-              ),
-            ),
-            const SizedBox(height: 24),
-            // SessionsRevenueByMonthChart with toggle
-            ChartCard(
-              _ToggleableBarLineChart(
-                chartData: widget.chartData,
-                barName: 'sessionsRevenue'.tr(),
-                lineName: 'sessionsRevenue'.tr(),
-                color: Colors.blue,
-                yValueMapper: (d) => d.sessionsRevenue,
-              ),
-            ),
-            const SizedBox(height: 24),
-            // TotalRevenueByMonthChart with toggle
-            ChartCard(
-              _ToggleableBarLineChart(
-                chartData: widget.chartData,
-                barName: 'totalRevenue'.tr(),
-                lineName: 'totalRevenue'.tr(),
-                color: Colors.teal,
-                yValueMapper: (d) => d.totalRevenue,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            SectionTitle('expensesByMonth'.tr()),
-            ChartCard(
-              _ToggleableBarLineChart(
-                chartData: widget.chartData,
-                barName: 'expenses'.tr(),
-                lineName: 'expenses'.tr(),
-                color: Colors.redAccent,
-                yValueMapper: (d) => d.expenses,
-              ),
-            ),
-            SectionTitle('revenueToExpensesRatio'.tr()),
-            SizedBox(
-              height: 260,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: SfCircularChart(
-                      legend: Legend(
-                        isVisible: true,
-                        position: LegendPosition.bottom,
-                      ),
-                      series: <CircularSeries<PieData, String>>[
-                        PieSeries<PieData, String>(
-                          dataSource: [
-                            PieData(
-                              'revenue'.tr(),
-                              widget.totalRevenue,
-                              Colors.green,
-                            ),
-                            PieData(
-                              'expenses'.tr(),
-                              widget.totalExpenses,
-                              Colors.redAccent,
-                            ),
-                          ],
-                          xValueMapper: (PieData data, _) => data.label,
-                          yValueMapper: (PieData data, _) => data.value,
-                          pointColorMapper: (PieData data, _) => data.color,
-                          dataLabelSettings: DataLabelSettings(
-                            isVisible: true,
-                            labelPosition: ChartDataLabelPosition.outside,
-                            textStyle: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 13,
-                            ),
-                            connectorLineSettings: ConnectorLineSettings(
-                              type: ConnectorType.curve,
-                              length: '15%',
-                            ),
-                          ),
-                          radius: '75%',
-                          explode: true,
-                          explodeIndex: 1,
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -499,9 +438,9 @@ class _ToggleableBarLineChartState extends State<_ToggleableBarLineChart> {
     return Stack(
       children: [
         SfCartesianChart(
-          legend: Legend(isVisible: false),
-          primaryXAxis: CategoryAxis(),
-          primaryYAxis: NumericAxis(),
+          legend: const Legend(isVisible: false),
+          primaryXAxis: const CategoryAxis(),
+          primaryYAxis: const NumericAxis(),
           tooltipBehavior: TooltipBehavior(enable: true),
           series: showBar
               ? <CartesianSeries<ChartData, String>>[
@@ -554,4 +493,3 @@ class _ToggleableBarLineChartState extends State<_ToggleableBarLineChart> {
     );
   }
 }
-

@@ -31,16 +31,15 @@ class GoalsPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        final isLoading = state.goals.isEmpty;
+        final goals = state.goals.whereType<GoalModelBase>().toList();
+        final isLoading = goals.isEmpty && state.goals.isEmpty;
         
         return Scaffold(
           appBar: AppBar(
             title: Text('financialGoals'.tr()),
             centerTitle: true,
           ),
-          body: isLoading
-              ? const ShimmerList(itemCount: 3)
-              : LayoutBuilder(
+          body: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -58,9 +57,10 @@ class GoalsPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    ...state.goals
-                        .whereType<GoalModelBase>()
-                        .map((goal) => GoalCard(goal: goal)),
+                    if (isLoading)
+                      const ShimmerList(itemCount: 3)
+                    else
+                      ...goals.map((goal) => GoalCard(goal: goal)),
                   ],
                 ),
               );
