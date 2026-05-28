@@ -81,6 +81,87 @@ class ReportsPage extends StatelessWidget {
                 : 0;
 
             return Scaffold(
+              appBar: AppBar(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'financial_reports_for_year'.tr(),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withValues(alpha: 0.3),
+                          width: 1.2,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedYear,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 28,
+                          ),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          items: years.map((year) {
+                            return DropdownMenuItem<String>(
+                              value: year,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_month,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    year,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                selectedYear = value;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                centerTitle: true,
+                elevation: 0,
+              ),
               body: Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
@@ -89,7 +170,10 @@ class ReportsPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withValues(alpha: 0.2),
                       ),
                     ),
                     child: Padding(
@@ -99,72 +183,7 @@ class ReportsPage extends StatelessWidget {
                           final isSmall = constraints.maxWidth < 700;
                           return Column(
                             children: [
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('financial_reports_for_year'.tr(),
-                                        style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).colorScheme.primary)),
-                                    const SizedBox(width: 12),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surface,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                                            width: 1.2),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 2),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value: selectedYear,
-                                          icon: Icon(
-                                              Icons.keyboard_arrow_down_rounded,
-                                              color: Theme.of(context).colorScheme.primary,
-                                              size: 28),
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context).colorScheme.primary),
-                                          dropdownColor: Theme.of(context).colorScheme.surface,
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          items: years.map((year) {
-                                            return DropdownMenuItem<String>(
-                                              value: year,
-                                              child: Row(
-                                                children: [
-                                                  Icon(Icons.calendar_month,
-                                                      color: Theme.of(context).colorScheme.primary,
-                                                      size: 22),
-                                                  const SizedBox(width: 8),
-                                                  Text(year,
-                                                      style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ],
-                                              ),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            if (value != null) {
-                                              setState(() {
-                                                selectedYear = value;
-                                              });
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 32),
+                              const SizedBox(height: 8),
                               isSmall
                                   ? Column(
                                       children: [

@@ -73,25 +73,34 @@ class _ChartsPageState extends State<ChartsPage> {
               children: [
                 Text(
                   'financial_reports_for_year'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.teal,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.teal.withAlpha((0.08 * 255).toInt()),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.08),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
-                    border: Border.all(color: Colors.teal.shade100, width: 1.2),
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.2),
+                      width: 1.2,
+                    ),
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -100,17 +109,17 @@ class _ChartsPageState extends State<ChartsPage> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: selectedYear,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: Colors.teal,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 28,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.teal,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      dropdownColor: Colors.white,
+                      dropdownColor: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       items: years.map((year) {
                         return DropdownMenuItem<String>(
@@ -119,7 +128,10 @@ class _ChartsPageState extends State<ChartsPage> {
                             children: [
                               Icon(
                                 Icons.calendar_month,
-                                color: Colors.teal.shade300,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.6),
                                 size: 22,
                               ),
                               const SizedBox(width: 8),
@@ -146,7 +158,6 @@ class _ChartsPageState extends State<ChartsPage> {
               ],
             ),
             centerTitle: false,
-            backgroundColor: Colors.green[50],
             elevation: 0,
           ),
           body: _BarLineChartSwitcher(
