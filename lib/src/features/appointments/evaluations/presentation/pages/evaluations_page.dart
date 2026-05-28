@@ -81,7 +81,7 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            if (!(isMobile && _showFilters))
+            if (!isMobile)
               Expanded(
                 child: Focus(
                   focusNode: _searchFocusNode,
@@ -130,6 +130,69 @@ class _EvaluationsPageState extends State<EvaluationsPage> {
                 context.read<EvaluationsBloc>().add(const GetEvaluations());
               },
             ),
+            if (isMobile)
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                tooltip: 'filters'.tr(),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'filters'.tr(),
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children: [
+                              ActionChip(
+                                avatar: const Icon(
+                                  Icons.calendar_month_outlined,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  _selectedDate != null
+                                      ? _selectedDate!
+                                          .toLocal()
+                                          .toString()
+                                          .split(' ')[0]
+                                      : 'filterByDate'.tr(),
+                                ),
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  final selectedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2101),
+                                  );
+                                  if (selectedDate != null) {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _selectedDate = selectedDate;
+                                    });
+                                    if (!context.mounted) return;
+                                    context.read<EvaluationsBloc>().add(
+                                          GetEvaluationsByDate(date: selectedDate),
+                                        );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             if (!isMobile)
               Row(
                 children: [
