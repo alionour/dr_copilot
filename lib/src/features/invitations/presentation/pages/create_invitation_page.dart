@@ -789,7 +789,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   Widget _buildEmailSelectionSection() {
     if (_isLoadingPeople) {
-      return const ShimmerList(itemCount: 5);
+      return ShimmerList(itemCount: 5);
     }
 
     if (_availablePeople.isEmpty && !_useManualEntry) {

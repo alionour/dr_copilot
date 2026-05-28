@@ -1,5 +1,6 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart';
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
@@ -72,7 +73,7 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
       body: BlocBuilder<InvitationBloc, InvitationState>(
         builder: (context, state) {
           if (state is InvitationLoading) {
-            return const ShimmerList(itemCount: 5);
+            return ShimmerList(itemCount: 5);
           }
 
           if (state is InvitationError) {

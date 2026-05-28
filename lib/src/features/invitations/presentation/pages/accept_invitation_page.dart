@@ -52,7 +52,7 @@ class _AcceptInvitationPageState extends State<AcceptInvitationPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
