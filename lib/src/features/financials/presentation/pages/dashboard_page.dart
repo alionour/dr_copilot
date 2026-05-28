@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import '../../../navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
 import 'charts_page.dart' show ChartData;
@@ -14,9 +15,9 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
     // Get real session/evaluation counts from FinancialsBloc state
     final financialsState = context.watch<FinancialsBloc>().state;
-    final now = DateTime.now();
     final yearKey = now.year.toString().padLeft(4, '0');
     final monthKey =
         '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
@@ -97,10 +98,28 @@ class DashboardPage extends StatelessWidget {
             },
           ),
           const SizedBox(height: 18),
-          // 2. Summary cards (real session/evaluation counts)
           // 2. Summary cards (real session/evaluation counts) with visible scrollbar
-          StatefulBuilder(
-            builder: (context, setState) {
+          BlocBuilder<FinancialsBloc, FinancialsState>(
+            builder: (context, state) {
+              final isLoading = state.revenuePerMonth.isEmpty && state.expensesPerMonth.isEmpty;
+              
+              if (isLoading) {
+                return SizedBox(
+                  height: 160,
+                  child: ShimmerList(
+                    itemCount: 1,
+                  ),
+                );
+              }
+              
+              final now = DateTime.now();
+              final monthKey = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+              final yearKey = now.year.toString().padLeft(4, '0');
+              final sessionsYear = state.sessionsCountPerMonth[yearKey] ?? 0;
+              final sessionsMonth = state.sessionsCountPerMonth[monthKey] ?? 0;
+              final evalsYear = state.evaluationsCountPerMonth[yearKey] ?? 0;
+              final evalsMonth = state.evaluationsCountPerMonth[monthKey] ?? 0;
+              
               final ScrollController scrollController = ScrollController();
               return SizedBox(
                 height: 160,
@@ -108,87 +127,77 @@ class DashboardPage extends StatelessWidget {
                   controller: scrollController,
                   thumbVisibility: true,
                   trackVisibility: true,
-                  child: BlocBuilder<FinancialsBloc, FinancialsState>(
-                    builder: (context, state) {
-                      return SingleChildScrollView(
-                        controller: scrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            SizedBox(width: 10),
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.teal,
-                                title: 'totalRevenue'.tr(),
-                                value: state.revenuePerMonth[monthKey]
-                                        ?.toStringAsFixed(2) ??
-                                    '...',
-                                icon: Icons.trending_up,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.redAccent,
-                                title: 'totalExpenses'.tr(),
-                                value: state.expensesPerMonth[monthKey]
-                                        ?.toStringAsFixed(2) ??
-                                    '...',
-                                icon: Icons.trending_down,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Sessions Year
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.blue,
-                                title: '${now.year} ${'sessions'.tr()}',
-                                value: sessionsYear.toString(),
-                                icon: Icons.event_outlined,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Sessions Month
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.blue.shade700,
-                                title:
-                                    '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'sessions'.tr()}',
-                                value: sessionsMonth.toString(),
-                                icon: Icons.event_available_outlined,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Evaluations Year
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.purple,
-                                title: '${now.year} ${'evaluations'.tr()}',
-                                value: evalsYear.toString(),
-                                icon: Icons.assignment_outlined,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Evaluations Month
-                            SizedBox(
-                              width: 200,
-                              child: _SummaryCard(
-                                color: Colors.purple.shade700,
-                                title:
-                                    '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'evaluations'.tr()}',
-                                value: evalsMonth.toString(),
-                                icon: Icons.assignment_turned_in_outlined,
-                              ),
-                            ),
-                          ],
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.teal,
+                            title: 'totalRevenue'.tr(),
+                            value: state.revenuePerMonth[monthKey]
+                                    ?.toStringAsFixed(2) ??
+                                '...',
+                            icon: Icons.trending_up,
+                          ),
                         ),
-                      );
-                    },
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.redAccent,
+                            title: 'totalExpenses'.tr(),
+                            value: state.expensesPerMonth[monthKey]
+                                    ?.toStringAsFixed(2) ??
+                                '...',
+                            icon: Icons.trending_down,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.blue,
+                            title: '${now.year} ${'sessions'.tr()}',
+                            value: sessionsYear.toString(),
+                            icon: Icons.event_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.blue.shade700,
+                            title: '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'sessions'.tr()}',
+                            value: sessionsMonth.toString(),
+                            icon: Icons.event_available_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.purple,
+                            title: '${now.year} ${'evaluations'.tr()}',
+                            value: evalsYear.toString(),
+                            icon: Icons.assignment_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 200,
+                          child: _SummaryCard(
+                            color: Colors.purple.shade700,
+                            title: '${DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now)} ${'evaluations'.tr()}',
+                            value: evalsMonth.toString(),
+                            icon: Icons.assignment_turned_in_outlined,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -210,7 +219,7 @@ class DashboardPage extends StatelessWidget {
           BlocBuilder<TransactionsBloc, dynamic>(
             builder: (context, state) {
               if (state is TransactionsLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return ShimmerList(itemCount: 3);
               } else if (state is TransactionsLoaded ||
                   state is TransactionsCountLoaded) {
                 final transactions = (state is TransactionsLoaded)

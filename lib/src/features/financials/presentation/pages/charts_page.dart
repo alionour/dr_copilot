@@ -1,4 +1,6 @@
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
+import 'package:dr_copilot/src/features/financials/presentation/widgets/year_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -25,6 +27,16 @@ class _ChartsPageState extends State<ChartsPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<FinancialsBloc, FinancialsState>(
       builder: (context, state) {
+        // Show shimmer while loading
+        if (state.revenuePerMonth.isEmpty && state.expensesPerMonth.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('charts'.tr()),
+            ),
+            body: const ShimmerList(itemCount: 3),
+          );
+        }
+        
         // Collect all years from revenue and expenses
         final allKeys = <String>{}
           ..addAll(state.revenuePerMonth.keys)

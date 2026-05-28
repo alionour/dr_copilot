@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/bill_model.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -34,6 +35,8 @@ class BillsAndPaymentsPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        final isLoading = state.bills.isEmpty && state.scheduledBills.isEmpty;
+        
         return Scaffold(
           appBar: AppBar(
             title: Text('billsAndPayments'.tr()),
@@ -48,7 +51,9 @@ class BillsAndPaymentsPage extends StatelessWidget {
               ),
             ],
           ),
-          body: Padding(
+          body: isLoading
+              ? const ShimmerList(itemCount: 5)
+              : Padding(
             padding: const EdgeInsets.all(24.0),
             child: SingleChildScrollView(
               child: Column(

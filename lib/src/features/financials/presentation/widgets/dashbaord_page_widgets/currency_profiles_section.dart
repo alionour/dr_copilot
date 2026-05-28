@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,7 @@ class CurrencyProfilesSection extends StatefulWidget {
 }
 
 class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
-  List<CurrencyProfileModel> _profiles = [];
+  List<CurrencyProfileModel> profiles = [];
   final List<String> _currencies = [
     'USD',
     'EUR',
@@ -43,7 +44,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
 
   void _showAddProfileSheet() {
     String selectedCurrency = _currencies.firstWhere(
-      (c) => !_profiles.any((p) => p.currency == c),
+      (c) => !profiles.any((p) => p.currency == c),
       orElse: () => _currencies[0],
     );
     final nameController = TextEditingController(
@@ -90,7 +91,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                       items: _currencies
                           .where(
                             (c) =>
-                                !_profiles.any((p) => p.currency == c) ||
+                                !profiles.any((p) => p.currency == c) ||
                                 c == selectedCurrency,
                           )
                           .map(
@@ -159,7 +160,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                         return ElevatedButton(
                           onPressed: (() {
                             if (formKey.currentState!.validate()) {
-                              if (_profiles.any(
+                              if (profiles.any(
                                 (p) => p.currency == selectedCurrency,
                               )) {
                                 Navigator.pop(context);
@@ -247,6 +248,16 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
         }
       },
       builder: (context, state) {
+        final profiles = state is FinancialsLoaded 
+            ? state.currencyProfiles 
+            : profiles;
+        final isLoading = state is FinancialsLoading || 
+            (state is! FinancialsLoaded && profiles.isEmpty);
+        
+        if (isLoading) {
+          return const ShimmerList(itemCount: 2);
+        }
+        
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8.0),
           decoration: BoxDecoration(
@@ -282,7 +293,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                     ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
-                      onPressed: _profiles.length >= _currencies.length
+                      onPressed: profiles.length >= _currencies.length
                           ? null
                           : _showAddProfileSheet,
                       icon: const Icon(Icons.add, size: 18),
@@ -296,7 +307,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                if (_profiles.isEmpty)
+                if (profiles.isEmpty)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 24.0),
@@ -322,15 +333,15 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                       ),
                     ),
                   ),
-                if (_profiles.isNotEmpty)
+                if (profiles.isNotEmpty)
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _profiles.length,
+                    itemCount: profiles.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, i) {
-                      final profile = _profiles[i];
+                      final profile = profiles[i];
                       return InkWell(
                         onTap: () {
                           // ... show dialog logic ...
