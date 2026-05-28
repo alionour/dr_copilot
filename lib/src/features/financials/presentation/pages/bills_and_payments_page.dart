@@ -35,8 +35,6 @@ class BillsAndPaymentsPage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        final isLoading = state.bills.isEmpty && state.scheduledBills.isEmpty;
-        
         return Scaffold(
           appBar: AppBar(
             title: Text('billsAndPayments'.tr()),
@@ -51,9 +49,7 @@ class BillsAndPaymentsPage extends StatelessWidget {
               ),
             ],
           ),
-          body: isLoading
-              ? const ShimmerList(itemCount: 5)
-              : Padding(
+          body: Padding(
             padding: const EdgeInsets.all(24.0),
             child: SingleChildScrollView(
               child: Column(
@@ -62,7 +58,10 @@ class BillsAndPaymentsPage extends StatelessWidget {
                   // Scheduling section
                   _ScheduleBillSection(),
                   const SizedBox(height: 16),
-                  _ScheduledBillsSection(scheduledBills: state.scheduledBills),
+                  _ScheduledBillsSection(
+                    scheduledBills: state.scheduledBills,
+                    isLoading: state is FinancialsLoading,
+                  ),
                   Text(
                     'billsAndPayments'.tr(),
                     style: TextStyle(
@@ -73,7 +72,9 @@ class BillsAndPaymentsPage extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  if (state.bills.isEmpty)
+                  if (state is FinancialsLoading && state.bills.isEmpty)
+                    const ShimmerList(itemCount: 5)
+                  else if (state.bills.isEmpty)
                     Center(child: Text('noBills'.tr()))
                   else ...[
                     ...state.bills.map(
@@ -574,10 +575,30 @@ class _ScheduleBillSection extends StatelessWidget {
 
 class _ScheduledBillsSection extends StatelessWidget {
   final List<ScheduledBillModel> scheduledBills;
-  const _ScheduledBillsSection({required this.scheduledBills});
+  final bool isLoading;
+  const _ScheduledBillsSection({required this.scheduledBills, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'scheduledBills'.tr(),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          const ShimmerList(itemCount: 2),
+          const SizedBox(height: 18),
+        ],
+      );
+    }
     if (scheduledBills.isEmpty) {
       return const SizedBox();
     }

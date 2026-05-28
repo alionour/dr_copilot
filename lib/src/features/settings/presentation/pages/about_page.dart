@@ -44,125 +44,141 @@ class _AboutPageState extends State<AboutPage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // App Bar with gradient
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.primary.withValues(alpha: 0.7),
-                      colorScheme.secondary,
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 16),
-                      // App Logo with shadow
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            // App Bar with gradient
+            SliverAppBar(
+              expandedHeight: 260,
+              pinned: true,
+              flexibleSpace: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final top = constraints.biggest.height;
+                  final statusBarHeight = MediaQuery.of(context).padding.top;
+                  // Collapsed height is typically status bar + kToolbarHeight + 48 (TabBar)
+                  final isCollapsed = top <= (statusBarHeight + kToolbarHeight + 70);
+
+                  return FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colorScheme.primary,
+                            colorScheme.primary.withValues(alpha: 0.7),
+                            colorScheme.secondary,
                           ],
                         ),
-                        child: SvgPicture.asset(
-                          'assets/icon.svg',
-                          width: 48,
-                          height: 48,
-                        ),
                       ),
-                      const SizedBox(height: 12),
-                      // App Name
-                      Text(
-                        'drCopilot'.tr(),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Tagline
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'aboutAppTagline'.tr(),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (_packageInfo != null) ...[
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'v${_packageInfo!.version}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 150),
+                        opacity: isCollapsed ? 0.0 : 1.0,
+                        child: SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 48), // Padding for TabBar
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 16),
+                                // App Logo with shadow
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ],
+                                  ),
+                                  child: SvgPicture.asset(
+                                    'assets/icon.svg',
+                                    width: 48,
+                                    height: 48,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                // App Name
+                                Text(
+                                  'drCopilot'.tr(),
+                                  style: theme.textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                // Tagline
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'aboutAppTagline'.tr(),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (_packageInfo != null) ...[
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'v${_packageInfo!.version}',
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              bottom: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.center,
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                tabs: [
+                  Tab(text: 'featuresTitle'.tr()),
+                  Tab(text: 'creditsTitle'.tr()),
+                  Tab(text: 'contactTitle'.tr()),
+                  Tab(text: 'systemInfoTitle'.tr()),
+                ],
               ),
             ),
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
-              tabs: [
-                Tab(text: 'featuresTitle'.tr()),
-                Tab(text: 'creditsTitle'.tr()),
-                Tab(text: 'contactTitle'.tr()),
-                Tab(text: 'systemInfoTitle'.tr()),
-              ],
-            ),
-          ),
-
-          // Tab Content
-          SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFeaturesTab(theme, colorScheme),
-                _buildCreditsTab(theme, colorScheme),
-                _buildContactTab(theme, colorScheme),
-                _buildSystemTab(theme, colorScheme),
-              ],
-            ),
-          ),
-        ],
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildFeaturesTab(theme, colorScheme),
+            _buildCreditsTab(theme, colorScheme),
+            _buildContactTab(theme, colorScheme),
+            _buildSystemTab(theme, colorScheme),
+          ],
+        ),
       ),
     );
   }
@@ -473,7 +489,7 @@ class _AboutPageState extends State<AboutPage>
             value: 'contactEmailValue'.tr(),
             color: Colors.red,
             onTap: () async {
-              final uri = Uri.parse('mailto:support@drcopilot.com');
+              final uri = Uri.parse('mailto:support@dr-ai.com');
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri);
               }
@@ -488,7 +504,7 @@ class _AboutPageState extends State<AboutPage>
             value: 'contactWebsiteValue'.tr(),
             color: Colors.blue,
             onTap: () async {
-              final uri = Uri.parse('https://www.drcopilot.com');
+              final uri = Uri.parse('https://www.dr-ai.com');
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri);
               }

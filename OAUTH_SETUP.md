@@ -17,7 +17,7 @@ You'll need to add **3 secrets** to Doppler for the bot account OAuth to work:
 Create a dedicated Google account for your app:
 
 ```
-Email: drcopilot.reports@gmail.com (or similar)
+Email: drai.reports@gmail.com (or similar)
 Password: [Strong password - save it securely]
 ```
 
@@ -42,7 +42,7 @@ This account will store all clinical report documents (15GB free).
 #### Create/Update OAuth Client:
 - Click **Create Credentials** → **OAuth client ID**
 - **Application type**: Web application
-- **Name**: Dr Copilot OAuth Client
+- **Name**: Dr AI OAuth Client
 - **Authorized redirect URIs**: Add `http://localhost:8080/auth/callback`
 - Click **Create**
 - **Download JSON** or copy the credentials
@@ -77,7 +77,7 @@ doppler run -- dart run tools/oauth_setup.dart
 
 **What happens:**
 1. Browser opens to Google sign-in
-2. **IMPORTANT**: Sign in with your **BOT account** (drcopilot.reports@gmail.com)
+2. **IMPORTANT**: Sign in with your **BOT account** (drai.reports@gmail.com)
 3. Grant permissions when prompted
 4. Terminal will display the refresh token
 
@@ -130,7 +130,7 @@ Check the console for logs like:
 
 ## Verify in Bot Account
 
-1. Sign in to the bot account: drcopilot.reports@gmail.com
+1. Sign in to the bot account: drai.reports@gmail.com
 2. Go to [Google Drive](https://drive.google.com)
 3. You should see the created documents!
 

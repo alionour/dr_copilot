@@ -1,6 +1,7 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,7 +16,7 @@ class CopilotPreferencesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Copilot Preferences'),
+        title: const Text('copilotPreferences').tr(),
       ),
       body: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, state) {
@@ -31,7 +32,7 @@ class CopilotPreferencesPage extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Only admins can modify these settings.',
+                          'onlyAdminsModifySettings'.tr(),
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Colors.orange[800],
@@ -42,10 +43,10 @@ class CopilotPreferencesPage extends StatelessWidget {
                     ],
                   ),
                 ),
-              _buildSectionHeader(context, 'Patient Data Requirements'),
+              _buildSectionHeader(context, 'patientDataRequirements'.tr()),
               _buildSwitch(
                 context,
-                title: 'Require Age',
+                title: 'requireAge'.tr(),
                 keyName: 'patient.age',
                 legacyKey: 'age',
                 currentFields: state.copilotRequiredFields,
@@ -53,7 +54,7 @@ class CopilotPreferencesPage extends StatelessWidget {
               ),
               _buildSwitch(
                 context,
-                title: 'Require Gender',
+                title: 'requireGender'.tr(),
                 keyName: 'patient.gender',
                 legacyKey: 'gender',
                 currentFields: state.copilotRequiredFields,
@@ -61,7 +62,7 @@ class CopilotPreferencesPage extends StatelessWidget {
               ),
               _buildSwitch(
                 context,
-                title: 'Require Phone Number',
+                title: 'requirePhoneNumber'.tr(),
                 keyName: 'patient.phone',
                 legacyKey: 'phoneNumber',
                 currentFields: state.copilotRequiredFields,
@@ -69,59 +70,59 @@ class CopilotPreferencesPage extends StatelessWidget {
               ),
               _buildSwitch(
                 context,
-                title: 'Require Address',
+                title: 'requireAddress'.tr(),
                 keyName: 'patient.address',
                 currentFields: state.copilotRequiredFields,
                 canEdit: canEdit,
               ),
               _buildSwitch(
                 context,
-                title: 'Require Alternative Phone',
+                title: 'requireAlternativePhone'.tr(),
                 keyName: 'patient.alt_phone',
                 currentFields: state.copilotRequiredFields,
                 canEdit: canEdit,
               ),
               _buildSwitch(
                 context,
-                title: 'Require Treating Doctor',
+                title: 'requireTreatingDoctor'.tr(),
                 keyName: 'patient.doctor',
                 currentFields: state.copilotRequiredFields,
                 canEdit: canEdit,
               ),
               _buildSwitch(
                 context,
-                title: 'Require Occupation',
+                title: 'requireOccupation'.tr(),
                 keyName: 'patient.occupation',
                 currentFields: state.copilotRequiredFields,
                 canEdit: canEdit,
               ),
               const Divider(),
-              _buildSectionHeader(context, 'Session Data Requirements'),
+              _buildSectionHeader(context, 'sessionDataRequirements'.tr()),
               _buildSwitch(
                 context,
-                title: 'Require Session Type',
-                subtitle: 'e.g., Standard, Intensive',
+                title: 'requireSessionType'.tr(),
+                subtitle: 'sessionTypeExample'.tr(),
                 keyName: 'session.type',
                 currentFields: state.copilotRequiredFields,
                 canEdit: canEdit,
               ),
               const Divider(),
-              _buildSectionHeader(context, 'Evaluation Data Requirements'),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              _buildSectionHeader(context, 'evaluationDataRequirements'.tr()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
-                  'Doctor ID is strictly required for all sessions and evaluations.',
-                  style: TextStyle(
+                  'doctorIdRequiredWarning'.tr(),
+                  style: const TextStyle(
                       fontStyle: FontStyle.italic, color: Colors.grey),
                 ),
               ),
               const Divider(),
-              _buildSectionHeader(context, 'AI Model Preferences'),
+              _buildSectionHeader(context, 'aiModelPreferences'.tr()),
               SwitchListTile(
-                title: const Text('Use Premium Models'),
+                title: const Text('usePremiumModels').tr(),
                 subtitle: const Text(
-                  'Always use premium AI models (GPT-4, Claude Opus) for better quality responses',
-                ),
+                  'usePremiumModelsDescription',
+                ).tr(),
                 value: state.usePremiumModels,
                 onChanged: canEdit
                     ? (_) {

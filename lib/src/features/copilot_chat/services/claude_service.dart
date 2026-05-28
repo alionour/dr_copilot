@@ -114,7 +114,7 @@ class ClaudeService implements AIService {
     final body = jsonEncode({
       'model': 'claude-3-5-sonnet-20241022',
       'max_tokens': 1024,
-      'system': 'You are Dr. Copilot.',
+      'system': 'You are Dr. AI.',
       'messages': messages,
     });
     for (int i = 0; i < keys.length; i++) {

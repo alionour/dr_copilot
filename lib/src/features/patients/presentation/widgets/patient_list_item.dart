@@ -152,8 +152,10 @@ class _PatientListItemState extends State<PatientListItem> {
                     widget.patientModel.occupation,
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
                       OutlinedButton.icon(
                         onPressed: () {
@@ -171,7 +173,6 @@ class _PatientListItemState extends State<PatientListItem> {
                           side: BorderSide(color: colorScheme.primary),
                         ),
                       ),
-                      const SizedBox(width: 12),
                       if (OwnerNotifier()
                           .hasPermission(AppPermission.updatePatient))
                         OutlinedButton.icon(
@@ -188,9 +189,6 @@ class _PatientListItemState extends State<PatientListItem> {
                             side: BorderSide(color: colorScheme.primary),
                           ),
                         ),
-                      if (OwnerNotifier()
-                          .hasPermission(AppPermission.updatePatient))
-                        const SizedBox(width: 12),
                       if (OwnerNotifier()
                           .hasPermission(AppPermission.deletePatient))
                         OutlinedButton.icon(

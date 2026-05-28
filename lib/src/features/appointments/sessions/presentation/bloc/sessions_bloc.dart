@@ -40,7 +40,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
   }
 
   void _onGetSessions(GetSessions event, Emitter<SessionsState> emit) async {
-    emit(SessionsLoading(state.sessions));
+    emit(SessionsLoading(state.sessions, totalCount: state.totalCount));
     final failureOrSessions = await _sessionsUseCase.getSessions(
       lastDocumentID: event.lastDocumentID,
       limit: event.limit,
@@ -50,19 +50,20 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
-        (sessions) => SessionsLoaded(sessions),
+        (sessions) => SessionsLoaded(sessions, totalCount: state.totalCount),
       ),
     );
   }
 
   void _onAddSession(AddSession event, Emitter<SessionsState> emit) async {
-    emit(SessionsLoading(state.sessions));
+    emit(SessionsLoading(state.sessions, totalCount: state.totalCount));
     final failureOrSession = await _sessionsUseCase.addSession(event.model);
     await failureOrSession.fold(
       (failure) {
         emit(
-          SessionsError(state.sessions, message: _mapFailureToMessage(failure)),
+          SessionsError(state.sessions, message: _mapFailureToMessage(failure), totalCount: state.totalCount),
         );
       },
       (addedSession) async {
@@ -72,7 +73,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           ..add(addedSession)
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
 
-        emit(SessionsLoaded(sessions));
+        emit(SessionsLoaded(sessions, totalCount: state.totalCount));
 
         // After session is added, create the invoice with referenceId = sessionId
         final invoice = InvoiceModel(
@@ -118,16 +119,14 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
         (updatedSession) {
           debugPrint('Update successful: ${updatedSession.toJson()}');
           final sessions = state.sessions.map((session) {
             return session.id == updatedSession.id ? updatedSession : session;
           }).toList();
-          emit(
-            SessionsSuccess(sessions, message: 'Session updated successfully'),
-          );
-          return SessionsLoaded(sessions);
+          return SessionsSuccess(sessions, message: 'sessionUpdated'.tr(), totalCount: state.totalCount);
         },
       ),
     );
@@ -137,7 +136,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     DeleteSession event,
     Emitter<SessionsState> emit,
   ) async {
-    emit(SessionsLoading(state.sessions));
+    emit(SessionsLoading(state.sessions, totalCount: state.totalCount));
     final failureOrSession = await _sessionsUseCase.deleteSession(
       event.sessionId,
     );
@@ -146,12 +145,12 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
         (deletedSession) async {
           debugPrint('Delete successful: ${event.sessionId}');
           final sessions = state.sessions
             ..removeWhere((session) => session.id == event.sessionId);
-          emit(SessionsSuccess(sessions, message: 'sessionDeleted'.tr()));
           // If the invoice and transaction should be deleted, handle that here
           if (event.deleteInvoiceAndTransaction) {
             final failureOrInvoice = await _financialsUseCase
@@ -161,6 +160,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                 return SessionsError(
                   state.sessions,
                   message: _mapFailureToMessage(failure),
+                  totalCount: state.totalCount,
                 );
               },
               (deletedInvoice) async {
@@ -172,6 +172,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                   (failure) => SessionsError(
                     state.sessions,
                     message: _mapFailureToMessage(failure),
+                    totalCount: state.totalCount,
                   ),
                   (deletedTransaction) {
                     debugPrint(
@@ -180,13 +181,14 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
                     return SessionsSuccess(
                       sessions,
                       message: 'invoiceAndTransactionDeleted'.tr(),
+                      totalCount: state.totalCount,
                     );
                   },
                 );
               },
             );
           }
-          return SessionsLoaded(sessions);
+          return SessionsSuccess(sessions, message: 'sessionDeleted'.tr(), totalCount: state.totalCount);
         },
       ),
     );
@@ -196,7 +198,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     SearchSessions event,
     Emitter<SessionsState> emit,
   ) async {
-    emit(SessionsLoading(state.sessions));
+    emit(SessionsLoading(state.sessions, totalCount: state.totalCount));
     final failureOrSessions = await _sessionsUseCase.searchSessions(
       name: event.name,
     );
@@ -205,8 +207,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
-        (sessions) => SessionsLoaded(sessions),
+        (sessions) => SessionsLoaded(sessions, totalCount: state.totalCount),
       ),
     );
   }
@@ -215,7 +218,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     GetSessionsByDate event,
     Emitter<SessionsState> emit,
   ) async {
-    emit(SessionsLoading(state.sessions));
+    emit(SessionsLoading(state.sessions, totalCount: state.totalCount));
     final failureOrSessions = await _sessionsUseCase.getSessionsByDate(
       event.date,
     );
@@ -224,8 +227,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
-        (sessions) => SessionsLoaded(sessions),
+        (sessions) => SessionsLoaded(sessions, totalCount: state.totalCount),
       ),
     );
   }
@@ -238,7 +242,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
       final currentState = state as SessionsLoaded;
       if (currentState.isLoadingMore) return;
 
-      emit(SessionsLoaded(currentState.sessions, isLoadingMore: true));
+      emit(SessionsLoaded(currentState.sessions, isLoadingMore: true, totalCount: currentState.totalCount));
       await Future.delayed(Duration(seconds: 1));
       final result = await _sessionsUseCase.getSessions(
         lastDocumentID: event.lastDocumentId,
@@ -254,6 +258,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
             SessionsError(
               currentState.sessions,
               message: _mapFailureToMessage(failure),
+              totalCount: currentState.totalCount,
             ),
           );
         },
@@ -272,7 +277,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           debugPrint(
             'Updated sessions list contains ${updatedSessions.length} sessions.',
           );
-          emit(SessionsLoaded(updatedSessions));
+          emit(SessionsLoaded(updatedSessions, totalCount: currentState.totalCount));
         },
       );
     }
@@ -282,7 +287,7 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
     DetectSessionType event,
     Emitter<SessionsState> emit,
   ) async {
-    emit(SessionsLoading(state.sessions));
+    emit(SessionsLoading(state.sessions, totalCount: state.totalCount));
     final failureOrSessionType = await _sessionsUseCase.detectSessionType(
       event.patientId,
     );
@@ -291,8 +296,9 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
-        (sessionType) => SessionTypeDetected(sessionType),
+        (sessionType) => SessionTypeDetected(sessionType, totalCount: state.totalCount),
       ),
     );
   }
@@ -316,10 +322,27 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
         (failure) => SessionsError(
           state.sessions,
           message: _mapFailureToMessage(failure),
+          totalCount: state.totalCount,
         ),
         (acc) {
-          debugPrint('Total sessions count: $count');
-          return SessionsCountLoaded(acc, state.sessions);
+          debugPrint('Total sessions count: $acc');
+          final currentState = state;
+          if (currentState is SessionsLoaded) {
+            return SessionsLoaded(
+              currentState.sessions,
+              isLoadingMore: currentState.isLoadingMore,
+              totalCount: acc,
+            );
+          } else if (currentState is SessionsLoading) {
+            return SessionsLoading(currentState.sessions, totalCount: acc);
+          } else if (currentState is SessionsLoadingMore) {
+            return SessionsLoadingMore(currentState.sessions, totalCount: acc);
+          } else if (currentState is SessionsSuccess) {
+            return SessionsSuccess(currentState.sessions, message: currentState.message, totalCount: acc);
+          } else if (currentState is SessionsError) {
+            return SessionsError(currentState.sessions, message: currentState.message, totalCount: acc);
+          }
+          return SessionsInitial(currentState.sessions, totalCount: acc);
         },
       ),
     );
@@ -408,7 +431,6 @@ class SessionsBloc extends Bloc<SessionsEvent, SessionsState> {
           message: 'sessionInvoiceAndTransactionAddedSuccessfully'.tr(),
         ),
       );
-      emit(SessionsLoaded(state.sessions));
     } catch (e) {
       emit(
         SessionsError(state.sessions, message: 'failedToAddTransaction'.tr()),

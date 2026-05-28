@@ -12,11 +12,67 @@ import 'package:flutter/services.dart';
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
 
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: SelectionArea(
+          child: Text('copiedToClipboard'.tr()),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(
+    BuildContext context, {
+    required String label,
+    required String value,
+    String? copyValue,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: textTheme.bodyLarge,
+          ),
+        ),
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (copyValue != null)
+                IconButton(
+                  tooltip: MaterialLocalizations.of(
+                    context,
+                  ).copyButtonLabel,
+                  icon: const Icon(Icons.copy, size: 16),
+                  onPressed: () => _copyToClipboard(context, copyValue),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final ownerNotifier = context.watch<OwnerNotifier>();
+    final locale = context.locale.toString();
 
+    final userId = user?.uid;
     final phoneNumber = user?.phoneNumber;
     final creationTime = user?.metadata.creationTime;
     final lastSignInTime = user?.metadata.lastSignInTime;
@@ -25,7 +81,7 @@ class AccountPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('account'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () {
             context.pop();
           },
@@ -40,7 +96,7 @@ class AccountPage extends StatelessWidget {
               if (user?.photoURL != null)
                 GestureDetector(
                   onTap: () {
-                    final photoUrl = user?.photoURL;
+                    final photoUrl = user.photoURL;
                     final highResUrl = photoUrl != null
                         ? photoUrl.replaceAll(RegExp(r's\d+-c'), 's400-c')
                         : '';
@@ -55,8 +111,8 @@ class AccountPage extends StatelessWidget {
                               child: Image.network(
                                 highResUrl,
                                 fit: BoxFit.cover,
-                                width: 300,
-                                height: 300,
+                                width: MediaQuery.of(context).size.shortestSide * 0.7,
+                                height: MediaQuery.of(context).size.shortestSide * 0.7,
                               ),
                             ),
                           ),
@@ -66,7 +122,7 @@ class AccountPage extends StatelessWidget {
                   },
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage(user?.photoURL ?? ''),
+                    backgroundImage: NetworkImage(user!.photoURL!),
                   ),
                 ),
               const SizedBox(height: 24), // Increased spacing
@@ -89,40 +145,11 @@ class AccountPage extends StatelessWidget {
                           vertical: 8.0,
                           horizontal: 16.0,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'name'.tr(),
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            Row(
-                              children: [
-                                if (user?.displayName != null)
-                                  IconButton(
-                                    icon: const Icon(Icons.copy, size: 16),
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                        ClipboardData(text: user!.displayName!),
-                                      );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: SelectionArea(child: Text(
-                                            'copiedToClipboard'.tr(),
-                                          )),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                Text(
-                                  user?.displayName ?? 'not_available'.tr(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ],
+                        child: _infoRow(
+                          context,
+                          label: 'name'.tr(),
+                          value: user?.displayName ?? 'not_available'.tr(),
+                          copyValue: user?.displayName,
                         ),
                       ),
                       Padding(
@@ -130,83 +157,24 @@ class AccountPage extends StatelessWidget {
                           vertical: 8.0,
                           horizontal: 16.0,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'email'.tr(),
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            Row(
-                              children: [
-                                if (user?.email != null)
-                                  IconButton(
-                                    icon: const Icon(Icons.copy, size: 16),
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                        ClipboardData(text: user!.email!),
-                                      );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: SelectionArea(child: Text(
-                                            'copiedToClipboard'.tr(),
-                                          )),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                Text(
-                                  user?.email ?? 'not_available'.tr(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ],
+                        child: _infoRow(
+                          context,
+                          label: 'email'.tr(),
+                          value: user?.email ?? 'not_available'.tr(),
+                          copyValue: user?.email,
                         ),
                       ),
-                      if (user?.uid != null)
+                      if (userId != null)
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 8.0,
                             horizontal: 16.0,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'userId'.tr(),
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.copy, size: 16),
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                        ClipboardData(text: user!.uid),
-                                      );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: SelectionArea(child: Text(
-                                            'copiedToClipboard'.tr(),
-                                          )),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  Text(
-                                    user!.uid,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                            ],
+                          child: _infoRow(
+                            context,
+                            label: 'userId'.tr(),
+                            value: userId,
+                            copyValue: userId,
                           ),
                         ),
                       if (phoneNumber != null && phoneNumber.isNotEmpty)
@@ -215,18 +183,10 @@ class AccountPage extends StatelessWidget {
                             vertical: 8.0,
                             horizontal: 16.0,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'phoneNumber'.tr(),
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              Text(
-                                phoneNumber,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
+                          child: _infoRow(
+                            context,
+                            label: 'phoneNumber'.tr(),
+                            value: phoneNumber,
                           ),
                         ),
                       Padding(
@@ -234,20 +194,12 @@ class AccountPage extends StatelessWidget {
                           vertical: 8.0,
                           horizontal: 16.0,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'emailVerified'.tr(),
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            Text(
-                              user?.emailVerified == true
-                                  ? 'yes'.tr()
-                                  : 'no'.tr(),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
+                        child: _infoRow(
+                          context,
+                          label: 'emailVerified'.tr(),
+                          value: user?.emailVerified == true
+                              ? 'yes'.tr()
+                              : 'no'.tr(),
                         ),
                       ),
                       if (creationTime != null)
@@ -256,18 +208,12 @@ class AccountPage extends StatelessWidget {
                             vertical: 8.0,
                             horizontal: 16.0,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'accountCreationTime'.tr(),
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              Text(
-                                DateFormat.yMd().add_jm().format(creationTime),
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
+                          child: _infoRow(
+                            context,
+                            label: 'accountCreationTime'.tr(),
+                            value: DateFormat.yMd(locale)
+                                .add_jm()
+                                .format(creationTime),
                           ),
                         ),
                       if (lastSignInTime != null)
@@ -276,20 +222,12 @@ class AccountPage extends StatelessWidget {
                             vertical: 8.0,
                             horizontal: 16.0,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'lastSignInTime'.tr(),
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              Text(
-                                DateFormat.yMd().add_jm().format(
-                                  lastSignInTime,
-                                ),
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
+                          child: _infoRow(
+                            context,
+                            label: 'lastSignInTime'.tr(),
+                            value: DateFormat.yMd(locale)
+                                .add_jm()
+                                .format(lastSignInTime),
                           ),
                         ),
                     ],
@@ -319,52 +257,16 @@ class AccountPage extends StatelessWidget {
                           ),
                           child: Builder(
                             builder: (context) {
-                              // Debug logging
-                              debugPrint(
-                                '[AccountPage] Primary Clinic Lookup:',
-                              );
-                              debugPrint(
-                                '  clinicId: ${ownerNotifier.clinicId}',
-                              );
-                              debugPrint(
-                                '  Total clinics loaded: ${ownerNotifier.clinics.length}',
-                              );
-                              debugPrint(
-                                '  Clinic IDs: ${ownerNotifier.clinics.map((c) => c.id).toList()}',
-                              );
-
                               final primaryClinic = ownerNotifier.clinics
                                   .firstWhereOrNull(
                                     (c) => c.id == ownerNotifier.clinicId,
                                   );
 
-                              if (primaryClinic != null) {
-                                debugPrint(
-                                  '  Found clinic: ${primaryClinic.name}',
-                                );
-                              } else {
-                                debugPrint(
-                                  '  ❌ Clinic not found in loaded clinics!',
-                                );
-                              }
-
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'primaryClinic'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                  Text(
+                              return _infoRow(
+                                context,
+                                label: 'primaryClinic'.tr(),
+                                value:
                                     primaryClinic?.name ?? 'not_available'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium,
-                                  ),
-                                ],
                               );
                             },
                           ),
@@ -387,23 +289,35 @@ class AccountPage extends StatelessWidget {
                   ),
                 ),
               ),
-              // const SizedBox(height: 24), // Spacing between sections
-              // Card(
-              //   margin: const EdgeInsets.symmetric(horizontal: 16.0),
-              //   child: ListTile(
-              //     leading: const Icon(Icons.folder_open),
-              //     title: Text('cases'.tr()),
-              //     onTap: () {
-              //       context.go('/cases');
-              //     },
-              //   ),
-              // ),
-              const SizedBox(height: 24), // Spacing before button
+              const SizedBox(height: 24),
               ElevatedButton(
                 key: const Key('logout_button'),
-                onPressed: () async {
-                  debugPrint('Sign-out button pressed');
-                  context.read<AuthBloc>().add(SignOutEvent());
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text('signOut'.tr()),
+                      content: Text('signOutConfirm'.tr()),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: Text('cancel'.tr()),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            context.read<AuthBloc>().add(SignOutEvent());
+                          },
+                          child: Text(
+                            'signOut'.tr(),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 child: Text('signOut'.tr()),
               ),

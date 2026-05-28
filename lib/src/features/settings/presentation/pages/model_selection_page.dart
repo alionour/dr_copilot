@@ -106,11 +106,12 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: SelectionArea(child: Text(
-            'Upgrade to $requiredPlan to use ${_availableModels[model]}',
+          content: SelectionArea(
+              child: Text(
+            'upgradeToUseModel'.tr(args: [requiredPlan, _availableModels[model] ?? model]),
           )),
           action: SnackBarAction(
-            label: 'Upgrade',
+            label: 'upgrade'.tr(),
             onPressed: () => context.push('/settings/subscription'),
           ),
         ),
@@ -132,7 +133,7 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
       appBar: AppBar(
         title: Text('aiModelSettings'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),
@@ -203,10 +204,9 @@ class _ModelSelectionPageState extends State<ModelSelectionPage> {
               ),
               subtitle: !isAllowed
                   ? Text(
-                      'Upgrade to ${[
-                        'claude',
-                        'vertex_ai'
-                      ].contains(modelKey) ? "Elite" : "Pro"} to use',
+                      ['claude', 'vertex_ai'].contains(modelKey)
+                          ? 'upgradeToEliteToUse'.tr()
+                          : 'upgradeToProToUse'.tr(),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                         fontSize: 12,

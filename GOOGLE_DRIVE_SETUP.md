@@ -12,7 +12,7 @@ Create a shared Google Drive folder and give the service account access to it.
 
 1. Go to [Google Drive](https://drive.google.com) (sign in with your personal Google account)
 2. Click **"New"** → **"Folder"**
-3. Name it: **"Dr Copilot Clinical Reports"**
+3. Name it: **"Dr AI Clinical Reports"**
 4. Click **"Create"**
 
 ### 2. Share the Folder with Service Account

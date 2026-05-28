@@ -47,7 +47,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
         (failure) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: SelectionArea(child: Text('Error loading user: ${failure.message}'))),
+              SnackBar(content: SelectionArea(child: Text('errorLoadingUser'.tr(args: [failure.message])))),
             );
           }
         },
@@ -130,7 +130,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Error: ${e.toString()}'))),
+          SnackBar(content: SelectionArea(child: Text('errorMessage'.tr(args: [e.toString()])))),
         );
       }
     }
@@ -218,7 +218,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
     if (_clinicId == null) {
       return Scaffold(
         appBar: AppBar(title: Text('kioskManagement'.tr())),
-        body: const Center(child: Text('Error: No Clinic ID found')),
+        body: Center(child: Text('errorNoClinicId'.tr())),
       );
     }
 
@@ -246,11 +246,11 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.public,
-                                color: Colors.blue, size: 32),
+                            child: Icon(Icons.public,
+                                color: Theme.of(context).colorScheme.primary, size: 32),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -272,7 +272,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                                       .textTheme
                                       .bodyMedium
                                       ?.copyWith(
-                                        color: Colors.grey.shade600,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                               ],
@@ -284,10 +284,10 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: Colors.grey.withValues(alpha: 0.2)),
+                              color: Theme.of(context).colorScheme.outlineVariant),
                         ),
                         child: Row(
                           children: [
@@ -295,7 +295,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                               child: SelectableText(
                                 'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId',
                                 style: TextStyle(
-                                  color: Colors.grey.shade800,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontFamily: 'monospace',
                                 ),
                                 maxLines: 1,
@@ -308,7 +308,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                                     text:
                                         'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId'));
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: SelectionArea(child: Text('Link copied!'))),
+                                  SnackBar(content: SelectionArea(child: Text('linkCopied'.tr()))),
                                 );
                               },
                             ),
@@ -317,19 +317,26 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                       ),
                       const SizedBox(height: 24),
                       Center(
-                        child: QrImageView(
-                          data:
-                              'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId',
-                          version: QrVersions.auto,
-                          size: 200.0,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: QrImageView(
+                            data:
+                                'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/booking.html?clinicId=$_clinicId',
+                            version: QrVersions.auto,
+                            size: 200.0,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Center(
                         child: Text(
                           'scanToBook'.tr(),
                           style: TextStyle(
-                              color: Colors.grey.shade600, fontSize: 12),
+                              color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                         ),
                       ),
                     ],
@@ -344,7 +351,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                   child: Column(
                     children: [
                       Icon(Icons.tablet_mac,
-                          size: 64, color: Colors.blue.shade700),
+                          size: 64, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(height: 16),
                       Text(
                         'generateKioskLinkTitle'.tr(),
@@ -355,7 +362,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                       Text(
                         'generateKioskLinkDescription'.tr(),
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey.shade600),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -371,9 +378,9 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.green.withValues(alpha: 0.15) : Colors.green.shade50,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.green),
+                            border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
                           ),
                           child: Column(
                             children: [
@@ -388,8 +395,8 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                                   IconButton(
                                     onPressed: () =>
                                         _showQrCode(_generatedLink!),
-                                    icon: const Icon(Icons.qr_code,
-                                        color: Colors.green),
+                                    icon: Icon(Icons.qr_code,
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.green.shade300 : Colors.green),
                                     tooltip: 'showQrCode'.tr(),
                                   ),
                                   IconButton(
@@ -402,7 +409,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                               const SizedBox(height: 8),
                               Text(
                                 'shareThisLinkWithTablet'.tr(),
-                                style: TextStyle(color: Colors.green.shade700),
+                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.green.shade300 : Colors.green.shade700),
                               ),
                             ],
                           ),
@@ -461,16 +468,17 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                           'https://hg4orotvf0.execute-api.us-east-1.amazonaws.com/kiosk.html?token=$token&clinicId=$_clinicId';
 
                       return Card(
-                        color: active ? null : Colors.grey.shade100,
+                        color: active ? null : (Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade900 : Colors.grey.shade100),
                         child: ListTile(
                           leading: Icon(
                             active ? Icons.check_circle : Icons.cancel,
                             color: active ? Colors.green : Colors.red,
                           ),
                           title: Text(
-                            link,
+                            'kioskLink'.tr(),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
                               decoration:
                                   active ? null : TextDecoration.lineThrough,
                             ),
@@ -486,7 +494,7 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
                                   '${'lastUsed'.tr()}: ${DateFormat('MMM dd, yyyy h:mm a').format(lastUsedAt.toDate())}',
                                 ),
                               Text(
-                                '${'status'.tr()}: ${active ? 'Active' : 'Revoked'}',
+                                '${'status'.tr()}: ${active ? 'active'.tr() : 'revoked'.tr()}',
                                 style: TextStyle(
                                   color: active ? Colors.green : Colors.red,
                                   fontWeight: FontWeight.bold,
@@ -538,10 +546,17 @@ class _KioskManagementPageState extends State<KioskManagementPage> {
           width: 300,
           height: 300,
           child: Center(
-            child: QrImageView(
-              data: link,
-              version: QrVersions.auto,
-              size: 280.0,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: QrImageView(
+                data: link,
+                version: QrVersions.auto,
+                size: 280.0,
+              ),
             ),
           ),
         ), // Fixed: Removed unsupported gapless enum

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class EmptyChatPlaceholder extends StatelessWidget {
@@ -18,7 +19,7 @@ class EmptyChatPlaceholder extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F0F0),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12.0),
               ),
               child: Column(
@@ -27,7 +28,7 @@ class EmptyChatPlaceholder extends StatelessWidget {
                   LayoutBuilder(
                     builder: (context, textConstraints) {
                       return Text(
-                        "Hi! I'm Dr. Copilot 👋\nI'm your AI assistant. I can help you with:",
+                        'copilotGreeting'.tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
@@ -77,15 +78,15 @@ class EmptyChatPlaceholder extends StatelessWidget {
     bool canManageEvals = permissions.contains('createEvaluation') ||
         permissions.contains('updateEvaluation');
 
-    if (canManagePatients) capabilities.add('Manage Patients 👥');
-    if (canManageSessions) capabilities.add('Schedule Sessions 📅');
-    if (canManageEvals) capabilities.add('Track Evaluations 📊');
+    if (canManagePatients) capabilities.add('copilotManagePatients'.tr());
+    if (canManageSessions) capabilities.add('copilotScheduleSessions'.tr());
+    if (canManageEvals) capabilities.add('copilotTrackEvaluations'.tr());
     if (permissions.contains('viewCharts') ||
         permissions.contains('viewReports')) {
-      capabilities.add('Analyze Clinic Data 📈');
+      capabilities.add('copilotAnalyzeData'.tr());
     }
     if (permissions.contains('viewFinancials')) {
-      capabilities.add('Check Financials 💰');
+      capabilities.add('copilotCheckFinancials'.tr());
     }
 
     if (capabilities.isEmpty) return const SizedBox.shrink();

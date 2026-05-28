@@ -6,6 +6,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/app/notifiers/owner_notifier.dart';
 import '../../domain/models/task_model.dart';
 import '../bloc/tasks_bloc.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class AddEditTaskDialog extends StatefulWidget {
   final TaskModel? task;
@@ -150,7 +152,7 @@ class _AddEditTaskDialogState extends State<AddEditTaskDialog> {
           child: Text('cancel'.tr()),
         ),
         ElevatedButton(
-          onPressed: _save,
+          onPressed: _save.throttle(),
           child: Text(isEdit ? 'save'.tr() : 'add'.tr()),
         ),
       ],

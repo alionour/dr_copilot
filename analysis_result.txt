@@ -1,27 +1,121 @@
-Checking Dart SDK at F:\Ali\flutter\flutter_windows_stable\flutter\bin\..\bin\cache\dart-sdk\bin\dart.exe ...
-Dart SDK found. Running Flutter...
 Analyzing dr_copilot...                                         
 
-  error - Expected to find ';' - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:284:7 - expected_token
-warning - Dead code - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:284:8 - dead_code
-  error - Expected an identifier - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:284:8 - missing_identifier
-  error - Expected to find ';' - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:284:8 - expected_token
-  error - Unexpected text ';' - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:284:8 - unexpected_token
-  error - Expected an identifier - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:285:5 - missing_identifier
-  error - Unexpected text ';' - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:285:5 - unexpected_token
-   info - Unnecessary empty statement - lib\src\features\clinical_reports\presentation\pages\clinical_report_details_page.dart:285:6 - empty_statements
-   info - Statements in an if should be enclosed in a block - lib\src\features\clinical_reports\presentation\pages\marker_types_management_page.dart:166:11 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\features\clinical_reports\presentation\pages\marker_types_management_page.dart:170:11 - curly_braces_in_flow_control_structures
-   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - lib\src\features\clinical_reports\presentation\pages\marker_types_management_page.dart:228:13 - deprecated_member_use
-   info - Statements in an if should be enclosed in a block - lib\src\features\clinical_reports\presentation\pages\marker_types_management_page.dart:354:9 - curly_braces_in_flow_control_structures
-   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:403:62 - use_build_context_synchronously
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:602:58 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:648:49 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:736:42 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:138:55 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:336:58 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:389:49 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:470:42 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:627:46 - deprecated_member_use
+  error - The element type 'int?' can't be assigned to the list type 'Object' - lib\src\features\appointments\evaluations\presentation\bloc\evaluations_state.dart:40:58 - list_element_type_not_assignable
+warning - Unused import: 'package:shimmer/shimmer.dart' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:10:8 - unused_import
+  error - The element type 'int?' can't be assigned to the list type 'Object' - lib\src\features\appointments\sessions\presentation\bloc\sessions_state.dart:52:55 - list_element_type_not_assignable
+warning - Unused import: 'package:shimmer/shimmer.dart' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:10:8 - unused_import
+warning - The value of the local variable 'invitedClinicName' isn't used - lib\src\features\auth\data\remote\auth_firebase_api.dart:445:13 - unused_local_variable
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\auth\presentation\pages\signup_page.dart:144:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\auth\presentation\pages\signup_page.dart:147:11 - use_build_context_synchronously
+  error - The method '_getViewLabel' isn't defined for the type '_CalendarViewState' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:193:21 - undefined_method
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\calendar\presentation\widgets\calendar_view.dart:276:1 - expected_executable
+   info - Missing type annotation - lib\src\features\calendar\presentation\widgets\calendar_view.dart:278:9 - strict_top_level_inference
+  error - 'catch' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:278:9 - expected_identifier_but_got_keyword
+   info - Missing type annotation - lib\src\features\calendar\presentation\widgets\calendar_view.dart:278:16 - strict_top_level_inference
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\calendar\presentation\widgets\calendar_view.dart:279:5 - expected_executable
+   info - Missing type annotation - lib\src\features\calendar\presentation\widgets\calendar_view.dart:282:5 - strict_top_level_inference
+  error - 'switch' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:282:5 - expected_identifier_but_got_keyword
+  error - Undefined class 'type' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:282:13 - undefined_class
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:282:23 - missing_identifier
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:37 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:283:37 - unexpected_token
+warning - Dead code - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:7 - dead_code
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:40 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:285:40 - unexpected_token
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:41 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:287:41 - unexpected_token
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:37 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:289:37 - unexpected_token
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:38 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:291:38 - unexpected_token
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:43 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:293:43 - unexpected_token
+  error - 'case' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:7 - expected_token
+  error - Undefined name 'case' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:7 - undefined_identifier
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:30 - expected_token
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:41 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:295:41 - unexpected_token
+  error - 'default' can't be used as an identifier because it's a keyword - lib\src\features\calendar\presentation\widgets\calendar_view.dart:297:7 - expected_identifier_but_got_keyword
+  error - Expected a statement - lib\src\features\calendar\presentation\widgets\calendar_view.dart:297:7 - missing_statement
+  error - Expected to find ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:297:7 - expected_token
+  error - Undefined name 'default' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:297:7 - undefined_identifier
+  error - Expected an identifier - lib\src\features\calendar\presentation\widgets\calendar_view.dart:297:14 - missing_identifier
+  error - Unexpected text ';' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:297:14 - unexpected_token
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\calendar\presentation\widgets\calendar_view.dart:300:3 - expected_executable
+  error - Undefined name 'appointments' - lib\src\features\calendar\presentation\widgets\calendar_view.dart:304:19 - undefined_identifier
+  error - Expected a method, getter, setter or operator declaration - lib\src\features\calendar\presentation\widgets\calendar_view.dart:308:1 - expected_executable
+   info - The import of 'package:intl/intl.dart' is unnecessary because all of the used elements are also provided by the import of 'package:easy_localization/easy_localization.dart' - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:8:8 - unnecessary_import
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:493:64 - use_build_context_synchronously
+   info - The import of 'package:intl/intl.dart' is unnecessary because all of the used elements are also provided by the import of 'package:easy_localization/easy_localization.dart' - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:4:8 - unnecessary_import
+   info - The member 'clearAccumulatedTranscript' overrides an inherited member but isn't annotated with '@override' - lib\src\features\copilot_chat\data\services\speech_recognition_service.dart:41:8 - annotate_overrides
+warning - The operand can't be 'null', so the condition is always 'true' - lib\src\features\copilot_chat\data\services\speech_recognition_service.dart:371:50 - unnecessary_null_comparison
+   info - Empty catch block - lib\src\features\copilot_chat\services\claude_service.dart:134:19 - empty_catches
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:208:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:209:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:217:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:458:38 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\inventory\presentation\pages\add_edit_inventory_page.dart:100:17 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:247:27 - use_build_context_synchronously
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:515:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:516:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:521:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:522:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:567:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:568:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:573:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:574:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:618:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:619:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:624:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:625:11 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:293:39 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:444:35 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:493:35 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:540:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\patients\presentation\pages\patient_details_page.dart:365:37 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:514:21 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:755:17 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:756:17 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:763:17 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:764:17 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:840:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:846:22 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:851:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:898:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:904:24 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:909:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\data_storage_settings_page.dart:35:30 - use_build_context_synchronously
+   info - Unnecessary use of 'toList' in a spread - lib\src\features\tasks\presentation\pages\add_edit_task_page.dart:226:28 - unnecessary_to_list_in_spreads
 
-21 issues found. (ran in 17.6s)

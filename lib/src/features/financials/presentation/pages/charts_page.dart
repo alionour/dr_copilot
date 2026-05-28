@@ -28,16 +28,6 @@ class _ChartsPageState extends State<ChartsPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<FinancialsBloc, FinancialsState>(
       builder: (context, state) {
-        // Show shimmer while loading
-        if (state.revenuePerMonth.isEmpty && state.expensesPerMonth.isEmpty) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('charts'.tr()),
-            ),
-            body: const ShimmerList(itemCount: 3),
-          );
-        }
-        
         // Collect all years from revenue and expenses
         final allKeys = <String>{}
           ..addAll(state.revenuePerMonth.keys)
@@ -88,6 +78,8 @@ class _ChartsPageState extends State<ChartsPage> {
           (sum, d) => sum + d.expenses,
         );
 
+        final isLoading = state.revenuePerMonth.isEmpty && state.expensesPerMonth.isEmpty;
+
         return Scaffold(
           appBar: AppBar(
             title: Row(
@@ -118,11 +110,13 @@ class _ChartsPageState extends State<ChartsPage> {
             centerTitle: false,
             elevation: 0,
           ),
-          body: _BarLineChartSwitcher(
-            chartData: chartData,
-            totalRevenue: totalRevenue,
-            totalExpenses: totalExpenses,
-          ),
+          body: isLoading
+              ? const ShimmerList(itemCount: 3)
+              : _BarLineChartSwitcher(
+                  chartData: chartData,
+                  totalRevenue: totalRevenue,
+                  totalExpenses: totalExpenses,
+                ),
         );
       },
     );

@@ -11,7 +11,7 @@ class ApiKeySettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('apiKeySettings'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),

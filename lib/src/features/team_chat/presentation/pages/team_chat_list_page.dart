@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,6 +8,7 @@ import 'package:dr_copilot/src/core/injections.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import '../bloc/team_chat_list_bloc.dart';
 import '../../data/models/team_conversation_model.dart';
+
 
 class TeamChatListPage extends StatelessWidget {
   const TeamChatListPage({super.key});
@@ -23,6 +25,12 @@ class TeamChatListPage extends StatelessWidget {
       );
     }
 
+    // All authenticated clinic members can see the Messages tab.
+    // The BLoC query filters team conversations to only those where the user
+    // is in participantIds — so non-team-members will only see their own DMs.
+    // Elevated permissions (viewTeamMessages, manageTeams) are checked inside
+    // individual chat rooms for admin-level actions, not here.
+
     return BlocProvider(
       create: (context) =>
           sl<TeamChatListBloc>()..add(LoadTeamChats(currentUser.uid, clinicId)),
@@ -37,7 +45,7 @@ class TeamChatListPage extends StatelessWidget {
         body: BlocBuilder<TeamChatListBloc, TeamChatListState>(
           builder: (context, state) {
             if (state is TeamChatListLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const ShimmerList();
             } else if (state is TeamChatListError) {
               return Center(child: Text(state.message));
             } else if (state is TeamChatListLoaded) {

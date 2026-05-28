@@ -858,7 +858,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                     _useManualEntry = false;
                     _emailController.clear();
                   }),
-                  icon: const Icon(Icons.arrow_back, size: 16),
+                  icon: Icon(Icons.adaptive.arrow_back, size: 16),
                   label: Text('selectFromList'.tr()),
                 ),
             ],

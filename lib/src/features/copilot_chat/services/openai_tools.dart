@@ -163,7 +163,7 @@ List<Map<String, dynamic>> getOpenAITools(
       'type': 'function',
       'function': {
         'name': 'list_patients',
-        'description': 'Lists patients, optionally filtered by name.',
+        'description': 'Lists patients, optionally filtered by name or date. Returns newest first.',
         'parameters': {
           'type': 'object',
           'properties': {
@@ -179,6 +179,10 @@ List<Map<String, dynamic>> getOpenAITools(
             'endDate': {
               'type': 'string',
               'description': 'Optional: End date filter (YYYY-MM-DD).'
+            },
+            'limit': {
+              'type': 'integer',
+              'description': 'Optional: Maximum number of patients to return (most recent first). Use this when the user asks for the last N patients.'
             },
           },
           'required': [],

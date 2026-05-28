@@ -6,6 +6,7 @@ import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart'
 import 'package:dr_copilot/src/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 
 final sl = GetIt.instance;
 
@@ -16,6 +17,9 @@ final sl = GetIt.instance;
 /// the app's initialization phase to ensure all authentication-related dependencies
 /// are properly registered and available for use.
 void initAuthInjections() {
+  // Notifiers
+  sl.registerLazySingleton(() => OwnerNotifier());
+
   // Bloc
   sl.registerFactory(() => AuthBloc(sl()));
 

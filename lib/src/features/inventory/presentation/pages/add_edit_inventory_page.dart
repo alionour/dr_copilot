@@ -8,6 +8,8 @@ import 'package:dr_copilot/src/features/inventory/domain/models/inventory_item_m
 import 'package:dr_copilot/src/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 /// Page for adding or editing inventory items
 class AddEditInventoryPage extends StatefulWidget {
@@ -40,7 +42,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
     _nameController = TextEditingController(text: item?.name);
     _quantityController =
         TextEditingController(text: item?.quantity.toString());
-    _unitController = TextEditingController(text: item?.unit ?? 'pieces');
+    _unitController = TextEditingController(text: item?.unit ?? 'pieces'.tr());
     _thresholdController =
         TextEditingController(text: item?.lowStockThreshold.toString());
     _supplierController = TextEditingController(text: item?.supplier);
@@ -103,7 +105,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
                 items: _categories.map((category) {
                   return DropdownMenuItem(
                     value: category,
-                    child: Text(category),
+                    child: Text(category.toLowerCase().tr()),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -143,7 +145,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
                       decoration: InputDecoration(
                         labelText: 'unit'.tr(),
                         border: const OutlineInputBorder(),
-                        hintText: 'pieces, boxes, vials',
+                        hintText: 'inventoryUnitsHint'.tr(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -205,7 +207,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _saveItem,
+                onPressed: _saveItem.throttle(),
                 child: Text(isEdit ? 'save'.tr() : 'add'.tr()),
               ),
             ],
@@ -226,7 +228,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
 
     if (user == null || clinicId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: SelectionArea(child: Text('Authentication error'))),
+        SnackBar(content: SelectionArea(child: Text('authenticationError'.tr()))),
       );
       return;
     }

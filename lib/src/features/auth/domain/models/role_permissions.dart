@@ -1,4 +1,4 @@
-// This file defines all available roles and their mapped permissions in the Dr Copilot app.
+// This file defines all available roles and their mapped permissions in the Dr AI app.
 // Update this list as you add new roles or change role permissions.
 
 /// Central mapping of roles to permissions.

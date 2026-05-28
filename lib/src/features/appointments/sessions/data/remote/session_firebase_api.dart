@@ -547,7 +547,11 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
+      if (clinicId == null) {
+        return Left(ServerFailure('No clinic ID found', 403));
+      }
       final querySnapshot = await _sessionsCollection
+          .where('clinicId', isEqualTo: clinicId)
           .where('patientId', isEqualTo: patientId)
           .where('deletedAt', isNull: true) // Filter out deleted sessions
           .limit(1)
@@ -570,10 +574,8 @@ class SessionsFirebaseApi extends AbstractSessionsRepository {
           return Right(SessionTypePresets.standard);
         }
       } else {
-        debugPrint('Error: No sessions found for the given patientId');
-        return Left(
-          ServerFailure('No sessions found for the given patientId', 404),
-        );
+        debugPrint('No sessions found for the given patientId. Defaulting to standard.');
+        return const Right(SessionTypePresets.standard);
       }
     } catch (e) {
       debugPrint('Error detecting session type: $e');

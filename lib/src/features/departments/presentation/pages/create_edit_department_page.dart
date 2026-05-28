@@ -6,6 +6,8 @@ import 'package:dr_copilot/src/features/departments/presentation/bloc/department
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_event.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_state.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class CreateEditDepartmentPage extends StatefulWidget {
   final DepartmentModel? department;
@@ -86,7 +88,7 @@ class _CreateEditDepartmentPageState extends State<CreateEditDepartmentPage> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _saveDepartment,
+                  onPressed: _saveDepartment.throttle(),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                     backgroundColor: Theme.of(context).colorScheme.primary,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:uuid/uuid.dart';
@@ -48,13 +49,13 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
   // ... (Mapping and methods same)
 
   // Specialty -> Models mapping with icons and landmarks
-  final Map<String, Map<String, dynamic>> _specialties = {
-    'General Medicine': {
+  Map<String, Map<String, dynamic>> _getSpecialties() => {
+    'specialty_general'.tr(): {
       'icon': Icons.person_outline,
       'models': [
         {
           'file': 'human_body.glb',
-          'name': 'Full Body (Skin)',
+          'name': 'model_full_body'.tr(),
           'markerScale': 0.5,
           'landmarks': [
             'Head',
@@ -70,7 +71,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
         {
           'file': 'human_muscles.glb',
-          'name': 'Muscular System',
+          'name': 'model_muscular'.tr(),
           'markerScale': 0.5,
           'landmarks': [
             'Trapezius',
@@ -88,12 +89,12 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
       ],
     },
-    'Neurology': {
+    'specialty_neurology'.tr(): {
       'icon': Icons.psychology_outlined,
       'models': [
         {
           'file': 'human_head.glb',
-          'name': 'Head / Brain',
+          'name': 'model_brain'.tr(),
           'markerScale': 0.5,
           'landmarks': [
             'Frontal Lobe',
@@ -110,12 +111,12 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
       ],
     },
-    'Orthopedics': {
+    'specialty_orthopedics'.tr(): {
       'icon': Icons.accessibility_new_outlined,
       'models': [
         {
           'file': 'human_skeleton.glb',
-          'name': 'Skeleton',
+          'name': 'model_skeleton'.tr(),
           'markerScale': 0.5,
           'landmarks': [
             'Cervical (C1-C7)',
@@ -142,12 +143,12 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
       ],
     },
-    'Dentistry': {
+    'specialty_dentistry'.tr(): {
       'icon': Icons.mood_outlined,
       'models': [
         {
           'file': 'human_teeth.glb',
-          'name': 'Teeth',
+          'name': 'model_teeth'.tr(),
           'markerScale': 0.3,
           'landmarks': [
             'Upper Right (Q1)',
@@ -166,7 +167,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
         {
           'file': 'types_of_human_teeth.glb',
-          'name': 'Teeth Types',
+          'name': 'model_teeth_types'.tr(),
           'markerScale': 0.3,
           'landmarks': [
             'Incisors',
@@ -177,7 +178,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
         {
           'file': 'upper_teeth.glb',
-          'name': 'Upper Teeth',
+          'name': 'model_upper_teeth'.tr(),
           'markerScale': 0.2,
           'landmarks': [
             'Right 3rd Molar (1)',
@@ -200,7 +201,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
         },
         {
           'file': 'lower_teeth.glb', // Virtual file key for lower view
-          'name': 'Lower Teeth',
+          'name': 'model_lower_teeth'.tr(),
           'markerScale': 0.2,
           'landmarks': [
             'Left 3rd Molar (17)',
@@ -251,7 +252,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
   Map<String, dynamic>? _getModelData(String? modelFile) {
     if (modelFile == null) return null;
-    for (final specialty in _specialties.values) {
+    for (final specialty in _getSpecialties().values) {
       final models = specialty['models'] as List<Map<String, dynamic>>;
       for (final model in models) {
         if (model['file'] == modelFile) return model;
@@ -295,7 +296,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
     // Show toast/snackbar to inform user
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: SelectionArea(child: Text('Added "$landmarkLabel" - Click model to position')),
+        content: SelectionArea(child: Text('clickModelToPosition'.tr(args: [landmarkLabel]))),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
@@ -303,12 +304,12 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
   }
 
   // Marker types (Duplicated from parent for consistent UI)
-  static const Map<String, Map<String, dynamic>> markerTypes = {
-    'pain': {'label': 'Pain', 'color': '#D32F2F', 'icon': Icons.location_on},
-    'injury': {'label': 'Injury', 'color': '#F57C00', 'icon': Icons.healing},
-    'rash': {'label': 'Rash', 'color': '#7B1FA2', 'icon': Icons.bubble_chart},
-    'scar': {'label': 'Scar', 'color': '#616161', 'icon': Icons.linear_scale},
-    'other': {'label': 'Other', 'color': '#1976D2', 'icon': Icons.location_on},
+  static Map<String, Map<String, dynamic>> getMarkerTypes() => {
+    'pain': {'label': 'marker_pain'.tr(), 'color': '#D32F2F', 'icon': Icons.location_on},
+    'injury': {'label': 'marker_injury'.tr(), 'color': '#F57C00', 'icon': Icons.healing},
+    'rash': {'label': 'marker_rash'.tr(), 'color': '#7B1FA2', 'icon': Icons.bubble_chart},
+    'scar': {'label': 'marker_scar'.tr(), 'color': '#616161', 'icon': Icons.linear_scale},
+    'other': {'label': 'marker_other'.tr(), 'color': '#1976D2', 'icon': Icons.location_on},
   };
 
   String? _selectedMarkerId; // Currently selected marker for editing
@@ -452,16 +453,16 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                               children: [
                                 // Mode Toggle
                                 SegmentedButton<String>(
-                                  segments: const [
+                                  segments: [
                                     ButtonSegment(
                                       value: 'select',
-                                      icon: Icon(Icons.touch_app),
-                                      label: Text('Selection'),
+                                      icon: const Icon(Icons.touch_app),
+                                      label: Text('selection'.tr()),
                                     ),
                                     ButtonSegment(
                                       value: 'add',
-                                      icon: Icon(Icons.add_location_alt),
-                                      label: Text('Interactive'),
+                                      icon: const Icon(Icons.add_location_alt),
+                                      label: Text('interactive'.tr()),
                                     ),
                                   ],
                                   selected: {_currentInteractionMode},
@@ -668,13 +669,13 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                         backgroundColor: _parseColor(marker.color),
                         radius: 12,
                         child: Icon(
-                            markerTypes[marker.type]?['icon'] ??
+                            getMarkerTypes()[marker.type]?['icon'] ??
                                 Icons.location_on,
                             size: 14,
                             color: Colors.white),
                       ),
                       title: Text(
-                          marker.label.isNotEmpty ? marker.label : 'Marker'),
+                          marker.label.isNotEmpty ? marker.label : 'marker'.tr()),
                       subtitle: marker.notes.isNotEmpty
                           ? Text(marker.notes,
                               maxLines: 1, overflow: TextOverflow.ellipsis)
@@ -756,15 +757,15 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
             padding: const EdgeInsets.all(16),
             children: [
               // Type Selector
-              const Text(
-                'Condition Type',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'conditionType'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: markerTypes.entries.map((entry) {
+                children: getMarkerTypes().entries.map((entry) {
                   final isSelected = marker.type == entry.key;
                   return ChoiceChip(
                     label: Text(entry.value['label']),
@@ -791,9 +792,9 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
               const Divider(height: 32),
 
               // Color Picker
-              const Text(
-                'Marker Color',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'markerColor'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -805,7 +806,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                       Color? newColor = await showDialog<Color>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Pick a color'),
+                          title: Text('pickColor'.tr()),
                           content: SingleChildScrollView(
                             child: BlockPicker(
                               pickerColor: _parseColor(marker.color),
@@ -832,16 +833,16 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                       ),
                     ),
                   ),
-                  const Text('Tap to change color'),
+                  Text('tapToChangeColor'.tr()),
                 ],
               ),
 
               const Divider(height: 32),
 
               // Scale Controls
-              const Text(
-                'Scale',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'scale'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
@@ -849,7 +850,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.remove, size: 18),
-                      label: const Text('Smaller'),
+                      label: Text('smaller'.tr()),
                       onPressed: () {
                         _adjustMarkerScale(marker.id, -0.1);
                       },
@@ -862,7 +863,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Larger'),
+                      label: Text('larger'.tr()),
                       onPressed: () {
                         _adjustMarkerScale(marker.id, 0.1);
                       },
@@ -877,9 +878,9 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
               const SizedBox(height: 16),
 
               // Position Controls
-              const Text(
-                'Position',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'position'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Column(
@@ -889,7 +890,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                     icon: const Icon(Icons.arrow_upward),
                     onPressed: () =>
                         _adjustMarkerPosition(marker.id, 0, 0.01, 0),
-                    tooltip: 'Move Up',
+                    tooltip: 'moveUp'.tr(),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -899,7 +900,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () =>
                             _adjustMarkerPosition(marker.id, -0.01, 0, 0),
-                        tooltip: 'Move Left',
+                        tooltip: 'moveLeft'.tr(),
                       ),
                       const SizedBox(width: 32),
                       // Right button
@@ -907,7 +908,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                         icon: const Icon(Icons.arrow_forward),
                         onPressed: () =>
                             _adjustMarkerPosition(marker.id, 0.01, 0, 0),
-                        tooltip: 'Move Right',
+                        tooltip: 'moveRight'.tr(),
                       ),
                     ],
                   ),
@@ -916,7 +917,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                     icon: const Icon(Icons.arrow_downward),
                     onPressed: () =>
                         _adjustMarkerPosition(marker.id, 0, -0.01, 0),
-                    tooltip: 'Move Down',
+                    tooltip: 'moveDown'.tr(),
                   ),
                 ],
               ),
@@ -924,17 +925,17 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
               const Divider(height: 32),
 
               // Notes
-              const Text(
-                'Observations / Notes',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'observationsNotes'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: notesController,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  hintText: 'Describe the condition...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: 'describeConditionHint'.tr(),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) {
                   _updateMarker(marker.copyWith(notes: value));
@@ -943,7 +944,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
 
               const SizedBox(height: 8),
               Text(
-                'Position: (${marker.x.toStringAsFixed(2)}, ${marker.y.toStringAsFixed(2)}, ${marker.z?.toStringAsFixed(2) ?? '0.00'})',
+                '${'position'.tr()}: (${marker.x.toStringAsFixed(2)}, ${marker.y.toStringAsFixed(2)}, ${marker.z?.toStringAsFixed(2) ?? '0.00'})',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
@@ -966,7 +967,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                 setState(() => _selectedMarkerId = null);
               },
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Remove Marker'),
+              label: Text('removeMarker'.tr()),
             ),
           ),
         ),
@@ -1116,7 +1117,7 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
   Widget _buildModelSelectionScreen() {
     // Get all models with specialty info for filtering
     final allModels = <Map<String, dynamic>>[];
-    for (final entry in _specialties.entries) {
+    for (final entry in _getSpecialties().entries) {
       final specialtyName = entry.key;
       final specialtyData = entry.value;
       final icon = specialtyData['icon'] as IconData;
@@ -1141,14 +1142,14 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select 3D Model',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Text(
+            'selectThreeDModel'.tr(),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Filter by specialty or browse all models.',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+          Text(
+            'filterBySpecialty'.tr(),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           // Filter Chips
@@ -1156,10 +1157,10 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildFilterChip('All', null),
+                _buildFilterChip('all'.tr(), null),
                 const SizedBox(width: 8),
-                ..._specialties.entries.map((e) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                ..._getSpecialties().entries.map((e) => Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
                       child: _buildFilterChip(
                         e.key,
                         e.key,
@@ -1207,7 +1208,6 @@ class _BodyMap3DWebViewWidgetState extends State<BodyMap3DWebViewWidget> {
                         _selectedModel = modelFile;
                         _isLoading = true;
                       });
-                      // Removed unsafe _loadModel call - setState triggers rebuild with new URL
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),

@@ -18,10 +18,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class AddEvaluationPage extends StatefulWidget {
   final EvaluationModel? evaluation;
-  const AddEvaluationPage({super.key, this.evaluation});
+  final Map<String, dynamic>? initialData;
+  final bool showScaffold;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+  final ValueChanged<Map<String, dynamic>>? onFormDataChange;
+
+  const AddEvaluationPage({
+    super.key,
+    this.evaluation,
+    this.initialData,
+    this.showScaffold = true,
+    this.onSuccess,
+    this.onCancel,
+    this.onFormDataChange,
+  });
 
   @override
   State<AddEvaluationPage> createState() => _AddEvaluationPageState();
@@ -89,6 +105,69 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
         _selectedClinicId = clinics.first.id;
       }
     }
+
+    if (widget.initialData != null && widget.evaluation == null) {
+      _prefillFromInitialData(widget.initialData!);
+    }
+
+    if (widget.onFormDataChange != null) {
+      _patientNameController.addListener(_notifyFormDataChange);
+      _actualPriceController.addListener(_notifyFormDataChange);
+    }
+  }
+
+  void _prefillFromInitialData(Map<String, dynamic> data) {
+    final patientName = data['patientName'] as String?;
+    if (patientName != null && patientName.isNotEmpty) {
+      _patientNameController.text = patientName;
+    }
+
+    final patientId = data['patientId'] as String?;
+    if (patientId != null && patientId.isNotEmpty) {
+      _selectedPatient = PatientModel(
+        id: patientId,
+        name: patientName ?? '',
+        ownerId: '',
+        clinicId: _selectedClinicId ?? '',
+      );
+    }
+
+    if (data['startDateTime'] != null) {
+      final start = data['startDateTime'];
+      if (start is Timestamp) {
+        _startDate = start;
+      } else if (start is String) {
+        _startDate = Timestamp.fromDate(DateTime.parse(start));
+      }
+    }
+
+    if (data['endDateTime'] != null) {
+      final end = data['endDateTime'];
+      if (end is Timestamp) {
+        _endDate = end;
+      } else if (end is String) {
+        _endDate = Timestamp.fromDate(DateTime.parse(end));
+      }
+    }
+
+    final price = data['price']?.toString();
+    if (price != null && price.isNotEmpty) {
+      _actualPriceController.text = price;
+    }
+  }
+
+
+  void _notifyFormDataChange() {
+    if (widget.onFormDataChange == null) return;
+    widget.onFormDataChange!({
+      'patientName': _patientNameController.text,
+      'patientId': _selectedPatient?.id,
+      'startDateTime': _startDate,
+      'endDateTime': _endDate,
+      'price': double.tryParse(_actualPriceController.text),
+      'clinicId': _selectedClinicId,
+      'doctorId': _selectedDoctor?.id,
+    });
   }
 
   Future<void> _fetchCurrencyProfiles() async {
@@ -308,6 +387,12 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
             FirebaseAuth.instance.currentUser?.uid ??
             '',
         doctorId: _selectedDoctor?.id,
+        departmentId: _selectedPatient?.id == widget.evaluation?.patientId
+            ? (widget.evaluation?.departmentId ?? _selectedPatient?.departmentId)
+            : _selectedPatient?.departmentId,
+        teamId: _selectedPatient?.id == widget.evaluation?.patientId
+            ? (widget.evaluation?.teamId ?? _selectedPatient?.teamId)
+            : _selectedPatient?.teamId,
       );
 
       if (widget.evaluation != null) {
@@ -325,6 +410,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
       }
     }
   }
+
 
   void _showUpgradeDialog(BuildContext context, String message) {
     showDialog(
@@ -351,28 +437,21 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
 
   @override
   void dispose() {
+    if (widget.onFormDataChange != null) {
+      _patientNameController.removeListener(_notifyFormDataChange);
+      _actualPriceController.removeListener(_notifyFormDataChange);
+    }
     _patientNameFocusNode.dispose();
     _patientNameController.dispose();
     _actualPriceFocusNode.dispose();
     _actualPriceController.dispose();
+    _partialPaymentController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.evaluation != null ? 'Edit Evaluation' : 'addEvaluation'.tr(),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.pop();
-          },
-        ),
-      ),
-      body: SafeArea(
+    final formBody = SafeArea(
         child: MultiBlocListener(
         listeners: [
           BlocListener<PatientsBloc, PatientsState>(
@@ -395,18 +474,29 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           BlocListener<EvaluationsBloc, EvaluationsState>(
             listener: (context, state) {
               if (state is EvaluationsSuccess) {
-                final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                if (ModalRoute.of(context)?.isCurrent == true) {
+                  final message = state.message;
+                  if (message != null) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                  }
+                  if (context.mounted) {
+                    if (widget.onSuccess != null) {
+                      widget.onSuccess!();
+                    } else if (widget.evaluation != null) {
+                      context.pop();
+                    }
+                  }
                 }
               } else if (state is EvaluationsError) {
-                final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                if (ModalRoute.of(context)?.isCurrent == true) {
+                  final message = state.message;
+                  if (message != null) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                  }
                 }
               }
             },
@@ -624,8 +714,8 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                                                   message:
                                                       'goToAddPatient'.tr(),
                                                   child: IconButton(
-                                                    icon: const Icon(
-                                                      Icons.arrow_forward,
+                                                    icon: Icon(
+                                                      Icons.adaptive.arrow_forward,
                                                     ),
                                                     onPressed: () {
                                                       context.go(
@@ -992,7 +1082,7 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _saveEvaluation,
+                                onPressed: _saveEvaluation.throttle(),
                                 child: Text('saveAppointment'.tr()),
                               ),
                             ),
@@ -1007,7 +1097,29 @@ class _AddEvaluationPageState extends State<AddEvaluationPage> {
           },
         ),
       ),
-    ),
+    );
+
+    if (!widget.showScaffold) {
+      return formBody;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.evaluation != null ? 'Edit Evaluation' : 'addEvaluation'.tr(),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.adaptive.arrow_back),
+          onPressed: () {
+            widget.onCancel?.call();
+            if (widget.onCancel == null) {
+              context.pop();
+            }
+          },
+        ),
+      ),
+      body: formBody,
     );
   }
 }
+

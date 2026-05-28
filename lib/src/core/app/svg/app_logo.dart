@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class DrCopilotLogo extends StatelessWidget {
+class DrAILogo extends StatelessWidget {
   final double? width;
   final double? height;
 
-  const DrCopilotLogo({super.key, this.width, this.height});
+  const DrAILogo({super.key, this.width, this.height});
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +64,8 @@ class DrCopilotLogo extends StatelessWidget {
     <circle cx="130" cy="15" r="1.5" fill="#48CAE4" opacity="0.7"/>
     <line x1="130" y1="15" x2="130" y2="20" stroke="#5DADE2" stroke-width="1" opacity="0.6"/>
     
-    <!-- "Dr Copilot" text on same line -->
-    <text x="85" y="140" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="url(#tealGradient)">Dr Copilot</text>
+    <!-- "Dr AI" text on same line -->
+    <text x="110" y="140" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="url(#tealGradient)">Dr AI</text>
   </g>
 </svg>
 ''';

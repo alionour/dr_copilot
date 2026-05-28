@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   go_router: ^17.0.0
   firebase_app_installations: ^0.4.0+3
+  firebase_ai: ^3.7.0
   firebase_core: ^4.2.0
   firebase_storage: ^13.0.4
   flutter_side_menu: ^0.5.41
@@ -226,7 +227,7 @@ flutter:
 msix_config:
   display_name: Dr. AI
   publisher_display_name: على نورالدين السيد حسانين
-  identity_name: A038805C.Dr.Copilot
+  identity_name: A038805C.Dr.AI
   publisher: CN=B8C022D6-3210-47E4-86DC-449784967308
   msix_version: 1.0.7.1
   logo_path: assets/icon.png

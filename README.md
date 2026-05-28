@@ -1,8 +1,8 @@
 
 
 <div align="center">
-  <img src="assets/svg/logo.svg" alt="Dr Copilot Logo" width="120"/>
-  <h1>🩺 Dr Copilot</h1>
+  <img src="assets/svg/logo.svg" alt="Dr AI Logo" width="120"/>
+  <h1>🩺 Dr AI</h1>
   <p><b>Your all-in-one clinic management & AI assistant app</b><br/>
   <em>Empowering doctors to manage clinics, appointments, finances, and more — with AI at your side!</em></p>
 
@@ -50,7 +50,7 @@ doppler run -- flutter run
 ## ✨ Features
 
 <div align="center">
-  <img src="docs/screenshots/dashboard.gif" alt="Dr Copilot Dashboard Demo" width="600"/>
+  <img src="docs/screenshots/dashboard.gif" alt="Dr AI Dashboard Demo" width="600"/>
   <br/>
   <em>✨ See your clinic at a glance! (Replace with your own GIFs/screenshots)</em>
 </div>
@@ -82,7 +82,7 @@ A: See the Contact & Support section below.
 
 ## ♿ Accessibility Statement
 
-Dr Copilot is designed with accessibility in mind:
+Dr AI is designed with accessibility in mind:
 - Uses semantic widgets and proper labeling for screen readers.
 - Supports high-contrast themes and large fonts.
 - Keyboard navigation is available throughout the app (including side menu).
@@ -119,7 +119,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
 
 ## 🏗️ Architecture & Core Concepts
 
-Dr Copilot is built with a modular, scalable architecture using best practices from modern Flutter development:
+Dr AI is built with a modular, scalable architecture using best practices from modern Flutter development:
 
 - **Clean Architecture**: Each feature (e.g., Patients, Financials, Copilot) is organized into domain, data, and presentation layers for maintainability and testability.
 - **State Management**: Uses BLoC (Business Logic Component) and Provider for robust, reactive state management across the app.
@@ -155,7 +155,7 @@ Dr Copilot is built with a modular, scalable architecture using best practices f
 - <strong>Settings Page</strong>: Personalize your experience — themes, language, and more.
 
 ### 🤖 Copilot <img src="https://img.icons8.com/ios-filled/32/robot-2.png" height="20"/>
-- <strong>Copilot Page</strong>: Chat with Dr Copilot, your AI assistant for patient cases & clinic tasks.
+- <strong>Copilot Page</strong>: Chat with Dr AI, your AI assistant for patient cases & clinic tasks.
 
 ### 🧑‍⚕️ Patients <img src="https://img.icons8.com/ios-filled/32/doctor-male.png" height="20"/>
 - <strong>Patients Page</strong>: Manage patient info, medical history, and contacts.
@@ -205,7 +205,7 @@ lib/src/features/financials/
 </pre>
 </details>
 
-Dr Copilot provides a comprehensive <strong>Financials</strong> module to help clinics track, analyze, and manage all aspects of their finances. The module is structured into <strong>data</strong>, <strong>domain</strong>, and <strong>presentation</strong> layers for maintainability and testability.
+Dr AI provides a comprehensive <strong>Financials</strong> module to help clinics track, analyze, and manage all aspects of their finances. The module is structured into <strong>data</strong>, <strong>domain</strong>, and <strong>presentation</strong> layers for maintainability and testability.
 
 #### Main Features
 - <strong>📊 Financials Dashboard:</strong> At-a-glance summary of total revenue, expenses, session/evaluation counts, and recent transactions. Visual summary cards and charts.
@@ -423,7 +423,7 @@ See the map above for file responsibilities in each layer.
 - **Authentication**: Log in using your Google account to access the app.
 - **Navigation**: Use the side menu to navigate between different sections of the app.
 - **Calendar**: View and manage appointments directly from the calendar page.
-- **Copilot**: Interact with Dr Copilot for AI-powered assistance.
+- **Copilot**: Interact with Dr AI for AI-powered assistance.
 - **Patients**: Search, view, and manage patient information.
 - **Financials**: Track and manage clinic finances.
 
@@ -439,7 +439,7 @@ final redirectPort = Platform.environment['REDIRECT_PORT'];
 
 ## Contributing
 
-We welcome contributions to Dr Copilot! To contribute:
+We welcome contributions to Dr AI! To contribute:
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
 3. Commit your changes and push them to your fork.
@@ -449,11 +449,11 @@ We welcome contributions to Dr Copilot! To contribute:
 
 ## License
 
-Dr Copilot is licensed under the MIT License. See the `LICENSE` file for more details.
+Dr AI is licensed under the MIT License. See the `LICENSE` file for more details.
 
 ### Running and Building the App with Doppler
 
-Dr Copilot uses Doppler to manage secrets securely. Below are the commands to run and build the app for different platforms with Doppler.
+Dr AI uses Doppler to manage secrets securely. Below are the commands to run and build the app for different platforms with Doppler.
 
 #### Run the App on Android
 ```bash
@@ -519,7 +519,7 @@ doppler run -- flutter build linux
 
 ## Continuous Integration & Delivery (CI/CD)
 
-Dr Copilot uses **GitHub Actions** for CI/CD to automatically analyze, test, and build the app for all major platforms on every push and pull request. The workflow is defined in `.github/workflows/flutter_ci.yaml` and covers:
+Dr AI uses **GitHub Actions** for CI/CD to automatically analyze, test, and build the app for all major platforms on every push and pull request. The workflow is defined in `.github/workflows/flutter_ci.yaml` and covers:
 
 - **Web**: Build and test on Ubuntu.
 - **Windows**: Build and test on Windows.
@@ -534,7 +534,7 @@ Each job installs dependencies, runs static analysis, executes tests, and builds
 
 ## Building and Releasing with Shorebird
 
-[Shorebird](https://shorebird.dev/) enables seamless over-the-air (OTA) updates for Flutter apps. Dr Copilot supports building and releasing with Shorebird for supported platforms.
+[Shorebird](https://shorebird.dev/) enables seamless over-the-air (OTA) updates for Flutter apps. Dr AI supports building and releasing with Shorebird for supported platforms.
 
 ### Prerequisites
 - Install the [Shorebird CLI](https://docs.shorebird.dev/getting-started/installation).

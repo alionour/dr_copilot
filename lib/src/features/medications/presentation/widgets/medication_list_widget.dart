@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/medications/presentation/bloc/medication_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 
 class MedicationListWidget extends StatelessWidget {
   final String patientId;
@@ -25,7 +26,7 @@ class MedicationListWidget extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is MedicationLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerList(itemCount: 3);
         }
 
         if (state is MedicationsLoaded) {

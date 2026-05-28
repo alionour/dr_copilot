@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_bloc.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_event.dart';
 import 'package:dr_copilot/src/features/departments/presentation/bloc/departments_state.dart';
@@ -40,6 +41,14 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('departmentsTitle'.tr()),
+        actions: [
+          if (OwnerNotifier().hasPermission(AppPermission.manageDepartments))
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'createDepartment'.tr(),
+              onPressed: () => _navigateToCreateEdit(null),
+            ),
+        ],
       ),
       body: BlocConsumer<DepartmentsBloc, DepartmentsState>(
         listener: (context, state) {
@@ -62,7 +71,7 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
         },
         builder: (context, state) {
           if (state is DepartmentsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerList();
           }
 
           if (state is DepartmentsLoaded) {
@@ -144,13 +153,6 @@ class _DepartmentsDashboardPageState extends State<DepartmentsDashboardPage> {
           return const SizedBox();
         },
       ),
-      floatingActionButton: OwnerNotifier().hasPermission(AppPermission.manageDepartments)
-          ? FloatingActionButton.extended(
-              onPressed: () => _navigateToCreateEdit(null),
-              icon: const Icon(Icons.add),
-              label: Text('createDepartment'.tr()),
-            )
-          : null,
     );
   }
 

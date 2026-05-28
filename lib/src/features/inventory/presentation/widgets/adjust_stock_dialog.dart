@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:dr_copilot/src/features/inventory/domain/models/inventory_item_model.dart';
 import 'package:dr_copilot/src/features/inventory/presentation/bloc/inventory_bloc.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 /// Dialog for adjusting stock quantities
 class AdjustStockDialog extends StatefulWidget {
@@ -128,7 +130,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                 decoration: InputDecoration(
                   labelText: 'reason'.tr(),
                   border: const OutlineInputBorder(),
-                  hintText: 'e.g., Restocked, Used in procedure',
+                  hintText: 'stockAdjustmentHint'.tr(),
                 ),
                 maxLines: 2,
                 validator: (value) {
@@ -148,7 +150,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           child: const Text('cancel').tr(),
         ),
         ElevatedButton(
-          onPressed: _adjustStock,
+          onPressed: _adjustStock.throttle(),
           child: const Text('confirm').tr(),
         ),
       ],

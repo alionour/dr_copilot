@@ -17,10 +17,7 @@ class TaskFirebaseApi {
         _tasksCollection.where('clinicId', isEqualTo: clinicId);
 
     if (userId != null) {
-      query = query.where(Filter.or(
-        Filter('assignedToUserId', isEqualTo: userId),
-        Filter('assignedByUserId', isEqualTo: userId),
-      ));
+      query = query.where('assignedToUserId', isEqualTo: userId);
     }
 
     // Order by createdAt descending by default (newest first)

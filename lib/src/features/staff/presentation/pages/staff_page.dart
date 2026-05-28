@@ -2,6 +2,7 @@ import 'package:dr_copilot/src/features/staff/presentation/bloc/staff_bloc.dart'
 import 'package:dr_copilot/src/features/staff/presentation/widgets/staff_list_item.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -71,7 +72,7 @@ class _StaffPageState extends State<StaffPage> {
                 child: Builder(
                   builder: (context) {
                     if (state is StaffLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const ShimmerList();
                     } else if (state is StaffLoaded) {
                       final filteredStaff = state.staff
                           .where((staff) => staff.clinicId == _currentClinicId)

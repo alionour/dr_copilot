@@ -1,7 +1,9 @@
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/create_clinic_page.dart';
 import 'package:dr_copilot/src/features/auth/presentation/pages/signup_page.dart';
 import 'package:dr_copilot/src/features/charts/presentation/bloc/charts_bloc.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
+import 'package:dr_copilot/src/features/patients/presentation/pages/patient_details_page.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/navigation_side.dart';
 import 'package:dr_copilot/src/features/home/presentation/pages/home_page.dart';
@@ -58,6 +60,7 @@ import 'package:dr_copilot/src/features/auth/presentation/pages/onboarding_choic
 import 'package:dr_copilot/src/features/invitations/presentation/pages/pending_invitations_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_list_page.dart';
 import 'package:dr_copilot/src/features/kiosk/presentation/pages/kiosk_check_in_page.dart';
+import 'package:dr_copilot/src/features/clinical_reports/presentation/pages/marker_types_management_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/team_chat_page.dart';
 import 'package:dr_copilot/src/features/team_chat/presentation/pages/user_selection_page.dart';
 import 'package:dr_copilot/src/features/teams/presentation/pages/teams_dashboard_page.dart';
@@ -194,6 +197,15 @@ class RoutingConfig {
             builder: (context, state) => const PaymentGatewaySettingsPage(),
           ),
           GoRoute(
+            path: '/settings/marker_types',
+            name: 'marker_types',
+            builder: (context, state) {
+              final clinicId = context.read<OwnerNotifier>().clinicId;
+              if (clinicId == null) return const ErrorRoutePage();
+              return MarkerTypesManagementPage(clinicId: clinicId);
+            },
+          ),
+          GoRoute(
             path: '/kiosk',
             name: 'kiosk',
             builder: (context, state) => const KioskCheckInPage(),
@@ -313,6 +325,14 @@ class RoutingConfig {
                 builder: (context, state) {
                   final patient = state.extra as PatientModel;
                   return AddPatientPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: ':patientId',
+                name: 'patient_details',
+                builder: (context, state) {
+                  final patientId = state.pathParameters['patientId']!;
+                  return PatientDetailsPage(patientId: patientId);
                 },
               ),
               GoRoute(
@@ -644,7 +664,7 @@ class ErrorRoutePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('errorPageTitle'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () {
             Navigator.of(context).pop();
           },

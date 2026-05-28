@@ -106,12 +106,14 @@ class App extends StatelessWidget {
               /// enabling state management and event handling across the application.
               return Consumer<OwnerNotifier>(
                 builder: (context, ownerNotifier, child) {
+                  final currentTheme = themeNotifier.currentTheme;
+
                   return MultiBlocProvider(
                     /// Configures the main application widget with the following features:
                     ///
                     /// - Provides application-wide BLoC providers via `appBlocProviders`.
                     /// - Uses `MaterialApp.router` for declarative routing with `RoutingConfig.router`.
-                    /// - Sets the application title to 'Dr Copilot'.
+                    /// - Sets the application title to 'Dr AI'.
                     /// - Applies a dynamic theme from `themeNotifier.currentTheme`, customizing the scrollbar
                     ///   appearance and selecting a text theme based on the current locale (Tajawal for Arabic, Roboto otherwise).
                     /// - Disables the debug banner.
@@ -139,22 +141,26 @@ class App extends StatelessWidget {
 
                         /// The title of the application displayed in the app bar or window.
                         ///
-                        /// In this case, it is set to 'Dr Copilot'.
-                        title: 'Dr. AI',
+                        /// In this case, it is set to 'Dr AI'.
+                        title: 'Dr AI',
 
                         /// Applies the current theme from the [themeNotifier] and allows for further customization
                         /// by creating a copy of the theme with additional modifications.
                         ///
                         /// This is typically used to dynamically update the app's theme based on user preferences
                         /// or system settings.
-                        theme: themeNotifier.currentTheme.copyWith(
+                        theme: currentTheme.copyWith(
                           scrollbarTheme: ScrollbarThemeData(
                             thumbVisibility: WidgetStateProperty.all(true),
                             thickness: WidgetStateProperty.all(12.0),
                           ),
                           textTheme: context.locale.languageCode == 'ar'
-                              ? GoogleFonts.tajawalTextTheme()
-                              : GoogleFonts.robotoTextTheme(),
+                              ? GoogleFonts.tajawalTextTheme(
+                                  currentTheme.textTheme,
+                                )
+                              : GoogleFonts.robotoTextTheme(
+                                  currentTheme.textTheme,
+                                ),
                         ),
                         debugShowCheckedModeBanner: false,
                         locale: context.locale,

@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/features/copilot_chat/data/models/conversation_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -30,15 +31,15 @@ class _ConversationListItemState extends State<ConversationListItem> {
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return 'copilotJustNow'.tr();
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return 'copilotMinutesAgo'.tr(args: [difference.inMinutes.toString()]);
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
+      return 'copilotHoursAgo'.tr(args: [difference.inHours.toString()]);
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return 'copilotYesterday'.tr();
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return 'copilotDaysAgo'.tr(args: [difference.inDays.toString()]);
     } else {
       return DateFormat('MMM d').format(dateTime);
     }
@@ -103,7 +104,7 @@ class _ConversationListItemState extends State<ConversationListItem> {
                   IconButton(
                     icon: const Icon(Icons.edit, size: 16),
                     onPressed: widget.onRename,
-                    tooltip: 'Rename chat',
+                    tooltip: 'copilotRenameChat'.tr(),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     iconSize: 16,
@@ -113,7 +114,7 @@ class _ConversationListItemState extends State<ConversationListItem> {
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 18),
                   onPressed: widget.onDelete,
-                  tooltip: 'Delete chat',
+                  tooltip: 'copilotDeleteChat'.tr(),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),

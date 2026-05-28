@@ -10,6 +10,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/user_model.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class CreateEditTeamPage extends StatefulWidget {
   final CustomTeamModel? team;
@@ -179,7 +181,7 @@ class _CreateEditTeamPageState extends State<CreateEditTeamPage> {
                         }),
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: _saveTeam,
+                        onPressed: _saveTeam.throttle(),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.all(16),
                           backgroundColor: Theme.of(

@@ -7,13 +7,22 @@ import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/pages/live_chat_page.dart';
 import 'package:go_router/go_router.dart';
 
+enum CopilotMicState {
+  idle,
+  requestingPermission,
+  initializing,
+  listening,
+  finalizing,
+  error,
+}
+
 class CopilotView extends StatelessWidget {
   final List<Map<String, dynamic>> messages;
   final TextEditingController textController;
   final ScrollController scrollController;
   final bool isButtonEnabled;
   final bool isRecording;
-  final bool isListeningSpeech;
+  final CopilotMicState micState;
   final bool isLoading;
 
   // Subscription / Quota Props
@@ -30,9 +39,7 @@ class CopilotView extends StatelessWidget {
   final Function(bool) onHistoryToggle; // Alternative if state passed down
   final Function(String, String) onEditMessage;
 
-  // Voice Callbacks (assume handled by parent or just void placeholders for view)
-  final VoidCallback? onSpeechStart;
-  final VoidCallback? onSpeechStop;
+  final VoidCallback? onSpeechToggle;
 
   final Uint8List? pickedImage;
   final Widget? navMenuButton;
@@ -50,7 +57,7 @@ class CopilotView extends StatelessWidget {
     required this.scrollController,
     required this.isButtonEnabled,
     this.isRecording = false,
-    this.isListeningSpeech = false,
+    this.micState = CopilotMicState.idle,
     this.isLoading = false,
     required this.currentTier,
     required this.tokenUsage,
@@ -62,8 +69,7 @@ class CopilotView extends StatelessWidget {
     required this.onStopGeneration,
     required this.onHistoryToggle,
     required this.onEditMessage,
-    this.onSpeechStart,
-    this.onSpeechStop,
+    this.onSpeechToggle,
     this.pickedImage,
     this.navMenuButton,
     this.conversationSidebar,
@@ -77,6 +83,7 @@ class CopilotView extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberFormat = NumberFormat.compact();
     final colorScheme = Theme.of(context).colorScheme;
+    final micButton = _buildMicButton(context, colorScheme);
 
     return Scaffold(
       appBar: AppBar(
@@ -85,12 +92,12 @@ class CopilotView extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
-            tooltip: 'Chat History',
+            tooltip: 'chatHistory'.tr(),
             onPressed: onToggleHistory,
           ),
           IconButton(
             icon: const Icon(Icons.graphic_eq),
-            tooltip: 'Live Chat',
+            tooltip: 'liveChat'.tr(),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const LiveChatPage()),
@@ -121,7 +128,7 @@ class CopilotView extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Monthly Tokens: ${numberFormat.format(tokenUsage)} / ${numberFormat.format(tokenLimit)}',
+                      'monthlyTokens'.tr(args: [numberFormat.format(tokenUsage), numberFormat.format(tokenLimit)]),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: tokenUsage >= tokenLimit
                                 ? Theme.of(context).colorScheme.error
@@ -180,12 +187,12 @@ class CopilotView extends StatelessWidget {
                                 ? Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.lock_outline,
-                                          color: Colors.red),
+                                      Icon(Icons.lock_outline,
+                                          color: colorScheme.error),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          'Monthly quota exceeded. Upgrade to continue.',
+                                          'monthlyQuotaExceeded'.tr(),
                                           style: TextStyle(
                                             color: colorScheme.error,
                                             fontWeight: FontWeight.bold,
@@ -206,7 +213,7 @@ class CopilotView extends StatelessWidget {
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16),
                                         ),
-                                        child: const Text('Upgrade'),
+                                        child: Text('upgrade'.tr()),
                                       ),
                                     ],
                                   )
@@ -215,7 +222,7 @@ class CopilotView extends StatelessWidget {
                                       if (pickedImage != null)
                                         Padding(
                                           padding:
-                                              const EdgeInsets.only(right: 8.0),
+                                              const EdgeInsetsDirectional.only(end: 8.0),
                                           child: Stack(
                                             children: [
                                               SizedBox(
@@ -234,12 +241,12 @@ class CopilotView extends StatelessWidget {
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             20),
-                                                    child: const Padding(
+                                                    child: Padding(
                                                       padding:
-                                                          EdgeInsets.all(2.0),
+                                                          const EdgeInsets.all(2.0),
                                                       child: Icon(
                                                         Icons.cancel_outlined,
-                                                        color: Colors.red,
+                                                        color: colorScheme.error,
                                                         size: 20,
                                                       ),
                                                     ),
@@ -256,8 +263,9 @@ class CopilotView extends StatelessWidget {
                                           ),
                                           child: TextFormField(
                                             controller: textController,
-                                            enabled:
-                                                !isLoading, // Disable during loading
+                                            enabled: !isLoading &&
+                                                micState !=
+                                                    CopilotMicState.finalizing,
                                             // focusNode: _focusNode,
                                             decoration: InputDecoration(
                                               hintText: "messageDrCopilot".tr(),
@@ -285,8 +293,8 @@ class CopilotView extends StatelessWidget {
                                         IconButton(
                                           onPressed: onStopGeneration,
                                           icon: const Icon(Icons.stop_circle),
-                                          color: Colors.red,
-                                          tooltip: 'Stop generating',
+                                          color: colorScheme.error,
+                                          tooltip: 'stopGenerating'.tr(),
                                         )
                                       else if (textController.text.isNotEmpty ||
                                           pickedImage != null)
@@ -299,31 +307,11 @@ class CopilotView extends StatelessWidget {
                                               color: colorScheme.primary,
                                             ),
                                             const SizedBox(width: 8),
-                                            GestureDetector(
-                                              onLongPressStart: (_) =>
-                                                  onSpeechStart?.call(),
-                                              onLongPressEnd: (_) =>
-                                                  onSpeechStop?.call(),
-                                              child: Icon(Icons.mic,
-                                                  color: isListeningSpeech
-                                                      ? Colors.red
-                                                      : colorScheme
-                                                          .onSurfaceVariant),
-                                            ),
+                                            micButton,
                                           ],
                                         )
                                       else
-                                        GestureDetector(
-                                          onLongPressStart: (_) =>
-                                              onSpeechStart?.call(),
-                                          onLongPressEnd: (_) =>
-                                              onSpeechStop?.call(),
-                                          child: Icon(Icons.mic,
-                                              color: isListeningSpeech
-                                                  ? Colors.red
-                                                  : colorScheme
-                                                      .onSurfaceVariant),
-                                        ),
+                                        micButton,
                                     ],
                                   ),
                           ),
@@ -370,6 +358,50 @@ class CopilotView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMicButton(BuildContext context, ColorScheme colorScheme) {
+    final isListening = micState == CopilotMicState.listening;
+    final isBusy = micState == CopilotMicState.requestingPermission ||
+        micState == CopilotMicState.initializing ||
+        micState == CopilotMicState.finalizing;
+
+    final tooltip = switch (micState) {
+      CopilotMicState.requestingPermission => 'checkingMicPermission'.tr(),
+      CopilotMicState.initializing => 'startingMic'.tr(),
+      CopilotMicState.listening => 'stopDictation'.tr(),
+      CopilotMicState.finalizing => 'finishingDictation'.tr(),
+      CopilotMicState.error => 'micError'.tr(),
+      CopilotMicState.idle => 'startDictation'.tr(),
+    };
+
+    final icon = isBusy
+        ? SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.primary,
+            ),
+          )
+        : Icon(
+            isListening ? Icons.stop_circle_outlined : Icons.mic_none,
+            color: switch (micState) {
+              CopilotMicState.listening => colorScheme.error,
+              CopilotMicState.error => colorScheme.error,
+              _ => colorScheme.onSurfaceVariant,
+            },
+          );
+
+    return AnimatedScale(
+      scale: isListening ? 1.08 : 1,
+      duration: const Duration(milliseconds: 180),
+      child: IconButton(
+        onPressed: isBusy ? null : onSpeechToggle,
+        icon: icon,
+        tooltip: tooltip,
       ),
     );
   }

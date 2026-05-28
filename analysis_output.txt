@@ -1,56 +1,56 @@
+
+┌─────────────────────────────────────────────────────────┐
+│ A new version of Flutter is available!                  │
+│                                                         │
+│ To update to the latest version, run "flutter upgrade". │
+└─────────────────────────────────────────────────────────┘
 Analyzing dr_copilot...                                         
 
-   info - Import of a library in the 'lib/src' directory of another package - lib\src\core\app\app.dart:6:8 - implementation_imports
-  error - Expected to find ')' - lib\src\core\app\app.dart:134:12 - expected_token
-  error - Expected to find ';' - lib\src\core\app\app.dart:136:7 - expected_token
-  error - Expected an identifier - lib\src\core\app\app.dart:136:8 - missing_identifier
-  error - Unexpected text ';' - lib\src\core\app\app.dart:136:8 - unexpected_token
-  error - Expected to find '}' - lib\src\core\app\app.dart:137:5 - expected_token
-  error - Expected to find ';' - lib\src\core\app\app.dart:138:3 - expected_token
-  error - Expected to find ')' - lib\src\core\app\app.dart:139:1 - expected_token
-  error - Expected to find '}' - lib\src\core\app\app.dart:140:1 - expected_token
-   info - Statements in an if should be enclosed in a block - lib\src\core\helper\google_signin_helper.dart:283:11 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\core\helper\google_signin_helper.dart:286:11 - curly_braces_in_flow_control_structures
-   info - The private field _estimatedPrice could be 'final' - lib\src\features\appointments\evaluations\presentation\pages\add_evaluation_page.dart:48:10 - prefer_final_fields
-warning - The value of the local variable 'evaluations' isn't used - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:239:21 - unused_local_variable
-  error - The method 'putIfAbsent' isn't defined for the type 'List' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:241:22 - undefined_method
-  error - Undefined name 'creationDate' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:241:34 - undefined_identifier
-  error - Undefined name 'evaluation' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:242:26 - undefined_identifier
-  error - Expected an identifier - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:242:37 - missing_identifier
-  error - Expected to find ':' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:242:37 - expected_token
-  error - Undefined name 'groupedEvaluations' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:247:19 - undefined_identifier
-  error - Undefined name 'evaluations' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:263:30 - undefined_identifier
-  error - Undefined name 'evaluations' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:330:54 - undefined_identifier
-  error - Expected to find ')' - lib\src\features\appointments\evaluations\presentation\pages\evaluations_page.dart:363:15 - expected_token
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\appointments\evaluations\presentation\widgets\evaluation_list_item.dart:39:39 - deprecated_member_use
-   info - Unnecessary use of string interpolation - lib\src\features\appointments\evaluations\presentation\widgets\evaluation_list_item.dart:121:21 - unnecessary_string_interpolations
-  error - This requires the 'dot-shorthands' language feature to be enabled - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:253:21 - experiment_not_enabled
-  error - The method 'putIfAbsent' isn't defined for the type '_SessionsPageState' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:253:22 - undefined_method
-  error - Undefined name 'creationDate' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:253:34 - undefined_identifier
-  error - Undefined name 'session' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:254:26 - undefined_identifier
-  error - Undefined name 'groupedSessions' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:258:45 - undefined_identifier
-  error - Undefined name 'sessions' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:275:30 - undefined_identifier
-  error - Undefined name 'sessions' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:335:54 - undefined_identifier
-  error - Expected to find ')' - lib\src\features\appointments\sessions\presentation\pages\sessions_page.dart:366:15 - expected_token
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\appointments\sessions\presentation\widgets\session_list_item.dart:39:39 - deprecated_member_use
-   info - Unnecessary use of string interpolation - lib\src\features\appointments\sessions\presentation\widgets\session_list_item.dart:127:21 - unnecessary_string_interpolations
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\pages\add_edit_clinical_report_page.dart:563:67 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\ai_chat_panel.dart:56:33 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\ai_chat_panel.dart:79:63 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\clinical_reports\presentation\widgets\ai_chat_panel.dart:531:53 - deprecated_member_use
-   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:852:9 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:892:9 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:949:9 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\features\copilot_chat\presentation\pages\copilot_page.dart:962:9 - curly_braces_in_flow_control_structures
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\doctors\presentation\widgets\doctor_list_item.dart:35:39 - deprecated_member_use
-   info - Unnecessary use of multiple underscores - lib\src\features\financials\presentation\widgets\dashbaord_page_widgets\currency_profiles_section.dart:270:43 - unnecessary_underscores
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\patients\presentation\widgets\patient_list_item.dart:37:39 - deprecated_member_use
-   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\src\features\settings\presentation\pages\settings_page.dart:6:8 - unnecessary_import
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\staff\presentation\widgets\staff_list_item.dart:35:39 - deprecated_member_use
-warning - Unused import: 'package:mockito/mockito.dart' - test\features\copilot_chat\domain\logic\function_call_handler_test.dart:8:8 - unused_import
-warning - Unused import: 'package:provider/provider.dart' - test\features\copilot_chat\domain\logic\function_call_handler_test.dart:10:8 - unused_import
-warning - Unused import: 'package:google_generative_ai/google_generative_ai.dart' - test\features\copilot_chat\domain\logic\function_call_handler_test.dart:11:8 - unused_import
-warning - Unused import: 'package:dartz/dartz.dart' - test\features\copilot_chat\domain\logic\function_call_handler_test.dart:12:8 - unused_import
-warning - Unused import: 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart' - test\features\copilot_chat\domain\logic\function_call_handler_test.dart:13:8 - unused_import
-warning - Unused import: 'package:dr_copilot/src/core/error/failures.dart' - test\features\copilot_chat\domain\logic\function_call_handler_test.dart:14:8 - unused_import
+warning - The value of the local variable 'invitedClinicName' isn't used - lib\src\features\auth\data\remote\auth_firebase_api.dart:445:13 - unused_local_variable
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\auth\presentation\pages\signup_page.dart:144:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\auth\presentation\pages\signup_page.dart:147:11 - use_build_context_synchronously
+warning - This default clause is covered by the previous cases - lib\src\features\calendar\presentation\widgets\calendar_view.dart:239:7 - unreachable_switch_default
+   info - The import of 'package:intl/intl.dart' is unnecessary because all of the used elements are also provided by the import of 'package:easy_localization/easy_localization.dart' - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:8:8 - unnecessary_import
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\clinical_reports\presentation\widgets\body_map_3d_webview_widget.dart:493:64 - use_build_context_synchronously
+   info - The import of 'package:intl/intl.dart' is unnecessary because all of the used elements are also provided by the import of 'package:easy_localization/easy_localization.dart' - lib\src\features\clinical_reports\presentation\widgets\body_map_widget.dart:4:8 - unnecessary_import
+   info - The member 'clearAccumulatedTranscript' overrides an inherited member but isn't annotated with '@override' - lib\src\features\copilot_chat\data\services\speech_recognition_service.dart:41:8 - annotate_overrides
+warning - The operand can't be 'null', so the condition is always 'true' - lib\src\features\copilot_chat\data\services\speech_recognition_service.dart:371:50 - unnecessary_null_comparison
+   info - Empty catch block - lib\src\features\copilot_chat\services\claude_service.dart:134:19 - empty_catches
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:208:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:209:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:217:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\departments\presentation\pages\department_detail_page.dart:458:38 - deprecated_member_use
+warning - Unused import: 'package:dr_copilot/src/core/widgets/shimmer_loading.dart' - lib\src\features\doctors\presentation\pages\doctors_page.dart:9:8 - unused_import
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\inventory\presentation\pages\add_edit_inventory_page.dart:100:17 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:248:27 - use_build_context_synchronously
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:519:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:520:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:525:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:526:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:571:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:572:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:577:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:578:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:622:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:623:11 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:628:11 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\invitations\presentation\pages\create_invitation_page.dart:629:11 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:293:39 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:444:35 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:493:35 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\patients\presentation\pages\add_patient_page.dart:540:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\features\patients\presentation\pages\patient_details_page.dart:365:37 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:514:21 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:755:17 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:756:17 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:763:17 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\src\features\settings\presentation\pages\clinic_members_page.dart:764:17 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:840:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:846:22 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:851:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:898:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:904:24 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\clinic_members_page.dart:909:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\src\features\settings\presentation\pages\data_storage_settings_page.dart:35:30 - use_build_context_synchronously
+   info - Unnecessary use of 'toList' in a spread - lib\src\features\tasks\presentation\pages\add_edit_task_page.dart:226:28 - unnecessary_to_list_in_spreads
 

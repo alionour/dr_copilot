@@ -21,16 +21,16 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
 
   // Available color schemes with user-friendly names
   final Map<FlexScheme, String> _colorSchemes = {
-    FlexScheme.tealM3: 'Teal',
-    FlexScheme.blue: 'Blue',
-    FlexScheme.indigo: 'Indigo',
-    FlexScheme.deepPurple: 'Deep Purple',
-    FlexScheme.red: 'Red',
-    FlexScheme.hippieBlue: 'Hippie Blue',
-    FlexScheme.amber: 'Amber',
-    FlexScheme.green: 'Green',
-    FlexScheme.blueWhale: 'Blue Whale',
-    FlexScheme.sakura: 'Sakura',
+    FlexScheme.tealM3: 'colorTeal',
+    FlexScheme.blue: 'colorBlue',
+    FlexScheme.indigo: 'colorIndigo',
+    FlexScheme.deepPurple: 'colorDeepPurple',
+    FlexScheme.red: 'colorRed',
+    FlexScheme.hippieBlue: 'colorHippieBlue',
+    FlexScheme.amber: 'colorAmber',
+    FlexScheme.green: 'colorGreen',
+    FlexScheme.blueWhale: 'colorBlueWhale',
+    FlexScheme.sakura: 'colorSakura',
   };
 
   @override
@@ -105,7 +105,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 ListTile(
                   title: const Text('colorScheme').tr(),
                   subtitle: Text(
-                    _colorSchemes[themeNotifier.currentScheme] ?? 'Teal',
+                    _colorSchemes[themeNotifier.currentScheme]?.tr() ??
+                        'colorTeal'.tr(),
                   ),
                   leading: const Icon(Icons.palette_outlined),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -169,7 +170,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     backgroundColor: sampleColor,
                     radius: 16,
                   ),
-                  title: Text(schemeName),
+                  title: Text(schemeName).tr(),
                   trailing: isSelected
                       ? Icon(
                           Icons.check_circle_outline,

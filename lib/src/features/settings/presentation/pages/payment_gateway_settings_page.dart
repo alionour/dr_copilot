@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -43,7 +44,7 @@ class _PaymentGatewaySettingsPageState
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Error: No active clinic found.'))),
+          SnackBar(content: SelectionArea(child: Text('errorNoActiveClinic'.tr()))),
         );
       }
       return;
@@ -66,7 +67,7 @@ class _PaymentGatewaySettingsPageState
       debugPrint('Error loading payment config: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Failed to load settings: $e'))),
+          SnackBar(content: SelectionArea(child: Text('failedToLoadSettings'.tr(args: [e.toString()])))),
         );
       }
     } finally {
@@ -98,7 +99,7 @@ class _PaymentGatewaySettingsPageState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Payment settings saved successfully.'))),
+          SnackBar(content: SelectionArea(child: Text('paymentSettingsSaved'.tr()))),
         );
         Navigator.pop(context);
       }
@@ -106,7 +107,7 @@ class _PaymentGatewaySettingsPageState
       debugPrint('Error saving payment config: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Failed to save settings: $e'))),
+          SnackBar(content: SelectionArea(child: Text('failedToSaveSettings'.tr(args: [e.toString()])))),
         );
       }
     } finally {
@@ -122,12 +123,12 @@ class _PaymentGatewaySettingsPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Payment Gateway Settings'),
+        title: const Text('paymentGatewaySettings').tr(),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => _showHelpDialog(context),
-            tooltip: 'Get Help',
+            tooltip: 'howToGetPaymobKeys'.tr(),
           ),
         ],
       ),
@@ -152,78 +153,73 @@ class _PaymentGatewaySettingsPageState
                           Icon(Icons.info,
                               color: Theme.of(context).colorScheme.primary),
                           const SizedBox(width: 8),
-                          const Text('Setup Instructions',
-                              style: TextStyle(
+                          Text('setupInstructions'.tr(),
+                              style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16)),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                          'To receive payments directly, you need a Paymob account. '
-                          'Please fill in the credentials from your Paymob Dashboard.\n\n'
-                          '1. Login to Paymob Dashboard.\n'
-                          '2. Go to Settings -> API Key (for "API Key").\n'
-                          '3. Go to Developers -> Payment Integrations -> Online Card ID (for "Integration ID").\n'
-                          '4. Go to Developers -> Iframes (for "Iframe ID").'),
+                      Text(
+                          'paymobSetupInstructions'.tr()),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 24),
 
-              const Text('Credentials',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('credentials'.tr(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _apiKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'API Key',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.vpn_key),
-                  helperText: 'Found in Settings -> API Key',
+                decoration: InputDecoration(
+                  labelText: 'apiKey'.tr(),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.vpn_key),
+                  helperText: 'apiKeyHelper'.tr(),
                 ),
                 validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
+                    value == null || value.isEmpty ? 'required'.tr() : null,
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _integrationIdController,
-                decoration: const InputDecoration(
-                  labelText: 'Integration ID (Card)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.credit_card),
-                  helperText: 'Found in Payment Integrations (e.g. 1234567)',
+                decoration: InputDecoration(
+                  labelText: 'integrationId'.tr(),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.credit_card),
+                  helperText: 'integrationIdHelper'.tr(),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
+                    value == null || value.isEmpty ? 'required'.tr() : null,
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _iframeIdController,
-                decoration: const InputDecoration(
-                  labelText: 'Iframe ID',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.web_asset),
-                  helperText: 'Found in Developers -> Iframes',
+                decoration: InputDecoration(
+                  labelText: 'iframeId'.tr(),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.web_asset),
+                  helperText: 'iframeIdHelper'.tr(),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
+                    value == null || value.isEmpty ? 'required'.tr() : null,
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _hmacController,
-                decoration: const InputDecoration(
-                  labelText: 'HMAC Secret (Optional)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.security),
+                decoration: InputDecoration(
+                  labelText: 'hmacSecret'.tr(),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.security),
                   helperText:
-                      'Found in Settings -> Payment Integrations to verify callbacks.',
+                      'hmacSecretHelper'.tr(),
                 ),
               ),
 
@@ -236,7 +232,7 @@ class _PaymentGatewaySettingsPageState
                   onPressed: _isSaving ? null : _saveConfig,
                   child: _isSaving
                       ? const CircularProgressIndicator()
-                      : const Text('Save Settings'),
+                      : Text('saveSettings'.tr()),
                 ),
               ),
             ],
@@ -250,29 +246,26 @@ class _PaymentGatewaySettingsPageState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('How to get Paymob Keys'),
-        content: const SingleChildScrollView(
+        title: Text('howToGetPaymobKeys'.tr()),
+        content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Step 1: Create Account'),
-              Text('Sign up at paymob.com and activate your account.\n'),
-              Text('Step 2: Get API Key'),
-              Text(
-                  'Navigate to Settings, then click "API Key" to view/copy it.\n'),
-              Text('Step 3: Create Integration'),
-              Text(
-                  'Go to "Developers" -> "Payment Integrations". Add an "Online Card" integration. Copy the integration ID.\n'),
-              Text('Step 4: Create Iframe'),
-              Text(
-                  'Go to "Developers" -> "Iframes". Create an iframe and copy its ID.'),
+              Text('paymobStep1Title'.tr()),
+              Text('paymobStep1Desc'.tr()),
+              Text('paymobStep2Title'.tr()),
+              Text('paymobStep2Desc'.tr()),
+              Text('paymobStep3Title'.tr()),
+              Text('paymobStep3Desc'.tr()),
+              Text('paymobStep4Title'.tr()),
+              Text('paymobStep4Desc'.tr()),
             ],
           ),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close')),
+              child: Text('close'.tr())),
         ],
       ),
     );

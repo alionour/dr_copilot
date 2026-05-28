@@ -31,7 +31,7 @@ void main() {
       scrollController: scrollController,
       isButtonEnabled: true,
       isRecording: false,
-      isListeningSpeech: false,
+      micState: CopilotMicState.idle,
       isLoading: false,
       currentTier: SubscriptionTier.pro, // Show tokens
       tokenUsage: 1500,

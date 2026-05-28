@@ -74,6 +74,8 @@ class EvaluationModel {
   final Timestamp? deletedAt;
 
   final String? doctorId;
+  final String? departmentId;
+  final String? teamId;
 
   EvaluationModel({
     required this.id,
@@ -91,6 +93,8 @@ class EvaluationModel {
     this.updatedAt,
     this.deletedAt,
     this.doctorId,
+    this.departmentId,
+    this.teamId,
   });
 
   factory EvaluationModel.fromJson(Map<String, dynamic> json) =>
@@ -114,6 +118,8 @@ class EvaluationModel {
     Timestamp? updatedAt,
     Timestamp? deletedAt,
     String? doctorId,
+    String? departmentId,
+    String? teamId,
   }) {
     return EvaluationModel(
       id: id ?? this.id,
@@ -131,6 +137,8 @@ class EvaluationModel {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       doctorId: doctorId ?? this.doctorId,
+      departmentId: departmentId ?? this.departmentId,
+      teamId: teamId ?? this.teamId,
     );
   }
 }

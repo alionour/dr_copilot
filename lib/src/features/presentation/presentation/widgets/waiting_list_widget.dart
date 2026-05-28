@@ -8,7 +8,7 @@ class WaitingListWidget extends StatelessWidget {
   const WaitingListWidget({
     super.key,
     this.scheduleItems = const [],
-    this.clinicName = 'Dr. Copilot Clinic',
+    this.clinicName = 'Dr. AI Clinic',
   });
 
   @override

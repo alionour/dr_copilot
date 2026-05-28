@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dr_copilot/src/features/telemedicine/domain/models/telemedicine_meeting.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class AddCalendarEventPage extends StatefulWidget {
   final CalendarEventModel? eventToEdit;
@@ -220,7 +222,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
         ),
         actions: [
           TextButton(
-            onPressed: _saveEvent,
+            onPressed: _saveEvent.throttle(),
             child: Text(
               'save'.tr(),
               style: TextStyle(
@@ -448,7 +450,7 @@ class _AddCalendarEventPageState extends State<AddCalendarEventPage> {
                       });
                     },
                     child: Container(
-                      margin: const EdgeInsets.only(right: 12),
+                      margin: const EdgeInsetsDirectional.only(end: 12),
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(

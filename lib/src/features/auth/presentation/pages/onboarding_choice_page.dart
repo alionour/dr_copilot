@@ -22,7 +22,7 @@ class _OnboardingChoicePageState extends State<OnboardingChoicePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Welcome to Dr. Copilot',
+                'Welcome to Dr. AI',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),

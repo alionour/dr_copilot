@@ -1,4 +1,4 @@
-# Dr. Copilot - Complete Authentication & Invitation System Documentation
+# Dr AI - Complete Authentication & Invitation System Documentation
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@
 
 ## System Overview
 
-Dr. Copilot uses a **token-based invitation system** with **Google Sign-In authentication** and **role-based access control** to manage multi-clinic healthcare operations.
+Dr AI uses a **token-based invitation system** with **Google Sign-In authentication** and **role-based access control** to manage multi-clinic healthcare operations.
 
 ### Key Features
 
@@ -54,7 +54,7 @@ Dr. Copilot uses a **token-based invitation system** with **Google Sign-In authe
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Dr. Copilot System                        │
+│                    Dr AI System                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌──────────────┐         ┌──────────────┐                 │
@@ -1060,7 +1060,7 @@ Future<void> createInvitation() async {
 
 ```html
 <div class="container">
-  <h1>Dr. Copilot</h1>
+  <h1>Dr AI</h1>
   
   <div id="loading">
     <div class="spinner"></div>
@@ -1441,4 +1441,4 @@ For issues or questions:
 
 **Last Updated**: 2024-01-21  
 **Version**: 1.0.0  
-**Author**: Dr. Copilot Development Team
+**Author**: Dr AI Development Team

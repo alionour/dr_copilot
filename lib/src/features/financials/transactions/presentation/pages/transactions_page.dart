@@ -1,8 +1,10 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
+import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -115,169 +117,182 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final navMenuButton = NavMenuButtonProvider.of(context); // removed unused
-    // final isMobile = ScreenSizeHelper.isSmall(context); // removed unused logic derived from isMobile
+    final navMenuButton = NavMenuButtonProvider.of(context);
+    final isMobile = ScreenSizeHelper.isSmall(context);
     return Scaffold(
-      // Removed AppBar
-      body: SafeArea(
-        child: Column(
+      appBar: AppBar(
+        title: Row(
           children: [
-            // Top Search & Filter Bar
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                // border: Border(
-                //   bottom: BorderSide(
-                //     color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                //   ),
-                // ),
+            if (!isMobile)
+              Expanded(
+                child: Focus(
+                  focusNode: _searchFocusNode,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'searchTransactions'.tr(),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 0.3,
+                        ),
+                      ),
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    onChanged: (newQuery) {
+                      setState(() {
+                        query = newQuery;
+                        _selectedIndex = 0;
+                      });
+                      final clinicId = OwnerNotifier().clinicId;
+                      if (clinicId != null) {
+                        context.read<TransactionsBloc>().add(
+                              SearchTransactions(
+                                  description: query, clinicId: clinicId),
+                            );
+                      }
+                    },
+                    onSubmitted: (_) {
+                      _listFocusNode.requestFocus();
+                    },
+                  ),
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      constraints: const BoxConstraints(minWidth: 0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'refresh'.tr(),
+              onPressed: () {
+                setState(() {
+                  query = '';
+                  _selectedDate = null;
+                });
+                final clinicId = OwnerNotifier().clinicId;
+                if (clinicId != null) {
+                  context.read<TransactionsBloc>().add(
+                        GetTransactions(clinicId: clinicId),
+                      );
+                }
+              },
+            ),
+            if (isMobile)
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                tooltip: 'filters'.tr(),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'filters'.tr(),
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
-                        ],
-                      ),
-                      child: Focus(
-                        focusNode: _searchFocusNode,
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'searchTransactions'.tr(),
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: Theme.of(context).hintColor,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            hintStyle: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          onChanged: (newQuery) {
-                            setState(() {
-                              query = newQuery;
-                              _selectedIndex =
-                                  0; // Reset selection on new query
-                            });
-                            final clinicId = OwnerNotifier().clinicId;
-                            if (clinicId != null) {
-                              context.read<TransactionsBloc>().add(
-                                    SearchTransactions(
-                                        description: query, clinicId: clinicId),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children: [
+                              ActionChip(
+                                avatar: const Icon(
+                                  Icons.calendar_month_outlined,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  _selectedDate != null
+                                      ? _selectedDate!
+                                          .toLocal()
+                                          .toString()
+                                          .split(' ')[0]
+                                      : 'filterByDate'.tr(),
+                                ),
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  final selectedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2101),
                                   );
-                            }
-                          },
-                          onSubmitted: (_) {
-                            _listFocusNode.requestFocus();
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Filter Button
-                  Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
+                                  if (selectedDate != null) {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _selectedDate = selectedDate;
+                                    });
+                                    if (!context.mounted) return;
+                                    final clinicId = OwnerNotifier().clinicId;
+                                    if (clinicId != null) {
+                                      context.read<TransactionsBloc>().add(
+                                            GetTransactionsByDate(
+                                                date: selectedDate,
+                                                clinicId: clinicId),
+                                          );
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      child: IconButton(
-                        icon: Icon(
-                          _showFilters
-                              ? Icons.filter_alt_off
-                              : Icons.filter_alt,
-                          color: _showFilters
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).iconTheme.color,
-                        ),
-                        tooltip: 'toggleFilters'.tr(),
-                        onPressed: () {
-                          setState(() {
-                            _showFilters = !_showFilters;
-                          });
-                        },
-                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Refresh Button
+                  );
+                },
+              ),
+            if (!isMobile)
+              Row(
+                children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12.0),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.shadow.withValues(alpha: 0.2),
+                          blurRadius: 8.0,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: IconButton(
-                      icon: const Icon(Icons.refresh),
-                      tooltip: 'refresh'.tr(),
-                      onPressed: () {
-                        setState(() {
-                          query = '';
-                          _selectedDate = null;
-                        });
-                        final clinicId = OwnerNotifier().clinicId;
-                        if (clinicId != null) {
-                          context.read<TransactionsBloc>().add(
-                                GetTransactions(clinicId: clinicId),
-                              );
-                        }
-                      },
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Filter Options (Date Picker)
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              child: _showFilters
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        children: [
-                          ActionChip(
-                            avatar: Icon(Icons.calendar_today, size: 16),
-                            label: Text(
-                              _selectedDate != null
-                                  ? _selectedDate!.toLocal().toString().split(
-                                        ' ',
-                                      )[0]
-                                  : 'filterByDate'.tr(),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.filter_alt_outlined),
+                          tooltip: 'toggleFilters'.tr(),
+                          onPressed: () {
+                            setState(() {
+                              _showFilters = !_showFilters;
+                            });
+                          },
+                        ),
+                        if (_showFilters) ...[
+                          IconButton(
+                            icon: Row(
+                              children: [
+                                const Icon(Icons.calendar_month_outlined),
+                                if (_selectedDate != null)
+                                  Text(
+                                    _selectedDate!.toLocal().toString().split(' ')[0],
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                              ],
                             ),
+                            tooltip: 'filterByDate'.tr(),
                             onPressed: () async {
                               final selectedDate = await showDatePicker(
                                 context: context,
@@ -301,29 +316,19 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               }
                             },
                           ),
-                          if (_selectedDate != null) ...[
-                            const SizedBox(width: 8),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _selectedDate = null;
-                                });
-                                final clinicId = OwnerNotifier().clinicId;
-                                if (clinicId != null) {
-                                  context.read<TransactionsBloc>().add(
-                                        GetTransactions(clinicId: clinicId),
-                                      );
-                                }
-                              },
-                              icon: const Icon(Icons.close, size: 18),
-                            ),
-                          ],
                         ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            if (navMenuButton != null) navMenuButton,
+          ],
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
             // Transactions List
             Expanded(
               child: BlocListener<TransactionsBloc, TransactionsState>(

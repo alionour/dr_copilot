@@ -31,10 +31,12 @@ class _DataStorageSettingsPageState extends State<DataStorageSettingsPage> {
       }
     } catch (e) {
       debugPrint('Error clearing cache: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Error clearing cache: $e'))));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: SelectionArea(
+                  child: Text('errorClearingCache'.tr(args: [e.toString()])))),
+        );
       }
     }
   }

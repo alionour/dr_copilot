@@ -67,7 +67,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
       body: BlocBuilder<DoctorsBloc, DoctorsState>(
         builder: (context, state) {
           if (state is DoctorsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerList(itemCount: 8);
           } else if (state is DoctorsLoaded) {
             if (state.doctors.isEmpty) {
               return EmptyStateWidget(

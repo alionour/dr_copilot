@@ -3,30 +3,30 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
-import 'dart:typed_data' as _i7;
+import 'dart:async' as _i9;
+import 'dart:typed_data' as _i10;
 
 import 'package:dr_copilot/src/features/copilot_chat/domain/services/ai_service_interface.dart'
-    as _i2;
+    as _i5;
 import 'package:dr_copilot/src/features/copilot_chat/services/ai_router_service.dart'
     as _i14;
 import 'package:dr_copilot/src/features/copilot_chat/services/claude_service.dart'
-    as _i13;
-import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart'
-    as _i11;
-import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart'
-    as _i9;
-import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart'
-    as _i8;
-import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart'
-    as _i12;
-import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart'
     as _i4;
+import 'package:dr_copilot/src/features/copilot_chat/services/deepseek_service.dart'
+    as _i3;
+import 'package:dr_copilot/src/features/copilot_chat/services/gemini_service.dart'
+    as _i11;
+import 'package:dr_copilot/src/features/copilot_chat/services/gpt_service.dart'
+    as _i2;
+import 'package:dr_copilot/src/features/copilot_chat/services/qwen_service.dart'
+    as _i13;
+import 'package:dr_copilot/src/features/copilot_chat/services/vertex_ai_service.dart'
+    as _i7;
 import 'package:flutter/foundation.dart' as _i15;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i3;
-import 'package:google_generative_ai/google_generative_ai.dart' as _i10;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i6;
+import 'package:google_generative_ai/google_generative_ai.dart' as _i12;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i5;
+import 'package:mockito/src/dummies.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -43,8 +43,8 @@ import 'package:mockito/src/dummies.dart' as _i5;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeAIService_0 extends _i1.SmartFake implements _i2.AIService {
-  _FakeAIService_0(
+class _FakeGPTResponse_0 extends _i1.SmartFake implements _i2.GPTResponse {
+  _FakeGPTResponse_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -53,8 +53,9 @@ class _FakeAIService_0 extends _i1.SmartFake implements _i2.AIService {
         );
 }
 
-class _FakeIOSOptions_1 extends _i1.SmartFake implements _i3.IOSOptions {
-  _FakeIOSOptions_1(
+class _FakeDeepSeekResponse_1 extends _i1.SmartFake
+    implements _i3.DeepSeekResponse {
+  _FakeDeepSeekResponse_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -63,9 +64,9 @@ class _FakeIOSOptions_1 extends _i1.SmartFake implements _i3.IOSOptions {
         );
 }
 
-class _FakeAndroidOptions_2 extends _i1.SmartFake
-    implements _i3.AndroidOptions {
-  _FakeAndroidOptions_2(
+class _FakeClaudeResponse_2 extends _i1.SmartFake
+    implements _i4.ClaudeResponse {
+  _FakeClaudeResponse_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -74,8 +75,8 @@ class _FakeAndroidOptions_2 extends _i1.SmartFake
         );
 }
 
-class _FakeLinuxOptions_3 extends _i1.SmartFake implements _i3.LinuxOptions {
-  _FakeLinuxOptions_3(
+class _FakeAIService_3 extends _i1.SmartFake implements _i5.AIService {
+  _FakeAIService_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -84,9 +85,8 @@ class _FakeLinuxOptions_3 extends _i1.SmartFake implements _i3.LinuxOptions {
         );
 }
 
-class _FakeWindowsOptions_4 extends _i1.SmartFake
-    implements _i3.WindowsOptions {
-  _FakeWindowsOptions_4(
+class _FakeIOSOptions_4 extends _i1.SmartFake implements _i6.IOSOptions {
+  _FakeIOSOptions_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -95,8 +95,9 @@ class _FakeWindowsOptions_4 extends _i1.SmartFake
         );
 }
 
-class _FakeWebOptions_5 extends _i1.SmartFake implements _i3.WebOptions {
-  _FakeWebOptions_5(
+class _FakeAndroidOptions_5 extends _i1.SmartFake
+    implements _i6.AndroidOptions {
+  _FakeAndroidOptions_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -105,8 +106,39 @@ class _FakeWebOptions_5 extends _i1.SmartFake implements _i3.WebOptions {
         );
 }
 
-class _FakeAppleOptions_6 extends _i1.SmartFake implements _i3.AppleOptions {
-  _FakeAppleOptions_6(
+class _FakeLinuxOptions_6 extends _i1.SmartFake implements _i6.LinuxOptions {
+  _FakeLinuxOptions_6(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeWindowsOptions_7 extends _i1.SmartFake
+    implements _i6.WindowsOptions {
+  _FakeWindowsOptions_7(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeWebOptions_8 extends _i1.SmartFake implements _i6.WebOptions {
+  _FakeWebOptions_8(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeAppleOptions_9 extends _i1.SmartFake implements _i6.AppleOptions {
+  _FakeAppleOptions_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -118,7 +150,7 @@ class _FakeAppleOptions_6 extends _i1.SmartFake implements _i3.AppleOptions {
 /// A class which mocks [VertexAIService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
+class MockVertexAIService extends _i1.Mock implements _i7.VertexAIService {
   MockVertexAIService() {
     _i1.throwOnMissingStub(this);
   }
@@ -126,14 +158,14 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
   @override
   String get apiKey => (super.noSuchMethod(
         Invocation.getter(#apiKey),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i8.dummyValue<String>(
           this,
           Invocation.getter(#apiKey),
         ),
       ) as String);
 
   @override
-  _i6.Future<String> generateResponse(
+  _i9.Future<String> generateResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -149,7 +181,7 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponse,
@@ -161,12 +193,12 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> generateResponseWithImage(
+  _i9.Future<String> generateResponseWithImage(
     String? query,
-    _i7.Uint8List? imageBytes, {
+    _i10.Uint8List? imageBytes, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
     String? userId,
@@ -184,7 +216,7 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponseWithImage,
@@ -199,7 +231,7 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
   void updateModelConfig(List<String>? requiredFields) => super.noSuchMethod(
@@ -211,7 +243,7 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
       );
 
   @override
-  _i6.Future<String> getMedPaLMResponse(
+  _i9.Future<String> getMedPaLMResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -227,7 +259,7 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getMedPaLMResponse,
@@ -239,11 +271,11 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> getMedPaLMResponseFromBytes(
-    _i7.Uint8List? fileBytes, {
+  _i9.Future<String> getMedPaLMResponseFromBytes(
+    _i10.Uint8List? fileBytes, {
     String? clinicId,
     String? userId,
   }) =>
@@ -256,7 +288,7 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getMedPaLMResponseFromBytes,
@@ -267,19 +299,19 @@ class MockVertexAIService extends _i1.Mock implements _i4.VertexAIService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 }
 
 /// A class which mocks [GPTService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGPTService extends _i1.Mock implements _i8.GPTService {
+class MockGPTService extends _i1.Mock implements _i2.GPTService {
   MockGPTService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i6.Future<String> generateResponse(
+  _i9.Future<String> generateResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -295,7 +327,7 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponse,
@@ -307,12 +339,12 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> generateResponseWithImage(
+  _i9.Future<String> generateResponseWithImage(
     String? query,
-    _i7.Uint8List? imageBytes, {
+    _i10.Uint8List? imageBytes, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
     String? userId,
@@ -330,7 +362,7 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponseWithImage,
@@ -345,7 +377,7 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
   void updateModelConfig(List<String>? requiredFields) => super.noSuchMethod(
@@ -357,7 +389,7 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
       );
 
   @override
-  _i6.Future<String> getGPTResponse(
+  _i9.Future<_i2.GPTResponse> getGPTResponseRaw(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -365,7 +397,7 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getGPTResponse,
+          #getGPTResponseRaw,
           [query],
           {
             #messageHistory: messageHistory,
@@ -373,10 +405,10 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<_i2.GPTResponse>.value(_FakeGPTResponse_0(
           this,
           Invocation.method(
-            #getGPTResponse,
+            #getGPTResponseRaw,
             [query],
             {
               #messageHistory: messageHistory,
@@ -385,13 +417,13 @@ class MockGPTService extends _i1.Mock implements _i8.GPTService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<_i2.GPTResponse>);
 }
 
 /// A class which mocks [GeminiService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
+class MockGeminiService extends _i1.Mock implements _i11.GeminiService {
   MockGeminiService() {
     _i1.throwOnMissingStub(this);
   }
@@ -399,7 +431,7 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
   @override
   String get apiKey => (super.noSuchMethod(
         Invocation.getter(#apiKey),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i8.dummyValue<String>(
           this,
           Invocation.getter(#apiKey),
         ),
@@ -415,7 +447,7 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
       );
 
   @override
-  _i6.Future<String> generateResponse(
+  _i9.Future<String> generateResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -431,7 +463,7 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponse,
@@ -443,12 +475,12 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> generateResponseWithImage(
+  _i9.Future<String> generateResponseWithImage(
     String? query,
-    _i7.Uint8List? imageBytes, {
+    _i10.Uint8List? imageBytes, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
     String? userId,
@@ -466,7 +498,7 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponseWithImage,
@@ -481,10 +513,10 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<_i10.GenerateContentResponse> getGeminiResponse(
+  _i9.Future<_i12.GenerateContentResponse> getGeminiResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -500,8 +532,8 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<_i10.GenerateContentResponse>.value(
-            _i5.dummyValue<_i10.GenerateContentResponse>(
+        returnValue: _i9.Future<_i12.GenerateContentResponse>.value(
+            _i8.dummyValue<_i12.GenerateContentResponse>(
           this,
           Invocation.method(
             #getGeminiResponse,
@@ -513,13 +545,13 @@ class MockGeminiService extends _i1.Mock implements _i9.GeminiService {
             },
           ),
         )),
-      ) as _i6.Future<_i10.GenerateContentResponse>);
+      ) as _i9.Future<_i12.GenerateContentResponse>);
 }
 
 /// A class which mocks [DeepSeekService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
+class MockDeepSeekService extends _i1.Mock implements _i3.DeepSeekService {
   MockDeepSeekService() {
     _i1.throwOnMissingStub(this);
   }
@@ -527,14 +559,14 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
   @override
   String get apiKey => (super.noSuchMethod(
         Invocation.getter(#apiKey),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i8.dummyValue<String>(
           this,
           Invocation.getter(#apiKey),
         ),
       ) as String);
 
   @override
-  _i6.Future<String> generateResponse(
+  _i9.Future<String> generateResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -550,7 +582,7 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponse,
@@ -562,12 +594,12 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> generateResponseWithImage(
+  _i9.Future<String> generateResponseWithImage(
     String? query,
-    _i7.Uint8List? imageBytes, {
+    _i10.Uint8List? imageBytes, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
     String? userId,
@@ -585,7 +617,7 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponseWithImage,
@@ -600,7 +632,7 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
   void updateModelConfig(List<String>? requiredFields) => super.noSuchMethod(
@@ -612,7 +644,7 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
       );
 
   @override
-  _i6.Future<String> getDeepSeekResponse(
+  _i9.Future<_i3.DeepSeekResponse> getDeepSeekResponseRaw(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -620,7 +652,7 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getDeepSeekResponse,
+          #getDeepSeekResponseRaw,
           [query],
           {
             #messageHistory: messageHistory,
@@ -628,10 +660,11 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue:
+            _i9.Future<_i3.DeepSeekResponse>.value(_FakeDeepSeekResponse_1(
           this,
           Invocation.method(
-            #getDeepSeekResponse,
+            #getDeepSeekResponseRaw,
             [query],
             {
               #messageHistory: messageHistory,
@@ -640,11 +673,11 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<_i3.DeepSeekResponse>);
 
   @override
-  _i6.Future<String> getDeepSeekResponseFromBytes(
-    _i7.Uint8List? fileBytes, {
+  _i9.Future<String> getDeepSeekResponseFromBytes(
+    _i10.Uint8List? fileBytes, {
     String? clinicId,
     String? userId,
   }) =>
@@ -657,7 +690,7 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getDeepSeekResponseFromBytes,
@@ -668,13 +701,13 @@ class MockDeepSeekService extends _i1.Mock implements _i11.DeepSeekService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 }
 
 /// A class which mocks [QwenService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockQwenService extends _i1.Mock implements _i12.QwenService {
+class MockQwenService extends _i1.Mock implements _i13.QwenService {
   MockQwenService() {
     _i1.throwOnMissingStub(this);
   }
@@ -682,14 +715,14 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
   @override
   String get apiKey => (super.noSuchMethod(
         Invocation.getter(#apiKey),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i8.dummyValue<String>(
           this,
           Invocation.getter(#apiKey),
         ),
       ) as String);
 
   @override
-  _i6.Future<String> generateResponse(
+  _i9.Future<String> generateResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -705,7 +738,7 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponse,
@@ -717,12 +750,12 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> generateResponseWithImage(
+  _i9.Future<String> generateResponseWithImage(
     String? query,
-    _i7.Uint8List? imageBytes, {
+    _i10.Uint8List? imageBytes, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
     String? userId,
@@ -740,7 +773,7 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponseWithImage,
@@ -755,7 +788,7 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
   void updateModelConfig(List<String>? requiredFields) => super.noSuchMethod(
@@ -767,7 +800,7 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
       );
 
   @override
-  _i6.Future<String> getQwenResponse(
+  _i9.Future<String> getQwenResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -783,7 +816,7 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getQwenResponse,
@@ -795,11 +828,11 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> getQwenResponseFromBytes(
-    _i7.Uint8List? fileBytes, {
+  _i9.Future<String> getQwenResponseFromBytes(
+    _i10.Uint8List? fileBytes, {
     String? clinicId,
     String? userId,
   }) =>
@@ -812,7 +845,7 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getQwenResponseFromBytes,
@@ -823,13 +856,13 @@ class MockQwenService extends _i1.Mock implements _i12.QwenService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 }
 
 /// A class which mocks [ClaudeService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
+class MockClaudeService extends _i1.Mock implements _i4.ClaudeService {
   MockClaudeService() {
     _i1.throwOnMissingStub(this);
   }
@@ -837,14 +870,14 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
   @override
   String get apiKey => (super.noSuchMethod(
         Invocation.getter(#apiKey),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i8.dummyValue<String>(
           this,
           Invocation.getter(#apiKey),
         ),
       ) as String);
 
   @override
-  _i6.Future<String> generateResponse(
+  _i9.Future<String> generateResponse(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -860,7 +893,7 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponse,
@@ -872,12 +905,12 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<String> generateResponseWithImage(
+  _i9.Future<String> generateResponseWithImage(
     String? query,
-    _i7.Uint8List? imageBytes, {
+    _i10.Uint8List? imageBytes, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
     String? userId,
@@ -895,7 +928,7 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #generateResponseWithImage,
@@ -910,7 +943,7 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 
   @override
   void updateModelConfig(List<String>? requiredFields) => super.noSuchMethod(
@@ -922,7 +955,7 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
       );
 
   @override
-  _i6.Future<String> getClaudeResponse(
+  _i9.Future<_i4.ClaudeResponse> getClaudeResponseRaw(
     String? query, {
     List<Map<String, dynamic>>? messageHistory = const [],
     String? clinicId,
@@ -930,7 +963,7 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getClaudeResponse,
+          #getClaudeResponseRaw,
           [query],
           {
             #messageHistory: messageHistory,
@@ -938,10 +971,10 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
             #userId: userId,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<_i4.ClaudeResponse>.value(_FakeClaudeResponse_2(
           this,
           Invocation.method(
-            #getClaudeResponse,
+            #getClaudeResponseRaw,
             [query],
             {
               #messageHistory: messageHistory,
@@ -950,23 +983,23 @@ class MockClaudeService extends _i1.Mock implements _i13.ClaudeService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<_i4.ClaudeResponse>);
 
   @override
-  _i6.Future<String> getClaudeResponseFromBytes(_i7.Uint8List? fileBytes) =>
+  _i9.Future<String> getClaudeResponseFromBytes(_i10.Uint8List? fileBytes) =>
       (super.noSuchMethod(
         Invocation.method(
           #getClaudeResponseFromBytes,
           [fileBytes],
         ),
-        returnValue: _i6.Future<String>.value(_i5.dummyValue<String>(
+        returnValue: _i9.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getClaudeResponseFromBytes,
             [fileBytes],
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i9.Future<String>);
 }
 
 /// A class which mocks [AIRouterService].
@@ -978,7 +1011,7 @@ class MockAIRouterService extends _i1.Mock implements _i14.AIRouterService {
   }
 
   @override
-  _i6.Future<_i2.AIService> getServiceForQuery({
+  _i9.Future<_i5.AIService> getServiceForQuery({
     required String? query,
     required String? clinicId,
     bool? forcePremium = false,
@@ -993,7 +1026,7 @@ class MockAIRouterService extends _i1.Mock implements _i14.AIRouterService {
             #forcePremium: forcePremium,
           },
         ),
-        returnValue: _i6.Future<_i2.AIService>.value(_FakeAIService_0(
+        returnValue: _i9.Future<_i5.AIService>.value(_FakeAIService_3(
           this,
           Invocation.method(
             #getServiceForQuery,
@@ -1005,71 +1038,71 @@ class MockAIRouterService extends _i1.Mock implements _i14.AIRouterService {
             },
           ),
         )),
-      ) as _i6.Future<_i2.AIService>);
+      ) as _i9.Future<_i5.AIService>);
 }
 
 /// A class which mocks [FlutterSecureStorage].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockFlutterSecureStorage extends _i1.Mock
-    implements _i3.FlutterSecureStorage {
+    implements _i6.FlutterSecureStorage {
   MockFlutterSecureStorage() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.IOSOptions get iOptions => (super.noSuchMethod(
+  _i6.IOSOptions get iOptions => (super.noSuchMethod(
         Invocation.getter(#iOptions),
-        returnValue: _FakeIOSOptions_1(
+        returnValue: _FakeIOSOptions_4(
           this,
           Invocation.getter(#iOptions),
         ),
-      ) as _i3.IOSOptions);
+      ) as _i6.IOSOptions);
 
   @override
-  _i3.AndroidOptions get aOptions => (super.noSuchMethod(
+  _i6.AndroidOptions get aOptions => (super.noSuchMethod(
         Invocation.getter(#aOptions),
-        returnValue: _FakeAndroidOptions_2(
+        returnValue: _FakeAndroidOptions_5(
           this,
           Invocation.getter(#aOptions),
         ),
-      ) as _i3.AndroidOptions);
+      ) as _i6.AndroidOptions);
 
   @override
-  _i3.LinuxOptions get lOptions => (super.noSuchMethod(
+  _i6.LinuxOptions get lOptions => (super.noSuchMethod(
         Invocation.getter(#lOptions),
-        returnValue: _FakeLinuxOptions_3(
+        returnValue: _FakeLinuxOptions_6(
           this,
           Invocation.getter(#lOptions),
         ),
-      ) as _i3.LinuxOptions);
+      ) as _i6.LinuxOptions);
 
   @override
-  _i3.WindowsOptions get wOptions => (super.noSuchMethod(
+  _i6.WindowsOptions get wOptions => (super.noSuchMethod(
         Invocation.getter(#wOptions),
-        returnValue: _FakeWindowsOptions_4(
+        returnValue: _FakeWindowsOptions_7(
           this,
           Invocation.getter(#wOptions),
         ),
-      ) as _i3.WindowsOptions);
+      ) as _i6.WindowsOptions);
 
   @override
-  _i3.WebOptions get webOptions => (super.noSuchMethod(
+  _i6.WebOptions get webOptions => (super.noSuchMethod(
         Invocation.getter(#webOptions),
-        returnValue: _FakeWebOptions_5(
+        returnValue: _FakeWebOptions_8(
           this,
           Invocation.getter(#webOptions),
         ),
-      ) as _i3.WebOptions);
+      ) as _i6.WebOptions);
 
   @override
-  _i3.AppleOptions get mOptions => (super.noSuchMethod(
+  _i6.AppleOptions get mOptions => (super.noSuchMethod(
         Invocation.getter(#mOptions),
-        returnValue: _FakeAppleOptions_6(
+        returnValue: _FakeAppleOptions_9(
           this,
           Invocation.getter(#mOptions),
         ),
-      ) as _i3.AppleOptions);
+      ) as _i6.AppleOptions);
 
   @override
   Map<String, List<_i15.ValueChanged<String?>>> get getListeners =>
@@ -1133,15 +1166,15 @@ class MockFlutterSecureStorage extends _i1.Mock
       );
 
   @override
-  _i6.Future<void> write({
+  _i9.Future<void> write({
     required String? key,
     required String? value,
-    _i3.AppleOptions? iOptions,
-    _i3.AndroidOptions? aOptions,
-    _i3.LinuxOptions? lOptions,
-    _i3.WebOptions? webOptions,
-    _i3.AppleOptions? mOptions,
-    _i3.WindowsOptions? wOptions,
+    _i6.AppleOptions? iOptions,
+    _i6.AndroidOptions? aOptions,
+    _i6.LinuxOptions? lOptions,
+    _i6.WebOptions? webOptions,
+    _i6.AppleOptions? mOptions,
+    _i6.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1158,19 +1191,19 @@ class MockFlutterSecureStorage extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<String?> read({
+  _i9.Future<String?> read({
     required String? key,
-    _i3.AppleOptions? iOptions,
-    _i3.AndroidOptions? aOptions,
-    _i3.LinuxOptions? lOptions,
-    _i3.WebOptions? webOptions,
-    _i3.AppleOptions? mOptions,
-    _i3.WindowsOptions? wOptions,
+    _i6.AppleOptions? iOptions,
+    _i6.AndroidOptions? aOptions,
+    _i6.LinuxOptions? lOptions,
+    _i6.WebOptions? webOptions,
+    _i6.AppleOptions? mOptions,
+    _i6.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1186,18 +1219,18 @@ class MockFlutterSecureStorage extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i6.Future<String?>.value(),
-      ) as _i6.Future<String?>);
+        returnValue: _i9.Future<String?>.value(),
+      ) as _i9.Future<String?>);
 
   @override
-  _i6.Future<bool> containsKey({
+  _i9.Future<bool> containsKey({
     required String? key,
-    _i3.AppleOptions? iOptions,
-    _i3.AndroidOptions? aOptions,
-    _i3.LinuxOptions? lOptions,
-    _i3.WebOptions? webOptions,
-    _i3.AppleOptions? mOptions,
-    _i3.WindowsOptions? wOptions,
+    _i6.AppleOptions? iOptions,
+    _i6.AndroidOptions? aOptions,
+    _i6.LinuxOptions? lOptions,
+    _i6.WebOptions? webOptions,
+    _i6.AppleOptions? mOptions,
+    _i6.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1213,18 +1246,18 @@ class MockFlutterSecureStorage extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+        returnValue: _i9.Future<bool>.value(false),
+      ) as _i9.Future<bool>);
 
   @override
-  _i6.Future<void> delete({
+  _i9.Future<void> delete({
     required String? key,
-    _i3.AppleOptions? iOptions,
-    _i3.AndroidOptions? aOptions,
-    _i3.LinuxOptions? lOptions,
-    _i3.WebOptions? webOptions,
-    _i3.AppleOptions? mOptions,
-    _i3.WindowsOptions? wOptions,
+    _i6.AppleOptions? iOptions,
+    _i6.AndroidOptions? aOptions,
+    _i6.LinuxOptions? lOptions,
+    _i6.WebOptions? webOptions,
+    _i6.AppleOptions? mOptions,
+    _i6.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1240,18 +1273,18 @@ class MockFlutterSecureStorage extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<Map<String, String>> readAll({
-    _i3.AppleOptions? iOptions,
-    _i3.AndroidOptions? aOptions,
-    _i3.LinuxOptions? lOptions,
-    _i3.WebOptions? webOptions,
-    _i3.AppleOptions? mOptions,
-    _i3.WindowsOptions? wOptions,
+  _i9.Future<Map<String, String>> readAll({
+    _i6.AppleOptions? iOptions,
+    _i6.AndroidOptions? aOptions,
+    _i6.LinuxOptions? lOptions,
+    _i6.WebOptions? webOptions,
+    _i6.AppleOptions? mOptions,
+    _i6.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1266,17 +1299,17 @@ class MockFlutterSecureStorage extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i6.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i6.Future<Map<String, String>>);
+        returnValue: _i9.Future<Map<String, String>>.value(<String, String>{}),
+      ) as _i9.Future<Map<String, String>>);
 
   @override
-  _i6.Future<void> deleteAll({
-    _i3.AppleOptions? iOptions,
-    _i3.AndroidOptions? aOptions,
-    _i3.LinuxOptions? lOptions,
-    _i3.WebOptions? webOptions,
-    _i3.AppleOptions? mOptions,
-    _i3.WindowsOptions? wOptions,
+  _i9.Future<void> deleteAll({
+    _i6.AppleOptions? iOptions,
+    _i6.AndroidOptions? aOptions,
+    _i6.LinuxOptions? lOptions,
+    _i6.WebOptions? webOptions,
+    _i6.AppleOptions? mOptions,
+    _i6.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1291,16 +1324,16 @@ class MockFlutterSecureStorage extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<bool?> isCupertinoProtectedDataAvailable() => (super.noSuchMethod(
+  _i9.Future<bool?> isCupertinoProtectedDataAvailable() => (super.noSuchMethod(
         Invocation.method(
           #isCupertinoProtectedDataAvailable,
           [],
         ),
-        returnValue: _i6.Future<bool?>.value(),
-      ) as _i6.Future<bool?>);
+        returnValue: _i9.Future<bool?>.value(),
+      ) as _i9.Future<bool?>);
 }

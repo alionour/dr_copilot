@@ -38,101 +38,117 @@ class _HelpSupportPageState extends State<HelpSupportPage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // App Bar with gradient
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.primary.withValues(alpha: 0.7),
-                      colorScheme.tertiary,
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 16),
-                      // Support Icon
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            // App Bar with gradient
+            SliverAppBar(
+              expandedHeight: 240,
+              pinned: true,
+              flexibleSpace: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final top = constraints.biggest.height;
+                  final statusBarHeight = MediaQuery.of(context).padding.top;
+                  // Collapsed height is typically status bar + kToolbarHeight + 48 (TabBar)
+                  final isCollapsed = top <= (statusBarHeight + kToolbarHeight + 70);
+
+                  return FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colorScheme.primary,
+                            colorScheme.primary.withValues(alpha: 0.7),
+                            colorScheme.tertiary,
                           ],
                         ),
-                        child: Icon(
-                          Icons.support_agent_rounded,
-                          size: 48,
-                          color: colorScheme.primary,
-                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'helpSupport'.tr(),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'supportDescription'.tr(),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 150),
+                        opacity: isCollapsed ? 0.0 : 1.0,
+                        child: SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 48), // Padding for TabBar
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 16),
+                                // Support Icon
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.support_agent_rounded,
+                                    size: 48,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'helpSupport'.tr(),
+                                  style: theme.textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'supportDescription'.tr(),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
+              ),
+              bottom: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.center,
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                tabs: [
+                  Tab(text: 'faq'.tr()),
+                  Tab(text: 'contactTitle'.tr()),
+                  Tab(text: 'userGuide'.tr()),
+                ],
               ),
             ),
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
-              tabs: [
-                Tab(text: 'faq'.tr()),
-                Tab(text: 'contactTitle'.tr()),
-                Tab(text: 'userGuide'.tr()),
-              ],
-            ),
-          ),
-
-          // Tab Content
-          SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFAQTab(theme, colorScheme),
-                _buildContactTab(theme, colorScheme),
-                _buildResourcesTab(theme, colorScheme),
-              ],
-            ),
-          ),
-        ],
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildFAQTab(theme, colorScheme),
+            _buildContactTab(theme, colorScheme),
+            _buildResourcesTab(theme, colorScheme),
+          ],
+        ),
       ),
     );
   }
@@ -189,13 +205,13 @@ class _HelpSupportPageState extends State<HelpSupportPage>
           _ContactMethodCard(
             icon: Icons.email_rounded,
             title: 'emailUs'.tr(),
-            subtitle: 'support@drcopilot.com',
+            subtitle: 'support@drai.com',
             color: Colors.orange,
             onTap: () {
               final Uri emailLaunchUri = Uri(
                 scheme: 'mailto',
-                path: 'support@drcopilot.com',
-                query: 'subject=Dr. Copilot Support Request',
+                path: 'support@drai.com',
+                query: 'subject=Dr. AI Support Request',
               );
               _launchUrl(emailLaunchUri);
             },
@@ -206,10 +222,10 @@ class _HelpSupportPageState extends State<HelpSupportPage>
           _ContactMethodCard(
             icon: Icons.language_rounded,
             title: 'visitWebsite'.tr(),
-            subtitle: 'www.drcopilot.com',
+            subtitle: 'www.drai.com',
             color: Colors.green,
             onTap: () {
-              final Uri url = Uri.parse('https://drcopilot.com');
+              final Uri url = Uri.parse('https://drai.com');
               _launchUrl(url);
             },
             theme: theme,
@@ -249,7 +265,7 @@ class _HelpSupportPageState extends State<HelpSupportPage>
       {
         'icon': Icons.book_rounded,
         'title': 'User Documentation',
-        'description': 'Complete guide to using Dr. Copilot',
+        'description': 'Complete guide to using Dr. AI',
         'color': Colors.blue,
       },
       {

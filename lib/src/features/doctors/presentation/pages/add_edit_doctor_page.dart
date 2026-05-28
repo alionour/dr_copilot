@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class AddEditDoctorPage extends StatefulWidget {
   final String? doctorId;
@@ -174,7 +176,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
         appBar: AppBar(
           title: Text(isEditing ? 'editDoctor'.tr() : 'addDoctor'.tr()),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: Icon(Icons.adaptive.arrow_back),
             onPressed: () {
               context.pop();
             },
@@ -206,7 +208,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
       appBar: AppBar(
         title: Text(isEditing ? 'editDoctor'.tr() : 'addDoctor'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () {
             context.pop();
           },
@@ -566,7 +568,7 @@ class _AddEditDoctorPageState extends State<AddEditDoctorPage> {
                                 );
                               }
                               return ElevatedButton(
-                                onPressed: _saveDoctor,
+                                onPressed: _saveDoctor.throttle(),
                                 child: Text('saveDoctor'.tr()),
                               );
                             },

@@ -2,6 +2,8 @@ import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/staff/domain/models/staff_model.dart';
 import 'package:dr_copilot/src/features/staff/presentation/bloc/staff_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -185,7 +187,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
       appBar: AppBar(
         title: Text(isEditing ? 'editStaff'.tr() : 'addStaff'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -439,7 +441,7 @@ class _AddEditStaffFormState extends State<AddEditStaffForm> {
                                 );
                               }
                               return ElevatedButton(
-                                onPressed: _saveStaff,
+                                onPressed: _saveStaff.throttle(),
                                 child: Text('saveStaff'.tr()),
                               );
                             },

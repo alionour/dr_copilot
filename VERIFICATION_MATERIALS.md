@@ -1,6 +1,6 @@
 # Google App Verification Materials
 
-This document contains all necessary materials for submitting Dr Copilot for Google App Verification.
+This document contains all necessary materials for submitting Dr AI for Google App Verification.
 
 ---
 
@@ -16,20 +16,20 @@ This document contains all necessary materials for submitting Dr Copilot for Goo
 
 ## OAuth Scopes Justification
 
-Dr Copilot requests the following Google OAuth scopes:
+Dr AI requests the following Google OAuth scopes:
 
 ### 1. Google Drive (drive.file) - **SENSITIVE SCOPE**
 **Scope:** `https://www.googleapis.com/auth/drive.file`
 
 **Justification:**
-Dr Copilot is a clinical documentation tool for healthcare professionals. We need access to Google Drive to:
+Dr AI is a clinical documentation tool for healthcare professionals. We need access to Google Drive to:
 - **Create Google Docs** for clinical reports directly within the user's Google Drive
 - **Edit and manage** clinical reports that the app has created
 - **Delete** outdated or finalized clinical reports when requested by the user
 
 **Key Points:**
 - We use the **`drive.file`** scope (NOT full `drive` access)
-- This means we can ONLY access files that Dr Copilot itself creates
+- This means we can ONLY access files that Dr AI itself creates
 - We **cannot** see, access, or modify any other files in the user's Drive
 - This is a privacy-conscious choice that limits our access to the minimum necessary
 
@@ -68,7 +68,7 @@ Healthcare professionals need to manage appointments and schedules efficiently. 
 ### Video Outline (2-3 minutes)
 
 1. **Introduction (15 seconds)**
-   - "Hi, I'm demonstrating Dr Copilot, a clinical documentation assistant for healthcare professionals."
+   - "Hi, I'm demonstrating Dr AI, a clinical documentation assistant for healthcare professionals."
 
 2. **Sign-In Flow (30 seconds)**
    - Show the app's sign-in screen
@@ -83,7 +83,7 @@ Healthcare professionals need to manage appointments and schedules efficiently. 
    - Demonstrate editing the clinical report within the app
    - Show the Google Docs editor (can be in a webview or external browser)
    - Navigate to Google Drive separately and show the created file
-   - Explain: "Notice that Dr Copilot can only see files it created, not other files in your Drive"
+   - Explain: "Notice that Dr AI can only see files it created, not other files in your Drive"
 
 4. **Google Calendar Usage (45 seconds)**
    - Navigate to the "Schedule" or "Calendar" section
@@ -93,7 +93,7 @@ Healthcare professionals need to manage appointments and schedules efficiently. 
    - Demonstrate editing/deleting an appointment
 
 5. **Data Privacy (15 seconds)**
-   - "All data stays in your Google account. Dr Copilot cannot access files it didn't create."
+   - "All data stays in your Google account. Dr AI cannot access files it didn't create."
 
 ---
 

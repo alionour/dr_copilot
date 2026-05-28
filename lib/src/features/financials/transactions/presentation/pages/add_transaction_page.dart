@@ -11,6 +11,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class AddTransactionPage extends StatefulWidget {
   final TransactionModel? transaction;
@@ -230,7 +232,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       appBar: AppBar(
         title: Text('addTransaction'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () {
             context.pop();
           },
@@ -513,7 +515,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: _saveTransaction,
+                              onPressed: _saveTransaction.throttle(),
                               child: Text('saveTransaction'.tr()),
                             ),
                           ),

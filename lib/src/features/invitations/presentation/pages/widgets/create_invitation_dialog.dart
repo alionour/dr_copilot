@@ -7,6 +7,8 @@ import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_event.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/clinic_model.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class CreateInvitationDialog extends StatefulWidget {
   final String clinicId;
@@ -150,7 +152,7 @@ class _CreateInvitationDialogState extends State<CreateInvitationDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text('cancel'.tr()),
         ),
-        ElevatedButton(onPressed: _sendInvitation, child: Text('send'.tr())),
+        ElevatedButton(onPressed: _sendInvitation.throttle(), child: Text('send'.tr())),
       ],
     );
   }

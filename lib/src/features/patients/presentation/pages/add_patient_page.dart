@@ -662,7 +662,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             widget.patient != null ? 'editPatient'.tr() : 'addPatient'.tr(),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: Icon(Icons.adaptive.arrow_back),
             onPressed: () {
               if (widget.onCancel != null) {
                 widget.onCancel!();

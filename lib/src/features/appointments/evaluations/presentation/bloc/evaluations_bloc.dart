@@ -36,27 +36,27 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
 
   void _onGetEvaluations(
       GetEvaluations event, Emitter<EvaluationsState> emit) async {
-    emit(EvaluationsLoading(state.evaluations));
+    emit(EvaluationsLoading(state.evaluations, totalCount: state.totalCount));
     final failureOrEvaluations = await _evaluationsUseCase.getEvaluations(
       lastDocumentID: event.lastDocumentID,
       limit: event.limit,
     );
     emit(failureOrEvaluations.fold(
       (failure) => EvaluationsError(state.evaluations,
-          message: _mapFailureToMessage(failure)),
-      (evaluations) => EvaluationsLoaded(evaluations),
+          message: _mapFailureToMessage(failure), totalCount: state.totalCount),
+      (evaluations) => EvaluationsLoaded(evaluations, totalCount: state.totalCount),
     ));
   }
 
   void _onAddEvaluation(
       AddEvaluation event, Emitter<EvaluationsState> emit) async {
-    emit(EvaluationsLoading(state.evaluations));
+    emit(EvaluationsLoading(state.evaluations, totalCount: state.totalCount));
     final failureOrEvaluation =
         await _evaluationsUseCase.addEvaluation(event.model);
     await failureOrEvaluation.fold(
       (failure) {
         emit(EvaluationsError(state.evaluations,
-            message: _mapFailureToMessage(failure)));
+            message: _mapFailureToMessage(failure), totalCount: state.totalCount));
       },
       (addedEvaluation) async {
         debugPrint('Add successful: $addedEvaluation');
@@ -64,9 +64,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         final evaluations = List<EvaluationModel>.from(state.evaluations)
           ..add(addedEvaluation)
           ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
-        emit(EvaluationsSuccess(evaluations,
-            message: 'evaluationAddedSuccessfully'.tr()));
-        emit(EvaluationsLoaded(evaluations));
+        emit(EvaluationsLoaded(evaluations, totalCount: state.totalCount));
 
         // After evaluation is added, create the invoice with referenceId = evaluationId
         final invoice = InvoiceModel(
@@ -101,7 +99,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         event.evaluationId, event.model);
     emit(failureOrEvaluation.fold(
       (failure) => EvaluationsError(state.evaluations,
-          message: _mapFailureToMessage(failure)),
+          message: _mapFailureToMessage(failure), totalCount: state.totalCount),
       (updatedEvaluation) {
         debugPrint('Update successful: $updatedEvaluation');
         final evaluations = state.evaluations.map((evaluation) {
@@ -110,22 +108,22 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
               : evaluation;
         }).toList();
         emit(EvaluationsSuccess(evaluations,
-            message: 'Evaluation updated successfully'));
-        return EvaluationsLoaded(evaluations);
+            message: 'evaluationUpdated'.tr(), totalCount: state.totalCount));
+        return EvaluationsLoaded(evaluations, totalCount: state.totalCount);
       },
     ));
   }
 
   Future<void> _onDeleteEvaluation(
       DeleteEvaluation event, Emitter<EvaluationsState> emit) async {
-    emit(EvaluationsLoading(state.evaluations));
+    emit(EvaluationsLoading(state.evaluations, totalCount: state.totalCount));
     // Always delete the evaluation itself
     final failureOrEvaluation =
         await _evaluationsUseCase.deleteEvaluation(event.evaluationId);
     await failureOrEvaluation.fold(
       (failure) {
         emit(EvaluationsError(state.evaluations,
-            message: _mapFailureToMessage(failure)));
+            message: _mapFailureToMessage(failure), totalCount: state.totalCount));
         return;
       },
       (deletedEvaluation) async {
@@ -133,9 +131,8 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
         var evaluations = List<EvaluationModel>.from(state.evaluations)
           ..removeWhere((evaluation) => evaluation.id == event.evaluationId);
         emit(
-            EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr()));
-        emit(EvaluationsLoaded(evaluations));
-
+            EvaluationsSuccess(evaluations, message: 'evaluationDeleted'.tr(), totalCount: state.totalCount));
+        
         // If requested, also delete the corresponding invoice and transactions
         if (event.deleteInvoiceAndTransaction) {
           final failureOrInvoice = await _financialsUseCase
@@ -143,7 +140,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
           return failureOrInvoice.fold(
             (failure) {
               return EvaluationsError(state.evaluations,
-                  message: _mapFailureToMessage(failure));
+                  message: _mapFailureToMessage(failure), totalCount: state.totalCount);
             },
             (deletedInvoice) async {
               debugPrint('Invoice Delete successful: ${event.evaluationId}');
@@ -152,42 +149,43 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
                   .deleteTransactionByReferenceId(event.evaluationId);
               return failureOrTransaction.fold(
                 (failure) => EvaluationsError(state.evaluations,
-                    message: _mapFailureToMessage(failure)),
+                    message: _mapFailureToMessage(failure), totalCount: state.totalCount),
                 (deletedTransaction) {
                   debugPrint(
                       'Transaction Delete successful: ${event.evaluationId}');
                   return EvaluationsSuccess(state.evaluations,
-                      message: 'invoiceAndTransactionDeleted'.tr());
+                      message: 'invoiceAndTransactionDeleted'.tr(), totalCount: state.totalCount);
                 },
               );
             },
           );
         }
+        emit(EvaluationsLoaded(evaluations, totalCount: state.totalCount));
       },
     );
   }
 
   Future<void> _onSearchEvaluations(
       SearchEvaluations event, Emitter<EvaluationsState> emit) async {
-    emit(EvaluationsLoading(state.evaluations));
+    emit(EvaluationsLoading(state.evaluations, totalCount: state.totalCount));
     final failureOrEvaluations =
         await _evaluationsUseCase.searchEvaluations(name: event.name);
     emit(failureOrEvaluations.fold(
       (failure) => EvaluationsError(state.evaluations,
-          message: _mapFailureToMessage(failure)),
-      (evaluations) => EvaluationsLoaded(evaluations),
+          message: _mapFailureToMessage(failure), totalCount: state.totalCount),
+      (evaluations) => EvaluationsLoaded(evaluations, totalCount: state.totalCount),
     ));
   }
 
   void _onGetEvaluationsByDate(
       GetEvaluationsByDate event, Emitter<EvaluationsState> emit) async {
-    emit(EvaluationsLoading(state.evaluations));
+    emit(EvaluationsLoading(state.evaluations, totalCount: state.totalCount));
     final failureOrEvaluations =
         await _evaluationsUseCase.getEvaluationsByDate(event.date);
     emit(failureOrEvaluations.fold(
       (failure) => EvaluationsError(state.evaluations,
-          message: _mapFailureToMessage(failure)),
-      (evaluations) => EvaluationsLoaded(evaluations),
+          message: _mapFailureToMessage(failure), totalCount: state.totalCount),
+      (evaluations) => EvaluationsLoaded(evaluations, totalCount: state.totalCount),
     ));
   }
 
@@ -197,7 +195,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       final currentState = state as EvaluationsLoaded;
       if (currentState.isLoadingMore) return;
 
-      emit(EvaluationsLoaded(currentState.evaluations, isLoadingMore: true));
+      emit(EvaluationsLoaded(currentState.evaluations, isLoadingMore: true, totalCount: currentState.totalCount));
       await Future.delayed(Duration(seconds: 1));
       final result = await _evaluationsUseCase.getEvaluations(
         lastDocumentID: event.lastDocumentId,
@@ -209,7 +207,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
           debugPrint(
               'LoadMoreEvaluations failed: ${_mapFailureToMessage(failure)}');
           emit(EvaluationsError(currentState.evaluations,
-              message: _mapFailureToMessage(failure)));
+              message: _mapFailureToMessage(failure), totalCount: currentState.totalCount));
         },
         (newEvaluations) {
           debugPrint(
@@ -221,7 +219,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
                         existingEvaluation.id == newEvaluation.id)));
           debugPrint(
               'Updated evaluations list contains ${updatedEvaluations.length} evaluations.');
-          emit(EvaluationsLoaded(updatedEvaluations));
+          emit(EvaluationsLoaded(updatedEvaluations, totalCount: currentState.totalCount));
         },
       );
     }
@@ -231,13 +229,30 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       GetEvaluationsCount event, Emitter<EvaluationsState> emit) async {
     debugPrint('Fetching evaluations count...');
     final result = await _evaluationsUseCase.repository.getEvaluationsCount();
-    result.fold(
+    emit(result.fold(
       (failure) =>
-          emit(EvaluationsError(state.evaluations, message: failure.message)),
-      (evaluationCount) =>
-          emit(EvaluationsCountLoaded(evaluationCount, state.evaluations)),
-    );
-    debugPrint('Evaluations count: $result');
+          EvaluationsError(state.evaluations, message: failure.message, totalCount: state.totalCount),
+      (evaluationCount) {
+        debugPrint('Evaluations count: $evaluationCount');
+        final currentState = state;
+        if (currentState is EvaluationsLoaded) {
+          return EvaluationsLoaded(
+            currentState.evaluations,
+            isLoadingMore: currentState.isLoadingMore,
+            totalCount: evaluationCount,
+          );
+        } else if (currentState is EvaluationsLoading) {
+          return EvaluationsLoading(currentState.evaluations, totalCount: evaluationCount);
+        } else if (currentState is EvaluationsLoadingMore) {
+          return EvaluationsLoadingMore(currentState.evaluations, totalCount: evaluationCount);
+        } else if (currentState is EvaluationsSuccess) {
+          return EvaluationsSuccess(currentState.evaluations, message: currentState.message, totalCount: evaluationCount);
+        } else if (currentState is EvaluationsError) {
+          return EvaluationsError(currentState.evaluations, message: currentState.message, totalCount: evaluationCount);
+        }
+        return EvaluationsInitial(currentState.evaluations, totalCount: evaluationCount);
+      },
+    ));
   }
 
   void _onAddInvoice(AddInvoice event, Emitter<EvaluationsState> emit) async {
@@ -247,8 +262,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
       failureOrInvoice.fold(
           (failure) => emit(EvaluationsError(state.evaluations,
               message: _mapFailureToMessage(failure))), (invoice) {
-        emit(EvaluationsSuccess(state.evaluations,
-            message: 'invoiceAddedSuccessfully'.tr()));
+        bool transactionAdded = false;
         if (invoice.status == InvoiceStatus.paid) {
           final transaction = TransactionModel(
             id: const Uuid().v4(),
@@ -268,6 +282,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
           );
 
           add(AddTransaction(transaction));
+          transactionAdded = true;
         } else if (invoice.status == InvoiceStatus.partiallyPaid) {
           final partialPaymentAmount = event.partialAmount ?? 0.0;
           if (partialPaymentAmount > 0) {
@@ -282,13 +297,18 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
               referenceId: invoice.id,
               ownerId: invoice.ownerId,
               clinicId: invoice.clinicId,
-              amount: invoice.amount,
+              amount: partialPaymentAmount,
               createdAt: invoice.createdAt,
               createdBy: invoice.createdBy,
               description: 'Partial payment for invoice ${invoice.id}',
             );
             add(AddTransaction(transaction));
+            transactionAdded = true;
           }
+        }
+        if (!transactionAdded) {
+          emit(EvaluationsSuccess(state.evaluations,
+              message: 'evaluationAndInvoiceAddedSuccessfully'.tr()));
         }
       });
     } catch (e) {
@@ -302,7 +322,7 @@ class EvaluationsBloc extends Bloc<EvaluationsEvent, EvaluationsState> {
     try {
       await _financialsUseCase.addTransaction(transaction: event.transaction);
       emit(EvaluationsSuccess(state.evaluations,
-          message: 'transactionAddedSuccessfully'.tr()));
+          message: 'evaluationInvoiceAndTransactionAddedSuccessfully'.tr()));
       emit(EvaluationsLoaded(state.evaluations));
     } catch (e) {
       emit(EvaluationsError(state.evaluations,

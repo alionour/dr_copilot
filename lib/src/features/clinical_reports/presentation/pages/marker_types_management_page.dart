@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:dr_copilot/src/features/clinical_reports/domain/entities/marker_type.dart';
@@ -37,7 +38,7 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: SelectionArea(child: Text('Error loading types: $e'))),
+          SnackBar(content: SelectionArea(child: Text('errorMessage'.tr(args: [e.toString()])))),
         );
       }
     }
@@ -46,42 +47,42 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Body Chart Marker Types')),
+      appBar: AppBar(title: const Text('bodyChartMarkerTypes').tr()),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text('Built-in Types',
+                Text('builtInTypes'.tr(),
                     style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                const Text('Default marker types for all clinics.',
-                    style: TextStyle(color: Colors.grey)),
+                Text('defaultMarkerTypesDescription'.tr(),
+                    style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 ..._allTypes.where((t) => t.isBuiltIn).map(_buildTypeCard),
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Custom Types',
-                        style: TextStyle(
+                    Text('customTypes'.tr(),
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     ElevatedButton.icon(
                       onPressed: () => _showAddEditDialog(context),
                       icon: const Icon(Icons.add),
-                      label: const Text('Add Custom Type'),
+                      label: const Text('addCustomType').tr(),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 if (_allTypes.where((t) => !t.isBuiltIn).isEmpty)
-                  const Center(
+                  Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32),
+                      padding: const EdgeInsets.all(32),
                       child: Text(
-                        'No custom types yet. Click "Add Custom Type".',
-                        style: TextStyle(color: Colors.grey),
+                        'noCustomTypesDescription'.tr(),
+                        style: const TextStyle(color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -103,7 +104,7 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
         leading: Icon(icon, color: color, size: 32),
         title: Text(type.name,
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(type.isBuiltIn ? 'Built-in' : 'Custom'),
+        subtitle: Text(type.isBuiltIn ? 'builtIn'.tr() : 'custom'.tr()),
         trailing: type.isBuiltIn
             ? null
             : Row(
@@ -143,16 +144,16 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Marker Type'),
-        content: SelectionArea(child: Text('Delete "${type.name}"?')),
+        title: const Text('deleteMarkerType').tr(),
+        content: SelectionArea(child: Text('deleteMarkerTypeConfirmation'.tr(args: [type.name]))),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+              child: const Text('cancel').tr()),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('delete').tr(),
           ),
         ],
       ),
@@ -164,12 +165,12 @@ class _MarkerTypesManagementPageState extends State<MarkerTypesManagementPage> {
         _loadTypes();
         if (mounted) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: SelectionArea(child: Text('Deleted'))));
+              .showSnackBar(SnackBar(content: SelectionArea(child: Text('delete'.tr()))));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: SelectionArea(child: Text('Error: $e'))));
+              .showSnackBar(SnackBar(content: SelectionArea(child: Text('errorMessage'.tr(args: [e.toString()])))));
         }
       }
     }
@@ -232,7 +233,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing == null ? 'Add Type' : 'Edit Type'),
+      title: Text(widget.existing == null ? 'addType'.tr() : 'editType'.tr()),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -240,11 +241,11 @@ class _AddEditDialogState extends State<_AddEditDialog> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                  labelText: 'Name', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: 'name'.tr(), border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
-            const Text('Icon:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('icon'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(
               height: 120,
               child: GridView.builder(
@@ -271,12 +272,12 @@ class _AddEditDialogState extends State<_AddEditDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Color:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('color'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             GestureDetector(
               onTap: () => showDialog(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: const Text('Pick Color'),
+                  title: const Text('pickColor').tr(),
                   content: ColorPicker(
                       pickerColor: _selectedColor,
                       onColorChanged: (c) =>
@@ -284,7 +285,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
                   actions: [
                     TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Done'))
+                        child: const Text('save').tr())
                   ],
                 ),
               ),
@@ -309,8 +310,8 @@ class _AddEditDialogState extends State<_AddEditDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+            child: const Text('cancel').tr()),
+        FilledButton(onPressed: _save, child: const Text('save').tr()),
       ],
     );
   }
@@ -319,7 +320,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: SelectionArea(child: Text('Enter a name'))));
+          .showSnackBar(SnackBar(content: SelectionArea(child: Text('enterName'.tr()))));
       return;
     }
 
@@ -328,7 +329,7 @@ class _AddEditDialogState extends State<_AddEditDialog> {
           excludeId: widget.existing?.id);
       if (exists && mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: SelectionArea(child: Text('Name exists'))));
+            .showSnackBar(SnackBar(content: SelectionArea(child: Text('nameExists'.tr()))));
         return;
       }
 
@@ -349,12 +350,12 @@ class _AddEditDialogState extends State<_AddEditDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: SelectionArea(child: Text(widget.existing == null ? 'Added' : 'Updated'))));
+            content: SelectionArea(child: Text(widget.existing == null ? 'added'.tr() : 'updated'.tr()))));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: SelectionArea(child: Text('Error: $e'))));
+            .showSnackBar(SnackBar(content: SelectionArea(child: Text('errorMessage'.tr(args: [e.toString()])))));
       }
     }
   }

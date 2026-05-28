@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
@@ -32,19 +33,19 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
   final GlobalKey _imageKey = GlobalKey();
   String _currentView = 'front';
 
-  static const Map<String, String> viewTitles = {
-    'front': 'Front',
-    'back': 'Back',
-    'lateral': 'Lateral',
+  static Map<String, String> getViewTitles() => {
+    'front': 'view_front'.tr(),
+    'back': 'view_back'.tr(),
+    'lateral': 'view_lateral'.tr(),
   };
 
   // Marker type configurations with colors
-  static const Map<String, Map<String, dynamic>> markerTypes = {
-    'pain': {'label': 'Pain', 'color': '#D32F2F', 'icon': Icons.location_on},
-    'injury': {'label': 'Injury', 'color': '#F57C00', 'icon': Icons.healing},
-    'rash': {'label': 'Rash', 'color': '#7B1FA2', 'icon': Icons.bubble_chart},
-    'scar': {'label': 'Scar', 'color': '#616161', 'icon': Icons.linear_scale},
-    'other': {'label': 'Other', 'color': '#1976D2', 'icon': Icons.location_on},
+  static Map<String, Map<String, dynamic>> getMarkerTypes() => {
+    'pain': {'label': 'marker_pain'.tr(), 'color': '#D32F2F', 'icon': Icons.location_on},
+    'injury': {'label': 'marker_injury'.tr(), 'color': '#F57C00', 'icon': Icons.healing},
+    'rash': {'label': 'marker_rash'.tr(), 'color': '#7B1FA2', 'icon': Icons.bubble_chart},
+    'scar': {'label': 'marker_scar'.tr(), 'color': '#616161', 'icon': Icons.linear_scale},
+    'other': {'label': 'marker_other'.tr(), 'color': '#1976D2', 'icon': Icons.location_on},
   };
 
   @override
@@ -64,12 +65,12 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
 
   // Model Selection
   String _selectedModel = 'skin';
-  final Map<String, String> _models = {
-    'skin': 'Skin (Standard)',
-    'skeleton': 'Skeleton',
-    'muscles': 'Muscles',
-    'head': 'Head / Brain',
-    'teeth': 'Teeth',
+  Map<String, String> getModels() => {
+    'skin': 'model_skin'.tr(),
+    'skeleton': 'model_skeleton'.tr(),
+    'muscles': 'model_muscles'.tr(),
+    'head': 'model_head'.tr(),
+    'teeth': 'model_teeth'.tr(),
   };
 
   // Views configuration per model
@@ -117,7 +118,6 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ... (Leading Drawer unchanged)
         if (_showLandmarkList)
           Container(
             width: 280,
@@ -144,7 +144,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                     Row(
                       children: [
                         const SizedBox(width: 8),
-                        Text('Model:',
+                        Text('${'aiModel'.tr()}:',
                             style: TextStyle(
                                 color: Theme.of(context).primaryColor,
                                 fontWeight: FontWeight.bold)),
@@ -165,14 +165,13 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                               });
                             }
                           },
-                          items: _models.entries
+                          items: getModels().entries
                               .map((e) => DropdownMenuItem(
                                     value: e.key,
                                     child: Text(e.value),
                                   ))
                               .toList(),
                         ),
-                        // ... (Spacer and icon buttons unchanged)
                         const Spacer(),
                         IconButton(
                             icon: Icon(
@@ -187,7 +186,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                               setState(
                                   () => _showLandmarkList = !_showLandmarkList);
                             },
-                            tooltip: 'Toggle Landmark List'),
+                            tooltip: 'toggleFilters'.tr()),
                       ],
                     ),
                     const Divider(height: 1),
@@ -220,7 +219,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                             icon = Icons.image;
                         }
                         return Tab(
-                            text: viewTitles[view] ?? view, icon: Icon(icon));
+                            text: getViewTitles()[view] ?? view, icon: Icon(icon));
                       }).toList(),
                     ),
                   ],
@@ -278,10 +277,10 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              const Text('Landmarks',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('landmarks'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const Spacer(),
-              Text('${markers2d.length} Items',
+              Text('${markers2d.length} ${'items'.tr()}',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12)),
             ],
           ),
@@ -293,7 +292,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                        'No marks added yet.\nClick on the body to add one.',
+                        'noMarksAdded'.tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey[500])),
                   ),
@@ -308,17 +307,17 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                         backgroundColor: _parseColor(marker.color),
                         radius: 12,
                         child: Icon(
-                            markerTypes[marker.type]?['icon'] ??
+                            getMarkerTypes()[marker.type]?['icon'] ??
                                 Icons.location_on,
                             size: 14,
                             color: Colors.white),
                       ),
                       title: Text(
-                          marker.label.isNotEmpty ? marker.label : 'Marker'),
+                          marker.label.isNotEmpty ? marker.label : 'marker'.tr()),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(viewTitles[marker.view] ?? marker.view,
+                          Text(getViewTitles()[marker.view] ?? marker.view,
                               style: const TextStyle(
                                   fontSize: 11, fontWeight: FontWeight.bold)),
                           if (marker.notes.isNotEmpty)
@@ -390,12 +389,12 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Edit Marker',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('editMarker'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => setState(() => _selectedMarkerId = null),
-                tooltip: 'Close Sidebar',
+                tooltip: 'close'.tr(),
               )
             ],
           ),
@@ -406,13 +405,13 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
             padding: const EdgeInsets.all(16),
             children: [
               // Type Selector
-              const Text('Condition Type',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('conditionType'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: markerTypes.entries.map((entry) {
+                children: getMarkerTypes().entries.map((entry) {
                   final isSelected = marker.type == entry.key;
                   return ChoiceChip(
                     label: Text(entry.value['label']),
@@ -440,8 +439,8 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
               const Divider(height: 32),
 
               // Color Picker
-              const Text('Marker Color',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('markerColor'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
@@ -454,7 +453,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                       Color? newColor = await showDialog<Color>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Pick a color'),
+                          title: Text('pickColor'.tr()),
                           content: SingleChildScrollView(
                             child: BlockPicker(
                               pickerColor: _parseColor(marker.color),
@@ -481,22 +480,22 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                       ),
                     ),
                   ),
-                  const Text('Tap to change color'),
+                  Text('tapToChangeColor'.tr()),
                 ],
               ),
 
               const Divider(height: 32),
 
               // Notes
-              const Text('Observations / Notes',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('observationsNotes'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextField(
                 controller: notesController,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  hintText: 'Describe the condition...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: 'describeConditionHint'.tr(),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) {
                   // Throttle or direct update?
@@ -507,7 +506,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
 
               const SizedBox(height: 8),
               Text(
-                'Created: ${DateFormat('MMM dd, HH:mm').format(marker.timestamp)}',
+                '${'createdAt'.tr()}: ${DateFormat('MMM dd, HH:mm').format(marker.timestamp)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
@@ -529,7 +528,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                 setState(() => _selectedMarkerId = null);
               },
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Remove Marker'),
+              label: Text('removeMarker'.tr()),
             ),
           ),
         ),
@@ -591,7 +590,7 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                             const Icon(Icons.image_not_supported,
                                 size: 64, color: Colors.grey),
                             const SizedBox(height: 16),
-                            Text('View not available for $_selectedModel',
+                            Text('viewNotAvailable'.tr(args: [_selectedModel]),
                                 style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
@@ -641,9 +640,9 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
                               onTap: () => _handleMarkerTap(marker),
                               child: Tooltip(
                                 message:
-                                    '${marker.label}\n${marker.type.toUpperCase()}\n${marker.notes.isEmpty ? 'No notes' : marker.notes}\n${DateFormat('MMM dd, yyyy HH:mm').format(marker.timestamp)}',
+                                    '${marker.label}\n${marker.type.toUpperCase()}\n${marker.notes.isEmpty ? 'noNotes'.tr() : marker.notes}\n${DateFormat('MMM dd, yyyy HH:mm').format(marker.timestamp)}',
                                 child: Icon(
-                                  markerTypes[marker.type]?['icon']
+                                  getMarkerTypes()[marker.type]?['icon']
                                           as IconData? ??
                                       Icons.location_on,
                                   color: _parseColor(marker.color),
@@ -719,12 +718,12 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
         title: Row(
           children: [
             Icon(
-              markerTypes[marker.type]?['icon'] as IconData? ??
+              getMarkerTypes()[marker.type]?['icon'] as IconData? ??
                   Icons.location_on,
               color: _parseColor(marker.color),
             ),
             const SizedBox(width: 8),
-            Text(markerTypes[marker.type]?['label'] as String? ?? marker.type),
+            Text(getMarkerTypes()[marker.type]?['label'] as String? ?? marker.type),
           ],
         ),
         content: Column(
@@ -732,24 +731,24 @@ class _BodyMapWidgetState extends State<BodyMapWidget>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (marker.notes.isNotEmpty) ...[
-              const Text('Notes:',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('${'notes'.tr()}:',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               Text(marker.notes),
               const SizedBox(height: 12),
             ],
-            const Text('View:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(viewTitles[marker.view] ?? marker.view),
+            Text('${'view'.tr()}:', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(getViewTitles()[marker.view] ?? marker.view),
             const SizedBox(height: 12),
-            const Text('Timestamp:',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('${'timestamp'.tr()}:',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             Text(DateFormat('MMM dd, yyyy HH:mm').format(marker.timestamp)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text('close'.tr()),
           ),
         ],
       ),

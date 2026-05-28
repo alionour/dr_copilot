@@ -18,10 +18,28 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
+
 
 class AddSessionPage extends StatefulWidget {
   final SessionModel? session;
-  const AddSessionPage({super.key, this.session});
+  final Map<String, dynamic>? initialData;
+  final bool showScaffold;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+  final ValueChanged<Map<String, dynamic>>? onFormDataChange;
+
+  const AddSessionPage({
+    super.key,
+    this.session,
+    this.initialData,
+    this.showScaffold = true,
+    this.onSuccess,
+    this.onCancel,
+    this.onFormDataChange,
+  });
 
   @override
   State<AddSessionPage> createState() => _AddSessionPageState();
@@ -116,6 +134,82 @@ class _AddSessionPageState extends State<AddSessionPage> {
         _selectedClinicId = clinics.first.id;
       }
     }
+
+    if (widget.initialData != null && widget.session == null) {
+      _prefillFromInitialData(widget.initialData!);
+    }
+
+    if (widget.onFormDataChange != null) {
+      _patientNameController.addListener(_notifyFormDataChange);
+      _actualPriceController.addListener(_notifyFormDataChange);
+      _customSessionTypeController.addListener(_notifyFormDataChange);
+    }
+  }
+
+  void _prefillFromInitialData(Map<String, dynamic> data) {
+    final patientName = data['patientName'] as String?;
+    if (patientName != null && patientName.isNotEmpty) {
+      _patientNameController.text = patientName;
+    }
+
+    final patientId = data['patientId'] as String?;
+    if (patientId != null && patientId.isNotEmpty) {
+      _selectedPatient = PatientModel(
+        id: patientId,
+        name: patientName ?? '',
+        ownerId: '',
+        clinicId: _selectedClinicId ?? '',
+      );
+    }
+
+    if (data['startDateTime'] != null) {
+      final start = data['startDateTime'];
+      if (start is Timestamp) {
+        _startDate = start;
+      } else if (start is String) {
+        _startDate = Timestamp.fromDate(DateTime.parse(start));
+      }
+    }
+
+    if (data['endDateTime'] != null) {
+      final end = data['endDateTime'];
+      if (end is Timestamp) {
+        _endDate = end;
+      } else if (end is String) {
+        _endDate = Timestamp.fromDate(DateTime.parse(end));
+      }
+    }
+
+    final price = data['price']?.toString();
+    if (price != null && price.isNotEmpty) {
+      _actualPriceController.text = price;
+    }
+
+    final sessionType = data['sessionType'] as String?;
+    if (sessionType != null && sessionType.isNotEmpty) {
+      if (SessionTypePresets.values.contains(sessionType)) {
+        _selectedSessionType = sessionType;
+      } else {
+        _customSessionTypeController.text = sessionType;
+        _selectedSessionType = SessionTypePresets.custom;
+      }
+    }
+  }
+
+  void _notifyFormDataChange() {
+    if (widget.onFormDataChange == null) return;
+    widget.onFormDataChange!({
+      'patientName': _patientNameController.text,
+      'patientId': _selectedPatient?.id,
+      'startDateTime': _startDate,
+      'endDateTime': _endDate,
+      'price': double.tryParse(_actualPriceController.text),
+      'sessionType': _selectedSessionType == SessionTypePresets.custom
+          ? _customSessionTypeController.text
+          : _selectedSessionType,
+      'clinicId': _selectedClinicId,
+      'doctorId': _selectedDoctor?.id,
+    });
   }
 
   Future<void> _fetchCurrencyProfiles() async {
@@ -376,6 +470,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
             FirebaseAuth.instance.currentUser?.uid ??
             '',
         doctorId: _selectedDoctor?.id, // Add the selected doctor's ID
+        departmentId: _selectedPatient?.id == widget.session?.patientId
+            ? (widget.session?.departmentId ?? _selectedPatient?.departmentId)
+            : _selectedPatient?.departmentId,
+        teamId: _selectedPatient?.id == widget.session?.patientId
+            ? (widget.session?.teamId ?? _selectedPatient?.teamId)
+            : _selectedPatient?.teamId,
       );
 
       if (widget.session != null) {
@@ -418,6 +518,11 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   @override
   void dispose() {
+    if (widget.onFormDataChange != null) {
+      _patientNameController.removeListener(_notifyFormDataChange);
+      _actualPriceController.removeListener(_notifyFormDataChange);
+      _customSessionTypeController.removeListener(_notifyFormDataChange);
+    }
     _partialPaymentController.dispose();
     _patientNameFocusNode.dispose();
     _patientNameController.dispose();
@@ -429,34 +534,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    // if (_currencyProfiles.isEmpty) {
-    //   return Center(
-    //     child: Text(
-    //       'No currency profiles available. Please create one.',
-    //       style: Theme.of(context)
-    //           .textTheme
-    //           .bodyMedium
-    //           ?.copyWith(color: Colors.red),
-    //     ),
-    //   );
-    // }
-    return Scaffold(
-      // floatingActionButton: FloatingActionButton(onPressed: () {
-      //     context.read<SessionsBloc>().processSessions(context);
-      //     context.read<SessionsBloc>().processEvaluations(context);
-      //   }),
-      appBar: AppBar(
-        title: Text(
-          widget.session != null ? 'Edit Session' : 'addSession'.tr(),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.pop(); // Navigate back to previous route
-          },
-        ),
-      ),
-      body: SafeArea(
+    final formBody = SafeArea(
         child: MultiBlocListener(
         listeners: [
           BlocListener<PatientsBloc, PatientsState>(
@@ -479,18 +557,29 @@ class _AddSessionPageState extends State<AddSessionPage> {
           BlocListener<SessionsBloc, SessionsState>(
             listener: (context, state) {
               if (state is SessionsSuccess) {
-                final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                if (ModalRoute.of(context)?.isCurrent == true) {
+                  final message = state.message;
+                  if (message != null) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                  }
+                  if (context.mounted) {
+                    if (widget.onSuccess != null) {
+                      widget.onSuccess!();
+                    } else if (widget.session != null) {
+                      context.pop();
+                    }
+                  }
                 }
               } else if (state is SessionsError) {
-                final message = state.message;
-                if (message != null) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                if (ModalRoute.of(context)?.isCurrent == true) {
+                  final message = state.message;
+                  if (message != null) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
+                  }
                 }
               } else if (state is SessionTypeDetected) {
                 setState(() {
@@ -677,18 +766,17 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                                   _filteredPatients[index].name,
                                                 ),
                                                 onTap: () {
+                                                  final selected = _filteredPatients[index];
                                                   setState(() {
                                                     _patientNameController
                                                             .text =
-                                                        _filteredPatients[index]
-                                                            .name;
+                                                        selected.name;
                                                     _selectedPatient =
-                                                        _filteredPatients[
-                                                            index]; // Set the selected patient
+                                                        selected; // Set the selected patient
                                                     _filteredPatients = [];
                                                   });
                                                   _detectSessionTypeForPatient(
-                                                    _filteredPatients[index].id,
+                                                    selected.id,
                                                   );
                                                   FocusScope.of(
                                                     context,
@@ -708,8 +796,8 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                             Tooltip(
                                               message: 'goToAddPatient'.tr(),
                                               child: IconButton(
-                                                icon: const Icon(
-                                                  Icons.arrow_forward,
+                                                icon: Icon(
+                                                  Icons.adaptive.arrow_forward,
                                                 ),
                                                 onPressed: () {
                                                   // Navigate to add patient page
@@ -974,53 +1062,100 @@ class _AddSessionPageState extends State<AddSessionPage> {
                                             ),
                                       ),
                                       const SizedBox(height: 8.0),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: DropdownButtonFormField<
-                                                CurrencyProfileModel>(
-                                              initialValue:
-                                                  _selectedCurrencyProfile,
-                                              decoration: InputDecoration(
-                                                labelText:
-                                                    'currencyProfile'.tr(),
-                                                labelStyle: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                              ),
-                                              items: _currencyProfiles.map((
-                                                CurrencyProfileModel profile,
-                                              ) {
-                                                return DropdownMenuItem<
-                                                    CurrencyProfileModel>(
-                                                  value: profile,
-                                                  child: Text(
-                                                    profile.currency.tr(),
+                                      if (_currencyProfiles.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.warning_amber_rounded,
+                                                    color: Colors.orange,
                                                   ),
-                                                );
-                                              }).toList(),
-                                              onChanged: (
-                                                CurrencyProfileModel? newValue,
-                                              ) {
-                                                setState(() {
-                                                  _selectedCurrencyProfile =
-                                                      newValue;
-                                                });
-                                              },
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      OwnerNotifier().hasPermission(AppPermission.manageSettings)
+                                                          ? ('noCurrencyProfilesFoundAdmin'.tr() == 'noCurrencyProfilesFoundAdmin'
+                                                              ? 'No currency profiles found. Please create one to proceed.'
+                                                              : 'noCurrencyProfilesFoundAdmin'.tr())
+                                                          : ('noCurrencyProfilesFoundStaff'.tr() == 'noCurrencyProfilesFoundStaff'
+                                                              ? 'No currency profiles found. Please ask the admin to setup a currency profile first.'
+                                                              : 'noCurrencyProfilesFoundStaff'.tr()),
+                                                      style: TextStyle(
+                                                        color: Colors.orange.shade900,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
+                                                ElevatedButton.icon(
+                                                  onPressed: _showAddProfileSheet,
+                                                  icon: const Icon(Icons.add),
+                                                  label: Text('addCurrencyProfile'.tr()),
+                                                )
+                                              else
+                                                ElevatedButton.icon(
+                                                  onPressed: _fetchCurrencyProfiles,
+                                                  icon: const Icon(Icons.refresh),
+                                                  label: Text('refresh'.tr()),
+                                                ),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: DropdownButtonFormField<
+                                                  CurrencyProfileModel>(
+                                                initialValue:
+                                                    _selectedCurrencyProfile,
+                                                decoration: InputDecoration(
+                                                  labelText:
+                                                      'currencyProfile'.tr(),
+                                                  labelStyle: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                ),
+                                                items: _currencyProfiles.map((
+                                                  CurrencyProfileModel profile,
+                                                ) {
+                                                  return DropdownMenuItem<
+                                                      CurrencyProfileModel>(
+                                                    value: profile,
+                                                    child: Text(
+                                                      profile.currency.tr(),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (
+                                                  CurrencyProfileModel? newValue,
+                                                ) {
+                                                  setState(() {
+                                                    _selectedCurrencyProfile =
+                                                        newValue;
+                                                  });
+                                                },
+                                              ),
                                             ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.refresh),
-                                            onPressed: _fetchCurrencyProfiles,
-                                            tooltip:
-                                                'refreshCurrencyProfiles'.tr(),
-                                          ),
-                                        ],
-                                      ),
+                                            IconButton(
+                                              icon: const Icon(Icons.refresh),
+                                              onPressed: _fetchCurrencyProfiles,
+                                              tooltip:
+                                                  'refreshCurrencyProfiles'.tr(),
+                                            ),
+                                          ],
+                                        ),
                                       const SizedBox(height: 8.0),
                                       Row(
                                         children: [
@@ -1103,7 +1238,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _saveSession,
+                                onPressed: _saveSession.throttle(),
                                 child: Text('saveAppointment'.tr()),
                               ),
                             ),
@@ -1118,7 +1253,204 @@ class _AddSessionPageState extends State<AddSessionPage> {
           },
         ),
       ),
-    ),
     );
+
+    if (!widget.showScaffold) {
+      return formBody;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.session != null ? 'Edit Session' : 'addSession'.tr(),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.adaptive.arrow_back),
+          onPressed: () {
+            widget.onCancel?.call();
+            if (widget.onCancel == null) {
+              context.pop();
+            }
+          },
+        ),
+      ),
+      body: formBody,
+    );
+  }
+
+  void _showAddProfileSheet() {
+    final List<String> currencies = [
+      'USD', 'EUR', 'EGP', 'SAR', 'GBP', 'AED', 'QAR', 'KWD', 'OMR', 'BHD', 'TRY', 'CNY', 'JPY', 'INR',
+    ];
+    String selectedCurrency = currencies.first;
+    final nameController = TextEditingController(
+      text: _getSuggestedName(selectedCurrency),
+    );
+    String description = '';
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'addCurrencyProfile'.tr(),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedCurrency,
+                      decoration: InputDecoration(
+                        labelText: 'currency'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: currencies
+                          .map(
+                            (currency) => DropdownMenuItem(
+                              value: currency,
+                              child: Text(currency),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setModalState(() {
+                            selectedCurrency = value;
+                            nameController.text = _getSuggestedName(
+                              selectedCurrency,
+                            );
+                          });
+                        }
+                      },
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'required'.tr() : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'currencyProfileName'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                      enabled: true,
+                      readOnly: true,
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'description'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (v) => description = v.trim(),
+                      maxLines: 2,
+                      maxLength: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    BlocConsumer<FinancialsBloc, FinancialsState>(
+                      listener: (context, state) {
+                        if (state is FinancialsSuccess) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: SelectionArea(child: Text(state.message))),
+                          );
+                          _fetchCurrencyProfiles();
+                        } else if (state is FinancialsError) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: SelectionArea(child: Text(state.message))),
+                          );
+                        }
+                      },
+                      builder: (context, state) {
+                        return ElevatedButton(
+                          onPressed: (() {
+                            if (formKey.currentState!.validate()) {
+                              final profile = CurrencyProfileModel(
+                                id: const Uuid().v4(),
+                                currency: selectedCurrency,
+                                name: nameController.text,
+                                description: description,
+                                createdAt: Timestamp.fromDate(
+                                  DateTime.now().toUtc(),
+                                ),
+                                createdBy: '',
+                              );
+                              context.read<FinancialsBloc>().add(
+                                AddCurrencyProfile(profile),
+                              );
+                            }
+                          }).throttle(),
+                          child: Text('addCurrencyProfile'.tr()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  String _getSuggestedName(String currency) {
+    switch (currency) {
+      case 'USD':
+        return 'US Dollar';
+      case 'EUR':
+        return 'Euro';
+      case 'EGP':
+        return 'Egyptian Pound';
+      case 'SAR':
+        return 'Saudi Riyal';
+      case 'GBP':
+        return 'British Pound';
+      case 'AED':
+        return 'UAE Dirham';
+      case 'QAR':
+        return 'Qatari Riyal';
+      case 'KWD':
+        return 'Kuwaiti Dinar';
+      case 'OMR':
+        return 'Omani Rial';
+      case 'BHD':
+        return 'Bahraini Dinar';
+      case 'TRY':
+        return 'Turkish Lira';
+      case 'CNY':
+        return 'Chinese Yuan';
+      case 'JPY':
+        return 'Japanese Yen';
+      case 'INR':
+        return 'Indian Rupee';
+      default:
+        return currency;
+    }
   }
 }

@@ -9,7 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav_menu_button.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
@@ -901,6 +901,14 @@ class _PatientsPageState extends State<PatientsPage> {
                 ],
               ),
             if (navMenuButton != null) navMenuButton,
+            if (OwnerNotifier().hasPermission(AppPermission.createPatient))
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'addPatient'.tr(),
+                onPressed: () {
+                  context.push('/patients/new');
+                },
+              ),
           ],
         ),
       ),
@@ -928,37 +936,16 @@ class _PatientsPageState extends State<PatientsPage> {
                           context,
                         ).showSnackBar(SnackBar(content: SelectionArea(child: Text(message))));
                       }
-                      if (state is PatientsCountLoaded) {
+                      if (state.totalCount != null) {
                         setState(() {
-                          _firestorePatientsCount = state.count;
+                          _firestorePatientsCount = state.totalCount;
                         });
                       }
                     },
                     child: BlocBuilder<PatientsBloc, PatientsState>(
                       builder: (context, state) {
                         if (state is PatientsLoading) {
-                          return Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: ListView.builder(
-                              itemCount: 10,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 16.0,
-                                  ),
-                                  child: Container(
-                                    height: 50.0,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
+                          return const ShimmerList(itemCount: 8);
                         } else if (state is PatientsLoaded ||
                             state is PatientsLoadingMore ||
                             state is PatientsCountLoaded) {
@@ -1103,21 +1090,7 @@ class _PatientsPageState extends State<PatientsPage> {
                               if ((state is PatientsLoaded &&
                                       state.isLoadingMore) ||
                                   state is PatientsLoadingMore)
-                                Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      height: 50.0,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(8.0),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                const ShimmerList(itemCount: 1),
                             ],
                           );
                         } else if (state is PatientsError) {
@@ -1146,15 +1119,6 @@ class _PatientsPageState extends State<PatientsPage> {
           ],
         ),
       ),
-      floatingActionButton:
-          OwnerNotifier().hasPermission(AppPermission.createPatient)
-              ? FloatingActionButton(
-                  onPressed: () {
-                    context.push('/patients/new');
-                  },
-                  child: const Icon(Icons.add),
-                )
-              : null,
     );
   }
 
@@ -1182,10 +1146,7 @@ class _PatientsPageState extends State<PatientsPage> {
       patientModel: patient,
       onTap: () {
         setState(() {
-          _selectedIndex =
-              (context.read<PatientsBloc>().state as PatientsLoaded)
-                  .patients
-                  .indexOf(patient);
+          _selectedIndex = context.read<PatientsBloc>().state.patients.indexOf(patient);
         });
       },
     );

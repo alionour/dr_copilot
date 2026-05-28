@@ -125,7 +125,8 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.all(20),
-              backgroundColor: Colors.blue,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text('yes'.tr(), style: const TextStyle(fontSize: 18)),
           ),
@@ -138,12 +139,18 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
   Widget build(BuildContext context) {
     if (_showSuccess) {
       return Scaffold(
-        backgroundColor: Colors.green.shade50,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.green.withValues(alpha: 0.15)
+            : Colors.green.shade50,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle, size: 120, color: Colors.green.shade700),
+              Icon(Icons.check_circle,
+                  size: 120,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.green.shade300
+                      : Colors.green.shade700),
               const SizedBox(height: 24),
               Text(
                 'checkInSuccess'.tr(),
@@ -162,7 +169,7 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -172,8 +179,8 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo/Header
-                const Icon(Icons.medical_services,
-                    size: 100, color: Colors.blue),
+                Icon(Icons.medical_services,
+                    size: 100, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(height: 32),
 
                 Text(
@@ -213,13 +220,13 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
                   child: ElevatedButton(
                     onPressed: _isSearching ? null : _checkIn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       textStyle: const TextStyle(fontSize: 28),
                     ),
                     child: _isSearching
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text('checkIn'.tr()),
+                      ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
+                      : Text('checkIn'.tr()),
                   ),
                 ),
 
@@ -227,7 +234,7 @@ class _KioskCheckInPageState extends State<KioskCheckInPage> {
 
                 Text(
                   'kioskInstructions'.tr(),
-                  style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   textAlign: TextAlign.center,
                 ),
               ],

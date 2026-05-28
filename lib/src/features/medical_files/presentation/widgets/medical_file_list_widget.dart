@@ -7,6 +7,7 @@ import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart'
 import 'package:dr_copilot/src/features/medical_files/domain/models/medical_file_model.dart';
 import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 
 class MedicalFileListWidget extends StatelessWidget {
   final String patientId;
@@ -29,7 +30,7 @@ class MedicalFileListWidget extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is MedicalFileLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerList(itemCount: 3);
         }
 
         if (state is MedicalFilesLoaded) {

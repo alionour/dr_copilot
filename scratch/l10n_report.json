@@ -1,0 +1,22 @@
+{
+  "missing_keys_in_en": [
+    {
+      "key": "eventType.$type",
+      "file": "lib\\src\\features\\calendar\\presentation\\pages\\add_calendar_event_page.dart"
+    },
+    {
+      "key": "eventType.${event.eventType}",
+      "file": "lib\\src\\features\\calendar\\presentation\\pages\\calendar_event_details_page.dart"
+    },
+    {
+      "key": "recurrence.$r",
+      "file": "lib\\src\\features\\calendar\\presentation\\pages\\add_calendar_event_page.dart"
+    }
+  ],
+  "missing_in_other_languages": {
+    "ar": [],
+    "de": [],
+    "es": [],
+    "fr": []
+  }
+}

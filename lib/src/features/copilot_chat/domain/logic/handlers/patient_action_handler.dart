@@ -246,7 +246,12 @@ class PatientActionHandler extends BaseActionHandler {
           }).toList();
         }
 
-        return {'patients': filtered.map((p) => p.toJson()).toList()};
+        final patientsList = filtered.map((p) => p.toJson()).toList();
+        final limit = args['limit'] as int?;
+        if (limit != null && limit > 0) {
+          return {'patients': patientsList.take(limit).toList()};
+        }
+        return {'patients': patientsList};
       },
     );
   }

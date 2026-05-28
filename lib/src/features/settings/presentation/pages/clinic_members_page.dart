@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -89,7 +90,7 @@ class _ClinicMembersPageState extends State<ClinicMembersPage> {
       appBar: AppBar(
         title: Text('clinicMembers'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.adaptive.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),
@@ -147,7 +148,7 @@ class _ClinicMembersPageState extends State<ClinicMembersPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const ShimmerList();
                 }
 
                 if (snapshot.hasError) {
@@ -703,11 +704,13 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
                   ] else ...[
                     FilledButton(
                       style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Close'),
+                      child: Text('close'.tr()),
                     ),
                   ],
                 ],
@@ -864,14 +867,15 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
       builder: (context) {
         return AlertDialog(
           title: Text('delete'.tr()),
-          content: Text('Are you sure you want to remove $displayName from the clinic? They will lose all access immediately.'),
+          content: Text('removeMemberConfirmation'.tr(args: [displayName])),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text('cancel'.tr()),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+              style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error),
               onPressed: () => Navigator.of(context).pop(true),
               child: Text('delete'.tr()),
             ),
@@ -892,8 +896,8 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Member removed from clinic successfully'),
+            SnackBar(
+              content: Text('memberRemovedSuccess'.tr()),
               backgroundColor: Colors.green,
             ),
           );
@@ -904,7 +908,7 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('somethingWentWrong'.tr()),
+              content: Text('errorMessage'.tr(args: [e.toString()])),
               backgroundColor: Colors.red,
             ),
           );
@@ -916,21 +920,16 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
   }
 
   String _getRoleDisplayName(AppRole role) {
-    switch (role) {
-      case AppRole.admin:
-        return 'Admin';
-      case AppRole.doctor:
-        return 'Doctor';
-      case AppRole.staff:
-        return 'Staff';
-      case AppRole.financial:
-        return 'Financial';
-      case AppRole.readonly:
-        return 'Read Only';
-    }
+    return 'role_${role.name}'.tr();
   }
 
   String _getPermissionDisplayName(AppPermission permission) {
+    final key = 'permission_${permission.name}';
+    final translated = key.tr();
+    if (translated != key) {
+      return translated;
+    }
+
     String name = permission.name;
     if (name.startsWith('can') && name.length > 3 && name[3] == name[3].toUpperCase()) {
       name = name.substring(3);
@@ -940,6 +939,12 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
   }
 
   String _getPermissionDescription(AppPermission permission) {
+    final key = 'permission_${permission.name}_desc';
+    final translated = key.tr();
+    if (translated != key) {
+      return translated;
+    }
+
     switch (permission) {
       case AppPermission.viewPatients:
         return 'Allows viewing patient profiles and their medical records.';
@@ -976,7 +981,7 @@ class _EditMemberDialogState extends State<EditMemberDialog> {
       case AppPermission.deleteFinancialEntry:
         return 'Allows deleting financial records.';
       case AppPermission.useCopilot:
-        return 'Allows access to the AI-powered Dr. Copilot chat features.';
+        return 'Allows access to the AI-powered Dr. AI chat features.';
       case AppPermission.viewCalendar:
         return 'Allows viewing the clinic and personal appointment calendar.';
       case AppPermission.editCalendarEvent:

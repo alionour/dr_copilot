@@ -10,8 +10,13 @@ import 'services/qwen_service.dart';
 import 'services/claude_service.dart';
 import 'services/groq_service.dart';
 import 'services/ai_router_service.dart';
-import 'data/services/tts_service.dart';
-import 'data/services/live_chat_service.dart';
+import 'data/services/gemini_live_service.dart';
+import 'domain/logic/function_call_handler.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
+import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
+import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
+import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
 
 final sl = GetIt.instance;
 
@@ -75,11 +80,16 @@ void initCopilotInjections() {
     ),
   );
 
-  sl.registerLazySingleton(() => TtsService());
   sl.registerLazySingleton(
-    () => LiveChatService(
-      speechService: sl(),
-      ttsService: sl(),
+    () => GeminiLiveService(
+      getClinicId: () async => sl<OwnerNotifier>().clinicId,
+      functionCallHandler: FunctionCallHandler(
+        patientsUseCase: sl<PatientsUseCase>(),
+        sessionsUseCase: sl<SessionsUseCase>(),
+        evaluationsUseCase: sl<EvaluationsUseCase>(),
+        ownerNotifier: sl<OwnerNotifier>(),
+        permissionService: sl<PermissionService>(),
+      ),
     ),
   );
 }

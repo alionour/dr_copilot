@@ -1,12 +1,11 @@
 import 'package:dr_copilot/src/features/copilot_chat/services/openai_tools.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:google_generative_ai/google_generative_ai.dart' as google;
+import 'package:firebase_ai/firebase_ai.dart' as firebase;
 
-List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
-  // Get the single source of truth tools from OpenAI definitions
-  // We pass userRequiredFields, but openai_tools might ignore them for add_* as per previous fix.
+/// Returns tools compatible with google_generative_ai package.
+List<google.Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
   final openAITools = getOpenAITools(userRequiredFields: userRequiredFields);
-
-  final functionDeclarations = <FunctionDeclaration>[];
+  final functionDeclarations = <google.FunctionDeclaration>[];
 
   for (final tool in openAITools) {
     if (tool['type'] == 'function') {
@@ -17,64 +16,106 @@ List<Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
 
       if (parameters != null) {
         functionDeclarations.add(
-          FunctionDeclaration(
+          google.FunctionDeclaration(
             name,
             description,
-            _convertJsonSchemaToGeminiSchema(parameters),
+            _convertJsonSchemaToGoogleSchema(parameters),
           ),
         );
       } else {
-        // Function with no parameters
         functionDeclarations.add(
-          FunctionDeclaration(name, description, null),
+          google.FunctionDeclaration(name, description, null),
         );
       }
     }
   }
 
-  return [Tool(functionDeclarations: functionDeclarations)];
+  return [google.Tool(functionDeclarations: functionDeclarations)];
 }
 
-Schema _convertJsonSchemaToGeminiSchema(Map<String, dynamic> jsonSchema) {
+/// Returns tools compatible with firebase_ai package.
+List<firebase.Tool> getFirebaseAITools({
+  List<String> userRequiredFields = const [],
+}) {
+  final openAITools = getOpenAITools(userRequiredFields: userRequiredFields);
+  final functionDeclarations = <firebase.FunctionDeclaration>[];
+
+  for (final tool in openAITools) {
+    if (tool['type'] == 'function') {
+      final function = tool['function'] as Map<String, dynamic>;
+      final name = function['name'] as String;
+      final description = function['description'] as String;
+      final parameters = function['parameters'] as Map<String, dynamic>?;
+
+      if (parameters != null && parameters['type'] == 'object') {
+        final propsMap =
+            parameters['properties'] as Map<String, dynamic>? ?? {};
+        final firebaseProps = <String, firebase.Schema>{};
+        propsMap.forEach((key, value) {
+          firebaseProps[key] =
+              _convertJsonSchemaToFirebaseSchema(value as Map<String, dynamic>);
+        });
+
+        final requiredList =
+            (parameters['required'] as List?)?.map((e) => e.toString()).toList() ??
+                [];
+
+        functionDeclarations.add(
+          firebase.FunctionDeclaration(
+            name,
+            description,
+            parameters: firebaseProps,
+            optionalParameters:
+                propsMap.keys.where((k) => !requiredList.contains(k)).toList(),
+          ),
+        );
+      } else {
+        functionDeclarations.add(
+          firebase.FunctionDeclaration(name, description, parameters: {}),
+        );
+      }
+    }
+  }
+
+  return [firebase.Tool.functionDeclarations(functionDeclarations)];
+}
+
+google.Schema _convertJsonSchemaToGoogleSchema(Map<String, dynamic> jsonSchema) {
   final typeStr = jsonSchema['type'] as String?;
   final description = jsonSchema['description'] as String?;
   final format = jsonSchema['format'] as String?;
 
-  SchemaType type;
+  google.SchemaType type;
   switch (typeStr) {
     case 'string':
-      type = SchemaType.string;
+      type = google.SchemaType.string;
       break;
     case 'integer':
-      type = SchemaType.integer;
+      type = google.SchemaType.integer;
       break;
     case 'number':
-      type = SchemaType.number;
+      type = google.SchemaType.number;
       break;
     case 'boolean':
-      type = SchemaType.boolean;
+      type = google.SchemaType.boolean;
       break;
     case 'array':
-      type = SchemaType.array;
+      type = google.SchemaType.array;
       break;
     case 'object':
-      type = SchemaType.object;
+      type = google.SchemaType.object;
       break;
     default:
-      type = SchemaType.string;
+      type = google.SchemaType.string;
   }
 
-  Map<String, Schema>? properties;
+  Map<String, google.Schema>? properties;
   if (jsonSchema.containsKey('properties')) {
     final propsMap = jsonSchema['properties'] as Map<String, dynamic>;
     properties = {};
     propsMap.forEach((key, value) {
-      if (value is Map<String, dynamic>) {
-        properties![key] = _convertJsonSchemaToGeminiSchema(value);
-      } else if (value is Map) {
-        properties![key] =
-            _convertJsonSchemaToGeminiSchema(Map<String, dynamic>.from(value));
-      }
+      properties![key] =
+          _convertJsonSchemaToGoogleSchema(value as Map<String, dynamic>);
     });
   }
 
@@ -84,29 +125,126 @@ Schema _convertJsonSchemaToGeminiSchema(Map<String, dynamic> jsonSchema) {
     requiredProperties = reqList.map((e) => e.toString()).toList();
   }
 
-  Schema? items;
+  google.Schema? items;
   if (jsonSchema.containsKey('items')) {
-    final itemsMap = jsonSchema['items'];
-    if (itemsMap is Map<String, dynamic>) {
-      items = _convertJsonSchemaToGeminiSchema(itemsMap);
-    } else if (itemsMap is Map) {
-      items =
-          _convertJsonSchemaToGeminiSchema(Map<String, dynamic>.from(itemsMap));
-    }
+    items = _convertJsonSchemaToGoogleSchema(
+      jsonSchema['items'] as Map<String, dynamic>,
+    );
   }
 
   List<String>? enumValues;
   if (jsonSchema.containsKey('enum')) {
-    final enumList = jsonSchema['enum'] as List;
-    enumValues = enumList.map((e) => e.toString()).toList();
+    enumValues = (jsonSchema['enum'] as List).map((e) => e.toString()).toList();
   }
 
-  return Schema(
+  switch (type) {
+    case google.SchemaType.object:
+      return google.Schema.object(
+        properties: properties ?? {},
+        requiredProperties: requiredProperties,
+        description: description,
+      );
+    case google.SchemaType.array:
+      return google.Schema.array(
+        items: items!,
+        description: description,
+      );
+    case google.SchemaType.string:
+      if (enumValues != null && enumValues.isNotEmpty) {
+        return google.Schema.enumString(
+          enumValues: enumValues,
+          description: description,
+        );
+      }
+      return google.Schema.string(
+        description: description,
+      );
+    case google.SchemaType.integer:
+      return google.Schema.integer(
+        description: description,
+        format: format,
+      );
+    case google.SchemaType.number:
+      return google.Schema.number(
+        description: description,
+        format: format,
+      );
+    case google.SchemaType.boolean:
+      return google.Schema.boolean(
+        description: description,
+      );
+  }
+}
+
+firebase.Schema _convertJsonSchemaToFirebaseSchema(
+  Map<String, dynamic> jsonSchema,
+) {
+  final typeStr = jsonSchema['type'] as String?;
+  final description = jsonSchema['description'] as String?;
+  final format = jsonSchema['format'] as String?;
+
+  firebase.SchemaType type;
+  switch (typeStr) {
+    case 'string':
+      type = firebase.SchemaType.string;
+      break;
+    case 'integer':
+      type = firebase.SchemaType.integer;
+      break;
+    case 'number':
+      type = firebase.SchemaType.number;
+      break;
+    case 'boolean':
+      type = firebase.SchemaType.boolean;
+      break;
+    case 'array':
+      type = firebase.SchemaType.array;
+      break;
+    case 'object':
+      type = firebase.SchemaType.object;
+      break;
+    default:
+      type = firebase.SchemaType.string;
+  }
+
+  Map<String, firebase.Schema>? properties;
+  if (jsonSchema.containsKey('properties')) {
+    final propsMap = jsonSchema['properties'] as Map<String, dynamic>;
+    properties = {};
+    propsMap.forEach((key, value) {
+      properties![key] =
+          _convertJsonSchemaToFirebaseSchema(value as Map<String, dynamic>);
+    });
+  }
+
+  List<String>? optionalProperties;
+  if (properties != null) {
+    final requiredProperties =
+        (jsonSchema['required'] as List?)?.map((e) => e.toString()).toList() ??
+            [];
+    optionalProperties = properties.keys
+        .where((key) => !requiredProperties.contains(key))
+        .toList();
+  }
+
+  firebase.Schema? items;
+  if (jsonSchema.containsKey('items')) {
+    items = _convertJsonSchemaToFirebaseSchema(
+      jsonSchema['items'] as Map<String, dynamic>,
+    );
+  }
+
+  List<String>? enumValues;
+  if (jsonSchema.containsKey('enum')) {
+    enumValues = (jsonSchema['enum'] as List).map((e) => e.toString()).toList();
+  }
+
+  return firebase.Schema(
     type,
     description: description,
     format: format,
     properties: properties,
-    requiredProperties: requiredProperties,
+    optionalProperties: optionalProperties,
     items: items,
     enumValues: enumValues,
   );

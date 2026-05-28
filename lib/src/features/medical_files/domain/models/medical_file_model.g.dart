@@ -10,6 +10,7 @@ MedicalFileModel _$MedicalFileModelFromJson(Map<String, dynamic> json) =>
     MedicalFileModel(
       id: json['id'] as String,
       patientId: json['patientId'] as String,
+      clinicId: json['clinicId'] as String,
       title: json['title'] as String,
       type: json['type'] as String,
       fileUrl: json['fileUrl'] as String?,
@@ -26,6 +27,7 @@ Map<String, dynamic> _$MedicalFileModelToJson(MedicalFileModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'patientId': instance.patientId,
+      'clinicId': instance.clinicId,
       'title': instance.title,
       'type': instance.type,
       'fileUrl': instance.fileUrl,

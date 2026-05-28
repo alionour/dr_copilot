@@ -50,7 +50,7 @@ class ChatInputBar extends StatelessWidget {
               children: [
                 if (pickedImage != null)
                   Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
+                    padding: const EdgeInsetsDirectional.only(end: 8.0),
                     child: Stack(
                       children: [
                         SizedBox(

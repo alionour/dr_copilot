@@ -1,3 +1,4 @@
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/financials/presentation/widgets/year_selector.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +85,9 @@ class _ReportsPageState extends State<ReportsPage> {
             ? selectedExpenses.reduce((a, b) => a + b)
             : 0;
 
+        final isLoading = state is FinancialsLoading ||
+            state.revenuePerMonth.isEmpty;
+
         return Scaffold(
           appBar: AppBar(
             title: Row(
@@ -114,87 +118,33 @@ class _ReportsPageState extends State<ReportsPage> {
             centerTitle: true,
             elevation: 0,
           ),
-          body: Center(
-                child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outline
-                        .withValues(alpha: 0.2),
-                  ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                _buildTable(
+                  context,
+                  title: 'income'.tr(),
+                  year: selectedYear,
+                  months: months,
+                  values: selectedRevenue,
+                  total: totalRevenue,
+                  color: Colors.green[100]!,
+                  isLoading: isLoading,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isSmall = constraints.maxWidth < 700;
-                      return Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          isSmall
-                              ? Column(
-                                  children: [
-                                    _buildTable(
-                                      context,
-                                      title: 'income'.tr(),
-                                      year: selectedYear,
-                                      months: months,
-                                      values: selectedRevenue,
-                                      total: totalRevenue,
-                                      color: Colors.green[100]!,
-                                    ),
-                                    const SizedBox(height: 24),
-                                    _buildTable(
-                                      context,
-                                      title: 'expenses'.tr(),
-                                      year: selectedYear,
-                                      months: months,
-                                      values: selectedExpenses,
-                                      total: totalExpenses,
-                                      color: Colors.red[100]!,
-                                    ),
-                                  ],
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: _buildTable(
-                                        context,
-                                        title: 'income'.tr(),
-                                        year: selectedYear,
-                                        months: months,
-                                        values: selectedRevenue,
-                                        total: totalRevenue,
-                                        color: Colors.green[100]!,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 32),
-                                    Expanded(
-                                      child: _buildTable(
-                                        context,
-                                        title: 'expenses'.tr(),
-                                        year: selectedYear,
-                                        months: months,
-                                        values: selectedExpenses,
-                                        total: totalExpenses,
-                                        color: Colors.red[100]!,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ],
-                      );
-                    },
-                  ),
+                const SizedBox(height: 16),
+                _buildTable(
+                  context,
+                  title: 'expenses'.tr(),
+                  year: selectedYear,
+                  months: months,
+                  values: selectedExpenses,
+                  total: totalExpenses,
+                  color: Colors.red[100]!,
+                  isLoading: isLoading,
                 ),
-              ),
+              ],
             ),
           ),
         );
@@ -210,6 +160,7 @@ class _ReportsPageState extends State<ReportsPage> {
     required List<int> values,
     required int total,
     required Color color,
+    bool isLoading = false,
   }) {
     final bool isExpenses = title == 'expenses'.tr();
     final Color headerColor = Theme.of(context).colorScheme.primaryContainer;
@@ -289,11 +240,19 @@ class _ReportsPageState extends State<ReportsPage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(values[i].toString(),
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            )),
+                        child: isLoading
+                            ? Container(
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              )
+                            : Text(values[i].toString(),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                )),
                       ),
                     ],
                   );
@@ -312,11 +271,19 @@ class _ReportsPageState extends State<ReportsPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(total.toString(),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: totalTextColor)),
+                      child: isLoading
+                          ? Container(
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: totalTextColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            )
+                          : Text(total.toString(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: totalTextColor)),
                     ),
                   ],
                 ),

@@ -156,7 +156,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
                       title: 'Free',
                       monthlyPrice: 0,
                       yearlyPrice: 0,
-                      description: 'Perfect for trying out Dr. Copilot',
+                      description: 'Perfect for trying out Dr. AI',
                       features: const [
                         'Core Patient Management',
                         'Standard AI Chat (Gemini Flash)',

@@ -7,6 +7,8 @@ import 'package:dr_copilot/src/features/inventory/domain/models/inventory_item_m
 import 'package:dr_copilot/src/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 /// Dialog for adding or editing inventory items
 class AddEditInventoryDialog extends StatefulWidget {
@@ -101,7 +103,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
                   items: _categories.map((category) {
                     return DropdownMenuItem(
                       value: category,
-                      child: Text(category),
+                      child: Text(category.toLowerCase().tr()),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -143,7 +145,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
                         decoration: InputDecoration(
                           labelText: 'unit'.tr(),
                           border: const OutlineInputBorder(),
-                          hintText: 'pieces, boxes, vials',
+                          hintText: 'inventoryUnitsHint'.tr(),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -214,7 +216,7 @@ class _AddEditInventoryDialogState extends State<AddEditInventoryDialog> {
           child: const Text('cancel').tr(),
         ),
         ElevatedButton(
-          onPressed: _saveItem,
+          onPressed: _saveItem.throttle(),
           child: Text(isEdit ? 'save'.tr() : 'add'.tr()),
         ),
       ],

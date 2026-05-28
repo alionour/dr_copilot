@@ -23,6 +23,8 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
       createdAt: const TimestampConverter().fromJson(json['createdAt']),
       updatedAt: const NullableTimestampConverter().fromJson(json['updatedAt']),
       doctorId: json['doctorId'] as String?,
+      departmentId: json['departmentId'] as String?,
+      teamId: json['teamId'] as String?,
     );
 
 Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
@@ -46,4 +48,6 @@ Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
       'updatedAt':
           const NullableTimestampConverter().toJson(instance.updatedAt),
       'doctorId': instance.doctorId,
+      'departmentId': instance.departmentId,
+      'teamId': instance.teamId,
     };

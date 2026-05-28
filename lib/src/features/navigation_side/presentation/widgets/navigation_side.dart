@@ -295,6 +295,7 @@ class _NavigationSideState extends State<NavigationSide> {
                             child: _buildSideMenu(
                               context,
                               bloc,
+                              isMobile: true,
                               onItemTap: _closeMobileNav,
                               avoidSystemBottomInset: true,
                             ),
@@ -370,7 +371,7 @@ class _NavigationSideState extends State<NavigationSide> {
             return Scaffold(
               body: Row(
                 children: [
-                  _buildSideMenu(context, bloc),
+                  _buildSideMenu(context, bloc, isMobile: false),
                   Expanded(child: SelectionArea(child: widget.child)),
                 ],
               ),
@@ -386,6 +387,7 @@ class _NavigationSideState extends State<NavigationSide> {
     NavigationBloc bloc, {
     VoidCallback? onItemTap,
     bool avoidSystemBottomInset = false,
+    bool isMobile = false,
   }) {
     return BlocBuilder<NavigationBloc, NavigationState>(
       builder: (context, state) {
@@ -413,218 +415,210 @@ class _NavigationSideState extends State<NavigationSide> {
             padding: const EdgeInsets.all(8.0),
             child: BlocBuilder<NavigationBloc, NavigationState>(
               builder: (context, state) {
-                return GestureDetector(
-                  onTap: () {
-                    _sideMenuController.toggle();
-                  },
-                  behavior: HitTestBehavior.translucent,
-                  child: SideMenu(
-                    controller: _sideMenuController,
-                    mode: SideMenuMode.open,
-                    hasResizer: false,
-                    hasResizerToggle: false,
-                    builder: (data) {
-                      return SideMenuData(
-                        header: data.isOpen
-                            ? InkWell(
-                                onTap: () {
-                                  _sideMenuController.toggle();
-                                },
-                                child: SafeArea(
-                                  bottom: false,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0,
-                                      vertical: 8.0,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/icon.svg',
-                                          width: 32,
-                                          height: 32,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'drCopilot'.tr(),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge
-                                                ?.copyWith(
-                                                  fontWeight:
-                                                      FontWeight.bold,
-                                                  color:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets
-                                              .symmetric(
-                                              horizontal: 6,
-                                              vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange
-                                                .withValues(alpha: 0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(
-                                                    4),
-                                            border: Border.all(
-                                                color: Colors.orange,
-                                                width: 1),
-                                          ),
-                                          child: Text(
-                                            'BETA',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  color: Colors
-                                                      .orange[800],
-                                                  fontWeight:
-                                                      FontWeight.bold,
-                                                  fontSize: 10,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                return SideMenu(
+                  controller: _sideMenuController,
+                  mode: SideMenuMode.open,
+                  hasResizer: false,
+                  hasResizerToggle: false,
+                  builder: (data) {
+                    return SideMenuData(
+                      header: data.isOpen
+                          ? InkWell(
+                              onTap: isMobile
+                                  ? null
+                                  : () {
+                                      _sideMenuController.toggle();
+                                    },
+                              child: SafeArea(
+                                bottom: false,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 8.0,
                                   ),
-                                ),
-                              )
-                            : null,
-                        items: state.allowedDestinations.entries
-                            .map((entry) {
-                              final category = entry.key;
-                              final destinations = entry.value;
-                              return [
-                                if (data.isOpen && category != 'business')
-                                  SideMenuItemDataTitle(
-                                    title: category.tr(),
-                                    titleStyle: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.secondary,
-                                        ),
-                                    padding:
-                                        const EdgeInsetsDirectional.symmetric(
-                                      horizontal: 16.0,
-                                      vertical: 8.0,
-                                    ),
-                                  ),
-                                ...destinations.map(
-                                  (e) {
-                                    GlobalKey? showcaseKey;
-                                    String? description;
-
-                                    // Assign showcase keys to features
-                                    if (e == Destination.copilot) {
-                                      showcaseKey = _copilotKey;
-                                      description =
-                                          'Your AI medical assistant - get help with diagnoses, treatment plans, and medical questions.';
-                                    } else if (e == Destination.calendar) {
-                                      showcaseKey = _calendarKey;
-                                      description =
-                                          'View and manage your appointments and schedule.';
-                                    } else if (e == Destination.patients) {
-                                      showcaseKey = _patientsKey;
-                                      description =
-                                          'Access and manage patient records, medical history, and contact information.';
-                                    } else if (e == Destination.doctors) {
-                                      showcaseKey = _doctorsKey;
-                                      description =
-                                          'Manage doctor profiles, specializations, and assignments.';
-                                    } else if (e == Destination.departments) {
-                                      showcaseKey = _departmentsKey;
-                                      description =
-                                          'Manage clinical departments and staff organization.';
-                                    } else if (e ==
-                                        Destination.clinicalReports) {
-                                      showcaseKey = _clinicalReportsKey;
-                                      description =
-                                          'Create and manage clinical reports, medical documentation, and patient evaluations.';
-                                    } else if (e == Destination.financials) {
-                                      showcaseKey = _financialsKey;
-                                      description =
-                                          'Track income, expenses, transactions, and financial analytics.';
-                                    } else if (e == Destination.notifications) {
-                                      showcaseKey = _notificationsKey;
-                                      description =
-                                          'Stay updated with important alerts, reminders, and system notifications.';
-                                    } else if (e == Destination.settings) {
-                                      showcaseKey = _settingsKey;
-                                      description =
-                                          'Customize app preferences, theme, notifications, and account settings.';
-                                    } else if (e == Destination.teams) {
-                                      showcaseKey = _teamsKey;
-                                      description =
-                                          'Collaborate with your team, manage roles, and coordinate patient care.';
-                                    }
-
-                                    final icon = Icon(
-                                      e.model.icon,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    );
-
-                                    return SideMenuItemDataTile(
-                                      isSelected: state.destination == e,
-                                      onTap: () {
-                                        final route = destinationToRoute[e];
-                                        if (route != null) {
-                                          context.go(route);
-                                        }
-                                        if (onItemTap != null) onItemTap();
-                                      },
-                                      title: tr(e.model.title),
-                                      tooltip: e.message,
-                                      icon: showcaseKey != null &&
-                                              description != null
-                                          ? Showcase(
-                                              key: showcaseKey,
-                                              description: description,
-                                              targetPadding:
-                                                  const EdgeInsets.only(
-                                                top: 8,
-                                                bottom: 8,
-                                                left: 8,
-                                                right:
-                                                    180, // Extend to cover label
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/icon.svg',
+                                        width: 32,
+                                        height: 32,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'drCopilot'.tr(),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
-                                              targetBorderRadius:
-                                                  BorderRadius.circular(12),
-                                              tooltipBorderRadius:
-                                                  BorderRadius.circular(12),
-                                              child: icon,
-                                            )
-                                          : icon,
-                                    );
-                                  },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange
+                                              .withValues(alpha: 0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(
+                                              color: Colors.orange, width: 1),
+                                        ),
+                                        child: Text(
+                                          'BETA',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: Colors.orange[800],
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 10,
+                                                letterSpacing: 0.5,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ];
-                            })
-                            .expand((element) => element)
-                            .toList(),
-                        footer: data.isOpen
-                            ? BlocBuilder<NavigationBloc, NavigationState>(
-                                builder: (context, NavigationState state) {
-                                  final String profileImageUrl =
-                                      state.user?.photoURL ?? '';
-                                  final bottomInset = avoidSystemBottomInset
-                                      ? MediaQuery.viewPaddingOf(context).bottom
-                                      : 0.0;
+                              ),
+                            )
+                          : null,
+                      items: state.allowedDestinations.entries
+                          .map((entry) {
+                            final category = entry.key;
+                            final destinations = entry.value;
+                            return [
+                              if (data.isOpen && category != 'business')
+                                SideMenuItemDataTitle(
+                                  title: category.tr(),
+                                  titleStyle: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.secondary,
+                                      ),
+                                  padding:
+                                      const EdgeInsetsDirectional.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 8.0,
+                                  ),
+                                ),
+                              ...destinations.map(
+                                (e) {
+                                  GlobalKey? showcaseKey;
+                                  String? description;
 
-                                  return Padding(
+                                  // Assign showcase keys to features
+                                  if (e == Destination.copilot) {
+                                    showcaseKey = _copilotKey;
+                                    description =
+                                        'Your AI medical assistant - get help with diagnoses, treatment plans, and medical questions.';
+                                  } else if (e == Destination.calendar) {
+                                    showcaseKey = _calendarKey;
+                                    description =
+                                        'View and manage your appointments and schedule.';
+                                  } else if (e == Destination.patients) {
+                                    showcaseKey = _patientsKey;
+                                    description =
+                                        'Access and manage patient records, medical history, and contact information.';
+                                  } else if (e == Destination.doctors) {
+                                    showcaseKey = _doctorsKey;
+                                    description =
+                                        'Manage doctor profiles, specializations, and assignments.';
+                                  } else if (e == Destination.departments) {
+                                    showcaseKey = _departmentsKey;
+                                    description =
+                                        'Manage clinical departments and staff organization.';
+                                  } else if (e == Destination.clinicalReports) {
+                                    showcaseKey = _clinicalReportsKey;
+                                    description =
+                                        'Create and manage clinical reports, medical documentation, and patient evaluations.';
+                                  } else if (e == Destination.financials) {
+                                    showcaseKey = _financialsKey;
+                                    description =
+                                        'Track income, expenses, transactions, and financial analytics.';
+                                  } else if (e == Destination.notifications) {
+                                    showcaseKey = _notificationsKey;
+                                    description =
+                                        'Stay updated with important alerts, reminders, and system notifications.';
+                                  } else if (e == Destination.settings) {
+                                    showcaseKey = _settingsKey;
+                                    description =
+                                        'Customize app preferences, theme, notifications, and account settings.';
+                                  } else if (e == Destination.teams) {
+                                    showcaseKey = _teamsKey;
+                                    description =
+                                        'Collaborate with your team, manage roles, and coordinate patient care.';
+                                  }
+
+                                  final icon = Icon(
+                                    e.model.icon,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  );
+
+                                  return SideMenuItemDataTile(
+                                    isSelected: state.destination == e,
+                                    onTap: () {
+                                      final route = destinationToRoute[e];
+                                      if (route != null) {
+                                        context.go(route);
+                                      }
+                                      if (onItemTap != null) onItemTap();
+                                    },
+                                    title: tr(e.model.title),
+                                    tooltip: e.message,
+                                    icon: showcaseKey != null &&
+                                            description != null
+                                        ? Showcase(
+                                            key: showcaseKey,
+                                            description: description,
+                                            targetPadding:
+                                                const EdgeInsets.only(
+                                              top: 8,
+                                              bottom: 8,
+                                              left: 8,
+                                              right:
+                                                  180, // Extend to cover label
+                                            ),
+                                            targetBorderRadius:
+                                                BorderRadius.circular(12),
+                                            tooltipBorderRadius:
+                                                BorderRadius.circular(12),
+                                            child: icon,
+                                          )
+                                        : icon,
+                                  );
+                                },
+                              ),
+                            ];
+                          })
+                          .expand((element) => element)
+                          .toList(),
+                      footer: data.isOpen
+                          ? BlocBuilder<NavigationBloc, NavigationState>(
+                              builder: (context, NavigationState state) {
+                                final String profileImageUrl =
+                                    state.user?.photoURL ?? '';
+                                final bottomInset = avoidSystemBottomInset
+                                    ? MediaQuery.viewPaddingOf(context).bottom
+                                    : 0.0;
+
+                                return InkWell(
+                                  onTap: () {
+                                    context.push('/account');
+                                    if (onItemTap != null) onItemTap();
+                                  },
+                                  child: Padding(
                                     padding: EdgeInsets.fromLTRB(
                                       16.0,
                                       8.0,
@@ -634,40 +628,30 @@ class _NavigationSideState extends State<NavigationSide> {
                                     child: Row(
                                       children: [
                                         if (profileImageUrl.isNotEmpty)
-                                          InkWell(
-                                            onTap: () {
-                                              context.push('/account');
-                                            },
-                                            child: Container(
-                                              width: 40,
-                                              height: 40,
-                                              decoration:
-                                                  const BoxDecoration(
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: ClipOval(
-                                                child:
-                                                    CachedNetworkImage(
-                                                  imageUrl:
-                                                      profileImageUrl,
-                                                  cacheKey:
-                                                      state.user?.uid,
-                                                  placeholder: (
-                                                    ctx,
-                                                    url,
-                                                  ) =>
-                                                      const Icon(
-                                                    Icons
-                                                        .account_circle_outlined,
-                                                  ),
-                                                  errorWidget: (
-                                                    context,
-                                                    url,
-                                                    error,
-                                                  ) {
-                                                    return const SizedBox();
-                                                  },
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: ClipOval(
+                                              child: CachedNetworkImage(
+                                                imageUrl: profileImageUrl,
+                                                cacheKey: state.user?.uid,
+                                                placeholder: (
+                                                  ctx,
+                                                  url,
+                                                ) =>
+                                                    const Icon(
+                                                  Icons.account_circle_outlined,
                                                 ),
+                                                errorWidget: (
+                                                  context,
+                                                  url,
+                                                  error,
+                                                ) {
+                                                  return const SizedBox();
+                                                },
                                               ),
                                             ),
                                           )
@@ -679,30 +663,27 @@ class _NavigationSideState extends State<NavigationSide> {
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: Text(
-                                            state.user?.displayName ??
-                                                '',
-                                            overflow:
-                                                TextOverflow.ellipsis,
+                                            state.user?.displayName ?? '',
+                                            overflow: TextOverflow.ellipsis,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .titleMedium
                                                 ?.copyWith(
-                                                  color:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
                                                 ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
-                              )
-                            : null,
-                      );
-                    },
-                  ),
+                                  ),
+                                );
+                              },
+                            )
+                          : null,
+                    );
+                  },
                 );
               },
             ),

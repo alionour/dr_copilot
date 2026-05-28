@@ -1,4 +1,4 @@
-// This file defines all available permissions in the Dr Copilot app.
+// This file defines all available permissions in the Dr AI app.
 // Update this list as you add new features or access controls.
 
 const List<String> allPermissions = [

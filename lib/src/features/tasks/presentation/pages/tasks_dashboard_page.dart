@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -158,7 +159,7 @@ class _TasksDashboardPageState extends State<TasksDashboardPage>
           },
           builder: (context, state) {
             if (state is TasksLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const ShimmerList();
             } else if (state is TasksLoaded) {
               if (state.tasks.isEmpty) {
                 return Center(child: Text('noTasksFound'.tr()));

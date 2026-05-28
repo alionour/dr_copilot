@@ -81,7 +81,9 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         debugPrint('Error updating notification setting: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: SelectionArea(child: Text('Error saving setting: $e'))),
+            SnackBar(
+                content: SelectionArea(
+                    child: Text('errorSavingSetting'.tr(args: [e.toString()])))),
           );
         }
       }
@@ -120,9 +122,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                 ),
                 SwitchListTile(
                   title: const Text('appointmentReminders').tr(),
-                  subtitle: const Text(
-                          'Automatically send email reminders to patients 24 hours before appointment')
-                      .tr(),
+                  subtitle: const Text('appointmentRemindersDescription').tr(),
                   value: _appointmentReminders,
                   onChanged: (value) {
                     setState(() {

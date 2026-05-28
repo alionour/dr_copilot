@@ -9,6 +9,9 @@ import 'package:dr_copilot/src/features/medications/domain/models/medication_mod
 import 'package:dr_copilot/src/features/medications/presentation/bloc/medication_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class AddEditMedicationPage extends StatefulWidget {
   final String patientId;
@@ -92,6 +95,7 @@ class _AddEditMedicationPageState extends State<AddEditMedicationPage> {
       final medication = MedicationModel(
         id: widget.medication?.id ?? const Uuid().v4(),
         patientId: widget.patientId,
+        clinicId: widget.medication?.clinicId ?? OwnerNotifier().clinicId!,
         name: _nameController.text,
         dosage: _dosageController.text.isNotEmpty
             ? _dosageController.text
@@ -239,7 +243,7 @@ class _AddEditMedicationPageState extends State<AddEditMedicationPage> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     return ElevatedButton(
-                      onPressed: _submit,
+                      onPressed: _submit.throttle(),
                       child: Text('save'.tr()),
                     );
                   },

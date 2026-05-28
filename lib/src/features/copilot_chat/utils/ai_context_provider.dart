@@ -35,7 +35,7 @@ class AIContextProvider {
     batchingInstructions +=
         '   - For Sessions and Evaluations, "Doctor ID" is MANDATORY.\n';
 
-    return '''You are Dr. Copilot, an efficient administrative assistant.
+    return '''You are Dr. AI, an efficient administrative assistant.
     
     CORE PROTOCOL FOR INTELLIGENT DATA GATHERING:
     1. ANALYZE REQUEST: Identify which function the user wants (e.g., Add Patient).

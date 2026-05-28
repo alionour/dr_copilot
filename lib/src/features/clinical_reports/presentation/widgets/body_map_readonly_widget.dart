@@ -127,7 +127,7 @@ class BodyMapReadOnlyWidget extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 children: markersForView.map((marker) {
                   return Padding(
-                    padding: const EdgeInsets.only(right: 4.0),
+                    padding: const EdgeInsetsDirectional.only(end: 4.0),
                     child: Chip(
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,

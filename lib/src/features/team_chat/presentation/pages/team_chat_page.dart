@@ -39,20 +39,129 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   // Cached conversation data
   List<String> _participantIds = [];
-  bool _isMember = true;
+  bool _isMember = false; // fail-closed
   String _teamOwnerId = '';
   String _teamName = '';
   List<String> _teamAdminIds = []; // team-level admins (not clinic admins)
 
+  // Permission & Type state
+  bool? _isDirect;
+  bool _checkingPermission = true;
+  bool _hasPermission = false;
+
   @override
   void initState() {
     super.initState();
+    _checkAccess();
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.toLowerCase());
     });
     _memberSearchController.addListener(() {
       setState(() => _memberSearchQuery = _memberSearchController.text.toLowerCase());
     });
+  }
+
+  Future<void> _checkAccess() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        if (mounted) {
+          setState(() {
+            _checkingPermission = false;
+            _hasPermission = false;
+          });
+        }
+        return;
+      }
+
+      // 1. Check if the conversation is a DM (exists in direct_messages collection)
+      final dmDoc = await FirebaseFirestore.instance
+          .collection('direct_messages')
+          .doc(widget.conversationId)
+          .get();
+
+      if (dmDoc.exists) {
+        final participantIds = List<String>.from(dmDoc.data()?['participantIds'] ?? []);
+        final isParticipant = participantIds.contains(currentUser.uid);
+        if (mounted) {
+          setState(() {
+            _isDirect = true;
+            _participantIds = participantIds;
+            _isMember = isParticipant; // for DMs, participation acts as membership
+            _hasPermission = isParticipant;
+          });
+        }
+
+        // Fetch the other user's name for DM title
+        final otherUid = participantIds.firstWhere((id) => id != currentUser.uid, orElse: () => '');
+        if (otherUid.isNotEmpty) {
+          final otherUserDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(otherUid)
+              .get();
+          if (otherUserDoc.exists && mounted) {
+            setState(() {
+              _teamName = otherUserDoc.data()?['displayName'] ?? otherUserDoc.data()?['email'] ?? 'Chat';
+              _checkingPermission = false;
+            });
+            return;
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _checkingPermission = false;
+          });
+        }
+        return;
+      }
+
+      // 2. Otherwise it's a team conversation, check team_conversations collection to be sure
+      final teamConvDoc = await FirebaseFirestore.instance
+          .collection('team_conversations')
+          .doc(widget.conversationId)
+          .get();
+
+      if (teamConvDoc.exists) {
+        // Pre-fetch custom_teams to determine membership immediately, avoiding initial lockout
+        final teamDoc = await FirebaseFirestore.instance
+            .collection('custom_teams')
+            .doc(widget.conversationId)
+            .get();
+        bool isMemberOfTeam = false;
+        if (teamDoc.exists) {
+          final memberIds = List<String>.from(teamDoc.data()?['memberIds'] ?? []);
+          isMemberOfTeam = memberIds.contains(currentUser.uid);
+        }
+
+        if (mounted) {
+          setState(() {
+            _isDirect = false;
+            _isMember = isMemberOfTeam;
+            // Let custom_teams listener StreamBuilder determine _isMember and _hasPermission dynamically
+            _checkingPermission = false;
+          });
+        }
+        return;
+      }
+
+      // If it exists in neither collection, user does not have permission
+      if (mounted) {
+        setState(() {
+          _isDirect = false;
+          _isMember = false;
+          _hasPermission = false;
+          _checkingPermission = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _checkingPermission = false;
+          _hasPermission = false;
+        });
+      }
+    }
   }
 
   @override
@@ -98,6 +207,42 @@ class _TeamChatPageState extends State<TeamChatPage> {
       return const Scaffold(body: Center(child: Text("Error: No user")));
     }
 
+    if (_checkingPermission) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final hasGlobalAccess =
+        OwnerNotifier().hasPermission(AppPermission.viewTeamMessages);
+
+    final isAllowed = _isDirect == true ? _hasPermission : (_isMember || hasGlobalAccess);
+
+    if (!isAllowed) {
+      return Scaffold(
+        appBar: AppBar(title: Text('chat'.tr())),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'noPermissionToViewSection'.tr(),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // Gate the members button — permission-centric:
     //   - Team members can always see who else is in their team.
     //   - Any non-member who has been explicitly granted a team visibility
@@ -139,45 +284,52 @@ class _TeamChatPageState extends State<TeamChatPage> {
               tooltip: _searchMode ? 'Close search' : 'Search messages',
             ),
             // Members panel toggle — driven by authoritative custom_teams.memberIds
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('custom_teams')
-                  .doc(widget.conversationId)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  final data = snapshot.data!.data() as Map<String, dynamic>?;
-                  final memberIds = List<String>.from(data?['memberIds'] ?? []);
-                  _participantIds = memberIds;
-                  _isMember = memberIds.contains(currentUser.uid);
-                  _teamAdminIds = List<String>.from(data?['adminIds'] ?? []);
-                  if (_teamOwnerId.isEmpty || _teamOwnerId != (data?['ownerId'] ?? '')) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) setState(() => _teamOwnerId = data?['ownerId'] ?? '');
-                    });
+            if (_isDirect != true)
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('custom_teams')
+                    .doc(widget.conversationId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>?;
+                    final memberIds = List<String>.from(data?['memberIds'] ?? []);
+                    _participantIds = memberIds;
+                    final isCurrentlyMember = memberIds.contains(currentUser.uid);
+                    _teamAdminIds = List<String>.from(data?['adminIds'] ?? []);
+                    
+                    if (_isMember != isCurrentlyMember || _teamOwnerId.isEmpty || _teamOwnerId != (data?['ownerId'] ?? '')) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {
+                            _isMember = isCurrentlyMember;
+                            _teamOwnerId = data?['ownerId'] ?? '';
+                          });
+                        }
+                      });
+                    }
+                    // Fetch team name from conversation metadata once
+                    if (_teamName.isEmpty) {
+                      FirebaseFirestore.instance
+                          .collection('team_conversations')
+                          .doc(widget.conversationId)
+                          .get()
+                          .then((doc) {
+                        if (doc.exists && mounted) {
+                          final meta = (doc.data()?['metadata'] as Map<String, dynamic>?);
+                          setState(() => _teamName = meta?['teamName'] ?? '');
+                        }
+                      }).ignore();
+                    }
                   }
-                  // Fetch team name from conversation metadata once
-                  if (_teamName.isEmpty) {
-                    FirebaseFirestore.instance
-                        .collection('team_conversations')
-                        .doc(widget.conversationId)
-                        .get()
-                        .then((doc) {
-                      if (doc.exists && mounted) {
-                        final meta = (doc.data()?['metadata'] as Map<String, dynamic>?);
-                        setState(() => _teamName = meta?['teamName'] ?? '');
-                      }
-                    }).ignore();
-                  }
-                }
-                if (!canViewMembers()) return const SizedBox();
-                return IconButton(
-                  icon: Icon(_showMembersPanel ? Icons.people : Icons.people_outline),
-                  onPressed: _toggleMembersPanel,
-                  tooltip: _showMembersPanel ? 'Hide Members' : 'View Members',
-                );
-              },
-            ),
+                  if (!canViewMembers()) return const SizedBox();
+                  return IconButton(
+                    icon: Icon(_showMembersPanel ? Icons.people : Icons.people_outline),
+                    onPressed: _toggleMembersPanel,
+                    tooltip: _showMembersPanel ? 'Hide Members' : 'View Members',
+                  );
+                },
+              ),
           ],
         ),
         body: Builder(
@@ -372,27 +524,31 @@ class _TeamChatPageState extends State<TeamChatPage> {
                       ),
                       // Message input — guards against stale participantIds by
                       // reading from custom_teams.memberIds (authoritative source).
-                      StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('custom_teams')
-                            .doc(widget.conversationId)
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          bool isMember = false; // fail-closed: default no access
-                          if (snapshot.hasData && snapshot.data!.exists) {
-                            final data = snapshot.data!.data()
-                                as Map<String, dynamic>?;
-                            final List<dynamic> memberIds =
-                                data?['memberIds'] ?? [];
-                            isMember = memberIds.contains(currentUser.uid);
-                          } else if (!snapshot.hasData) {
-                            // Doc not yet loaded, fallback to participantIds
-                            isMember = _isMember;
-                          }
-                          return _buildMessageInput(context, currentUser.uid,
-                              isMember: isMember);
-                        },
-                      ),
+                      // Message input — guards against stale participantIds by
+                      // reading from custom_teams.memberIds (authoritative source).
+                      _isDirect == true
+                          ? _buildMessageInput(context, currentUser.uid, isMember: _isMember)
+                          : StreamBuilder<DocumentSnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('custom_teams')
+                                  .doc(widget.conversationId)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                bool isMember = false; // fail-closed: default no access
+                                if (snapshot.hasData && snapshot.data!.exists) {
+                                  final data = snapshot.data!.data()
+                                      as Map<String, dynamic>?;
+                                  final List<dynamic> memberIds =
+                                      data?['memberIds'] ?? [];
+                                  isMember = memberIds.contains(currentUser.uid);
+                                } else if (!snapshot.hasData) {
+                                  // Doc not yet loaded, fallback to participantIds
+                                  isMember = _isMember;
+                                }
+                                return _buildMessageInput(context, currentUser.uid,
+                                    isMember: isMember);
+                              },
+                            ),
                     ],
                   ),
                 ),
@@ -665,7 +821,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
   Widget _sectionHeader(BuildContext context, String title, IconData icon,
       {Widget? trailing}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 8, 4),
+      padding: const EdgeInsetsDirectional.only(start: 12, top: 12, end: 8, bottom: 4),
       child: Row(
         children: [
           Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
@@ -687,7 +843,7 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   Widget _badge(BuildContext context, String label, Color color) {
     return Container(
-      margin: const EdgeInsets.only(right: 4),
+      margin: const EdgeInsetsDirectional.only(end: 4),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
           color: color.withValues(alpha: 0.15),
@@ -914,6 +1070,23 @@ class _TeamChatPageState extends State<TeamChatPage> {
 
   void _sendMessage(BuildContext context, String currentUserId) {
     if (_textController.text.trim().isEmpty) return;
+
+    // Fail-closed check: Ensure the user is either a member of this team/DM
+    // or has global permission to view/manage team messages before sending.
+    final hasGlobalAccess =
+        OwnerNotifier().hasPermission(AppPermission.viewTeamMessages) ||
+        OwnerNotifier().hasPermission(AppPermission.manageTeams);
+    final canSend = _isDirect == true ? _isMember : (_isMember || hasGlobalAccess);
+
+    if (!canSend) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You do not have permission to send messages to this team.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     context.read<ChatRoomBloc>().add(
           SendMessage(

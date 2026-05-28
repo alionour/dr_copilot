@@ -1,4 +1,4 @@
-// This file defines enums for all available roles in the Dr Copilot app.
+// This file defines enums for all available roles in the Dr AI app.
 // Use Role.values for iteration, or Role.<name> for type-safe checks.
 import 'package:json_annotation/json_annotation.dart';
 

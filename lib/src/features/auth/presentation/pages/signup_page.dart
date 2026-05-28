@@ -4,6 +4,8 @@ import 'package:dr_copilot/src/features/auth/domain/usecases/login_usecase.dart'
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // Added import for GoRouter
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 import 'dart:developer';
 
 class SignupPage extends StatefulWidget {
@@ -181,7 +183,7 @@ class _SignupPageState extends State<SignupPage> {
                     children: [
                       Text(
                         'welcomeTo'.tr(
-                          args: [widget.clinicName ?? 'Dr. Copilot'],
+                          args: [widget.clinicName ?? 'Dr. AI'],
                         ),
                         style: Theme.of(context).textTheme.headlineSmall,
                         textAlign: TextAlign.center,
@@ -310,7 +312,7 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 32),
                       FilledButton(
-                        onPressed: _isLoading ? null : _handleSignup,
+                        onPressed: _isLoading ? null : _handleSignup.throttle(),
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(

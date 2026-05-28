@@ -8,6 +8,7 @@ part 'medical_file_model.g.dart';
 class MedicalFileModel extends Equatable {
   final String id;
   final String patientId;
+  final String clinicId;
   final String title;
   final String type; // e.g., 'X-Ray', 'Lab Report', 'MRI', 'Other'
   final String? fileUrl;
@@ -26,6 +27,7 @@ class MedicalFileModel extends Equatable {
   const MedicalFileModel({
     required this.id,
     required this.patientId,
+    required this.clinicId,
     required this.title,
     required this.type,
     this.fileUrl,
@@ -44,6 +46,7 @@ class MedicalFileModel extends Equatable {
   MedicalFileModel copyWith({
     String? id,
     String? patientId,
+    String? clinicId,
     String? title,
     String? type,
     String? fileUrl,
@@ -56,6 +59,7 @@ class MedicalFileModel extends Equatable {
     return MedicalFileModel(
       id: id ?? this.id,
       patientId: patientId ?? this.patientId,
+      clinicId: clinicId ?? this.clinicId,
       title: title ?? this.title,
       type: type ?? this.type,
       fileUrl: fileUrl ?? this.fileUrl,
@@ -71,6 +75,7 @@ class MedicalFileModel extends Equatable {
   List<Object?> get props => [
     id,
     patientId,
+    clinicId,
     title,
     type,
     fileUrl,

@@ -5,6 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class CreateClinicPage extends StatefulWidget {
   const CreateClinicPage({super.key});
@@ -101,7 +103,7 @@ class _CreateClinicPageState extends State<CreateClinicPage> {
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _createClinic,
+                  onPressed: _isLoading ? null : _createClinic.throttle(),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),

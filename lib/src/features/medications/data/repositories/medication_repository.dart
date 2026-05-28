@@ -78,6 +78,7 @@ class MedicationRepository {
       final snapshot = await _firestore
           .collection('medications')
           .where('patientId', isEqualTo: patientId)
+          .where('clinicId', isEqualTo: OwnerNotifier().clinicId)
           .orderBy('startDate', descending: true)
           .get();
 

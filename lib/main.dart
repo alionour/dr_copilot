@@ -155,5 +155,3 @@ void _reportError(Object error, StackTrace? stack) {
   // Report all errors to custom backend
   ErrorReportingService.reportError(error, stack);
 }
-
-// ErrorReportingService moved to lib/src/core/services/error_reporting_service.dart

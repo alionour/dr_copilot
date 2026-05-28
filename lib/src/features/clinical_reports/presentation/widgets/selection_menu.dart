@@ -31,7 +31,7 @@ class SelectionMenu extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(left: 8.0),
+                  padding: EdgeInsetsDirectional.only(start: 8.0),
                   child: Text(
                     'AI Actions',
                     style: TextStyle(

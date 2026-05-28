@@ -100,6 +100,8 @@ class SessionModel {
   final Timestamp? updatedAt;
 
   final String? doctorId;
+  final String? departmentId;
+  final String? teamId;
 
   SessionModel({
     required this.id,
@@ -118,6 +120,8 @@ class SessionModel {
     required this.createdAt,
     this.updatedAt,
     this.doctorId,
+    this.departmentId,
+    this.teamId,
   });
 
   factory SessionModel.fromJson(Map<String, dynamic> json) =>
@@ -142,6 +146,8 @@ class SessionModel {
     Timestamp? createdAt,
     Timestamp? updatedAt,
     String? doctorId,
+    String? departmentId,
+    String? teamId,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -160,6 +166,8 @@ class SessionModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       doctorId: doctorId ?? this.doctorId,
+      departmentId: departmentId ?? this.departmentId,
+      teamId: teamId ?? this.teamId,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dr_copilot/src/core/error/failures.dart';
 import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
 import 'package:dr_copilot/src/features/copilot_chat/domain/logic/function_call_handler.dart';
@@ -14,17 +15,17 @@ import 'package:dr_copilot/src/features/navigation_side/presentation/widgets/nav
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/copilot_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:record/record.dart';
 import 'package:get_it/get_it.dart';
+import 'package:flutter/services.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/abstract_speech_recognition_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
-import 'package:flutter/services.dart';
+import 'package:dr_copilot/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:record/record.dart';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 
@@ -63,7 +64,8 @@ class _CopilotPageState extends State<CopilotPage> {
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier(false);
   final ValueNotifier<bool> _isRecording = ValueNotifier(false);
-  final ValueNotifier<bool> _isListeningSpeech = ValueNotifier(false);
+  final ValueNotifier<CopilotMicState> _micState =
+      ValueNotifier(CopilotMicState.idle);
   final List<Map<String, dynamic>> _messages = [];
   Map<String, dynamic> _functionCallArgs = {};
   String? _currentParameterBeingAsked;
@@ -330,16 +332,17 @@ class _CopilotPageState extends State<CopilotPage> {
               ),
               backgroundColor: Colors.red,
               action: SnackBarAction(
-                label: 'Copy',
+                label: 'copilotCopyMessage'.tr(),
                 textColor: Colors.white,
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: errorMessage));
                   debugPrint(
-                    'SnackBar Info: Error message copied to clipboard.',
+                    'SnackBar Info: ${'errorMessageCopied'.tr()}',
                   ); // Log to console
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: SelectionArea(child: Text('Error message copied to clipboard.')),
+                      content: SelectionArea(
+                          child: Text('errorMessageCopied'.tr())),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -359,6 +362,233 @@ class _CopilotPageState extends State<CopilotPage> {
     }
   }
 
+  void _setMicState(CopilotMicState state) {
+    if (!mounted) return;
+    _micState.value = state;
+  }
+
+  Future<void> _toggleSpeechInput() async {
+    if (_micState.value == CopilotMicState.listening) {
+      await _stopSpeechInput();
+      return;
+    }
+
+    if (_micState.value == CopilotMicState.requestingPermission ||
+        _micState.value == CopilotMicState.initializing ||
+        _micState.value == CopilotMicState.finalizing) {
+      return;
+    }
+
+    await _startSpeechInput();
+  }
+
+  Future<void> _startSpeechInput() async {
+    final speechRecognitionService =
+        GetIt.instance<AbstractSpeechRecognitionService>();
+    final languageCode = context.locale.languageCode;
+
+    try {
+      _setMicState(CopilotMicState.requestingPermission);
+
+      final permissionCheck =
+          await speechRecognitionService.checkMicrophonePermission();
+      var hasPermission = permissionCheck.fold((failure) {
+        debugPrint('[Speech] Permission check failed: ${failure.message}');
+        return false;
+      }, (granted) => granted);
+
+      if (!hasPermission) {
+        final permissionRequest =
+            await speechRecognitionService.requestMicrophonePermission();
+        hasPermission = permissionRequest.fold((failure) {
+          _showSpeechError(failure);
+          return false;
+        }, (granted) => granted);
+      }
+
+      if (!hasPermission) {
+        _showMicrophonePermissionDenied();
+        return;
+      }
+
+      _setMicState(CopilotMicState.initializing);
+
+      debugPrint(
+        '[CopilotPage] Voice input starting with app locale: $languageCode',
+      );
+      if (speechRecognitionService is HybridSpeechRecognitionService) {
+        speechRecognitionService.setLanguage(languageCode);
+      }
+
+      speechRecognitionService.clearAccumulatedTranscript();
+
+      final initResult = await speechRecognitionService.initialize();
+      final initialized = initResult.fold((failure) {
+        _showSpeechError(failure);
+        return false;
+      }, (_) => true);
+      if (!initialized) return;
+
+      final startResult = await speechRecognitionService.startListening();
+      startResult.fold(
+        _showSpeechError,
+        (_) => _setMicState(CopilotMicState.listening),
+      );
+    } catch (e) {
+      _showSpeechError(
+        ServerFailure('Failed to start speech recognition: $e', 500),
+      );
+    }
+  }
+
+  Future<void> _stopSpeechInput() async {
+    final speechRecognitionService =
+        GetIt.instance<AbstractSpeechRecognitionService>();
+
+    _setMicState(CopilotMicState.finalizing);
+
+    try {
+      final stopResult = await speechRecognitionService.stopListening();
+      stopResult.fold(
+        _showSpeechError,
+        (transcript) {
+          final cleanTranscript = _normalizeSpeechTranscript(transcript);
+          if (cleanTranscript.isEmpty) {
+            _showNoSpeechDetected();
+          } else {
+            _insertTranscriptIntoInput(cleanTranscript);
+            _setMicState(CopilotMicState.idle);
+          }
+        },
+      );
+    } catch (e) {
+      _showSpeechError(
+        ServerFailure('Failed to stop speech recognition: $e', 500),
+      );
+    }
+  }
+
+  String _normalizeSpeechTranscript(String transcript) {
+    return transcript.replaceFirst('__FINAL__:', '').trim();
+  }
+
+  void _insertTranscriptIntoInput(String transcript) {
+    final text = _controller.text;
+    final selection = _controller.selection;
+
+    if (selection.start >= 0 &&
+        selection.end >= selection.start &&
+        selection.end <= text.length) {
+      final newText = text.replaceRange(
+        selection.start,
+        selection.end,
+        transcript,
+      );
+      _controller.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(
+          offset: selection.start + transcript.length,
+        ),
+      );
+      return;
+    }
+
+    final separator = text.isNotEmpty && !text.endsWith(' ') ? ' ' : '';
+    _controller.text = '$text$separator$transcript';
+    _controller.selection = TextSelection.collapsed(
+      offset: _controller.text.length,
+    );
+  }
+
+  void _showMicrophonePermissionDenied() {
+    _setMicState(CopilotMicState.error);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: SelectionArea(
+          child: Text('micPermissionRequired'.tr()),
+        ),
+        backgroundColor: Colors.red,
+        action: SnackBarAction(
+          label: 'settings'.tr(),
+          textColor: Colors.white,
+          onPressed: openAppSettings,
+        ),
+      ),
+    );
+    _resetMicErrorStateSoon();
+  }
+
+  void _showNoSpeechDetected() {
+    _setMicState(CopilotMicState.error);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: SelectionArea(
+          child: Text('noSpeechDetected'.tr()),
+        ),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    _resetMicErrorStateSoon();
+  }
+
+  void _showSpeechError(Failure failure) {
+    _setMicState(CopilotMicState.error);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: SelectionArea(child: Text(_speechErrorMessage(failure))),
+        backgroundColor: Colors.red,
+        action: failure is PermissionFailure
+            ? SnackBarAction(
+                label: 'Settings',
+                textColor: Colors.white,
+                onPressed: openAppSettings,
+              )
+            : null,
+      ),
+    );
+    _resetMicErrorStateSoon();
+  }
+
+  String _speechErrorMessage(Failure failure) {
+    final message = failure.message.toLowerCase();
+
+    if (failure is PermissionFailure || message.contains('permission')) {
+      return 'micPermissionRequired'.tr();
+    }
+    if (failure is ApiKeyFailure ||
+        message.contains('deepgram') ||
+        message.contains('api key')) {
+      return 'speechRecognitionUnavailable'.tr();
+    }
+    if (message.contains('locale') ||
+        message.contains('language') ||
+        message.contains('not available')) {
+      return 'speechRecognitionLangUnavailable'.tr();
+    }
+    if (message.contains('network') ||
+        message.contains('socket') ||
+        message.contains('websocket') ||
+        message.contains('connection')) {
+      return 'speechRecognitionConnectionError'.tr();
+    }
+
+    return 'speechRecognitionFailed'.tr(args: [failure.message]);
+  }
+
+  void _resetMicErrorStateSoon() {
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (mounted && _micState.value == CopilotMicState.error) {
+        _micState.value = CopilotMicState.idle;
+      }
+    });
+  }
+
   void _initializeAvailableModels() {
     if (ApiKeyHelper.vertexAIKey.isNotEmpty) _availableModels.add('MedPaLM');
     if (ApiKeyHelper.gptKey.isNotEmpty) _availableModels.add('GPT');
@@ -374,7 +604,8 @@ class _CopilotPageState extends State<CopilotPage> {
     _focusNode.dispose();
     _scrollController.dispose();
     _isButtonEnabled.dispose();
-    _isListeningSpeech.dispose();
+    _isRecording.dispose();
+    _micState.dispose();
     _audioRecorder.dispose();
     _usageSubscription?.cancel();
     // Don't dispose the speech recognition service here as it's a singleton
@@ -651,12 +882,13 @@ class _CopilotPageState extends State<CopilotPage> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: SelectionArea(child: Text('AI Error: ${state.error}')),
+                    content: SelectionArea(
+                        child: Text('aiError'.tr(args: [state.error]))),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 10),
                     action: _lastQuery != null
                         ? SnackBarAction(
-                            label: 'Retry',
+                            label: 'retry'.tr(),
                             textColor: Colors.white,
                             onPressed: () {
                               // Trigger retry
@@ -688,7 +920,7 @@ class _CopilotPageState extends State<CopilotPage> {
                             },
                           )
                         : SnackBarAction(
-                            label: 'Change Model',
+                            label: 'changeModel'.tr(),
                             textColor: Colors.white,
                             onPressed: () {
                               context.push('/settings/model_selection');
@@ -731,16 +963,16 @@ class _CopilotPageState extends State<CopilotPage> {
                     return ValueListenableBuilder<bool>(
                         valueListenable: _isRecording,
                         builder: (context, isRecording, _) {
-                          return ValueListenableBuilder<bool>(
-                              valueListenable: _isListeningSpeech,
-                              builder: (context, isListeningSpeech, _) {
+                          return ValueListenableBuilder<CopilotMicState>(
+                              valueListenable: _micState,
+                              builder: (context, micState, _) {
                                 return CopilotView(
                                   messages: _messages,
                                   textController: _controller,
                                   scrollController: _scrollController,
                                   isButtonEnabled: isButtonEnabled,
                                   isRecording: isRecording,
-                                  isListeningSpeech: isListeningSpeech,
+                                  micState: micState,
                                   isLoading: state is CopilotLoading,
                                   currentTier: _currentTier,
                                   tokenUsage: _tokenUsage,
@@ -767,81 +999,7 @@ class _CopilotPageState extends State<CopilotPage> {
                                   },
                                   onHistoryToggle: (val) {},
                                   onEditMessage: _handleEditMessage,
-                                  // For speech start/stop, passing the async logic wrappers
-                                  onSpeechStart: () async {
-                                    _isListeningSpeech.value = true;
-                                    final speechRecognitionService =
-                                        GetIt.instance<
-                                            AbstractSpeechRecognitionService>();
-                                    final currentLocale = context.locale;
-                                    if (speechRecognitionService
-                                        is HybridSpeechRecognitionService) {
-                                      speechRecognitionService.setLanguage(
-                                          currentLocale.languageCode);
-                                    }
-                                    final startResult =
-                                        await speechRecognitionService
-                                            .startListening();
-                                    startResult.fold((failure) {
-                                      _isListeningSpeech.value = false;
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: SelectionArea(child: Text(
-                                              'Error starting speech recognition: ${failure.message}',
-                                            )),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    }, (_) {});
-                                  },
-                                  onSpeechStop: () async {
-                                    final speechRecognitionService =
-                                        GetIt.instance<
-                                            AbstractSpeechRecognitionService>();
-                                    final stopResult =
-                                        await speechRecognitionService
-                                            .stopListening();
-                                    _isListeningSpeech.value = false;
-                                    stopResult.fold(
-                                      (failure) {
-                                        debugPrint(
-                                            '[Speech] Error stopping: ${failure.message}');
-                                      },
-                                      (transcript) {
-                                        if (transcript.isNotEmpty) {
-                                          final text = _controller.text;
-                                          final selection =
-                                              _controller.selection;
-
-                                          // Check if there's a valid selection range
-                                          if (selection.start >= 0 &&
-                                              selection.end >= 0 &&
-                                              selection.end <= text.length) {
-                                            final newText = text.replaceRange(
-                                                selection.start,
-                                                selection.end,
-                                                transcript);
-                                            _controller.value =
-                                                TextEditingValue(
-                                              text: newText,
-                                              selection:
-                                                  TextSelection.collapsed(
-                                                      offset: selection.start +
-                                                          transcript.length),
-                                            );
-                                          } else {
-                                            // No valid selection, append to end with space if needed
-                                            _controller.text = text.isNotEmpty
-                                                ? '$text $transcript'
-                                                : transcript;
-                                          }
-                                        }
-                                      },
-                                    );
-                                  },
+                                  onSpeechToggle: _toggleSpeechInput,
                                   pickedImage: _pickedImage,
                                   navMenuButton: navMenuButton,
                                   currentUserPhotoUrl: FirebaseAuth
@@ -964,32 +1122,33 @@ class _CopilotPageState extends State<CopilotPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Chat'),
-        content: SelectionArea(child: const Text('Are you sure you want to delete this chat?')),
+        title: Text('deleteChatTitle'.tr()),
+        content: SelectionArea(
+            child: Text('deleteChatConfirm'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () async {
               final navigator = Navigator.of(context);
               await _conversationRepo.deleteConversation(conversationId);
-              if (mounted) {
-                navigator.pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: SelectionArea(child: Text('Chat deleted successfully')),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                if (_currentConversationId == conversationId) {
-                  _startNewConversation();
-                }
+              if (!context.mounted || !mounted) return;
+
+              navigator.pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: SelectionArea(child: Text('chatDeletedSuccessfully'.tr())),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              if (_currentConversationId == conversationId) {
+                _startNewConversation();
               }
             },
             child: Text(
-              'Delete',
+              'delete'.tr(),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -1036,7 +1195,7 @@ class _CopilotPageState extends State<CopilotPage> {
 
     if (functionName == 'add_patient') {
       // 1. Check strict parameters first (name)
-      if (!checkAndAsk('name', 'What is the name of the patient?')) return;
+      if (!checkAndAsk('name', 'askPatientName'.tr())) return;
 
       // 2. Collect all missing optional-but-required fields
       final requiredFields =
@@ -1131,12 +1290,11 @@ class _CopilotPageState extends State<CopilotPage> {
       if (missingFields.isNotEmpty) {
         String prompt;
         if (missingFields.length == 1) {
-          prompt = 'What is the ${missingFieldPrompts.first} of the patient?';
+          prompt = 'askMissingField'.tr(args: [missingFieldPrompts.first]);
         } else {
           final last = missingFieldPrompts.removeLast();
           final joined = missingFieldPrompts.join(', ');
-          prompt =
-              'Could you please provide the $joined, and $last of the patient?';
+          prompt = 'askMultipleFields'.tr(args: [joined, last]);
         }
 
         // We use the first missing field as the 'key' for the AI context,
@@ -1151,7 +1309,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'edit_patient') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the patient you want to edit?',
+        'askEditPatientId'.tr(),
       )) {
         return;
       }
@@ -1173,7 +1331,7 @@ class _CopilotPageState extends State<CopilotPage> {
 
       if (!hasOptional) {
         _showTypingEffect(
-          'Please provide at least one field to update for the patient.',
+          'askAtLeastOneField'.tr(),
         );
         _functionCallArgs.clear();
         return;
@@ -1182,7 +1340,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'delete_patient') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the patient you want to delete?',
+        'askDeletePatientId'.tr(),
       )) {
         return;
       }
@@ -1190,20 +1348,20 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'add_session') {
       if (!checkAndAsk(
         'patientId',
-        'What is the ID of the patient for this session?',
+        'askSessionPatientId'.tr(),
       )) {
         return;
       }
-      if (!checkAndAsk('price', 'What is the price of the session?')) return;
+      if (!checkAndAsk('price', 'askSessionPrice'.tr())) return;
       if (!checkAndAsk(
         'startDateTime',
-        'What is the start date and time of the session (e.g., 2023-11-15T10:00:00)?',
+        'askSessionStartTime'.tr(),
       )) {
         return;
       }
       if (!checkAndAsk(
         'endDateTime',
-        'What is the end date and time of the session (e.g., 2023-11-15T11:00:00)?',
+        'askSessionEndTime'.tr(),
       )) {
         return;
       }
@@ -1211,7 +1369,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'edit_session') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the session you want to edit?',
+        'askEditSessionId'.tr(),
       )) {
         return;
       }
@@ -1230,7 +1388,7 @@ class _CopilotPageState extends State<CopilotPage> {
       );
       if (!hasOptional) {
         _showTypingEffect(
-          'Please provide at least one field to update for the session.',
+          'askAtLeastOneFieldSession'.tr(),
         );
         _functionCallArgs.clear();
         return;
@@ -1239,7 +1397,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'delete_session') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the session you want to delete?',
+        'askDeleteSessionId'.tr(),
       )) {
         return;
       }
@@ -1247,26 +1405,26 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'add_evaluation') {
       if (!checkAndAsk(
         'patientId',
-        'What is the ID of the patient for this evaluation?',
+        'askEvaluationPatientId'.tr(),
       )) {
         return;
       }
       if (!checkAndAsk(
         'patientName',
-        'What is the name of the patient for this evaluation?',
+        'askEvaluationPatientName'.tr(),
       )) {
         return;
       }
-      if (!checkAndAsk('price', 'What is the price of the evaluation?')) return;
+      if (!checkAndAsk('price', 'askEvaluationPrice'.tr())) return;
       if (!checkAndAsk(
         'startDateTime',
-        'What is the start date and time of the evaluation (e.g., 2023-11-15T10:00:00)?',
+        'askEvaluationStartTime'.tr(),
       )) {
         return;
       }
       if (!checkAndAsk(
         'endDateTime',
-        'What is the end date and time of the evaluation (e.g., 2023-11-15T11:00:00)?',
+        'askEvaluationEndTime'.tr(),
       )) {
         return;
       }
@@ -1274,7 +1432,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'edit_evaluation') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the evaluation you want to edit?',
+        'askEditEvaluationId'.tr(),
       )) {
         return;
       }
@@ -1292,7 +1450,7 @@ class _CopilotPageState extends State<CopilotPage> {
       );
       if (!hasOptional) {
         _showTypingEffect(
-          'Please provide at least one field to update for the evaluation.',
+          'askAtLeastOneFieldEval'.tr(),
         );
         _functionCallArgs.clear();
         return;
@@ -1301,7 +1459,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'delete_evaluation') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the evaluation you want to delete?',
+        'askDeleteEvaluationId'.tr(),
       )) {
         return;
       }
@@ -1311,7 +1469,7 @@ class _CopilotPageState extends State<CopilotPage> {
           _functionCallArgs['name'] == null) {
         _askForParameter(
           'name',
-          'What is the ID or name of the patient you want to retrieve?',
+          'askPatientIdOrName'.tr(),
         );
         return;
       }
@@ -1321,7 +1479,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'get_session') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the session you want to retrieve?',
+        'askSessionRetrieveId'.tr(),
       )) {
         return;
       }
@@ -1331,7 +1489,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'get_evaluation') {
       if (!checkAndAsk(
         'id',
-        'What is the ID of the evaluation you want to retrieve?',
+        'askEvaluationRetrieveId'.tr(),
       )) {
         return;
       }
@@ -1339,7 +1497,7 @@ class _CopilotPageState extends State<CopilotPage> {
     } else if (functionName == 'list_evaluations') {
       _executeFunction(functionName);
     } else {
-      _showTypingEffect('Unknown function: $functionName');
+      _showTypingEffect('unknownFunction'.tr(args: [functionName]));
       _functionCallArgs.clear();
     }
   }
@@ -1361,7 +1519,7 @@ class _CopilotPageState extends State<CopilotPage> {
 
     // Null safety check for _functionCallHandler
     if (_functionCallHandler == null) {
-      _showTypingEffect('Error: Function handler not initialized.');
+      _showTypingEffect('functionHandlerNotInit'.tr());
       return;
     }
 
@@ -1369,42 +1527,52 @@ class _CopilotPageState extends State<CopilotPage> {
     final result = await _functionCallHandler!.handleFunctionCall(functionCall);
 
     if (result.containsKey('error')) {
-      _showTypingEffect('Error: ${result['error']}');
+      _showTypingEffect('functionError'.tr(args: [result['error']]));
     } else if (result.containsKey('message')) {
       _showTypingEffect(result['message']);
     } else if (result.containsKey('patients')) {
       final patients = result['patients'] as List;
       if (patients.isEmpty) {
-        _showTypingEffect('No patients found.');
+        _showTypingEffect('noPatientsFound'.tr());
       } else {
-        String response = 'Patients found:';
+        String response = 'patientsFound'.tr();
         for (var p in patients) {
-          response +=
-              '\n- ${p['name']} (ID: ${p['id']}, Age: ${p['age']}, Gender: ${p['gender']})';
+          response += 'patientListItem'.tr(args: [
+            p['name'] ?? '',
+            p['id'] ?? '',
+            '${p['age'] ?? ''}',
+            p['gender'] ?? '',
+          ]);
         }
         _showTypingEffect(response);
       }
     } else if (result.containsKey('sessions')) {
       final sessions = result['sessions'] as List;
       if (sessions.isEmpty) {
-        _showTypingEffect('No sessions found.');
+        _showTypingEffect('noSessionsFound'.tr());
       } else {
-        String response = 'Sessions found:';
+        String response = 'sessionsFound'.tr();
         for (var s in sessions) {
-          response +=
-              '\n- ID: ${s['id']}, Patient: ${s['patientName']}, Date: ${s['startDateTime']}';
+          response += 'sessionListItem'.tr(args: [
+            s['id'] ?? '',
+            s['patientName'] ?? '',
+            '${s['startDateTime'] ?? ''}',
+          ]);
         }
         _showTypingEffect(response);
       }
     } else if (result.containsKey('evaluations')) {
       final evaluations = result['evaluations'] as List;
       if (evaluations.isEmpty) {
-        _showTypingEffect('No evaluations found.');
+        _showTypingEffect('noEvaluationsFound'.tr());
       } else {
-        String response = 'Evaluations found:';
+        String response = 'evaluationsFound'.tr();
         for (var e in evaluations) {
-          response +=
-              '\n- ID: ${e['id']}, Patient: ${e['patientName']}, Date: ${e['startDateTime']}';
+          response += 'evaluationListItem'.tr(args: [
+            e['id'] ?? '',
+            e['patientName'] ?? '',
+            '${e['startDateTime'] ?? ''}',
+          ]);
         }
         _showTypingEffect(response);
       }
@@ -1412,18 +1580,31 @@ class _CopilotPageState extends State<CopilotPage> {
       // Handle single object returns (get_patient, get_session, etc)
       if (functionName == 'get_patient') {
         _showTypingEffect(
-          'Patient found: ${result['name']}, Age: ${result['age']}, Gender: ${result['gender']}, Phone: ${result['phoneNumber']}',
+          'patientFound'.tr(args: [
+            result['name'] ?? '',
+            '${result['age'] ?? ''}',
+            result['gender'] ?? '',
+            result['phoneNumber'] ?? '',
+          ]),
         );
       } else if (functionName == 'get_session') {
         _showTypingEffect(
-          'Session found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}',
+          'sessionFound'.tr(args: [
+            result['id'] ?? '',
+            result['patientName'] ?? '',
+            '${result['startDateTime'] ?? ''}',
+          ]),
         );
       } else if (functionName == 'get_evaluation') {
         _showTypingEffect(
-          'Evaluation found: ID: ${result['id']}, Patient: ${result['patientName']}, Date: ${result['startDateTime']}',
+          'evaluationFound'.tr(args: [
+            result['id'] ?? '',
+            result['patientName'] ?? '',
+            '${result['startDateTime'] ?? ''}',
+          ]),
         );
       } else {
-        _showTypingEffect('Function executed successfully: $result');
+        _showTypingEffect('functionExecuted'.tr(args: ['$result']));
       }
     }
 
@@ -1435,16 +1616,16 @@ class _CopilotPageState extends State<CopilotPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Rename Chat'),
+        title: Text('renameChatTitle'.tr()),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Enter new title'),
+          decoration: InputDecoration(hintText: 'enterNewTitle'.tr()),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () async {
@@ -1459,7 +1640,7 @@ class _CopilotPageState extends State<CopilotPage> {
                 }
               }
             },
-            child: const Text('Rename'),
+            child: Text('renameLabel'.tr()),
           ),
         ],
       ),
@@ -1480,21 +1661,20 @@ class _CopilotPageState extends State<CopilotPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Message'),
-        content: SelectionArea(child: const Text(
-          'Editing this message will remove it and any subsequent response, allowing you to edit and resend. Continue?',
-        )),
+        title: Text('editMessageTitle'.tr()),
+        content: SelectionArea(
+            child: Text('editMessageDescription'.tr())),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _performRewindEdit(messageId, currentText);
             },
-            child: const Text('Edit'),
+            child: Text('editLabelEdit'.tr()),
           ),
         ],
       ),
@@ -1577,7 +1757,9 @@ class _CopilotPageState extends State<CopilotPage> {
       _showPatientForm(initialData, patient: patient);
     } else if (formType == 'add_session') {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: SelectionArea(child: Text('Session Form not yet implemented'))),
+        SnackBar(
+            content:
+                SelectionArea(child: Text('sessionFormNotImplemented'.tr()))),
       );
     }
   }

@@ -28,7 +28,7 @@ class CalendarSettingsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendar Settings'),
+        title: const Text('calendarSettings').tr(),
       ),
       body: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, state) {
@@ -46,7 +46,7 @@ class CalendarSettingsPage extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Only admins can modify these settings.',
+                          'onlyAdminsModifySettings'.tr(),
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Colors.orange[800],
@@ -60,7 +60,7 @@ class CalendarSettingsPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'Select Working Days',
+                  'selectWorkingDays'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -107,7 +107,7 @@ class CalendarSettingsPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'These settings affect the "Work Week" view in the calendar.',
+                  'workingDaysDescription'.tr(),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),

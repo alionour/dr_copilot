@@ -16,31 +16,19 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final state = context.read<AuthBloc>().state;
-      if (state is AuthSignedIn) {
-        // Await permission loading to prevent "Permission Denied" race condition
-        await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
-        if (mounted) {
-          RoutingConfig.router.go('/home');
-        }
-      }
-    });
-  }
+  bool _isNavigating = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) async {
-        // ... previously verified logic
-        if (state is AuthSignedIn) {
+        if (state is AuthSignedIn && !_isNavigating) {
+          _isNavigating = true;
           final user = state.user;
           if (user?.primaryClinicId != null) {
-            await context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
+            // Navigate immediately, load data in background
             RoutingConfig.router.go('/home');
+            context.read<OwnerNotifier>().loadOwnerIdAndClinicId();
           } else {
             if (user?.email != null) {
               final result = await sl<InvitationUseCases>()
@@ -68,7 +56,10 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       builder: (context, state) {
-        if (state is AuthLoading) {
+        debugPrint('LoginPage builder state: $state');
+        final isCheckingAuth = state is AuthLoading || state is AuthInitial || _isNavigating;
+        
+        if (isCheckingAuth) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -176,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           child: ElevatedButton.icon(
                             key: const Key('google_sign_in_button'),
-                            onPressed: () {
+                            onPressed: isCheckingAuth ? null : () {
                               context.read<AuthBloc>().add(SignInWithGoogle());
                             },
                             icon: Container(
@@ -198,6 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
+                                
                               ),
                             ),
                             style: ElevatedButton.styleFrom(

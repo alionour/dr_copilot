@@ -6,6 +6,8 @@ class BetaFullPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(32),
@@ -40,16 +42,16 @@ class BetaFullPage extends StatelessWidget {
               'Beta Access Full',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
-              'Thank you for your interest in Dr. Copilot. Due to high demand, we have temporarily paused new signups to ensure the best experience for our current users.',
+              'Thank you for your interest in Dr. AI. Due to high demand, we have temporarily paused new signups to ensure the best experience for our current users.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.black54,
+                    color: colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
             ),
@@ -58,7 +60,7 @@ class BetaFullPage extends StatelessWidget {
               'Please check back later or contact support to join the waitlist.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.black45,
+                    color: colorScheme.onSurfaceVariant,
                   ),
             ),
             const Spacer(),
@@ -67,7 +69,7 @@ class BetaFullPage extends StatelessWidget {
                 final Uri emailLaunchUri = Uri(
                   scheme: 'mailto',
                   path: 'nourrehabcenter@gmail.com',
-                  query: 'subject=Dr. Copilot Waitlist Request',
+                  query: 'subject=Dr. AI Waitlist Request',
                 );
                 launchUrl(emailLaunchUri);
               },

@@ -8,6 +8,7 @@ part 'medication_model.g.dart';
 class MedicationModel extends Equatable {
   final String id;
   final String patientId;
+  final String clinicId;
   final String name;
   final String? dosage;
   final String? frequency;
@@ -29,6 +30,7 @@ class MedicationModel extends Equatable {
   const MedicationModel({
     required this.id,
     required this.patientId,
+    required this.clinicId,
     required this.name,
     this.dosage,
     this.frequency,
@@ -48,6 +50,7 @@ class MedicationModel extends Equatable {
   MedicationModel copyWith({
     String? id,
     String? patientId,
+    String? clinicId,
     String? name,
     String? dosage,
     String? frequency,
@@ -61,6 +64,7 @@ class MedicationModel extends Equatable {
     return MedicationModel(
       id: id ?? this.id,
       patientId: patientId ?? this.patientId,
+      clinicId: clinicId ?? this.clinicId,
       name: name ?? this.name,
       dosage: dosage ?? this.dosage,
       frequency: frequency ?? this.frequency,
@@ -77,6 +81,7 @@ class MedicationModel extends Equatable {
   List<Object?> get props => [
     id,
     patientId,
+    clinicId,
     name,
     dosage,
     frequency,

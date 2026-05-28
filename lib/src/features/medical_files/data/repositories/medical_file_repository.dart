@@ -99,6 +99,7 @@ class MedicalFileRepository {
       final snapshot = await _firestore
           .collection('medical_files')
           .where('patientId', isEqualTo: patientId)
+          .where('clinicId', isEqualTo: OwnerNotifier().clinicId)
           .orderBy('date', descending: true)
           .get();
 

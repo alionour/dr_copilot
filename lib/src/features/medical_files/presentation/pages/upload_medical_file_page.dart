@@ -9,6 +9,9 @@ import 'package:dr_copilot/src/features/medical_files/domain/models/medical_file
 import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class UploadMedicalFilePage extends StatefulWidget {
   final String patientId;
@@ -135,6 +138,7 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
       final medicalFile = MedicalFileModel(
         id: isEdit ? widget.existingFile!.id : const Uuid().v4(),
         patientId: widget.patientId,
+        clinicId: isEdit ? widget.existingFile!.clinicId : OwnerNotifier().clinicId!,
         title: _titleController.text,
         type: _selectedType,
         fileUrl: isEdit ? widget.existingFile!.fileUrl : null, // Will be set by Bloc if file exists and changed
@@ -339,7 +343,7 @@ class _UploadMedicalFilePageState extends State<UploadMedicalFilePage> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     return ElevatedButton(
-                      onPressed: _submit,
+                      onPressed: _submit.throttle(),
                       child: const Text('Save'),
                     );
                   },

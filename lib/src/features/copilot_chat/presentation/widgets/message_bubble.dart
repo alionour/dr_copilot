@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/audio_player_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -46,7 +47,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: SelectionArea(child: Text('Message copied to clipboard')),
+        content: SelectionArea(child: Text('copilotMessageCopied'.tr())),
         duration: Duration(seconds: 2),
       ),
     );
@@ -149,7 +150,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                     IconButton(
                       icon: const Icon(Icons.content_copy, size: 16),
                       onPressed: () => _copyToClipboard(context, messageText),
-                      tooltip: 'Copy message',
+                      tooltip: 'copilotCopyMessage'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -161,7 +162,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                             _isEditing = true;
                           });
                         },
-                        tooltip: 'Edit message',
+                        tooltip: 'copilotEditMessage'.tr(),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
@@ -175,7 +176,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             child: Container(
               padding: const EdgeInsets.all(8.0),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F0F0),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10.0),
               ),
               child: SelectableText(
@@ -193,7 +194,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           ),
           const SizedBox(width: 5),
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsetsDirectional.only(end: 8.0),
             child: CircleAvatar(
               backgroundColor: Colors.blue,
               backgroundImage: widget.currentUserPhotoUrl != null
@@ -229,23 +230,23 @@ class _MessageBubbleState extends State<MessageBubble> {
         children: [
           // AI Avatar Icon
           Container(
-            margin: const EdgeInsets.only(right: 12, top: 4),
+            margin: const EdgeInsetsDirectional.only(end: 12, top: 4),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: Theme.of(context).colorScheme.secondaryContainer,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               Icons.auto_awesome,
               size: 20,
-              color: Colors.blue.shade700,
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
             ),
           ),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(12.0),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F0F0),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12.0),
               ),
               child: MarkdownBody(
@@ -294,17 +295,17 @@ class _MessageBubbleState extends State<MessageBubble> {
                   ),
                   blockquoteDecoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(color: Colors.grey.shade400, width: 3),
+                      left: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 3),
                     ),
                   ),
                   code: GoogleFonts.sourceCodePro(
-                    backgroundColor: const Color(0xFFE8E8E8),
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                     fontSize: 14,
-                    color: const Color(0xFF1E1E1E),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   codeblockPadding: const EdgeInsets.all(16),
                   codeblockDecoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   strong: GoogleFonts.roboto(fontWeight: FontWeight.bold),
@@ -326,7 +327,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                     IconButton(
                       icon: const Icon(Icons.content_copy, size: 16),
                       onPressed: () => _copyToClipboard(context, messageText),
-                      tooltip: 'Copy message',
+                      tooltip: 'copilotCopyMessage'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -335,7 +336,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       onPressed: () {
                         // Regenerate functionality not yet implemented
                       },
-                      tooltip: 'Regenerate response',
+                      tooltip: 'copilotRegenerateResponse'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -344,7 +345,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       onPressed: () {
                         // Like functionality handled by parent widget
                       },
-                      tooltip: 'Good response',
+                      tooltip: 'copilotGoodResponse'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -353,7 +354,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       onPressed: () {
                         // Dislike functionality handled by parent widget
                       },
-                      tooltip: 'Bad response',
+                      tooltip: 'copilotBadResponse'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),

@@ -1,6 +1,7 @@
 import 'package:dr_copilot/src/features/copilot_chat/data/models/conversation_model.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/repositories/conversation_repository.dart';
 import 'package:dr_copilot/src/features/copilot_chat/presentation/widgets/conversation_list_item.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class ConversationSidebar extends StatelessWidget {
@@ -59,7 +60,7 @@ class ConversationSidebar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Chats',
+                'chats'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -72,7 +73,7 @@ class ConversationSidebar extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: onNewChat,
               icon: const Icon(Icons.add, size: 20),
-              label: const Text('New Chat'),
+              label: Text('newChat'.tr()),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -105,7 +106,7 @@ class ConversationSidebar extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error loading chats',
+                    'errorLoadingChats'.tr(),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                       fontWeight: FontWeight.bold,
@@ -137,7 +138,7 @@ class ConversationSidebar extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No chats yet',
+                    'noChatsYet'.tr(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -145,7 +146,7 @@ class ConversationSidebar extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Start a new conversation',
+                    'startNewConversation'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),

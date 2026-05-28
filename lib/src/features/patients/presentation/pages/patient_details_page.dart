@@ -15,6 +15,7 @@ import 'package:dr_copilot/src/features/medical_files/presentation/widgets/medic
 import 'package:dr_copilot/src/features/medications/presentation/widgets/medication_list_widget.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 
 final getIt = GetIt.instance;
 
@@ -30,7 +31,7 @@ class PatientDetailsPage extends StatelessWidget {
         future: getIt<PatientService>().getPatient(patientId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerDetailsPage();
           }
           if (snapshot.hasError) {
             return Center(
@@ -167,7 +168,7 @@ class PatientDetailsPage extends StatelessWidget {
             ),
             builder: (context, reportSnapshot) {
               if (reportSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const ShimmerList(itemCount: 3);
               }
               if (reportSnapshot.hasError) {
                 return Text(reportSnapshot.error.toString());

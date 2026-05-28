@@ -10,11 +10,11 @@ enum LogLevel {
   critical,
 }
 
-/// Custom logger for the Dr. Copilot application
+/// Custom logger for the Dr. AI application
 ///
 /// Provides different log levels and proper formatting for development and production
 class AppLogger {
-  static const String _appName = 'DrCopilot';
+  static const String _appName = 'DrAI';
 
   /// Log a debug message (only in debug mode)
   static void debug(String message, [Object? error, StackTrace? stackTrace]) {

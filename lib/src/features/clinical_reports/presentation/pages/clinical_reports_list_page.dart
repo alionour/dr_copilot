@@ -12,6 +12,7 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/googl
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dr_copilot/src/core/presentation/widgets/empty_state_widget.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 
 final getIt = GetIt.instance;
 
@@ -110,7 +111,7 @@ class _ClinicalReportsContentState extends State<_ClinicalReportsContent> {
           child: BlocBuilder<ClinicalReportsListBloc, ClinicalReportsListState>(
             builder: (context, state) {
               if (state is ClinicalReportsListLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return const ShimmerList();
               }
               if (state is ClinicalReportsListError) {
                 return Center(child: SelectableText('Error: ${state.message}'));

@@ -13,6 +13,8 @@ import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_e
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_event.dart';
 import 'package:dr_copilot/src/features/clinical_reports/presentation/bloc/add_edit_clinical_report_state.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -72,6 +74,25 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
     _titleController.dispose();
 
     super.dispose();
+  }
+
+  void _saveReport() {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedPatient == null) return;
+      final newReport = ClinicalReport(
+        id: '',
+        patientId: _selectedPatient!.id,
+        title: _titleController.text,
+        description: '',
+        date: _selectedDate,
+        googleDocId: null,
+        isFinalized: false,
+      );
+
+      context.read<AddEditClinicalReportBloc>().add(
+            SaveClinicalReport(newReport),
+          );
+    }
   }
 
   Future<void> _finalizeReport(String reportId) async {
@@ -555,28 +576,7 @@ class _AddEditClinicalReportViewState extends State<AddEditClinicalReportView> {
                                         ),
                                         const SizedBox(height: 24),
                                         ElevatedButton.icon(
-                                          onPressed: () {
-                                            if (_formKey.currentState!
-                                                .validate()) {
-                                              final newReport = ClinicalReport(
-                                                id: '',
-                                                patientId: _selectedPatient!.id,
-                                                title: _titleController.text,
-                                                description: '',
-                                                date: _selectedDate,
-                                                googleDocId: null,
-                                                isFinalized: false,
-                                              );
-
-                                              context
-                                                  .read<
-                                                      AddEditClinicalReportBloc>()
-                                                  .add(
-                                                    SaveClinicalReport(
-                                                        newReport),
-                                                  );
-                                            }
-                                          },
+                                          onPressed: _saveReport.throttle(),
                                           icon: const Icon(Icons.add),
                                           label: const Text('Create Report'),
                                           style: ElevatedButton.styleFrom(

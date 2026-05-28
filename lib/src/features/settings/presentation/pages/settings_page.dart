@@ -121,6 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: const Icon(Icons.language_outlined),
                 title: Text('language'.tr()),
+                subtitle: Text('languageDesc'.tr()),
                 trailing: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: state.localeCode,
@@ -147,30 +148,30 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: const Icon(Icons.palette_outlined),
                 title: Text('appearance'.tr()),
+                subtitle: Text('appearanceDesc'.tr()),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/settings/appearance'),
               ),
                if (OwnerNotifier().hasPermission(AppPermission.manageSettings)) ...[
-                _buildSectionHeader('Copilot Intelligence'),
+                _buildSectionHeader('copilotIntelligence'),
                 ListTile(
                   leading: const Icon(Icons.psychology_outlined),
-                  title: const Text('Copilot Preferences'),
-                  subtitle: const Text(
-                      'Configure required fields for AI (Patients, Sessions, Evaluations)'),
+                  title: Text('copilotPreferences'.tr()),
+                  subtitle: Text('configureRequiredFields'.tr()),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/copilot_preferences'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.tablet_mac),
                   title: Text('kioskManagement'.tr()),
-                  subtitle: const Text('Manage waiting room kiosk links'),
+                  subtitle: Text('manageKioskLinks'.tr()),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/kiosk_management'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.local_hospital_outlined),
-                  title: const Text('Body Chart Marker Types'),
-                  subtitle:
-                      const Text('Customize clinical marker types and icons'),
+                  title: Text('bodyChartMarkerTypes'.tr()),
+                  subtitle: Text('customizeMarkerTypes'.tr()),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/marker_types'),
                 ),
@@ -186,17 +187,23 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: const Icon(Icons.notifications_outlined),
                   title: Text('notifications'.tr()),
+                  subtitle: Text('notificationsDesc'.tr()),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/notifications'),
                 ),
               if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
                 ListTile(
                   leading: const Icon(Icons.date_range_outlined),
-                  title: Text('Calendar Settings'),
+                  title: Text('calendarSettings'.tr()),
+                  subtitle: Text('calendarSettingsDesc'.tr()),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/calendar_settings'),
                 ),
               ListTile(
                 leading: const Icon(Icons.storage),
                 title: Text('dataAndStorage'.tr()),
+                subtitle: Text('dataAndStorageDesc'.tr()),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/settings/data_storage'),
               ),
               _buildSectionHeader('accountAndSecurity'),
@@ -204,6 +211,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   leading: const Icon(Icons.card_membership_outlined),
                   title: Text('subscriptionAndBilling'.tr()),
+                  subtitle: Text('subscriptionAndBillingDesc'.tr()),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/subscription'),
                 ),
               if (OwnerNotifier().hasPermission(AppPermission.assignPermissions) ||
@@ -218,35 +227,45 @@ class _SettingsPageState extends State<SettingsPage> {
               if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
                 ListTile(
                   leading: const Icon(Icons.payment_outlined),
-                  title: const Text('Payment Gateway'),
-                  subtitle: const Text('Configure booking payments'),
+                  title: Text('paymentGatewaySettings'.tr()),
+                  subtitle: Text('configurePayments'.tr()),
                   onTap: () => context.push('/settings/payment_gateway'),
                 ),
               ListTile(
                 leading: const Icon(Icons.security_outlined),
                 title: Text('security'.tr()),
+                subtitle: Text('securityDesc'.tr()),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/settings/security'),
               ),
               if (OwnerNotifier().hasPermission(AppPermission.manageSettings))
                 ListTile(
                   leading: const Icon(Icons.model_training_outlined),
                   title: Text('aiModel'.tr()),
+                  subtitle: Text('aiModelDesc'.tr()),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () => context.push('/settings/model_selection'),
                 ),
               ListTile(
                 leading: const Icon(Icons.lock_outline),
                 title: Text('privacy'.tr()),
+                subtitle: Text('privacyDesc'.tr()),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/privacy'),
               ),
               _buildSectionHeader('support'),
               ListTile(
                 leading: const Icon(Icons.help_outline),
                 title: Text('helpSupport'.tr()),
+                subtitle: Text('helpSupportDesc'.tr()),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/help_support'),
               ),
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: Text('about'.tr()),
+                subtitle: Text('aboutDesc'.tr()),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => context.push('/about'),
               ),
             ],

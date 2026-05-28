@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/helper/screen_size_helper.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 
 /// A pure UI widget that displays a list of patients.
 /// Decoupled from BLoC and State management for easier testing/screenshots.
@@ -142,7 +143,7 @@ class _PatientsViewState extends State<PatientsView> {
 
   Widget _buildBody() {
     if (widget.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const ShimmerList(itemCount: 8);
     }
     if (widget.errorMessage != null) {
       return Center(child: Text('Error: ${widget.errorMessage}'));

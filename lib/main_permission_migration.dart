@@ -44,11 +44,26 @@ class _MigrationRunnerState extends State<MigrationRunner> {
       .map((e) => e.name)
       .toList();
 
+  @override
+  void initState() {
+    super.initState();
+    // Run migration automatically on startup
+    _runMigration();
+  }
+
   List<String> get _doctorPermissions => RoleDefaults.getPermissionsForRole(AppRole.doctor)
       .map((e) => e.name)
       .toList();
 
   List<String> get _staffPermissions => RoleDefaults.getPermissionsForRole(AppRole.staff)
+      .map((e) => e.name)
+      .toList();
+
+  List<String> get _financialPermissions => RoleDefaults.getPermissionsForRole(AppRole.financial)
+      .map((e) => e.name)
+      .toList();
+
+  List<String> get _readonlyPermissions => RoleDefaults.getPermissionsForRole(AppRole.readonly)
       .map((e) => e.name)
       .toList();
 
@@ -94,8 +109,13 @@ class _MigrationRunnerState extends State<MigrationRunner> {
             targetPermissions = _doctorPermissions;
           } else if (role == 'staff' ||
               role == 'nurse' ||
-              role == 'secretary') {
+              role == 'secretary' ||
+              role == 'receptionist') {
             targetPermissions = _staffPermissions;
+          } else if (role == 'financial' || role == 'accountant') {
+            targetPermissions = _financialPermissions;
+          } else if (role == 'readonly') {
+            targetPermissions = _readonlyPermissions;
           } else {
             // Unknown role? Skip or give basic view?
             continue;
