@@ -4,10 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dr_copilot/src/core/injections.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/subscription/domain/services/subscription_service.dart';
 import 'package:provider/provider.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/clinic_model.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 import 'package:dr_copilot/src/features/invitations/domain/models/invitation_model.dart';
 import 'package:dr_copilot/src/features/invitations/presentation/bloc/invitation_bloc.dart';
@@ -304,7 +307,10 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
   @override
   Widget build(BuildContext context) {
     if (_checkingSubscription) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        appBar: AppBar(title: Text('createInvitation'.tr())),
+        body: const ShimmerList(itemCount: 8),
+      );
     }
 
     if (!_canInvite) {
@@ -399,7 +405,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
                   if (_currentStep != 0) const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      onPressed: details.onStepContinue,
+                      onPressed: details.onStepContinue.throttle(),
                       child: Text(
                         isLastStep ? 'sendInvitation'.tr() : 'next'.tr(),
                       ),
@@ -783,12 +789,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
   Widget _buildEmailSelectionSection() {
     if (_isLoadingPeople) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 24.0),
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const ShimmerList(itemCount: 5);
     }
 
     if (_availablePeople.isEmpty && !_useManualEntry) {
@@ -1173,7 +1174,7 @@ class _CreateInvitationPageState extends State<CreateInvitationPage> {
 
       // Copilot chat
       case AppPermission.useCopilot:
-        return 'Allows access to the AI-powered Dr. Copilot chat features.';
+        return 'Allows access to the AI-powered Dr. AI chat features.';
 
       // Calendar
       case AppPermission.viewCalendar:

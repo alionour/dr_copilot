@@ -72,7 +72,7 @@ class _PendingInvitationsPageState extends State<PendingInvitationsPage> {
       body: BlocBuilder<InvitationBloc, InvitationState>(
         builder: (context, state) {
           if (state is InvitationLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerList(itemCount: 5);
           }
 
           if (state is InvitationError) {

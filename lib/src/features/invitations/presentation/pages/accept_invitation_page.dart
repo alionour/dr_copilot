@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/core/services/backend_service.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:go_router/go_router.dart';
 
 class AcceptInvitationPage extends StatefulWidget {
@@ -51,17 +52,14 @@ class _AcceptInvitationPageState extends State<AcceptInvitationPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 24),
-              Text(
-                'Verifying invitation...',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              ShimmerBlock(width: 100, height: 100),
+              SizedBox(height: 24),
+              ShimmerBlock(width: 200, height: 20),
             ],
           ),
         ),
@@ -213,4 +211,3 @@ class _AcceptInvitationPageState extends State<AcceptInvitationPage> {
     );
   }
 }
-
