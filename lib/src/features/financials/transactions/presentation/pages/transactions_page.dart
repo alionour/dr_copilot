@@ -1,4 +1,5 @@
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:dr_copilot/src/features/financials/transactions/domain/models/transaction_model.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
 
 class TransactionsPage extends StatefulWidget {
@@ -345,28 +345,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 child: BlocBuilder<TransactionsBloc, TransactionsState>(
                   builder: (context, state) {
                     if (state is TransactionsLoading) {
-                      return Shimmer.fromColors(
-                        baseColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        highlightColor: Theme.of(context).colorScheme.surface,
-                        child: ListView.builder(
-                          itemCount: 10,
-                          itemBuilder: (context, index) => Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8.0,
-                              horizontal: 16.0,
-                            ),
-                            child: Container(
-                              height: 80.0,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
+                      return const ShimmerList(itemCount: 10);
                     } else if (state is TransactionsLoaded ||
                         state is TransactionsLoadingMore ||
                         state is TransactionsCountLoaded) {
@@ -407,6 +386,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       for (var transaction in transactions) {
                         final creationDate = DateFormat(
                           'yyyy-MM-dd',
+                          'en',
                         ).format(transaction.transactionDate.toDate());
                         groupedTransactions
                             .putIfAbsent(creationDate, () => [])
