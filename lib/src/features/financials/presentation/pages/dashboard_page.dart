@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import '../../../navigation_side/presentation/bloc/navigation_bloc.dart';
 import '../widgets/charts_page_widgets/revenue_by_month_chart.dart';
@@ -10,8 +11,25 @@ import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_
 import 'package:dr_copilot/src/features/financials/transactions/presentation/bloc/transactions_bloc.dart';
 import 'package:dr_copilot/src/features/financials/transactions/presentation/widgets/transaction_list_item.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Trigger transactions load on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final clinicId = OwnerNotifier().clinicId;
+      if (clinicId != null) {
+        context.read<TransactionsBloc>().add(GetTransactions(clinicId: clinicId));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
