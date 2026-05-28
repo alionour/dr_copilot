@@ -38,48 +38,52 @@ class FunctionCallHandler {
 
   Future<Map<String, dynamic>> handleFunctionCall(FunctionCall call) async {
     try {
-      debugPrint('[FunctionCallHandler] handling: ${call.name}');
+      debugPrint('[FunctionCallHandler] handling: ${call.name} args: ${call.args}');
+      late final Map<String, dynamic> result;
       switch (call.name) {
         // Patient Actions
         case 'add_patient':
-          return await _patientHandler.addPatient(call.args);
+          result = await _patientHandler.addPatient(call.args);
         case 'edit_patient':
-          return await _patientHandler.editPatient(call.args);
+          result = await _patientHandler.editPatient(call.args);
         case 'delete_patient':
-          return await _patientHandler.deletePatient(call.args);
+          result = await _patientHandler.deletePatient(call.args);
         case 'get_patient':
-          return await _patientHandler.getPatient(call.args);
+          result = await _patientHandler.getPatient(call.args);
         case 'list_patients':
-          return await _patientHandler.listPatients(call.args);
+          result = await _patientHandler.listPatients(call.args);
 
         // Session Actions
         case 'add_session':
-          return await _sessionHandler.addSession(call.args);
+          result = await _sessionHandler.addSession(call.args);
         case 'edit_session':
-          return await _sessionHandler.editSession(call.args);
+          result = await _sessionHandler.editSession(call.args);
         case 'delete_session':
-          return await _sessionHandler.deleteSession(call.args);
+          result = await _sessionHandler.deleteSession(call.args);
         case 'get_session':
-          return await _sessionHandler.getSession(call.args);
+          result = await _sessionHandler.getSession(call.args);
         case 'list_sessions':
-          return await _sessionHandler.listSessions(call.args);
+          result = await _sessionHandler.listSessions(call.args);
 
         // Evaluation Actions
         case 'add_evaluation':
-          return await _evaluationHandler.addEvaluation(call.args);
+          result = await _evaluationHandler.addEvaluation(call.args);
         case 'edit_evaluation':
-          return await _evaluationHandler.editEvaluation(call.args);
+          result = await _evaluationHandler.editEvaluation(call.args);
         case 'delete_evaluation':
-          return await _evaluationHandler.deleteEvaluation(call.args);
+          result = await _evaluationHandler.deleteEvaluation(call.args);
         case 'get_evaluation':
-          return await _evaluationHandler.getEvaluation(call.args);
+          result = await _evaluationHandler.getEvaluation(call.args);
         case 'list_evaluations':
-          return await _evaluationHandler.listEvaluations(call.args);
+          result = await _evaluationHandler.listEvaluations(call.args);
 
         default:
-          return {'error': 'Unknown function: ${call.name}'};
+          result = {'error': 'Unknown function: ${call.name}'};
       }
+      debugPrint('[FunctionCallHandler] ${call.name} result: ${result.keys.join(", ")}');
+      return result;
     } catch (e) {
+      debugPrint('[FunctionCallHandler] ERROR ${call.name}: $e');
       return {'error': 'Error executing ${call.name}: $e'};
     }
   }

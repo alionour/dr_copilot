@@ -246,7 +246,7 @@ class PatientActionHandler extends BaseActionHandler {
           }).toList();
         }
 
-        final patientsList = filtered.map((p) => p.toJson()).toList();
+        final patientsList = filtered.map((p) => _sanitizeJson(p.toJson())).toList();
         final limit = args['limit'] as int?;
         if (limit != null && limit > 0) {
           return {'patients': patientsList.take(limit).toList()};
@@ -255,4 +255,17 @@ class PatientActionHandler extends BaseActionHandler {
       },
     );
   }
+}
+
+dynamic _sanitizeJson(dynamic value) {
+  if (value is Timestamp) {
+    return value.toDate().toIso8601String();
+  }
+  if (value is Map) {
+    return value.map((k, v) => MapEntry(k.toString(), _sanitizeJson(v)));
+  }
+  if (value is List) {
+    return value.map(_sanitizeJson).toList();
+  }
+  return value;
 }

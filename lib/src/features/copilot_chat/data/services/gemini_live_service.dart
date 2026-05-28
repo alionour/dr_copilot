@@ -167,20 +167,33 @@ class GeminiLiveService {
         // Handle user speech transcription
         if (message.inputTranscription?.text != null &&
             message.inputTranscription!.text!.isNotEmpty) {
-          _transcriptController
-              .add('__USER__:${message.inputTranscription!.text}');
+          final text = message.inputTranscription!.text!;
+          debugPrint('[Transcript] USER: $text');
+          _transcriptController.add('__USER__:$text');
         }
 
         // Handle AI speech transcription
         if (message.outputTranscription?.text != null &&
             message.outputTranscription!.text!.isNotEmpty) {
-          _transcriptController
-              .add('__AI__:${message.outputTranscription!.text}');
+          final text = message.outputTranscription!.text!;
+          debugPrint('[Transcript] AI: $text');
+          _transcriptController.add('__AI__:$text');
         }
 
         // Handle interruption
         if (message.interrupted == true) {
+          debugPrint('[GeminiLive] <<< Server interrupted >>>');
           await _clearAudioQueue();
+        }
+
+        if (message.turnComplete == true) {
+          debugPrint('[GeminiLive] turnComplete');
+          unawaited(_ensureRecording());
+          if (!_isPlayingAudio &&
+              (_currentState == LiveChatState.speaking ||
+                  _currentState == LiveChatState.processing)) {
+            _setState(LiveChatState.listening);
+          }
         }
 
         final modelTurn = message.modelTurn;
@@ -190,32 +203,28 @@ class GeminiLiveService {
               _playAudioChunk(part.bytes, part.mimeType);
             } else if (part is TextPart) {
               if (message.outputTranscription?.text == null) {
+                debugPrint('[Transcript] AI (text): ${part.text}');
                 _transcriptController.add('__AI__:${part.text}');
               }
             }
           }
         }
-
-        if (message.turnComplete == true) {
-          unawaited(_ensureRecording());
-          if (!_isPlayingAudio &&
-              (_currentState == LiveChatState.speaking ||
-                  _currentState == LiveChatState.processing)) {
-            _setState(LiveChatState.listening);
-          }
-        }
       case LiveServerToolCall():
+        debugPrint('[GeminiLive] === Tool call received ===');
         try {
           final responses = <FunctionResponse>[];
           final functionCalls = message.functionCalls;
+          debugPrint('[GeminiLive] functionCalls count: ${functionCalls?.length}');
 
           if (functionCalls != null) {
             for (final call in functionCalls) {
-              debugPrint('[GeminiLive] Tool Call: ${call.name}');
+              debugPrint('[GeminiLive] -> call: ${call.name} args: ${call.args}');
+              debugPrint('[GeminiLive] -> interactive? ${_interactiveTools.contains(call.name)} onFormRequested? ${onFormRequested != null}');
 
               if (_interactiveTools.contains(call.name) &&
                   onFormRequested != null) {
                 // Show form instead of executing directly
+                debugPrint('[GeminiLive] -> showing form for ${call.name}');
                 onFormRequested!(call.name, call.args);
                 responses.add(FunctionResponse(call.name, {
                   'status': 'form_shown',
@@ -226,16 +235,24 @@ class GeminiLiveService {
                 _setState(LiveChatState.processing);
                 // Convert to google_generative_ai.FunctionCall for the handler
                 final googleCall = google.FunctionCall(call.name, call.args);
+                debugPrint('[GeminiLive] -> executing handler for ${call.name}');
+                final stopwatch = Stopwatch()..start();
                 final result =
                     await functionCallHandler.handleFunctionCall(googleCall);
+                stopwatch.stop();
+                debugPrint('[GeminiLive] <- handler returned in ${stopwatch.elapsedMilliseconds}ms keys: ${result.keys.join(", ")}');
+                debugPrint('[GeminiLive] <- handler result error? ${result.containsKey("error")}');
                 responses.add(FunctionResponse(call.name, result));
               }
             }
           }
+          debugPrint('[GeminiLive] sending ${responses.length} tool response(s)');
           await _session?.sendToolResponse(responses);
+          debugPrint('[GeminiLive] tool response sent, state -> listening');
           _setState(LiveChatState.listening);
-        } catch (e) {
+        } catch (e, stack) {
           debugPrint('[GeminiLive] Tool call error: $e');
+          debugPrint('[GeminiLive] Stack: $stack');
           _setState(LiveChatState.listening);
         }
       default:
@@ -256,6 +273,14 @@ class GeminiLiveService {
       encoder: AudioEncoder.pcm16bits,
       sampleRate: 16000,
       numChannels: 1,
+      echoCancel: true,
+      noiseSuppress: true,
+      audioInterruption: AudioInterruptionMode.none,
+      androidConfig: AndroidRecordConfig(
+        audioSource: AndroidAudioSource.voiceCommunication,
+        speakerphone: true,
+        audioManagerMode: AudioManagerMode.modeInCommunication,
+      ),
     ));
 
     _recorderSubscription = stream.listen((data) async {

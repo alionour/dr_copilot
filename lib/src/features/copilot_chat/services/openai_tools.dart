@@ -53,7 +53,7 @@ List<Map<String, dynamic>> getOpenAITools(
             'name': {
               'type': 'string',
               'description':
-                  'The full name of the patient. Optional for initial form opening. If provided, it will populate the form.'
+                  'The full name of the patient in any language (e.g. Arabic, English, French, German, Spanish). Optional for initial form opening. If provided, it will populate the form.'
             },
             'age': {
               'type': 'integer',
@@ -65,7 +65,7 @@ List<Map<String, dynamic>> getOpenAITools(
             },
             'address': {
               'type': 'string',
-              'description': 'The address of the patient. Optional.'
+              'description': 'The address of the patient in any language. Optional.'
             },
             'phoneNumber': {
               'type': 'string',
@@ -77,11 +77,11 @@ List<Map<String, dynamic>> getOpenAITools(
             },
             'treatingDoctor': {
               'type': 'string',
-              'description': 'The treating doctor. Optional.'
+              'description': 'The treating doctor name in any language. Optional.'
             },
             'occupation': {
               'type': 'string',
-              'description': 'The occupation of the patient. Optional.'
+              'description': 'The occupation of the patient in any language. Optional.'
             },
           },
           'required': patientRequired,
@@ -104,12 +104,12 @@ List<Map<String, dynamic>> getOpenAITools(
             'targetName': {
               'type': 'string',
               'description':
-                  'The CURRENT name of the patient to find, if ID is unknown. Use this to look up the patient to edit.'
+                  'The CURRENT name of the patient to find (in any language, e.g. Arabic, English, French, German, Spanish), if ID is unknown. Use this to look up the patient to edit.'
             },
             'name': {
               'type': 'string',
               'description':
-                  'The NEW name of the patient. Must be explicitly stated from the current user request.'
+                  'The NEW name of the patient in any language. Must be explicitly stated from the current user request.'
             },
             'age': {
               'type': 'integer',
@@ -152,7 +152,7 @@ List<Map<String, dynamic>> getOpenAITools(
             'name': {
               'type': 'string',
               'description':
-                  'The name of the patient to delete. Use this if ID is unknown.'
+                  'The name of the patient to delete in any language (e.g. Arabic, English, French, German, Spanish). Use this if ID is unknown.'
             },
           },
           'required': [],
@@ -170,7 +170,7 @@ List<Map<String, dynamic>> getOpenAITools(
             'name': {
               'type': 'string',
               'description':
-                  'Optional: The name or partial name to filter patients by.'
+                  'Optional: The name or partial name to filter patients by, in any language (e.g. Arabic, English, French, German, Spanish).'
             },
             'startDate': {
               'type': 'string',
@@ -203,7 +203,7 @@ List<Map<String, dynamic>> getOpenAITools(
             },
             'name': {
               'type': 'string',
-              'description': 'The name of the patient to retrieve.'
+              'description': 'The name of the patient to retrieve in any language (e.g. Arabic, English, French, German, Spanish).'
             },
           },
           'required': [],
@@ -312,7 +312,7 @@ List<Map<String, dynamic>> getOpenAITools(
             'patientName': {
               'type': 'string',
               'description':
-                  'Optional: Patient name filter. Do NOT use user\'s name.'
+                  'The name of the patient in any language (e.g. Arabic, English, French, German, Spanish). Must be explicitly stated from the current user request. If not provided, ask the user for it as it is required.'
             },
             'date': {
               'type': 'string',
@@ -428,7 +428,7 @@ List<Map<String, dynamic>> getOpenAITools(
           'properties': {
             'patientName': {
               'type': 'string',
-              'description': 'Optional: Patient name filter.'
+              'description': 'Optional: Patient name filter in any language (e.g. Arabic, English, French, German, Spanish).'
             },
             'date': {
               'type': 'string',
