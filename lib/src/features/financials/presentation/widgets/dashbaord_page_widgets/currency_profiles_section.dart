@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/financials/presentation/bloc/financials_bloc.dart';
 import 'package:dr_copilot/src/features/financials/domain/models/currency_profile_model.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dr_copilot/src/core/helper/safe_click.dart';
+
 
 class CurrencyProfilesSection extends StatefulWidget {
   const CurrencyProfilesSection({super.key});
@@ -155,7 +157,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                       },
                       builder: (context, state) {
                         return ElevatedButton(
-                          onPressed: () {
+                          onPressed: (() {
                             if (formKey.currentState!.validate()) {
                               if (_profiles.any(
                                 (p) => p.currency == selectedCurrency,
@@ -184,7 +186,7 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                                 AddCurrencyProfile(profile),
                               );
                             }
-                          },
+                          }).throttle(),
                           child: Text('addCurrencyProfile'.tr()),
                         );
                       },
@@ -269,12 +271,16 @@ class _CurrencyProfilesSectionState extends State<CurrencyProfilesSection> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'currencyProfiles'.tr(),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        'currencyProfiles'.tr(),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: _profiles.length >= _currencies.length
                           ? null
