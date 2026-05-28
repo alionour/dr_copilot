@@ -95,7 +95,22 @@ class _NotificationsPageState extends State<NotificationsPage> {
       appBar: AppBar(
         title: Text('notifications'.tr()),
         leading: const Icon(Icons.notifications_outlined),
-        actions: [if (navMenuButton != null) navMenuButton],
+        actions: [
+          if (_canSendNotifications)
+            IconButton(
+              icon: const Icon(Icons.send),
+              tooltip: 'send_notification'.tr(),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateNotificationPage(),
+                  ),
+                );
+              },
+            ),
+          if (navMenuButton != null) navMenuButton,
+        ],
       ),
       body: BlocConsumer<NotificationsBloc, NotificationsState>(
         listener: (context, state) {
@@ -260,20 +275,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
           return const Center(child: CircularProgressIndicator());
         },
       ),
-      floatingActionButton: _canSendNotifications
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateNotificationPage(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.send),
-              label: Text('send_notification'.tr()),
-            )
-          : null,
     );
   }
 }

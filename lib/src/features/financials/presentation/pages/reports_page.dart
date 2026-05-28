@@ -86,17 +86,11 @@ class ReportsPage extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.green[50],
+                      color: Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withValues(
-                            alpha: (0.1 * 255).toDouble(),
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
@@ -114,22 +108,14 @@ class ReportsPage extends StatelessWidget {
                                         style: TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.teal)),
+                                            color: Theme.of(context).colorScheme.primary)),
                                     const SizedBox(width: 12),
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: Theme.of(context).colorScheme.surface,
                                         borderRadius: BorderRadius.circular(16),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.teal.withValues(
-                                                alpha: (0.08 * 255).toDouble()),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
                                         border: Border.all(
-                                            color: Colors.teal.shade100,
+                                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                                             width: 1.2),
                                       ),
                                       padding: const EdgeInsets.symmetric(
@@ -137,15 +123,15 @@ class ReportsPage extends StatelessWidget {
                                       child: DropdownButtonHideUnderline(
                                         child: DropdownButton<String>(
                                           value: selectedYear,
-                                          icon: const Icon(
+                                          icon: Icon(
                                               Icons.keyboard_arrow_down_rounded,
-                                              color: Colors.teal,
+                                              color: Theme.of(context).colorScheme.primary,
                                               size: 28),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.teal),
-                                          dropdownColor: Colors.white,
+                                              color: Theme.of(context).colorScheme.primary),
+                                          dropdownColor: Theme.of(context).colorScheme.surface,
                                           borderRadius:
                                               BorderRadius.circular(16),
                                           items: years.map((year) {
@@ -154,8 +140,7 @@ class ReportsPage extends StatelessWidget {
                                               child: Row(
                                                 children: [
                                                   Icon(Icons.calendar_month,
-                                                      color:
-                                                          Colors.teal.shade300,
+                                                      color: Theme.of(context).colorScheme.primary,
                                                       size: 22),
                                                   const SizedBox(width: 8),
                                                   Text(year,
@@ -260,12 +245,12 @@ class ReportsPage extends StatelessWidget {
     required Color color,
   }) {
     final bool isExpenses = title == 'expenses'.tr();
-    final Color headerColor =
-        isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
-    final Color totalRowColor =
-        isExpenses ? const Color(0xFFFFB3B3) : Colors.green[200]!;
-    final Color tableBgColor = isExpenses ? const Color(0xFFFFE5E5) : color;
-    final Color totalTextColor = isExpenses ? Colors.red[800]! : Colors.teal;
+    final Color headerColor = Theme.of(context).colorScheme.primaryContainer;
+    final Color totalRowColor = Theme.of(context).colorScheme.secondaryContainer;
+    final Color tableBgColor = Theme.of(context).colorScheme.surface;
+    final Color totalTextColor = isExpenses 
+        ? Theme.of(context).colorScheme.error 
+        : Theme.of(context).colorScheme.primary;
 
     return Card(
       color: tableBgColor,
@@ -276,17 +261,27 @@ class ReportsPage extends StatelessWidget {
         child: Column(
           children: [
             Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.onSurface,
+                )),
             const SizedBox(height: 8),
-            Text(year, style: const TextStyle(fontSize: 16)),
+            Text(year, 
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                )),
             const SizedBox(height: 16),
             Table(
               columnWidths: const {
                 0: FlexColumnWidth(2),
                 1: FlexColumnWidth(1),
               },
-              border: TableBorder.all(color: Colors.white, width: 0.5),
+              border: TableBorder.all(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3), 
+                width: 0.5
+              ),
               children: [
                 TableRow(
                   decoration: BoxDecoration(color: headerColor),
@@ -295,13 +290,15 @@ class ReportsPage extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text('month_label'.tr(),
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.teal)),
+                              fontWeight: FontWeight.bold, 
+                              color: Theme.of(context).colorScheme.onPrimaryContainer)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(title,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.teal)),
+                              fontWeight: FontWeight.bold, 
+                              color: Theme.of(context).colorScheme.onPrimaryContainer)),
                     ),
                   ],
                 ),
@@ -311,12 +308,18 @@ class ReportsPage extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(months[i],
-                            style: const TextStyle(fontSize: 15)),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            )),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(values[i].toString(),
-                            style: const TextStyle(fontSize: 15)),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            )),
                       ),
                     ],
                   );
@@ -328,7 +331,8 @@ class ReportsPage extends StatelessWidget {
                       padding: EdgeInsets.all(8.0),
                       child: Text('total_label'.tr(),
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.teal)),
+                              fontWeight: FontWeight.bold, 
+                              color: Theme.of(context).colorScheme.onSecondaryContainer)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),

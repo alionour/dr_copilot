@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_bloc.dart';
 import 'package:dr_copilot/src/features/teams/presentation/bloc/teams_event.dart';
@@ -54,6 +55,30 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('teamsTitle'.tr()),
+        actions: [
+          if (OwnerNotifier().hasPermission(AppPermission.createTeam))
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'addTeam'.tr(),
+              onPressed: () async {
+                final teamsBloc = context.read<TeamsBloc>();
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BlocProvider.value(
+                      value: teamsBloc,
+                      child: const CreateEditTeamPage(),
+                    ),
+                  ),
+                );
+
+                // Reload teams if a team was created/updated
+                if (result == true) {
+                  _loadTeams();
+                }
+              },
+            ),
+        ],
       ),
       body: BlocConsumer<TeamsBloc, TeamsState>(
         listener: (context, state) {
@@ -76,7 +101,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
         },
         builder: (context, state) {
           if (state is TeamsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerList();
           }
 
           if (state is TeamsLoaded) {
@@ -205,30 +230,6 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
           return const Center(child: Text(''));
         },
       ),
-      floatingActionButton:
-          OwnerNotifier().hasPermission(AppPermission.createTeam)
-              ? FloatingActionButton.extended(
-                  onPressed: () async {
-                    final teamsBloc = context.read<TeamsBloc>();
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BlocProvider.value(
-                          value: teamsBloc,
-                          child: const CreateEditTeamPage(),
-                        ),
-                      ),
-                    );
-
-                    // Reload teams if a team was created/updated
-                    if (result == true) {
-                      _loadTeams();
-                    }
-                  },
-                  icon: const Icon(Icons.add),
-                  label: Text('createTeam'.tr()),
-                )
-              : null,
     );
   }
 
@@ -272,13 +273,9 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
       // 1. Check if user has access to view/open this chat.
       //    Any of these permissions grants access (permission-centric, not role-centric):
       //      - isMember:          direct team member → full access (read + write)
-      //      - viewTeams:         global team visibility → read-only chat if not member
-      //      - manageTeams:       team management → read-only chat if not member
       //      - viewTeamMessages:  explicit message-read grant → read-only chat if not member
       final isMember = team.memberIds.contains(currentUserId);
       final hasGlobalAccess =
-          OwnerNotifier().hasPermission(AppPermission.viewTeams) ||
-          OwnerNotifier().hasPermission(AppPermission.manageTeams) ||
           OwnerNotifier().hasPermission(AppPermission.viewTeamMessages);
 
       if (!isMember && !hasGlobalAccess) {

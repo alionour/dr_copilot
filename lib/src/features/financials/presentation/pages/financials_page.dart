@@ -57,6 +57,7 @@ class _FinancialsPageState extends State<FinancialsPage> {
         bottomNavigationBar: NavigationBar(
           selectedIndex: _selectedIndex,
           onDestinationSelected: _onItemTapped,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
           destinations: [
             NavigationDestination(
               icon: const Icon(Icons.dashboard_outlined),
