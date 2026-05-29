@@ -319,6 +319,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
               if (data == null) throw Exception('Document data is null');
               return PatientModel.fromJson({...data, 'id': doc.id});
             })
+            .where((patient) => patient.deletedAt == null)
             .toList();
 
         // Perform case-insensitive searches and bounds checking in memory
@@ -416,6 +417,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
               if (data == null) throw Exception('Document data is null');
               return PatientModel.fromJson({...data, 'id': doc.id});
             })
+            .where((patient) => patient.deletedAt == null)
             .take(limit)
             .toList();
 
@@ -488,6 +490,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
               if (data == null) throw Exception('Document data is null');
               return PatientModel.fromJson({...data, 'id': doc.id});
             })
+            .where((patient) => patient.deletedAt == null)
             .toList();
 
         return Right(patients);
@@ -514,22 +517,19 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
         final access = _getUserAccessInfo();
         if (access.hasNoAccess) return Right(0);
 
-        if (access.hasGlobalAccess) {
-          // Fast server-side count for users with full access
-          final snapshot = await _patientsCollection
-              .where('clinicId', isEqualTo: clinicId)
-              .count()
-              .get();
-          return Right(snapshot.count ?? 0);
-        }
-
-        // For scoped users, fetch all matching docs and filter in memory
+        // Fetch all matching docs and filter in memory to exclude soft-deleted patients
         final snapshot = await _patientsCollection
             .where('clinicId', isEqualTo: clinicId)
             .get();
         final count = snapshot.docs.where((doc) {
-          final d = doc.data() as Map<String, dynamic>?;
-          return d != null && _patientPassesFilter(d, access.accessTags);
+          if (!access.hasGlobalAccess) {
+            final d = doc.data() as Map<String, dynamic>?;
+            if (d == null || !_patientPassesFilter(d, access.accessTags)) {
+              return false;
+            }
+          }
+          final data = doc.data() as Map<String, dynamic>?;
+          return data?['deletedAt'] == null;
         }).length;
         return Right(count);
       }
