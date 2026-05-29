@@ -104,7 +104,10 @@ class GeminiLiveService {
           'User locale: $currentLocale. '
           'When performing actions like adding a patient or session, you should prepare the form for the user. '
           'When you call a tool like "add_patient", a form will be shown to the user. '
-          'Confirm that you have prepared the form briefly.',
+          'Confirm that you have prepared the form briefly.'
+          'When you call a list/query tool (e.g. list_patients, list_sessions), '
+          'clearly tell the user the results: mention how many items were found '
+          'and list their names/IDs. If no results found, say so explicitly.',
         ),
         tools: getFirebaseAITools(),
       );
@@ -164,6 +167,7 @@ class GeminiLiveService {
     final message = event.message;
     switch (message) {
       case LiveServerContent():
+        debugPrint('[GeminiLive] LiveServerContent: turnComplete=${message.turnComplete} modelTurn=${message.modelTurn != null} parts=${message.modelTurn?.parts.length} interrupted=${message.interrupted}');
         // Handle user speech transcription
         if (message.inputTranscription?.text != null &&
             message.inputTranscription!.text!.isNotEmpty) {
@@ -178,6 +182,9 @@ class GeminiLiveService {
           final text = message.outputTranscription!.text!;
           debugPrint('[Transcript] AI: $text');
           _transcriptController.add('__AI__:$text');
+        } else if (message.outputTranscription?.text != null &&
+            message.outputTranscription!.text!.isEmpty) {
+          debugPrint('[GeminiLive] outputTranscription present but empty');
         }
 
         // Handle interruption
@@ -199,10 +206,18 @@ class GeminiLiveService {
         final modelTurn = message.modelTurn;
         if (modelTurn != null) {
           for (final part in modelTurn.parts) {
+            final partType = part.runtimeType;
+            final partInfo = part is TextPart
+                ? part.text.substring(0, min(part.text.length, 80))
+                : part is InlineDataPart
+                    ? '${part.mimeType} ${part.bytes.length}B'
+                    : partType.toString();
+            debugPrint('[GeminiLive] modelTurn part: $partType $partInfo');
             if (part is InlineDataPart) {
               _playAudioChunk(part.bytes, part.mimeType);
             } else if (part is TextPart) {
-              if (message.outputTranscription?.text == null) {
+              if (message.outputTranscription?.text == null ||
+                  message.outputTranscription!.text!.isEmpty) {
                 debugPrint('[Transcript] AI (text): ${part.text}');
                 _transcriptController.add('__AI__:${part.text}');
               }
@@ -211,9 +226,9 @@ class GeminiLiveService {
         }
       case LiveServerToolCall():
         debugPrint('[GeminiLive] === Tool call received ===');
+        final responses = <FunctionResponse>[];
+        final functionCalls = message.functionCalls;
         try {
-          final responses = <FunctionResponse>[];
-          final functionCalls = message.functionCalls;
           debugPrint('[GeminiLive] functionCalls count: ${functionCalls?.length}');
 
           if (functionCalls != null) {
@@ -253,6 +268,15 @@ class GeminiLiveService {
         } catch (e, stack) {
           debugPrint('[GeminiLive] Tool call error: $e');
           debugPrint('[GeminiLive] Stack: $stack');
+          if (functionCalls != null && responses.isEmpty) {
+            for (final call in functionCalls) {
+              responses.add(FunctionResponse(call.name, {
+                'error': 'An error occurred while executing ${call.name}: $e',
+              }));
+            }
+            debugPrint('[GeminiLive] sending ${responses.length} error response(s)');
+            await _session?.sendToolResponse(responses);
+          }
           _setState(LiveChatState.listening);
         }
       default:

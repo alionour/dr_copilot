@@ -80,7 +80,6 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),

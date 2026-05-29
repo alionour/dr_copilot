@@ -173,21 +173,20 @@ class _MessageBubbleState extends State<MessageBubble> {
           ),
           const SizedBox(width: 4),
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: SelectableText(
-                messageText,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  foreground: Paint()
-                    ..shader = const LinearGradient(
-                      colors: <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
-                    ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                child: SelectableText(
+                  messageText,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
             ),
@@ -243,13 +242,14 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
           ),
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: MarkdownBody(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.0),
+              child: Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                child: MarkdownBody(
                 data: messageText,
                 selectable: true,
                 styleSheet: MarkdownStyleSheet(
@@ -313,6 +313,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
               ),
             ),
+          ),
           ),
           const SizedBox(width: 4),
           ValueListenableBuilder<bool>(
