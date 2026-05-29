@@ -21,10 +21,11 @@ class TeamsDashboardPage extends StatefulWidget {
 }
 
 class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
+  bool _showArchived = false;
+
   @override
   void initState() {
     super.initState();
-    // Load teams initially
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTeams();
     });
@@ -33,7 +34,6 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reload teams whenever dependencies change (e.g., returning from navigation)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadTeams();
@@ -45,7 +45,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
     final clinicId = context.read<OwnerNotifier>().clinicId;
     if (clinicId != null) {
       context.read<TeamsBloc>().add(
-            LoadTeamsEvent(clinicId: clinicId),
+            LoadTeamsEvent(clinicId: clinicId, showArchived: _showArchived),
           );
     }
   }
@@ -54,9 +54,21 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('teamsTitle'.tr()),
+        title: Text(_showArchived ? 'archivedTeams'.tr() : 'teamsTitle'.tr()),
         actions: [
-          if (OwnerNotifier().hasPermission(AppPermission.createTeam))
+          IconButton(
+            icon: Icon(_showArchived ? Icons.group : Icons.archive_outlined),
+            tooltip:
+                _showArchived ? 'showActiveTeams'.tr() : 'showArchivedTeams'.tr(),
+            onPressed: () {
+              setState(() {
+                _showArchived = !_showArchived;
+              });
+              _loadTeams();
+            },
+          ),
+          if (!_showArchived &&
+              OwnerNotifier().hasPermission(AppPermission.createTeam))
             IconButton(
               icon: const Icon(Icons.add),
               tooltip: 'addTeam'.tr(),
@@ -72,7 +84,6 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                   ),
                 );
 
-                // Reload teams if a team was created/updated
                 if (result == true) {
                   _loadTeams();
                 }
@@ -110,16 +121,22 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.group_off_outlined,
+                    Icon(_showArchived
+                        ? Icons.archive_outlined
+                        : Icons.group_off_outlined,
                         size: 64, color: Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
-                      'noTeamsYet'.tr(),
+                      _showArchived
+                          ? 'noArchivedTeams'.tr()
+                          : 'noTeamsYet'.tr(),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'createFirstTeam'.tr(),
+                      _showArchived
+                          ? 'archivedTeamsEmpty'.tr()
+                          : 'createFirstTeam'.tr(),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -157,8 +174,10 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                                             team.ownerId == currentUserId;
                             final canArchive = OwnerNotifier().hasPermission(AppPermission.archiveTeam) ||
                                                team.ownerId == currentUserId;
+                            final canUnarchive = OwnerNotifier().hasPermission(AppPermission.unarchiveTeam) ||
+                                                 team.ownerId == currentUserId;
 
-                            if (!canEdit && !canArchive) {
+                            if (!canEdit && !canArchive && !canUnarchive) {
                               return const SizedBox();
                             }
 
@@ -175,7 +194,7 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                                       ],
                                     ),
                                   ),
-                                if (canArchive)
+                                if (!team.isArchived && canArchive)
                                   PopupMenuItem(
                                     value: 'archive',
                                     child: Row(
@@ -189,6 +208,25 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                                           'archiveTeam'.tr(),
                                           style: const TextStyle(
                                             color: Colors.orange,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                if (team.isArchived && canUnarchive)
+                                  PopupMenuItem(
+                                    value: 'unarchive',
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.unarchive_outlined,
+                                          color: Colors.green,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'unarchiveTeam'.tr(),
+                                          style: const TextStyle(
+                                            color: Colors.green,
                                           ),
                                         ),
                                       ],
@@ -208,12 +246,15 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
                                     ),
                                   );
 
-                                  // Reload teams if a team was updated
                                   if (result == true) {
                                     _loadTeams();
                                   }
                                 } else if (value == 'archive') {
                                   _showArchiveConfirmation(team.id, team.name);
+                                } else if (value == 'unarchive') {
+                                  context.read<TeamsBloc>().add(
+                                    UnarchiveTeamEvent(teamId: team.id),
+                                  );
                                 }
                               },
                             );

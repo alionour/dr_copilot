@@ -10,6 +10,7 @@ import 'package:google_generative_ai/google_generative_ai.dart' as google;
 import 'package:dr_copilot/src/features/copilot_chat/domain/logic/function_call_handler.dart';
 import 'package:dr_copilot/src/features/copilot_chat/services/gemini_tools.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/live_chat_state.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/utils/json_sanitizer.dart';
 
 /// A service that manages a live conversational session with Gemini via Firebase AI SDK.
 /// Collapses STT, LLM, and TTS into a single bidirectional WebSocket session.
@@ -265,19 +266,19 @@ class GeminiLiveService {
                 stopwatch.stop();
                 debugPrint('[GeminiLive] <- handler returned in ${stopwatch.elapsedMilliseconds}ms keys: ${result.keys.join(", ")}');
                 debugPrint('[GeminiLive] <- handler result error? ${result.containsKey("error")}');
-                responses.add(FunctionResponse(call.name, result));
+                // Sanitize the result as a safety net
+                responses.add(FunctionResponse(call.name, sanitizeJsonForGemini(result)));
               }
             }
           }
           debugPrint('[GeminiLive] sending ${responses.length} tool response(s)');
           await _session?.sendToolResponse(responses);
-          _resumeAudioOnNextContent = true;
           debugPrint('[GeminiLive] tool response sent, state -> listening');
+          _resumeAudioOnNextContent = true;
           _setState(LiveChatState.listening);
         } catch (e, stack) {
           debugPrint('[GeminiLive] Tool call error: $e');
           debugPrint('[GeminiLive] Stack: $stack');
-          _shouldSendAudio = true;
           _shouldSendAudio = true;
           if (functionCalls != null && responses.isEmpty) {
             for (final call in functionCalls) {

@@ -119,7 +119,7 @@ class SessionActionHandler extends BaseActionHandler {
     final result = await sessionsUseCase.getSessionById(args['id']);
     return result.fold(
       (failure) => {'error': failure.message},
-      (session) => session.toJson(),
+      (session) => sanitizeJson(session.toJson()),
     );
   }
 
@@ -172,7 +172,21 @@ class SessionActionHandler extends BaseActionHandler {
               .toList();
         }
 
-        return {'sessions': filtered.map((s) => s.toJson()).toList()};
+        // Limit results to 20 by default
+        final limit = args['limit'] as int? ?? 20;
+        final sessionsList = filtered
+            .take(limit)
+            .map((s) => sanitizeJson({
+                  'id': s.id,
+                  'patientId': s.patientId,
+                  'patientName': s.patientName,
+                  'price': s.price,
+                  'startDateTime': s.startDateTime,
+                  'sessionType': s.sessionType,
+                }))
+            .toList();
+
+        return {'sessions': sessionsList};
       },
     );
   }

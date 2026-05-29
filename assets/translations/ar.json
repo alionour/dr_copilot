@@ -1640,5 +1640,10 @@
   "stockAdjustmentHint": "مثال: إعادة تعبئة، استخدم في إجراء طبي",
   "permissionDenied": "تم رفض الإذن",
   "failedToLoadDeletedItems": "فشل في تحميل العناصر المحذوفة",
-  "someItemsCouldNotBeLoaded": "تعذر تحميل بعض العناصر"
+  "someItemsCouldNotBeLoaded": "تعذر تحميل بعض العناصر",
+  "showArchivedTeams": "عرض الفرق المؤرشفة",
+  "showActiveTeams": "عرض الفرق النشطة",
+  "archivedTeams": "الفرق المؤرشفة",
+  "noArchivedTeams": "لا توجد فرق مؤرشفة",
+  "archivedTeamsEmpty": "ستظهر الفرق المؤرشفة هنا."
 }

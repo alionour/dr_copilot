@@ -1373,5 +1373,13 @@
   "errorOpeningPatientCallingScreen": "Erreur lors de l'ouverture de l'écran d'appel des patients : {}",
   "onlyTeamMembersCanViewThisChat": "Seuls les membres de l'équipe peuvent voir ce chat.",
   "accessRestricted": "Accès restreint",
-  "noPermissionToViewSection": "Vous ne disposez pas des autorisations suffisantes pour afficher cette section. Veuillez contacter votre administrateur."
+  "noPermissionToViewSection": "Vous ne disposez pas des autorisations suffisantes pour afficher cette section. Veuillez contacter votre administrateur.",
+  "permissionDenied": "Permission refusée",
+  "failedToLoadDeletedItems": "Échec du chargement des éléments supprimés",
+  "someItemsCouldNotBeLoaded": "Certains éléments n'ont pas pu être chargés",
+  "showArchivedTeams": "Afficher les équipes archivées",
+  "showActiveTeams": "Afficher les équipes actives",
+  "archivedTeams": "Équipes archivées",
+  "noArchivedTeams": "Aucune équipe archivée",
+  "archivedTeamsEmpty": "Les équipes archivées apparaîtront ici."
 }

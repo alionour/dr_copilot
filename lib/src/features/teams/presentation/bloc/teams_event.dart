@@ -10,11 +10,12 @@ abstract class TeamsEvent extends Equatable {
 
 class LoadTeamsEvent extends TeamsEvent {
   final String clinicId;
+  final bool showArchived;
 
-  const LoadTeamsEvent({required this.clinicId});
+  const LoadTeamsEvent({required this.clinicId, this.showArchived = false});
 
   @override
-  List<Object?> get props => [clinicId];
+  List<Object?> get props => [clinicId, showArchived];
 }
 
 class CreateTeamEvent extends TeamsEvent {

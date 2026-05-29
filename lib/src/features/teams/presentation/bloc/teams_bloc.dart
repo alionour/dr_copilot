@@ -28,8 +28,9 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
     result.fold(
       (failure) => emit(TeamsError(message: failure.message)),
       (teams) {
-        // Filter out archived teams
-        var activeTeams = teams.where((team) => !team.isArchived).toList();
+        var filteredTeams = event.showArchived
+            ? teams.where((team) => team.isArchived).toList()
+            : teams.where((team) => !team.isArchived).toList();
 
         // By default, every user only sees teams they are a member of.
         // No permission is required for this — it is the universal baseline.
@@ -40,12 +41,12 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
             OwnerNotifier().hasPermission(AppPermission.manageTeams);
 
         if (!hasGlobalAccess && currentUser != null) {
-          activeTeams = activeTeams
+          filteredTeams = filteredTeams
               .where((team) => team.memberIds.contains(currentUser.uid))
               .toList();
         }
 
-        emit(TeamsLoaded(teams: activeTeams));
+        emit(TeamsLoaded(teams: filteredTeams));
       },
     );
   }

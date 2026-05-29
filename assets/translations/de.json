@@ -1373,5 +1373,13 @@
   "errorOpeningPatientCallingScreen": "Fehler beim Öffnen des Patienten-Aufrufbildschirms: {}",
   "onlyTeamMembersCanViewThisChat": "Nur Teammitglieder können diesen Chat anzeigen.",
   "accessRestricted": "Zugriff eingeschränkt",
-  "noPermissionToViewSection": "Sie haben nicht genügend Berechtigungen, um diesen Bereich anzuzeigen. Bitte wenden Sie sich an Ihren Administrator."
+  "noPermissionToViewSection": "Sie haben nicht genügend Berechtigungen, um diesen Bereich anzuzeigen. Bitte wenden Sie sich an Ihren Administrator.",
+  "permissionDenied": "Zugriff verweigert",
+  "failedToLoadDeletedItems": "Fehler beim Laden gelöschter Elemente",
+  "someItemsCouldNotBeLoaded": "Einige Elemente konnten nicht geladen werden",
+  "showArchivedTeams": "Archivierte Teams anzeigen",
+  "showActiveTeams": "Aktive Teams anzeigen",
+  "archivedTeams": "Archivierte Teams",
+  "noArchivedTeams": "Keine archivierten Teams",
+  "archivedTeamsEmpty": "Archivierte Teams werden hier angezeigt."
 }

@@ -189,7 +189,7 @@ class PatientActionHandler extends BaseActionHandler {
       final result = await patientsUseCase.getPatientById(args['id']);
       return result.fold(
         (failure) => {'error': failure.message},
-        (patient) => patient.toJson(),
+        (patient) => sanitizeJson(patient.toJson()),
       );
     } else if (args['name'] != null) {
       final result = await patientsUseCase.searchPatients(name: args['name']);
@@ -197,7 +197,7 @@ class PatientActionHandler extends BaseActionHandler {
         (failure) => {'error': failure.message},
         (patients) {
           if (patients.isNotEmpty) {
-            return patients.first.toJson();
+            return sanitizeJson(patients.first.toJson());
           } else {
             return {'error': 'Patient not found'};
           }
@@ -245,26 +245,22 @@ class PatientActionHandler extends BaseActionHandler {
           }).toList();
         }
 
-        final patientsList = filtered.map((p) => _sanitizeJson(p.toJson())).toList();
-        final limit = args['limit'] as int?;
-        if (limit != null && limit > 0) {
-          return {'patients': patientsList.take(limit).toList()};
-        }
+        // Limit results to 20 by default for performance and to stay within context limits
+        final limit = args['limit'] as int? ?? 20;
+        final patientsList = filtered
+            .take(limit)
+            .map((p) => sanitizeJson({
+                  'id': p.id,
+                  'name': p.name,
+                  'age': p.age,
+                  'gender': p.gender,
+                  'phone1': p.phone1,
+                  'occupation': p.occupation,
+                }))
+            .toList();
+
         return {'patients': patientsList};
       },
     );
   }
-}
-
-dynamic _sanitizeJson(dynamic value) {
-  if (value is Timestamp) {
-    return value.toDate().toIso8601String();
-  }
-  if (value is Map) {
-    return value.map((k, v) => MapEntry(k.toString(), _sanitizeJson(v)));
-  }
-  if (value is List) {
-    return value.map(_sanitizeJson).toList();
-  }
-  return value;
 }

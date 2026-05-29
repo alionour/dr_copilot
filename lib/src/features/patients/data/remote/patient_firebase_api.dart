@@ -595,6 +595,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
     try {
       await _patientsCollection.doc(id).update({
         'deletedAt': null,
+        'deletedBy': null,
       });
       return const Right(null);
     } catch (e) {

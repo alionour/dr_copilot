@@ -1644,5 +1644,10 @@
   "stockAdjustmentHint": "e.g., Restocked, Used in procedure",
   "permissionDenied": "Permission denied",
   "failedToLoadDeletedItems": "Failed to load deleted items",
-  "someItemsCouldNotBeLoaded": "Some items could not be loaded"
+  "someItemsCouldNotBeLoaded": "Some items could not be loaded",
+  "showArchivedTeams": "Show Archived Teams",
+  "showActiveTeams": "Show Active Teams",
+  "archivedTeams": "Archived Teams",
+  "noArchivedTeams": "No archived teams",
+  "archivedTeamsEmpty": "Archived teams will appear here."
 }

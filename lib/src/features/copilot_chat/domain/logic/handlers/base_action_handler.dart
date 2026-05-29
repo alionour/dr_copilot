@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/services/utils/json_sanitizer.dart';
 
 abstract class BaseActionHandler {
   final OwnerNotifier ownerNotifier;
@@ -32,4 +33,7 @@ abstract class BaseActionHandler {
 
     return null; // Permission granted
   }
+
+  /// Sanitizes a JSON-like object for Gemini, converting non-standard types like [Timestamp].
+  dynamic sanitizeJson(dynamic value) => sanitizeJsonForGemini(value);
 }

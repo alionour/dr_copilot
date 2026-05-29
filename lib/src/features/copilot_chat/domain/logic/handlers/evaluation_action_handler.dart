@@ -119,7 +119,7 @@ class EvaluationActionHandler extends BaseActionHandler {
     final result = await evaluationsUseCase.getEvaluationById(args['id']);
     return result.fold(
       (failure) => {'error': failure.message},
-      (evaluation) => evaluation.toJson(),
+      (evaluation) => sanitizeJson(evaluation.toJson()),
     );
   }
 
@@ -174,7 +174,21 @@ class EvaluationActionHandler extends BaseActionHandler {
               .toList();
         }
 
-        return {'evaluations': filtered.map((e) => e.toJson()).toList()};
+        // Limit results to 20 by default
+        final limit = args['limit'] as int? ?? 20;
+        final evaluationsList = filtered
+            .take(limit)
+            .map((e) => sanitizeJson({
+                  'id': e.id,
+                  'patientId': e.patientId,
+                  'patientName': e.patientName,
+                  'price': e.price,
+                  'startDateTime': e.startDateTime,
+                  'doctorId': e.doctorId,
+                }))
+            .toList();
+
+        return {'evaluations': evaluationsList};
       },
     );
   }
