@@ -81,6 +81,26 @@ class _AddPatientPageState extends State<AddPatientPage> {
   @override
   void initState() {
     super.initState();
+    _populateFormFromWidget();
+    _nameController.addListener(_notifyFormDataChange);
+    _ageController.addListener(_notifyFormDataChange);
+    _addressController.addListener(_notifyFormDataChange);
+    _phone1Controller.addListener(_notifyFormDataChange);
+    _phone2Controller.addListener(_notifyFormDataChange);
+    _occupationController.addListener(_notifyFormDataChange);
+    _loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_nameFocusNode);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant AddPatientPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _populateFormFromWidget();
+  }
+
+  void _populateFormFromWidget() {
     if (widget.patient != null) {
       _nameController.text = widget.patient!.name;
       _ageController.text = widget.patient!.age?.toString() ?? '';
@@ -119,17 +139,6 @@ class _AddPatientPageState extends State<AddPatientPage> {
         _occupationController.text = data['occupation'].toString();
       }
     }
-    _nameController.addListener(_notifyFormDataChange);
-    _ageController.addListener(_notifyFormDataChange);
-    _addressController.addListener(_notifyFormDataChange);
-    _phone1Controller.addListener(_notifyFormDataChange);
-    _phone2Controller.addListener(_notifyFormDataChange);
-    _occupationController.addListener(_notifyFormDataChange);
-    _loadInitialData();
-    // Request focus to the name field when the page is loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_nameFocusNode);
-    });
   }
 
   void _notifyFormDataChange() {
