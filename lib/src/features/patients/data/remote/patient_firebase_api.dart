@@ -268,7 +268,10 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           }
         }
 
-        await _patientsCollection.doc(id).delete();
+        await _patientsCollection.doc(id).update({
+          'deletedAt': Timestamp.fromDate(DateTime.now().toUtc()),
+          'deletedBy': user.uid,
+        });
         return const Right(null);
       }
       return Left(ServerFailure('User not authenticated', 401));

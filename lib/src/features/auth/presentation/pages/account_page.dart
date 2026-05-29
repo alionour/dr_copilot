@@ -34,14 +34,19 @@ class AccountPage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Flexible(
+        Expanded(
+          flex: 2,
           child: Text(
             label,
             style: textTheme.bodyLarge,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        Flexible(
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 3,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
@@ -49,10 +54,13 @@ class AccountPage extends StatelessWidget {
                   value,
                   style: textTheme.bodyMedium,
                   overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                 ),
               ),
               if (copyValue != null)
                 IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   tooltip: MaterialLocalizations.of(
                     context,
                   ).copyButtonLabel,

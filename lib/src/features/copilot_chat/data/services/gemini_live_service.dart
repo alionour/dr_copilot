@@ -264,9 +264,6 @@ class GeminiLiveService {
           }
           debugPrint('[GeminiLive] sending ${responses.length} tool response(s)');
           await _session?.sendToolResponse(responses);
-          // Signal turn complete so the server continues generating
-          // (mic is always streaming so the server won't detect silence on its own)
-          await _session?.send(turnComplete: true);
           debugPrint('[GeminiLive] tool response sent, state -> listening');
           _setState(LiveChatState.listening);
         } catch (e, stack) {
@@ -280,7 +277,6 @@ class GeminiLiveService {
             }
             debugPrint('[GeminiLive] sending ${responses.length} error response(s)');
             await _session?.sendToolResponse(responses);
-            await _session?.send(turnComplete: true);
           }
           _setState(LiveChatState.listening);
         }
