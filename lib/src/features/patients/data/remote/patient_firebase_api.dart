@@ -142,11 +142,12 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
             final d = docSnap.data() as Map<String, dynamic>?;
             return d != null && _patientPassesFilter(d, access.accessTags);
           })
-          .map((docSnap) {
-            final data = docSnap.data() as Map<String, dynamic>?;
-            if (data == null) throw Exception('Document data is null');
-            return PatientModel.fromJson({...data, 'id': docSnap.id});
-          })
+            .map((docSnap) {
+              final data = docSnap.data() as Map<String, dynamic>?;
+              if (data == null) throw Exception('Document data is null');
+              return PatientModel.fromJson({...data, 'id': docSnap.id});
+            })
+            .where((patient) => patient.deletedAt == null)
           .toList();
 
       // Sort newest-first entirely in memory — same proven approach as
