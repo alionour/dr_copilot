@@ -85,7 +85,7 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     _messagesSubscription =
         _repository.getMessages(event.conversationId).listen(
               (messages) => add(MessagesUpdated(messages)),
-              onError: (e) => add(MessagesUpdated([])),
+              onError: (e) => emit(ChatRoomError('$e')),
             );
   }
 

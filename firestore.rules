@@ -333,6 +333,15 @@ service cloud.firestore {
        allow create: if request.auth != null; // Simplified create for now (should check participants)
        allow read: if request.auth != null && (resource == null || request.auth.uid in resource.data.participantIds);
        allow update, delete: if request.auth.uid in resource.data.participantIds;
+
+       match /messages/{messageId} {
+          allow read: if isSignedIn() &&
+                         request.auth.uid in get(/databases/$(database)/documents/direct_messages/$(msgId)).data.participantIds;
+          allow create: if isSignedIn() &&
+                           request.auth.uid in get(/databases/$(database)/documents/direct_messages/$(msgId)).data.participantIds &&
+                           request.resource.data.senderId == request.auth.uid;
+          allow update, delete: if isSignedIn() && resource.data.senderId == request.auth.uid;
+       }
     }
 
     // Notifications (Missing Rule Fix)
