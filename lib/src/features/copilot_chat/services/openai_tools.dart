@@ -67,13 +67,13 @@ List<Map<String, dynamic>> getOpenAITools(
               'type': 'string',
               'description': 'The address of the patient in any language. Optional.'
             },
-            'phoneNumber': {
+            'phone1': {
               'type': 'string',
-              'description': 'The phone number of the patient. Optional.'
+              'description': 'The primary phone number of the patient. Optional.'
             },
-            'alternativePhoneNumber': {
+            'phone2': {
               'type': 'string',
-              'description': 'The alternative phone number. Optional.'
+              'description': 'An alternative phone number. Optional.'
             },
             'treatingDoctor': {
               'type': 'string',
@@ -126,10 +126,15 @@ List<Map<String, dynamic>> getOpenAITools(
               'description':
                   'The new address of the patient. Must be explicitly stated from the current user request.'
             },
-            'phoneNumber': {
+            'phone1': {
               'type': 'string',
               'description':
-                  'The new phone number. Must be explicitly stated from the current user request.'
+                  'The new primary phone number. Must be explicitly stated from the current user request.'
+            },
+            'phone2': {
+              'type': 'string',
+              'description':
+                  'The new alternative phone number. Must be explicitly stated from the current user request.'
             },
           },
           'required': [],

@@ -103,10 +103,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
       } else if (data['phoneNumber'] != null) {
         _phone1Controller.text = data['phoneNumber'].toString();
       }
-      if (data['phone2'] != null) {
-        _phone2Controller.text = data['phone2'].toString();
-      } else if (data['alternativePhoneNumber'] != null) {
-        _phone2Controller.text = data['alternativePhoneNumber'].toString();
+      } else if (data['phone1'] != null || data['phoneNumber'] != null) {
+        _phone1Controller.text = (data['phone1'] ?? data['phoneNumber']).toString();
+      } else if (data['phone2'] != null || data['alternativePhoneNumber'] != null) {
+        _phone2Controller.text = (data['phone2'] ?? data['alternativePhoneNumber']).toString();
       }
       if (data['treatingDoctorId'] != null) {
         _treatingDoctorId = data['treatingDoctorId'].toString();
