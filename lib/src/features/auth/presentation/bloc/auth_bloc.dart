@@ -145,21 +145,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckRequested event,
     Emitter<AuthState> emit,
   ) async {
-    // Emit loading state immediately
     emit(const AuthLoading());
-    
-    try {
-      // Wait for the first non-null user or explicit null from Firebase
-      final user = await authUseCase.authStateChanges().first;
-      
-      if (user != null) {
-        _initializeFCM(user.uid);
-        emit(AuthSignedIn(message: 'User restored', user: user));
-      } else {
-        emit(AuthSignedOut());
-      }
-    } catch (error) {
-      emit(AuthError(message: error.toString()));
-    }
+    await emit.forEach(
+      authUseCase.authStateChanges(),
+      onData: (user) {
+        if (user != null) {
+          _initializeFCM(user.uid);
+          return AuthSignedIn(message: 'User restored', user: user);
+        }
+        return AuthSignedOut();
+      },
+      onError: (error, stackTrace) => AuthError(message: error.toString()),
+    );
   }
 }

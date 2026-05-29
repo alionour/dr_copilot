@@ -452,5 +452,37 @@ List<Map<String, dynamic>> getOpenAITools(
         },
       },
     },
+    {
+      'type': 'function',
+      'function': {
+        'name': 'select_patient',
+        'description': 'Sets the active/focused patient context for the conversation. Use this when the user chooses a patient from a list or asks to focus on someone.',
+        'parameters': {
+          'type': 'object',
+          'properties': {
+            'id': {
+              'type': 'string',
+              'description': 'The ID of the patient to select.'
+            },
+            'name': {
+              'type': 'string',
+              'description': 'The name of the patient to select.'
+            },
+          },
+          'required': ['id', 'name'],
+        },
+      },
+    },
+    {
+      'type': 'function',
+      'function': {
+        'name': 'clear_active_patient',
+        'description': 'Clears the current active patient context.',
+        'parameters': {
+          'type': 'object',
+          'properties': {},
+        },
+      },
+    },
   ];
 }

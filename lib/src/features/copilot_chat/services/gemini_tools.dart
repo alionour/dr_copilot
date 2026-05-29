@@ -9,10 +9,11 @@ List<google.Tool> getGeminiTools({List<String> userRequiredFields = const []}) {
 
   for (final tool in openAITools) {
     if (tool['type'] == 'function') {
-      final function = tool['function'] as Map<String, dynamic>;
+      final function = (tool['function'] as Map).cast<String, dynamic>();
       final name = function['name'] as String;
       final description = function['description'] as String;
-      final parameters = function['parameters'] as Map<String, dynamic>?;
+      final parameters =
+          (function['parameters'] as Map?)?.cast<String, dynamic>();
 
       if (parameters != null) {
         functionDeclarations.add(
@@ -42,18 +43,20 @@ List<firebase.Tool> getFirebaseAITools({
 
   for (final tool in openAITools) {
     if (tool['type'] == 'function') {
-      final function = tool['function'] as Map<String, dynamic>;
+      final function = (tool['function'] as Map).cast<String, dynamic>();
       final name = function['name'] as String;
       final description = function['description'] as String;
-      final parameters = function['parameters'] as Map<String, dynamic>?;
+      final parameters =
+          (function['parameters'] as Map?)?.cast<String, dynamic>();
 
       if (parameters != null && parameters['type'] == 'object') {
         final propsMap =
-            parameters['properties'] as Map<String, dynamic>? ?? {};
+            (parameters['properties'] as Map?)?.cast<String, dynamic>() ??
+                <String, dynamic>{};
         final firebaseProps = <String, firebase.Schema>{};
         propsMap.forEach((key, value) {
-          firebaseProps[key] =
-              _convertJsonSchemaToFirebaseSchema(value as Map<String, dynamic>);
+          firebaseProps[key] = _convertJsonSchemaToFirebaseSchema(
+              (value as Map).cast<String, dynamic>());
         });
 
         final requiredList =

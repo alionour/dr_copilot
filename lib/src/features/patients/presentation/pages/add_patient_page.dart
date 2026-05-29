@@ -257,11 +257,14 @@ class _AddPatientPageState extends State<AddPatientPage> {
       },
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isSmallScreen = constraints.maxWidth < 600;
+              final isSmallScreen = constraints.maxWidth < 600;
             return Center(
               child: Container(
                 width: isSmallScreen ? double.infinity : 600,
                 padding: const EdgeInsets.all(16.0),
+                constraints: BoxConstraints(
+                  maxHeight: constraints.maxHeight,
+                ),
                 child: SingleChildScrollView(
                   child: Card(
                     elevation: 4,
@@ -286,8 +289,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      value: _selectedClinicId ??
-                                          ownerNotifier.clinicId,
+                                      value: _selectedClinicId?.isNotEmpty == true
+                                          ? _selectedClinicId
+                                          : ownerNotifier.clinicId?.isNotEmpty == true
+                                              ? ownerNotifier.clinicId
+                                              : null,
                                       decoration: InputDecoration(
                                         labelText: 'clinic'.tr(),
                                         border: const OutlineInputBorder(),

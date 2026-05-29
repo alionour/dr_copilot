@@ -1,0 +1,643 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import 'dart:async';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
+
+import 'package:flutter/material.dart';
+import 'package:firebase_ai/firebase_ai.dart';
+
+import '../utils/audio_input.dart';
+import '../utils/audio_output.dart';
+import '../utils/video_input.dart';
+import '../widgets/message_widget.dart';
+import '../widgets/audio_visualizer.dart';
+import '../widgets/camera_previews.dart';
+
+class BidiPage extends StatefulWidget {
+  const BidiPage({
+    super.key,
+    required this.title,
+    required this.model,
+    required this.useVertexBackend,
+  });
+
+  final String title;
+  final GenerativeModel model;
+  final bool useVertexBackend;
+
+  @override
+  State<BidiPage> createState() => _BidiPageState();
+}
+
+class LightControl {
+  final int? brightness;
+  final String? colorTemperature;
+
+  LightControl({this.brightness, this.colorTemperature});
+}
+
+class _BidiPageState extends State<BidiPage> {
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _textController = TextEditingController();
+  final FocusNode _textFieldFocus = FocusNode();
+  final List<MessageData> _messages = <MessageData>[];
+  bool _loading = false;
+  bool _sessionOpening = false;
+  bool _recording = false;
+  late LiveGenerativeModel _liveModel;
+  late LiveSession _session;
+  final AudioOutput _audioOutput = AudioOutput();
+  final AudioInput _audioInput = AudioInput();
+  final VideoInput _videoInput = VideoInput();
+  StreamSubscription? _audioSubscription;
+  int? _inputTranscriptionMessageIndex;
+  int? _outputTranscriptionMessageIndex;
+  bool _isCameraOn = false;
+  bool _videoIsInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final config = LiveGenerationConfig(
+      speechConfig: SpeechConfig(voiceName: 'Fenrir'),
+      responseModalities: [
+        ResponseModalities.audio,
+      ],
+      inputAudioTranscription: AudioTranscriptionConfig(),
+      outputAudioTranscription: AudioTranscriptionConfig(),
+    );
+
+    _liveModel = widget.useVertexBackend
+        ? FirebaseAI.vertexAI().liveGenerativeModel(
+            model: 'gemini-live-2.5-flash-preview-native-audio-09-2025',
+            liveGenerationConfig: config,
+            tools: [
+              Tool.functionDeclarations([lightControlTool]),
+            ],
+          )
+        : FirebaseAI.googleAI().liveGenerativeModel(
+            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            liveGenerationConfig: config,
+            tools: [
+              Tool.functionDeclarations([lightControlTool]),
+            ],
+          );
+  }
+
+  Future<void> _initAudio() async {
+    try {
+      await _audioOutput.init();
+    } catch (e) {
+      developer.log('Audio Output init error: $e');
+    }
+
+    try {
+      await _audioInput.init();
+    } catch (e) {
+      developer.log('Audio Input init error: $e');
+    }
+  }
+
+  Future<void> _initVideo() async {
+    try {
+      await _videoInput.init();
+      setState(() {
+        _videoIsInitialized = true;
+      });
+    } catch (e) {
+      developer.log('Error during video initialization: $e');
+    }
+  }
+
+  void _scrollDown() {
+    if (!_scrollController.hasClients) return;
+
+    _scrollController.jumpTo(
+      _scrollController.position.maxScrollExtent,
+    );
+  }
+
+  @override
+  void dispose() {
+    if (_sessionOpening) {
+      _sessionOpening = false;
+      _session.close();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_isCameraOn)
+            Container(
+              height: 200,
+              color: Colors.black,
+              alignment: Alignment.center,
+              child: (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS)
+                  ? FullCameraPreview(
+                      controller: _videoInput.cameraController,
+                      deviceId: _videoInput.selectedCameraId,
+                      onInitialized: (controller) {
+                        // This is where the controller actually gets born on macOS
+                        _videoInput.setMacOSController(controller);
+                      },
+                    )
+                  : (_videoInput.cameraController != null &&
+                          _videoInput.controllerInitialized)
+                      ? FullCameraPreview(
+                          controller: _videoInput.cameraController,
+                          deviceId: _videoInput.selectedCameraId,
+                          onInitialized: (controller) {
+                            // Web/Mobile callback (often unused if controller passed in)
+                          },
+                        )
+                      : const Center(child: CircularProgressIndicator()),
+            ),
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemBuilder: (context, idx) {
+                return MessageWidget(
+                  text: _messages[idx].text,
+                  image: _messages[idx].imageBytes != null
+                      ? Image.memory(
+                          _messages[idx].imageBytes!,
+                          cacheWidth: 400,
+                          cacheHeight: 400,
+                        )
+                      : null,
+                  isFromUser: _messages[idx].fromUser ?? false,
+                  isThought: _messages[idx].isThought,
+                );
+              },
+              itemCount: _messages.length,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 25,
+              horizontal: 15,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    focusNode: _textFieldFocus,
+                    controller: _textController,
+                    onSubmitted: _sendTextPrompt,
+                  ),
+                ),
+                const SizedBox.square(
+                  dimension: 15,
+                ),
+                AudioVisualizer(
+                  audioStreamIsActive: _recording,
+                  amplitudeStream: _audioInput.amplitudeStream,
+                ),
+                const SizedBox.square(
+                  dimension: 15,
+                ),
+                IconButton(
+                  tooltip: 'Start Streaming',
+                  onPressed: !_loading
+                      ? () async {
+                          await _setupSession();
+                        }
+                      : null,
+                  icon: Icon(
+                    Icons.network_wifi,
+                    color: _sessionOpening
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Send Stream Message',
+                  onPressed: !_loading
+                      ? () async {
+                          if (_recording) {
+                            await _stopRecording();
+                          } else {
+                            await _startRecording();
+                          }
+                        }
+                      : null,
+                  icon: Icon(
+                    _recording ? Icons.stop : Icons.mic,
+                    color: _loading
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Toggle Camera',
+                  onPressed: _isCameraOn ? _stopVideoStream : _startVideoStream,
+                  icon: Icon(
+                    _isCameraOn ? Icons.videocam_off : Icons.videocam,
+                    color: _loading
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                if (!_loading)
+                  IconButton(
+                    onPressed: () async {
+                      await _sendTextPrompt(_textController.text);
+                    },
+                    icon: Icon(
+                      Icons.send,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  )
+                else
+                  const CircularProgressIndicator(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  final lightControlTool = FunctionDeclaration(
+    'setLightValues',
+    'Set the brightness and color temperature of a room light.',
+    parameters: {
+      'brightness': Schema.integer(
+        description: 'Light level from 0 to 100. '
+            'Zero is off and 100 is full brightness.',
+      ),
+      'colorTemperature': Schema.string(
+        description: 'Color temperature of the light fixture, '
+            'which can be `daylight`, `cool` or `warm`.',
+      ),
+    },
+  );
+
+  Future<Map<String, Object?>> _setLightValues({
+    int? brightness,
+    String? colorTemperature,
+  }) async {
+    final apiResponse = {
+      'colorTemprature': 'warm',
+      'brightness': brightness,
+    };
+    return apiResponse;
+  }
+
+  Future<void> _setupSession() async {
+    setState(() {
+      _loading = true;
+    });
+    await _initAudio();
+
+    try {
+      if (!_videoIsInitialized) {
+        await _initVideo();
+      } else {
+        await _videoInput.initializeCameraController();
+      }
+    } catch (e) {
+      developer.log('Video Hardware init error: $e');
+    }
+
+    if (!_sessionOpening) {
+      _session = await _liveModel.connect();
+      _sessionOpening = true;
+      unawaited(
+        _processMessagesContinuously(),
+      );
+    } else {
+      await _session.close();
+      _sessionOpening = false;
+    }
+
+    setState(() {
+      _loading = false;
+    });
+  }
+
+  Future<void> _startRecording() async {
+    await _audioSubscription?.cancel();
+    _audioSubscription = null;
+    setState(() {
+      _recording = true;
+    });
+    try {
+      var inputStream = await _audioInput.startRecordingStream();
+      await _audioOutput.playStream();
+      if (inputStream != null) {
+        _audioSubscription = inputStream.listen(
+          (data) {
+            _session.sendAudioRealtime(InlineDataPart('audio/pcm', data));
+          },
+          onError: (e) {
+            developer.log('Audio Stream Error: $e');
+            _stopRecording();
+          },
+          cancelOnError: true,
+        );
+      }
+    } catch (e) {
+      developer.log('bidi_page._startRecording(): $e');
+      _showError('bidi_page._startRecording(): $e');
+      setState(() => _recording = false);
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    await _audioSubscription?.cancel();
+    _audioSubscription = null;
+    try {
+      await _audioInput.stopRecording();
+    } catch (e) {
+      _showError(e.toString());
+    }
+
+    setState(() {
+      _recording = false;
+    });
+  }
+
+  Future<void> _startVideoStream() async {
+    // 1. Re-entry Guard: Prevent multiple clicks while switching
+    if (_loading || !_videoIsInitialized) return;
+
+    // 2. Capture the current recording state
+    bool wasRecording = _recording;
+
+    setState(() {
+      _loading = true; // Lock the UI during the switch
+    });
+
+    try {
+      if (wasRecording) {
+        await _stopRecording();
+      }
+
+      // 4. Wait for ripple/UI (Prevent freeze)
+      await Future.delayed(const Duration(milliseconds: 250));
+
+      // 5. Initialize Camera if needed
+      if (!_videoInput.controllerInitialized ||
+          _videoInput.cameraController == null) {
+        await _videoInput.initializeCameraController();
+      }
+
+      // 6. Mount Camera UI
+      setState(() {
+        _isCameraOn = true;
+      });
+
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
+        // ✅ Because we set _cameraController to null in stopStreamingImages,
+        // this loop will now CORRECTLY wait for the new View to initialize.
+        int attempts = 0;
+        while (_videoInput.cameraController == null) {
+          if (attempts > 50) break; // 5 second timeout safety
+          await Future.delayed(const Duration(milliseconds: 100));
+          attempts++;
+        }
+      }
+
+      // 7. Wait for Mac Camera to Settle (Prevent audio hijack)
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      // 8. CLEAN RESTART: Use the helper method!
+      // Only restart if we were recording before.
+      if (wasRecording) {
+        developer.log('Resuming audio session...');
+        await _startRecording();
+      }
+
+      // 9. Start Video Stream
+      _videoInput.startStreamingImages().listen(
+        (data) {
+          String mimeType = 'image/jpeg';
+          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
+            if (data.length > 3 && data[0] == 0x89 && data[1] == 0x50) {
+              mimeType = 'image/png';
+            }
+          }
+          _session.sendVideoRealtime(InlineDataPart(mimeType, data));
+        },
+        onError: (e) => developer.log('Video Stream Error: $e'),
+      );
+    } catch (e) {
+      developer.log('Error switching to video: $e');
+      _showError(e.toString());
+    } finally {
+      // 10. Always unlock the UI
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _stopVideoStream() async {
+    await _videoInput.stopStreamingImages();
+    setState(() {
+      _isCameraOn = false;
+    });
+  }
+
+  Future<void> _sendTextPrompt(String textPrompt) async {
+    setState(() {
+      _loading = true;
+    });
+    try {
+      //final prompt = Content.text(textPrompt);
+      // await _session.send(input: prompt, turnComplete: true);
+      await _session.sendTextRealtime(textPrompt);
+    } catch (e) {
+      _showError(e.toString());
+    }
+
+    setState(() {
+      _loading = false;
+    });
+  }
+
+  Future<void> _processMessagesContinuously() async {
+    try {
+      await for (final message in _session.receive()) {
+        if (!mounted) break;
+        await _handleLiveServerMessage(message);
+      }
+    } catch (e) {
+      _showError(e.toString());
+    }
+  }
+
+  Future<void> _handleLiveServerMessage(LiveServerResponse response) async {
+    final message = response.message;
+
+    if (message is LiveServerContent) {
+      if (message.modelTurn != null) {
+        await _handleLiveServerContent(message);
+      }
+
+      int? _handleTranscription(
+        Transcription? transcription,
+        int? messageIndex,
+        String prefix,
+        bool fromUser,
+      ) {
+        int? currentIndex = messageIndex;
+        if (transcription?.text != null) {
+          if (currentIndex != null) {
+            _messages[currentIndex] = _messages[currentIndex].copyWith(
+              text: '${_messages[currentIndex].text}${transcription!.text!}',
+            );
+          } else {
+            _messages.add(
+              MessageData(
+                text: '$prefix${transcription!.text!}',
+                fromUser: fromUser,
+              ),
+            );
+            currentIndex = _messages.length - 1;
+          }
+          if (transcription.finished ?? false) {
+            currentIndex = null;
+            setState(_scrollDown);
+          } else {
+            // Use a scheduled frame instead of an immediate setState
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() {});
+            });
+          }
+        }
+        return currentIndex;
+      }
+
+      _inputTranscriptionMessageIndex = _handleTranscription(
+        message.inputTranscription,
+        _inputTranscriptionMessageIndex,
+        'Input transcription: ',
+        true,
+      );
+      _outputTranscriptionMessageIndex = _handleTranscription(
+        message.outputTranscription,
+        _outputTranscriptionMessageIndex,
+        'Output transcription: ',
+        false,
+      );
+
+      if (message.interrupted != null && message.interrupted!) {
+        developer.log('Interrupted: $response');
+      }
+    } else if (message is LiveServerToolCall && message.functionCalls != null) {
+      await _handleLiveServerToolCall(message);
+    } else if (message is GoingAwayNotice) {
+      developer.log('Session is going away in ${message.timeLeft} seconds');
+    }
+  }
+
+  Future<void> _handleLiveServerContent(LiveServerContent response) async {
+    final partList = response.modelTurn?.parts;
+    if (partList != null) {
+      for (final part in partList) {
+        if (part is TextPart) {
+          await _handleTextPart(part);
+        } else if (part is InlineDataPart) {
+          await _handleInlineDataPart(part);
+        } else {
+          developer.log('receive part with type ${part.runtimeType}');
+        }
+      }
+    }
+  }
+
+  Future<void> _handleTextPart(TextPart part) async {
+    if (!_loading) {
+      setState(() {
+        _loading = true;
+      });
+    }
+    _messages.add(
+      MessageData(
+        text: part.text,
+        fromUser: false,
+        isThought: part.isThought ?? false,
+      ),
+    );
+    setState(() {
+      _loading = false;
+      _scrollDown();
+    });
+  }
+
+  Future<void> _handleInlineDataPart(InlineDataPart part) async {
+    if (part.mimeType.startsWith('audio')) {
+      _audioOutput.addDataToAudioStream(part.bytes);
+    }
+  }
+
+  Future<void> _handleLiveServerToolCall(LiveServerToolCall response) async {
+    final functionCalls = response.functionCalls!.toList();
+    if (functionCalls.isNotEmpty) {
+      final functionCall = functionCalls.first;
+      if (functionCall.name == 'setLightValues') {
+        var color = functionCall.args['colorTemperature']! as String;
+        var brightness = functionCall.args['brightness']! as int;
+        final functionResult = await _setLightValues(
+          brightness: brightness,
+          colorTemperature: color,
+        );
+        await _session.sendToolResponse([
+          FunctionResponse(
+            functionCall.name,
+            functionResult,
+            id: functionCall.id,
+          ),
+        ]);
+      } else {
+        throw UnimplementedError(
+          'Function not declared to the model: ${functionCall.name}',
+        );
+      }
+    }
+  }
+
+  void _showError(String message) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Something went wrong'),
+          content: SingleChildScrollView(
+            child: SelectableText(message),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

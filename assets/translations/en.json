@@ -179,6 +179,7 @@
   "hideTranscript": "Hide transcript",
   "showTranscript": "Show transcript",
   "retryConnection": "Retry Connection",
+  "tapToInterrupt": "Tap to interrupt",
   "youLabel": "You",
   "aiLabel": "AI",
   "initializingStatus": "Initializing...",

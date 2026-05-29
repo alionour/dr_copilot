@@ -160,6 +160,7 @@
   "hideTranscript": "Masquer la transcription",
   "showTranscript": "Afficher la transcription",
   "retryConnection": "Réessayer la connexion",
+  "tapToInterrupt": "Appuyez pour interrompre",
   "youLabel": "Vous",
   "aiLabel": "IA",
   "initializingStatus": "Initialisation...",

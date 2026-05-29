@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -35,8 +37,11 @@ class GeminiLiveService {
       StreamController.broadcast();
   final StreamController<double> _audioLevelController =
       StreamController.broadcast();
+  final StreamController<PatientModel?> _activePatientController =
+      StreamController.broadcast();
 
   LiveChatState _currentState = LiveChatState.idle;
+  PatientModel? _activePatient;
 
   final List<_AudioChunk> _audioQueue = [];
   bool _isPlayingAudio = false;
@@ -50,6 +55,7 @@ class GeminiLiveService {
   final FunctionCallHandler functionCallHandler;
   String currentLocale;
   Function(String formType, Map<String, dynamic> initialData)? onFormRequested;
+  Function(String toolName, Map<String, dynamic> results)? onQueryResult;
 
   final List<String> _interactiveTools = const [
     'add_patient',
@@ -60,11 +66,23 @@ class GeminiLiveService {
     'edit_evaluation'
   ];
 
+  final List<String> _queryTools = const [
+    'list_patients',
+    'list_sessions',
+    'list_evaluations',
+    'get_patient',
+    'get_session',
+    'get_evaluation',
+    'select_patient',
+    'clear_active_patient'
+  ];
+
   GeminiLiveService({
     required this.getClinicId,
     required this.functionCallHandler,
     this.currentLocale = 'en',
     this.onFormRequested,
+    this.onQueryResult,
   }) {
     // Ensure we are in a clean state
     _setState(LiveChatState.idle);
@@ -73,7 +91,27 @@ class GeminiLiveService {
   Stream<LiveChatState> get stateStream => _stateController.stream;
   Stream<String> get transcriptStream => _transcriptController.stream;
   Stream<double> get audioLevelStream => _audioLevelController.stream;
+  Stream<PatientModel?> get activePatientStream =>
+      _activePatientController.stream;
   LiveChatState get currentState => _currentState;
+  PatientModel? get activePatient => _activePatient;
+
+  void setActivePatient(PatientModel? patient) {
+    _activePatient = patient;
+    _activePatientController.add(patient);
+    debugPrint('[GeminiLive] Active Patient: ${patient?.name}');
+
+    // If session is active, notify the AI about the context change
+    if (_session != null) {
+      if (patient != null) {
+        speak(
+            "__CONTEXT_UPDATE__: You are now focused on patient ${patient.name} (ID: ${patient.id}). Use this patient for any follow-up actions unless specified otherwise.");
+      } else {
+        speak(
+            "__CONTEXT_UPDATE__: The active patient context has been cleared.");
+      }
+    }
+  }
 
   void _setState(LiveChatState state) {
     _currentState = state;
@@ -88,6 +126,7 @@ class GeminiLiveService {
     _setState(LiveChatState.processing);
 
     try {
+      debugPrint('[GeminiLive] startSession: connecting');
       final clinicId = await getClinicId();
 
       final firebaseAI = FirebaseAI.googleAI();
@@ -105,12 +144,16 @@ class GeminiLiveService {
           'You can help manage patients, sessions, and evaluations. '
           'Current Clinic ID: ${clinicId ?? "Unknown"}. '
           'User locale: $currentLocale. '
-          'When performing actions like adding a patient or session, you should prepare the form for the user. '
-          'When you call a tool like "add_patient", a form will be shown to the user. '
-          'Confirm that you have prepared the form briefly.'
-          'When you call a list/query tool (e.g. list_patients, list_sessions), '
-          'clearly tell the user the results: mention how many items were found '
-          'and list their names/IDs. If no results found, say so explicitly.',
+          '${_activePatient != null ? "Currently focused on patient: ${_activePatient!.name} (ID: ${_activePatient!.id}). Use this ID for any follow-up actions like adding a session or editing details unless told otherwise." : ""} '
+          'When performing actions like adding/editing a patient or session, prepare the form for the user. '
+          'When you call a tool like "add_patient" or "edit_patient", a form will be shown to the user. '
+          'Confirm that you have prepared the form briefly. '
+          'When you call a list/query tool (e.g. list_patients, list_sessions): '
+          '1. Clearly state how many items were found. '
+          '2. List the items clearly (e.g., "1. Patient Name (Age)"). NEVER speak long IDs/UIDs. '
+          'If you need to distinguish between items with identical names, use only the last 4 characters of their ID (e.g., "the one ending in 7B2E"). '
+          '3. Ask the user to select one of the items by number or name if they want to perform further actions like editing or adding a session for them. '
+          'If no results are found, say so explicitly and offer to help with something else.',
         ),
         tools: getFirebaseAITools(),
       );
@@ -120,8 +163,8 @@ class GeminiLiveService {
 
       unawaited(_listenToSession());
       await _startRecording();
-    } catch (e) {
-      debugPrint('[GeminiLive] Connection failed: $e');
+    } catch (e, stack) {
+      debugPrint('[GeminiLive] Connection failed: $e\n$stack');
       await _closeLiveSession(LiveChatState.error);
     }
   }
@@ -250,11 +293,15 @@ class GeminiLiveService {
                 // Show form instead of executing directly
                 debugPrint('[GeminiLive] -> showing form for ${call.name}');
                 onFormRequested!(call.name, call.args);
-                responses.add(FunctionResponse(call.name, {
-                  'status': 'form_shown',
-                  'message':
-                      'I have prepared the form for you. Please review and confirm.'
-                }));
+                responses.add(FunctionResponse(
+                  call.name,
+                  {
+                    'status': 'form_shown',
+                    'message':
+                        'I have prepared the form for you. Please review and confirm.'
+                  },
+                  id: call.id,
+                ));
               } else {
                 _setState(LiveChatState.processing);
                 // Convert to google_generative_ai.FunctionCall for the handler
@@ -266,27 +313,66 @@ class GeminiLiveService {
                 stopwatch.stop();
                 debugPrint('[GeminiLive] <- handler returned in ${stopwatch.elapsedMilliseconds}ms keys: ${result.keys.join(", ")}');
                 debugPrint('[GeminiLive] <- handler result error? ${result.containsKey("error")}');
+
+                // Push to UI if it's a query tool
+                if (_queryTools.contains(call.name) && onQueryResult != null) {
+                  onQueryResult!(call.name, result);
+                }
+
+                // Handle select/clear patient tools specially
+                if (call.name == 'select_patient') {
+                  final patientData = result['patient'] ?? result;
+                  if (patientData is Map<String, dynamic> &&
+                      patientData.containsKey('id')) {
+                    final patient = PatientModel(
+                      id: patientData['id'],
+                      name: patientData['name'] ?? '',
+                      age: patientData['age'] is int
+                          ? patientData['age']
+                          : int.tryParse(patientData['age']?.toString() ?? ''),
+                      gender: patientData['gender'],
+                      ownerId: '',
+                      clinicId: '',
+                      createdAt: Timestamp.now(),
+                    );
+                    _activePatient = patient;
+                    _activePatientController.add(patient);
+                  }
+                } else if (call.name == 'clear_active_patient') {
+                  _activePatient = null;
+                  _activePatientController.add(null);
+                }
+
                 // Sanitize the result as a safety net
-                responses.add(FunctionResponse(call.name, sanitizeJsonForGemini(result)));
+                responses.add(FunctionResponse(
+                  call.name,
+                  sanitizeJsonForGemini(result),
+                  id: call.id,
+                ));
               }
             }
           }
           debugPrint('[GeminiLive] sending ${responses.length} tool response(s)');
           await _session?.sendToolResponse(responses);
-          debugPrint('[GeminiLive] tool response sent, state -> listening');
           _resumeAudioOnNextContent = true;
+          debugPrint('[GeminiLive] tool response sent, waiting for server content');
           _setState(LiveChatState.listening);
         } catch (e, stack) {
-          debugPrint('[GeminiLive] Tool call error: $e');
+          debugPrint('[GeminiLive] !!! Tool call execution error: $e');
           debugPrint('[GeminiLive] Stack: $stack');
           _shouldSendAudio = true;
           if (functionCalls != null && responses.isEmpty) {
             for (final call in functionCalls) {
-              responses.add(FunctionResponse(call.name, {
+              final errMap = {
                 'error': 'An error occurred while executing ${call.name}: $e',
-              }));
+              };
+              debugPrint('[GeminiLive] -> sending error response for ${call.name} (id: ${call.id})');
+              responses.add(FunctionResponse(
+                call.name,
+                errMap,
+                id: call.id,
+              ));
             }
-            debugPrint('[GeminiLive] sending ${responses.length} error response(s)');
             await _session?.sendToolResponse(responses);
           }
           _setState(LiveChatState.listening);
@@ -325,14 +411,6 @@ class GeminiLiveService {
       // Calculate levels for the UI visualizer
       final level = _calculateRms(audioBytes);
       _audioLevelController.add(level);
-
-      // Local barge-in: if user speaks during AI playback, interrupt
-      if (_currentState == LiveChatState.speaking && level > 0.03) {
-        debugPrint('[GeminiLive] Barge-in detected (level=$level)');
-        await _clearAudioQueue();
-        _shouldSendAudio = true;
-        _setState(LiveChatState.listening);
-      }
 
       final session = _session;
       if (session != null && _shouldSendAudio) {
@@ -578,11 +656,22 @@ class GeminiLiveService {
     }
   }
 
+  /// Allows the user to barge in by tapping the screen during AI speech.
+  Future<void> bargeIn() async {
+    if (_currentState == LiveChatState.speaking) {
+      debugPrint('[GeminiLive] User tapped to barge in');
+      await _clearAudioQueue();
+      _shouldSendAudio = true;
+      _setState(LiveChatState.listening);
+    }
+  }
+
   void dispose() {
     stopSession();
     _stateController.close();
     _transcriptController.close();
     _audioLevelController.close();
+    _activePatientController.close();
   }
 }
 

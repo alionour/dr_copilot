@@ -7,8 +7,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   cloud_firestore
   connectivity_plus
   desktop_multi_window
+  firebase_app_check
   firebase_auth
   firebase_core
+  firebase_remote_config
   firebase_storage
   flutter_inappwebview_windows
   flutter_secure_storage_windows

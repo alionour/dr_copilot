@@ -82,8 +82,9 @@ class FunctionCallHandler {
       }
       debugPrint('[FunctionCallHandler] ${call.name} result: ${result.keys.join(", ")}');
       return result;
-    } catch (e) {
-      debugPrint('[FunctionCallHandler] ERROR ${call.name}: $e');
+    } catch (e, stack) {
+      debugPrint('[FunctionCallHandler] !!! EXCEPTION during ${call.name}: $e');
+      debugPrint('[FunctionCallHandler] Stack: $stack');
       return {'error': 'Error executing ${call.name}: $e'};
     }
   }

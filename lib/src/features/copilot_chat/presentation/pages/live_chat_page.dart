@@ -9,6 +9,7 @@ import 'package:dr_copilot/src/features/appointments/sessions/presentation/pages
 import 'package:dr_copilot/src/features/copilot_chat/data/services/gemini_live_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/live_chat_state.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
+import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecase.dart';
 import 'package:dr_copilot/src/features/patients/presentation/pages/add_patient_page.dart';
 import 'package:dr_copilot/src/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -30,15 +31,21 @@ class _LiveChatPageState extends State<LiveChatPage>
 
   String? _activeFormType;
   Map<String, dynamic>? _activeFormData;
+  String? _activeQueryTool;
+  Map<String, dynamic>? _queryResults;
+
   final List<_TranscriptEntry> _transcriptEntries = [];
   bool _showTranscript = true;
+  PatientModel? _activePatient;
   StreamSubscription? _stateSub;
   StreamSubscription? _transcriptSub;
+  StreamSubscription? _activePatientSub;
 
   @override
   void initState() {
     super.initState();
     _liveChatService = GetIt.instance<GeminiLiveService>();
+    _activePatient = _liveChatService.activePatient;
     _visualizerController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1000))
       ..repeat();
@@ -69,16 +76,57 @@ class _LiveChatPageState extends State<LiveChatPage>
       }
       if (mounted) setState(() {});
     });
+
+    _activePatientSub = _liveChatService.activePatientStream.listen((patient) {
+      if (mounted) {
+        setState(() {
+          _activePatient = patient;
+        });
+      }
+    });
   }
 
   void _setupCallbacks() {
     final settings = context.read<SettingsBloc>().state;
     _liveChatService.currentLocale = settings.localeCode;
-    _liveChatService.onFormRequested = (formType, initialData) {
+    _liveChatService.onFormRequested = (formType, initialData) async {
+      if (!mounted) return;
+
+      Map<String, dynamic> enrichedData = Map<String, dynamic>.from(initialData);
+
+      if (formType == 'edit_patient' && enrichedData['id'] != null) {
+        try {
+          final useCase = GetIt.I<PatientsUseCase>();
+          final result = await useCase.getPatientById(enrichedData['id']);
+          result.fold(
+            (failure) =>
+                debugPrint('[LiveChatPage] Failed to fetch patient: $failure'),
+            (patient) {
+              enrichedData = {
+                ...patient.toJson(),
+                ...initialData,
+              };
+            },
+          );
+        } catch (e) {
+          debugPrint('[LiveChatPage] Error fetching patient for edit: $e');
+        }
+      }
+
       if (mounted) {
         setState(() {
           _activeFormType = formType;
-          _activeFormData = initialData;
+          _activeFormData = enrichedData;
+          _activeQueryTool = null;
+          _queryResults = null;
+        });
+      }
+    };
+    _liveChatService.onQueryResult = (toolName, results) {
+      if (mounted) {
+        setState(() {
+          _activeQueryTool = toolName;
+          _queryResults = results;
         });
       }
     };
@@ -97,12 +145,18 @@ class _LiveChatPageState extends State<LiveChatPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
+    final isWide = size.width > 900;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0D0D0D) : const Color(0xFFF5F5F5),
+      backgroundColor:
+          isDark ? const Color(0xFF0D0D0D) : const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: _activeFormData != null
-            ? Row(
+        child: Stack(
+          children: [
+            // Main Visualizer and Transcript
+            if (isWide && (_activeFormData != null || _queryResults != null))
+              Row(
                 children: [
                   Expanded(
                     flex: 2,
@@ -114,11 +168,55 @@ class _LiveChatPageState extends State<LiveChatPage>
                   ),
                   Expanded(
                     flex: 3,
-                    child: _buildFormView(),
+                    child: _activeFormData != null
+                        ? _buildFormView()
+                        : _buildQueryResultView(theme, isDark),
                   ),
                 ],
               )
-            : _buildVisualizer(theme, isDark),
+            else
+              _buildVisualizer(theme, isDark),
+
+            // Responsive Overlay for small screens
+            if (!isWide && (_activeFormData != null || _queryResults != null))
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black54,
+                  child: Column(
+                    children: [
+                      const Spacer(flex: 1),
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.scaffoldBackgroundColor,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(24),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(24),
+                            ),
+                            child: _activeFormData != null
+                                ? _buildFormView()
+                                : _buildQueryResultView(theme, isDark),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -153,6 +251,43 @@ class _LiveChatPageState extends State<LiveChatPage>
           ),
         ),
 
+        if (_activePatient != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person, size: 16, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    _activePatient!.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _liveChatService.setActivePatient(null),
+                    child: Icon(Icons.close,
+                        size: 16,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
         // Main content
         Expanded(
           child: StreamBuilder<LiveChatState>(
@@ -164,35 +299,38 @@ class _LiveChatPageState extends State<LiveChatPage>
                 children: [
                   const Spacer(flex: 1),
 
-                  // Animated Orb
-                  StreamBuilder<double>(
-                    stream: _liveChatService.audioLevelStream,
-                    initialData: 0.0,
-                    builder: (context, levelSnapshot) {
-                      final level = levelSnapshot.data ?? 0.0;
-                      return SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: AnimatedBuilder(
-                          animation: _visualizerController,
-                          builder: (context, _) {
-                            final isActive = state == LiveChatState.speaking ||
-                                state == LiveChatState.listening ||
-                                state == LiveChatState.initializing;
-                            return CustomPaint(
-                              size: const Size(200, 200),
-                              painter: _OrbPainter(
-                                audioLevel: level,
-                                animationValue: _visualizerController.value,
-                                isActive: isActive,
-                                color: _getStatusColor(state),
-                                isDark: isDark,
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
+                  // Animated Orb (tap to interrupt during AI speech)
+                  GestureDetector(
+                    onTap: () => _liveChatService.bargeIn(),
+                    child: StreamBuilder<double>(
+                      stream: _liveChatService.audioLevelStream,
+                      initialData: 0.0,
+                      builder: (context, levelSnapshot) {
+                        final level = levelSnapshot.data ?? 0.0;
+                        return SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: AnimatedBuilder(
+                            animation: _visualizerController,
+                            builder: (context, _) {
+                              final isActive = state == LiveChatState.speaking ||
+                                  state == LiveChatState.listening ||
+                                  state == LiveChatState.initializing;
+                              return CustomPaint(
+                                size: const Size(200, 200),
+                                painter: _OrbPainter(
+                                  audioLevel: level,
+                                  animationValue: _visualizerController.value,
+                                  isActive: isActive,
+                                  color: _getStatusColor(state),
+                                  isDark: isDark,
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   ),
 
                   const SizedBox(height: 24),
@@ -223,7 +361,24 @@ class _LiveChatPageState extends State<LiveChatPage>
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+
+                  // Tap to interrupt label (only during AI speech)
+                  if (state == LiveChatState.speaking)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        'tapToInterrupt'.tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.4),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 12),
 
                   // Transcript panel
                   if (_showTranscript && _transcriptEntries.isNotEmpty)
@@ -415,11 +570,16 @@ class _LiveChatPageState extends State<LiveChatPage>
           address: _activeFormData!['address'],
           phone1: _activeFormData!['phone1'],
           phone2: _activeFormData!['phone2'],
-          treatingDoctorId: _activeFormData!['treatingDoctor'],
+          treatingDoctorId: _activeFormData!['treatingDoctor'] ??
+              _activeFormData!['treatingDoctorId'],
           occupation: _activeFormData!['occupation'],
-          ownerId: '',
-          clinicId: '',
-          createdAt: Timestamp.now(),
+          ownerId: _activeFormData!['ownerId'] ?? '',
+          clinicId: _activeFormData!['clinicId'] ?? '',
+          departmentId: _activeFormData!['departmentId'],
+          teamId: _activeFormData!['teamId'],
+          createdAt: _activeFormData!['createdAt'] is Timestamp
+              ? _activeFormData!['createdAt']
+              : Timestamp.now(),
         );
       }
       formWidget = Container(
@@ -510,6 +670,111 @@ class _LiveChatPageState extends State<LiveChatPage>
     }
 
     return formWidget;
+  }
+
+  Widget _buildQueryResultView(ThemeData theme, bool isDark) {
+    if (_queryResults == null) return const SizedBox();
+
+    final List items;
+    final String title;
+    final IconData icon;
+
+    if (_queryResults!.containsKey('patients')) {
+      items = _queryResults!['patients'] as List;
+      title = 'patientsFound'.tr();
+      icon = Icons.people;
+    } else if (_queryResults!.containsKey('sessions')) {
+      items = _queryResults!['sessions'] as List;
+      title = 'sessionsFound'.tr();
+      icon = Icons.calendar_today;
+    } else if (_queryResults!.containsKey('evaluations')) {
+      items = _queryResults!['evaluations'] as List;
+      title = 'evaluationsFound'.tr();
+      icon = Icons.assignment;
+    } else {
+      // Single item or error
+      if (_queryResults!.containsKey('error')) {
+        return Center(child: Text(_queryResults!['error'].toString()));
+      }
+      items = [_queryResults];
+      title = 'itemFound'.tr();
+      icon = Icons.info;
+    }
+
+    return Container(
+      color: theme.scaffoldBackgroundColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppBar(
+            title: Text(title),
+            leading: Icon(icon),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() {
+                  _queryResults = null;
+                  _activeQueryTool = null;
+                }),
+              ),
+            ],
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+          Expanded(
+            child: items.isEmpty
+                ? Center(child: Text('noResultsFound'.tr()))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final name = item['name'] ?? item['patientName'] ?? 'Item';
+                      final id = item['id'] ?? '';
+                      
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          title: Text(name),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (item['age'] != null) Text('age'.tr() + ': ${item['age']}'),
+                              if (item['gender'] != null) Text('gender'.tr() + ': ${item['gender']}'),
+                              if (item['startDateTime'] != null) Text('date'.tr() + ': ${item['startDateTime']}'),
+                              Text('ID: $id', style: const TextStyle(fontSize: 10)),
+                            ],
+                          ),
+                          onTap: () {
+                            if (_queryResults!.containsKey('patients')) {
+                              final patient = PatientModel(
+                                id: id,
+                                name: name,
+                                age: item['age'] is int
+                                    ? item['age']
+                                    : int.tryParse(item['age']?.toString() ?? ''),
+                                gender: item['gender'],
+                                ownerId: '',
+                                clinicId: '',
+                                createdAt: Timestamp.now(),
+                              );
+                              _liveChatService.setActivePatient(patient);
+                              _liveChatService.speak(
+                                  "Selected ${patient.name}. How can I help you with them?");
+                            } else {
+                              // Suggest edit to Gemini verbally or just show detail
+                              _liveChatService.speak(
+                                  "I've found $name. You can ask me to edit their details or add a session.");
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _closeForm() {
