@@ -15,9 +15,9 @@ class SessionItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deletedAt = session.deletedAt?.toDate();
-    final patientName = session.patientName;
+    final patientName = session.patientName ?? '';
     final subtitle =
-        'Patient: $patientName\nDeleted: ${deletedAt != null ? DateFormat('yyyy-MM-dd HH:mm').format(deletedAt) : 'Unknown'}';
+        '${'patient'.tr()}: $patientName\nDeleted: ${deletedAt != null ? DateFormat('yyyy-MM-dd HH:mm').format(deletedAt) : 'Unknown'}';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -97,7 +97,7 @@ class EvaluationItemTile extends StatelessWidget {
     final deletedAt = evaluation.deletedAt?.toDate();
     final patientName = evaluation.patientName;
     final subtitle =
-        'Patient: $patientName\nDeleted: ${deletedAt != null ? DateFormat('yyyy-MM-dd HH:mm').format(deletedAt) : 'Unknown'}';
+        '${'patient'.tr()}: $patientName\nDeleted: ${deletedAt != null ? DateFormat('yyyy-MM-dd HH:mm').format(deletedAt) : 'Unknown'}';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -265,7 +265,7 @@ class CalendarEventItemTile extends StatelessWidget {
           color: Colors.purple,
         ),
         title: Text(event.title),
-        subtitle: Text('$subtitle\n${event.startDateTime.toDate()}'),
+        subtitle: Text('$subtitle\n${DateFormat('yyyy-MM-dd HH:mm').format(event.startDateTime.toDate())}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -282,7 +282,7 @@ class CalendarEventItemTile extends StatelessWidget {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.delete_forever, color: Colors.red),
+              icon: const Icon(Icons.delete_forever_outlined, color: Colors.red),
               tooltip: 'deletePermanently'.tr(),
               onPressed: () {
                 _showDeleteConfirmation(context, event.id);

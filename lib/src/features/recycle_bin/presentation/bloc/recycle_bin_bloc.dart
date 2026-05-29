@@ -7,6 +7,7 @@ import 'package:dr_copilot/src/features/calendar_events/domain/models/calendar_e
 import 'package:dr_copilot/src/features/calendar_events/domain/repositories/abstract_calendar_events_repository.dart';
 import 'package:dr_copilot/src/features/patients/domain/models/patient_model.dart';
 import 'package:dr_copilot/src/features/patients/domain/repositories/abstract_patients_repository.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:dr_copilot/src/core/app/notifiers/owner_notifier.dart';
 import 'package:dr_copilot/src/features/auth/domain/models/permission_enum.dart';
@@ -36,7 +37,7 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
     Emitter<RecycleBinState> emit,
   ) async {
     if (!OwnerNotifier().hasPermission(AppPermission.viewRecycleBin)) {
-      emit(const RecycleBinError('Permission denied'));
+      emit(RecycleBinError('permissionDenied'.tr()));
       return;
     }
     emit(RecycleBinLoading());
@@ -54,33 +55,43 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
     List<PatientModel> patients = [];
     List<CalendarEventModel> calendarEvents = [];
     String? errorMessage;
+    int failureCount = 0;
 
     evaluationsResult.fold(
-      (failure) => errorMessage = failure.message,
+      (failure) {
+        errorMessage = failure.message;
+        failureCount++;
+      },
       (data) => evaluations = data,
     );
 
     sessionsResult.fold(
-      (failure) => errorMessage = errorMessage ?? failure.message,
+      (failure) {
+        errorMessage = errorMessage ?? failure.message;
+        failureCount++;
+      },
       (data) => sessions = data,
     );
 
     patientsResult.fold(
-      (failure) => errorMessage = errorMessage ?? failure.message,
+      (failure) {
+        errorMessage = errorMessage ?? failure.message;
+        failureCount++;
+      },
       (data) => patients = data,
     );
 
     calendarEventsResult.fold(
-      (failure) => errorMessage = errorMessage ?? failure.message,
+      (failure) {
+        errorMessage = errorMessage ?? failure.message;
+        failureCount++;
+      },
       (data) => calendarEvents = data,
     );
 
     // Check if all failed
-    if (evaluationsResult.isLeft() &&
-        sessionsResult.isLeft() &&
-        patientsResult.isLeft() &&
-        calendarEventsResult.isLeft()) {
-      emit(RecycleBinError(errorMessage ?? 'Failed to load deleted items'));
+    if (failureCount == 4) {
+      emit(RecycleBinError(errorMessage ?? 'failedToLoadDeletedItems'.tr()));
       return;
     }
 
@@ -90,6 +101,8 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
         deletedSessions: sessions,
         deletedPatients: patients,
         deletedCalendarEvents: calendarEvents,
+        warningMessage:
+            failureCount > 0 ? 'someItemsCouldNotBeLoaded'.tr() : null,
       ),
     );
   }
@@ -101,8 +114,8 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
     final currentState = state;
     if (currentState is! RecycleBinLoaded) return;
     if (!OwnerNotifier().hasPermission(AppPermission.restoreRecycleBinItem)) {
-      emit(RecycleBinError('Permission denied'));
-      add(LoadDeletedItems()); // Refresh to clear error state eventually or handle in UI
+      emit(RecycleBinError('permissionDenied'.tr()));
+      add(LoadDeletedItems());
       return;
     }
 
@@ -141,7 +154,7 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
     if (currentState is! RecycleBinLoaded) return;
     if (!OwnerNotifier()
         .hasPermission(AppPermission.permanentDeleteRecycleBinItem)) {
-      emit(RecycleBinError('Permission denied'));
+      emit(RecycleBinError('permissionDenied'.tr()));
       add(LoadDeletedItems());
       return;
     }

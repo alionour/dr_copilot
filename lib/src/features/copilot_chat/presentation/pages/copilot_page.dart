@@ -1232,12 +1232,12 @@ class _CopilotPageState extends State<CopilotPage> {
 
       // Check Phone
       if (requiredFields.contains('patient.phone') ||
-          requiredFields.contains('phoneNumber')) {
-        final val = _functionCallArgs['phoneNumber'];
+          requiredFields.contains('phone1')) {
+        final val = _functionCallArgs['phone1'];
         if (val == null ||
             val.toString().trim().isEmpty ||
             val.toString().toLowerCase() == 'null') {
-          missingFields.add('phoneNumber');
+          missingFields.add('phone1');
           missingFieldPrompts.add('phone number');
         }
       }
@@ -1254,12 +1254,13 @@ class _CopilotPageState extends State<CopilotPage> {
       }
 
       // Check Alt Phone
-      if (requiredFields.contains('patient.alt_phone')) {
-        final val = _functionCallArgs['alternativePhoneNumber'];
+      if (requiredFields.contains('patient.alt_phone') ||
+          requiredFields.contains('phone2')) {
+        final val = _functionCallArgs['phone2'];
         if (val == null ||
             val.toString().trim().isEmpty ||
             val.toString().toLowerCase() == 'null') {
-          missingFields.add('alternativePhoneNumber');
+          missingFields.add('phone2');
           missingFieldPrompts.add('alternative phone number');
         }
       }
@@ -1319,8 +1320,8 @@ class _CopilotPageState extends State<CopilotPage> {
         'age',
         'gender',
         'address',
-        'phoneNumber',
-        'alternativePhoneNumber',
+        'phone1',
+        'phone2',
         'treatingDoctor',
         'occupation',
       ].any(
@@ -1584,7 +1585,7 @@ class _CopilotPageState extends State<CopilotPage> {
             result['name'] ?? '',
             '${result['age'] ?? ''}',
             result['gender'] ?? '',
-            result['phoneNumber'] ?? '',
+            result['phone1'] ?? '',
           ]),
         );
       } else if (functionName == 'get_session') {
@@ -1745,8 +1746,8 @@ class _CopilotPageState extends State<CopilotPage> {
               : int.tryParse(initialData['age']?.toString() ?? ''),
           gender: initialData['gender'],
           address: initialData['address'],
-          phone1: initialData['phoneNumber'],
-          phone2: initialData['alternativePhoneNumber'],
+          phone1: initialData['phone1'] ?? initialData['phoneNumber'],
+          phone2: initialData['phone2'] ?? initialData['alternativePhoneNumber'],
           treatingDoctorId: initialData['treatingDoctor'],
           occupation: initialData['occupation'],
           ownerId: '',

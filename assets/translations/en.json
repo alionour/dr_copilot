@@ -1641,5 +1641,8 @@
   "authenticationError": "Authentication error",
   "inventoryUnitsHint": "pieces, boxes, vials",
   "noPermissionToViewTasks": "You do not have enough permissions to view tasks. Please contact your administrator.",
-  "stockAdjustmentHint": "e.g., Restocked, Used in procedure"
+  "stockAdjustmentHint": "e.g., Restocked, Used in procedure",
+  "permissionDenied": "Permission denied",
+  "failedToLoadDeletedItems": "Failed to load deleted items",
+  "someItemsCouldNotBeLoaded": "Some items could not be loaded"
 }

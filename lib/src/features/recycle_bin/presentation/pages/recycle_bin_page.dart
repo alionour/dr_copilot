@@ -46,9 +46,21 @@ class RecycleBinPage extends StatelessWidget {
           body: BlocConsumer<RecycleBinBloc, RecycleBinState>(
             listener: (context, state) {
               if (state is RecycleBinError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: SelectionArea(child: Text(state.message))),
-                );
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(content: SelectionArea(child: Text(state.message))),
+                  );
+              } else if (state is RecycleBinLoaded &&
+                  state.warningMessage != null) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: SelectionArea(child: Text(state.warningMessage!)),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
               }
             },
             builder: (context, state) {

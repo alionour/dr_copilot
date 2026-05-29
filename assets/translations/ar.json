@@ -1637,5 +1637,8 @@
   "authenticationError": "خطأ في المصادقة",
   "inventoryUnitsHint": "قطع، صناديق، عبوات",
   "noPermissionToViewTasks": "ليس لديك صلاحية لعرض المهام. يرجى الاتصال بمسؤول النظام.",
-  "stockAdjustmentHint": "مثال: إعادة تعبئة، استخدم في إجراء طبي"
+  "stockAdjustmentHint": "مثال: إعادة تعبئة، استخدم في إجراء طبي",
+  "permissionDenied": "تم رفض الإذن",
+  "failedToLoadDeletedItems": "فشل في تحميل العناصر المحذوفة",
+  "someItemsCouldNotBeLoaded": "تعذر تحميل بعض العناصر"
 }

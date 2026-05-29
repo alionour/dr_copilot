@@ -39,6 +39,7 @@ class GeminiLiveService {
 
   final List<_AudioChunk> _audioQueue = [];
   bool _isPlayingAudio = false;
+  bool _shouldSendAudio = true;
 
   Completer<void>? _currentPlaybackCompleter;
 
@@ -318,8 +319,16 @@ class GeminiLiveService {
       final level = _calculateRms(audioBytes);
       _audioLevelController.add(level);
 
+      // Local barge-in: if user speaks during AI playback, interrupt
+      if (_currentState == LiveChatState.speaking && level > 0.03) {
+        debugPrint('[GeminiLive] Barge-in detected (level=$level)');
+        await _clearAudioQueue();
+        _shouldSendAudio = true;
+        _setState(LiveChatState.listening);
+      }
+
       final session = _session;
-      if (session != null) {
+      if (session != null && _shouldSendAudio) {
         try {
           await session.sendAudioRealtime(
             InlineDataPart('audio/pcm;rate=16000', audioBytes),
@@ -408,6 +417,7 @@ class GeminiLiveService {
   void _playAudioChunk(Uint8List audioData, String mimeType) {
     if (_currentState != LiveChatState.speaking) {
       _setState(LiveChatState.speaking);
+      _shouldSendAudio = false;
     }
 
     int? sampleRate;
@@ -430,6 +440,7 @@ class GeminiLiveService {
   Future<void> _playNextAudio() async {
     if (_audioQueue.isEmpty) {
       _isPlayingAudio = false;
+      _shouldSendAudio = true;
       // Always go back to listening after playback finishes
       if (_currentState != LiveChatState.listening) {
         debugPrint('[GeminiLive] Playback finished, returning to listening');

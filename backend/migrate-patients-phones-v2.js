@@ -20,8 +20,8 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function migratePatientPhones() {
-  console.log('🚀 Starting migration for patient phone field standardisation (v2)...');
-  console.log('Target: Convert phoneNumber -> phone1 and alternativePhoneNumber -> phone2');
+  console.log('🚀 Starting migration for patient phone field REPLACEMENT (v2)...');
+  console.log('Target: Replace phoneNumber -> phone1 and alternativePhoneNumber -> phone2');
 
   const patientsSnapshot = await db.collection('patients').get();
   console.log(`Found ${patientsSnapshot.size} patients to check.`);
@@ -39,20 +39,25 @@ async function migratePatientPhones() {
     const updateData = {};
 
     // 1. phoneNumber -> phone1
-    if (data.phoneNumber !== undefined && data.phone1 === undefined) {
-      updateData.phone1 = data.phoneNumber;
-      // Also clear the old field if desired, or leave it for safety during transition
-      // updateData.phoneNumber = admin.firestore.FieldValue.delete();
+    if (data.phoneNumber !== undefined) {
+      if (data.phone1 === undefined) {
+        updateData.phone1 = data.phoneNumber;
+        console.log(`[PHONE1] Patient ${doc.id}: Copying value from phoneNumber`);
+      }
+      updateData.phoneNumber = admin.firestore.FieldValue.delete();
       needsUpdate = true;
-      console.log(`[PHONE1 FIX] Patient ${doc.id}: Setting phone1 from phoneNumber`);
+      console.log(`[PHONE1] Patient ${doc.id}: Deleting phoneNumber`);
     }
 
     // 2. alternativePhoneNumber -> phone2
-    if (data.alternativePhoneNumber !== undefined && data.phone2 === undefined) {
-      updateData.phone2 = data.alternativePhoneNumber;
-      // updateData.alternativePhoneNumber = admin.firestore.FieldValue.delete();
+    if (data.alternativePhoneNumber !== undefined) {
+      if (data.phone2 === undefined) {
+        updateData.phone2 = data.alternativePhoneNumber;
+        console.log(`[PHONE2] Patient ${doc.id}: Copying value from alternativePhoneNumber`);
+      }
+      updateData.alternativePhoneNumber = admin.firestore.FieldValue.delete();
       needsUpdate = true;
-      console.log(`[PHONE2 FIX] Patient ${doc.id}: Setting phone2 from alternativePhoneNumber`);
+      console.log(`[PHONE2] Patient ${doc.id}: Deleting alternativePhoneNumber`);
     }
 
     if (needsUpdate) {

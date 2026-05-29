@@ -16,12 +16,14 @@ class RecycleBinLoaded extends RecycleBinState {
   final List<SessionModel> deletedSessions;
   final List<PatientModel> deletedPatients;
   final List<CalendarEventModel> deletedCalendarEvents;
+  final String? warningMessage;
 
   const RecycleBinLoaded({
     required this.deletedEvaluations,
     required this.deletedSessions,
     required this.deletedPatients,
     required this.deletedCalendarEvents,
+    this.warningMessage,
   });
 
   @override
@@ -30,38 +32,8 @@ class RecycleBinLoaded extends RecycleBinState {
         deletedSessions,
         deletedPatients,
         deletedCalendarEvents,
+        warningMessage,
       ];
-
-  List<dynamic> get allItems {
-    final all = [
-      ...deletedEvaluations,
-      ...deletedSessions,
-      ...deletedPatients,
-      ...deletedCalendarEvents,
-    ];
-    // Sort by deletedAt descending
-    all.sort((a, b) {
-      final aTime = (a is EvaluationModel)
-          ? a.deletedAt
-          : (a is SessionModel)
-              ? a.deletedAt
-              : (a is PatientModel)
-                  ? a.deletedAt
-                  : (a as CalendarEventModel).deletedAt;
-      final bTime = (b is EvaluationModel)
-          ? b.deletedAt
-          : (b is SessionModel)
-              ? b.deletedAt
-              : (b is PatientModel)
-                  ? b.deletedAt
-                  : (b as CalendarEventModel).deletedAt;
-      if (aTime == null && bTime == null) return 0;
-      if (aTime == null) return 1;
-      if (bTime == null) return -1;
-      return bTime.compareTo(aTime);
-    });
-    return all;
-  }
 }
 
 class RecycleBinError extends RecycleBinState {
