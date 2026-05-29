@@ -40,6 +40,7 @@ class GeminiLiveService {
   final List<_AudioChunk> _audioQueue = [];
   bool _isPlayingAudio = false;
   bool _shouldSendAudio = true;
+  bool _resumeAudioOnNextContent = false;
 
   Completer<void>? _currentPlaybackCompleter;
 
@@ -168,6 +169,11 @@ class GeminiLiveService {
     final message = event.message;
     switch (message) {
       case LiveServerContent():
+        if (_resumeAudioOnNextContent) {
+          _shouldSendAudio = true;
+          _resumeAudioOnNextContent = false;
+          debugPrint('[GeminiLive] Resuming audio after tool response');
+        }
         debugPrint('[GeminiLive] LiveServerContent: turnComplete=${message.turnComplete} modelTurn=${message.modelTurn != null} parts=${message.modelTurn?.parts.length} interrupted=${message.interrupted}');
         // Handle user speech transcription
         if (message.inputTranscription?.text != null &&
@@ -227,7 +233,7 @@ class GeminiLiveService {
         }
       case LiveServerToolCall():
         debugPrint('[GeminiLive] === Tool call received ===');
-        _shouldSendAudio = false; // Stop sending mic audio so server processes tool response cleanly
+        _shouldSendAudio = false;
         final responses = <FunctionResponse>[];
         final functionCalls = message.functionCalls;
         try {
@@ -265,13 +271,13 @@ class GeminiLiveService {
           }
           debugPrint('[GeminiLive] sending ${responses.length} tool response(s)');
           await _session?.sendToolResponse(responses);
-          _shouldSendAudio = true;
+          _resumeAudioOnNextContent = true;
           debugPrint('[GeminiLive] tool response sent, state -> listening');
-          _shouldSendAudio = true;
           _setState(LiveChatState.listening);
         } catch (e, stack) {
           debugPrint('[GeminiLive] Tool call error: $e');
           debugPrint('[GeminiLive] Stack: $stack');
+          _shouldSendAudio = true;
           _shouldSendAudio = true;
           if (functionCalls != null && responses.isEmpty) {
             for (final call in functionCalls) {
