@@ -227,6 +227,7 @@ class GeminiLiveService {
         }
       case LiveServerToolCall():
         debugPrint('[GeminiLive] === Tool call received ===');
+        _shouldSendAudio = false; // Stop sending mic audio so server processes tool response cleanly
         final responses = <FunctionResponse>[];
         final functionCalls = message.functionCalls;
         try {
@@ -264,11 +265,14 @@ class GeminiLiveService {
           }
           debugPrint('[GeminiLive] sending ${responses.length} tool response(s)');
           await _session?.sendToolResponse(responses);
+          _shouldSendAudio = true;
           debugPrint('[GeminiLive] tool response sent, state -> listening');
+          _shouldSendAudio = true;
           _setState(LiveChatState.listening);
         } catch (e, stack) {
           debugPrint('[GeminiLive] Tool call error: $e');
           debugPrint('[GeminiLive] Stack: $stack');
+          _shouldSendAudio = true;
           if (functionCalls != null && responses.isEmpty) {
             for (final call in functionCalls) {
               responses.add(FunctionResponse(call.name, {
