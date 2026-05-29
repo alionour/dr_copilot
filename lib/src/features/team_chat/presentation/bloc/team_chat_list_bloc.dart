@@ -112,11 +112,15 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
   }
 
   void _mergeAndEmit() {
-    // Merge both lists
-    final List<dynamic> allConversations = [
-      ..._latestDirectMessages,
-      ..._latestTeamChats,
-    ];
+    // Deduplicate by conversation ID, preferring team chat over DM for same ID
+    final Map<String, dynamic> dedup = {};
+    for (final conv in _latestDirectMessages) {
+      dedup[conv.id] = conv;
+    }
+    for (final conv in _latestTeamChats) {
+      dedup[conv.id] = conv; // team chat wins for same ID
+    }
+    final List<dynamic> allConversations = dedup.values.toList();
 
     debugPrint(
       'Merged conversations: ${allConversations.length} (${_latestDirectMessages.length} direct + ${_latestTeamChats.length} team)',
