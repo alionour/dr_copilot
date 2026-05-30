@@ -30,7 +30,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
         Navigator.pop(context);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('Please sign in first'))));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('planPleaseSignIn'.tr()))));
         return;
       }
 
@@ -55,15 +55,13 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: SelectionArea(child: Text(
-                    'Payment page opened. Please verify payment in the app when done.'))),
+            SnackBar(content: SelectionArea(child: Text('planPaymentOpened'.tr()))),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: SelectionArea(child: Text('Could not open payment page'))),
+            SnackBar(content: SelectionArea(child: Text('planCouldNotOpenPayment'.tr()))),
           );
         }
       }
@@ -97,7 +95,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
               child: Column(
                 children: [
                   Text(
-                    'All-In-One Price, Zero Hassle.',
+                    'planHeaderTitle'.tr(),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -106,7 +104,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Cancel Anytime. Let\'s Get Started!',
+                    'planSubHeader'.tr(),
                     textAlign: TextAlign.center,
                     style: Theme.of(
                       context,
@@ -114,7 +112,7 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Unlock advanced features, unlimited AI models, and premium support',
+                    'planDescription'.tr(),
                     textAlign: TextAlign.center,
                     style: Theme.of(
                       context,
@@ -133,12 +131,12 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildToggleButton('Monthly', !_isYearly, () {
+                        _buildToggleButton('planMonthly'.tr(), !_isYearly, () {
                           setState(() => _isYearly = false);
                         }),
-                        _buildToggleButton('Yearly', _isYearly, () {
+                        _buildToggleButton('planYearly'.tr(), _isYearly, () {
                           setState(() => _isYearly = true);
-                        }, badge: 'Save 20%'),
+                        }, badge: 'planSavePercent'.tr()),
                       ],
                     ),
                   ),
@@ -153,53 +151,53 @@ class _SubscriptionPricingPageState extends State<SubscriptionPricingPage> {
                 builder: (context, constraints) {
                   final cards = [
                     _PricingCard(
-                      title: 'Free',
+                      title: 'planFree'.tr(),
                       monthlyPrice: 0,
                       yearlyPrice: 0,
-                      description: 'Perfect for trying out Dr. AI',
-                      features: const [
-                        'Core Patient Management',
-                        'Standard AI Chat (Gemini Flash)',
-                        'Native Speech-to-Text',
-                        '5 AI chats/day limit',
+                      description: 'planFreeDesc'.tr(),
+                      features: [
+                        'planFreeFeature1'.tr(),
+                        'planFreeFeature2'.tr(),
+                        'planFreeFeature3'.tr(),
+                        'planFreeFeature4'.tr(),
                       ],
-                      buttonText: 'Current Plan',
+                      buttonText: 'planCurrentPlan'.tr(),
                       isPopular: false,
                       isCurrent: true,
                       isYearly: _isYearly,
                       onUpgrade: null,
                     ),
                     _PricingCard(
-                      title: 'Pro',
+                      title: 'planPro'.tr(),
                       monthlyPrice: 9.99,
                       yearlyPrice: 95.90,
-                      description: 'Best for individual practitioners',
-                      features: const [
-                        'Unlimited AI Chat',
-                        'GPT-3.5 & Gemini Access',
-                        'Deepgram Speech Recognition',
-                        'Cloud Backup',
-                        'Basic Image Analysis',
-                        '50 image analyses/month',
+                      description: 'planProDesc'.tr(),
+                      features: [
+                        'planProFeature1'.tr(),
+                        'planProFeature2'.tr(),
+                        'planProFeature3'.tr(),
+                        'planProFeature4'.tr(),
+                        'planProFeature5'.tr(),
+                        'planProFeature6'.tr(),
                       ],
-                      buttonText: 'Get Started',
+                      buttonText: 'planGetStarted'.tr(),
                       isPopular: true,
                       isYearly: _isYearly,
                       onUpgrade: () => _handleUpgrade('Pro'),
                     ),
                     _PricingCard(
-                      title: 'Elite',
+                      title: 'planElite'.tr(),
                       monthlyPrice: 24.99,
                       yearlyPrice: 239.90,
-                      description: 'For power users & clinics',
-                      features: const [
-                        'Claude 3.5 Sonnet & GPT-4o',
-                        'Unlimited Image Analysis',
-                        'Priority Support',
-                        'Advanced Exporting',
-                        'Multi-clinic Support',
+                      description: 'planEliteDesc'.tr(),
+                      features: [
+                        'planEliteFeature1'.tr(),
+                        'planEliteFeature2'.tr(),
+                        'planEliteFeature3'.tr(),
+                        'planEliteFeature4'.tr(),
+                        'planEliteFeature5'.tr(),
                       ],
-                      buttonText: 'Get Started',
+                      buttonText: 'planGetStarted'.tr(),
                       isPopular: false,
                       isYearly: _isYearly,
                       onUpgrade: () => _handleUpgrade('Elite'),
@@ -326,8 +324,8 @@ class _PricingCardState extends State<_PricingCard> {
   @override
   Widget build(BuildContext context) {
     final price = widget.isYearly ? widget.yearlyPrice : widget.monthlyPrice;
-    final priceText = price == 0 ? '\$0' : '\$${price.toStringAsFixed(2)}';
-    final period = widget.isYearly ? '/year' : '/month';
+    final priceText = price == 0 ? 'planPriceFree'.tr() : '\$${price.toStringAsFixed(2)}';
+    final period = widget.isYearly ? 'planPerYear'.tr() : 'planPerMonth'.tr();
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -378,9 +376,9 @@ class _PricingCardState extends State<_PricingCard> {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'RECOMMENDED',
-                      style: TextStyle(
+                    child: Text(
+                      'planRecommended'.tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,

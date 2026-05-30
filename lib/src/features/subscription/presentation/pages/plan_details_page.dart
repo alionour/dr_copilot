@@ -45,7 +45,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('pleaseSignInFirst'.tr()))));
+        ).showSnackBar(SnackBar(content: SelectionArea(child: Text('planPleaseSignIn'.tr()))));
         setState(() {
           _isLoading = false;
         });
@@ -73,8 +73,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: SelectionArea(child: Text(
-                  'Payment page opened. Please verify payment in the app when done.'))),
+              content: SelectionArea(child: Text('planPaymentOpened'.tr()))),
         );
       } else {
         if (!mounted) return;
@@ -109,13 +108,13 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final priceText =
-        widget.price == 0 ? '\$0' : '\$${widget.price.toStringAsFixed(2)}';
-    final period = widget.isYearly ? '/year' : '/month';
+        widget.price == 0 ? 'planPriceFree'.tr() : '\$${widget.price.toStringAsFixed(2)}';
+    final period = widget.isYearly ? 'planPerYear'.tr() : 'planPerMonth'.tr();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('${widget.title} Plan Details'),
+        title: Text('planPlanDetails'.tr(args: [widget.title])),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: colorScheme.onSurface),
@@ -177,7 +176,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
 
               // Detailed Features Section
               Text(
-                'What\'s Included',
+                'planWhatsIncluded'.tr(),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
@@ -234,9 +233,9 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                           ? _handleSubscribe
                           : () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
+                                SnackBar(
                                   content: SelectionArea(child: Text(
-                                    'To downgrade, please manage your subscription in settings.',
+                                    'planDowngradeManage'.tr(),
                                   )),
                                 ),
                               );
@@ -253,10 +252,10 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : Text(
                           widget.isCurrent
-                              ? 'Current Plan'
-                              : (widget.title == 'Free'
-                                  ? 'Downgrade'
-                                  : 'Subscribe Now'),
+                              ? 'planCurrentPlan'.tr()
+                              : ('planFree'.tr() == widget.title
+                                  ? 'planDowngrade'.tr()
+                                  : 'planSubscribeNow'.tr()),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -269,7 +268,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                   padding: const EdgeInsets.only(top: 16.0),
                   child: Center(
                     child: Text(
-                      "You are currently subscribed to this plan.",
+                      'planSubscribedToPlan'.tr(),
                       style: TextStyle(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
