@@ -301,6 +301,14 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
     );
   }
 
+  /// BUG FIX (2026-05-30): Orphaned conversation adoption. The original code
+  /// used `firestore.collection('team_conversations').doc().id` (random ID)
+  /// instead of `team.id`, creating orphaned conversation documents that
+  /// exist alongside the canonical `{team.id}` docs. This fix:
+  ///   1. Checks for the canonical `team_conversations/{team.id}` first.
+  ///   2. If not found, searches for orphaned conversations by `metadata.teamId`.
+  ///   3. If orphan found → creates canonical doc, copies messages, deletes orphan.
+  ///   4. If no orphan → creates fresh conversation at `team.id`.
   Future<void> _startTeamChat(BuildContext context, dynamic team) async {
     try {
       final authState = context.read<AuthBloc>().state;
@@ -331,25 +339,70 @@ class _TeamsDashboardPageState extends State<TeamsDashboardPage> {
         return;
       }
 
-      // 2. Ensure team_conversation document exists with team.id as the document ID
       final conversationRef = firestore.collection('team_conversations').doc(team.id);
       final conversationDoc = await conversationRef.get();
 
-      if (!conversationDoc.exists) {
+      if (conversationDoc.exists) {
+        // Canonical conversation already exists — navigate directly
+        if (context.mounted) context.push('/team_chat/${team.id}');
+        return;
+      }
+
+      // 2. Check for orphaned conversations (wrong doc ID, same metadata.teamId)
+      final orphanedQuery = await firestore
+          .collection('team_conversations')
+          .where('metadata.teamId', isEqualTo: team.id)
+          .limit(1)
+          .get();
+
+      if (orphanedQuery.docs.isNotEmpty) {
+        final orphanedDoc = orphanedQuery.docs.first;
+        final orphanedId = orphanedDoc.id;
+        debugPrint('[_startTeamChat] Adopting orphaned conversation: $orphanedId → ${team.id}');
+
+        // Create canonical doc with orphaned metadata
+        await conversationRef.set({
+          'clinicId': team.clinicId,
+          'participantIds': List<String>.from(team.memberIds),
+          'createdAt': orphanedDoc.get('createdAt') ?? Timestamp.now(),
+          'updatedAt': Timestamp.now(),
+          'lastMessage': orphanedDoc.get('lastMessage'),
+          'lastMessageTimestamp': orphanedDoc.get('lastMessageTimestamp'),
+          'metadata': {'teamId': team.id, 'teamName': team.name},
+        });
+
+        // Copy messages from orphaned to canonical, preserving doc IDs
+        final messages = await firestore
+            .collection('team_conversations')
+            .doc(orphanedId)
+            .collection('messages')
+            .get();
+
+        if (messages.docs.isNotEmpty) {
+          final batch = firestore.batch();
+          for (final msg in messages.docs) {
+            final newMsgRef = conversationRef.collection('messages').doc(msg.id);
+            batch.set(newMsgRef, msg.data());
+          }
+          batch.delete(orphanedDoc.reference);
+          await batch.commit();
+          debugPrint('[_startTeamChat] Migrated ${messages.docs.length} messages from orphaned convo');
+        } else {
+          // No messages to migrate — just delete the empty orphan
+          await orphanedDoc.reference.delete();
+        }
+      } else {
+        // 3. No conversation exists — create a fresh one
         await conversationRef.set({
           'clinicId': team.clinicId,
           'participantIds': List<String>.from(team.memberIds),
           'createdAt': Timestamp.now(),
           'updatedAt': Timestamp.now(),
-          'metadata': {
-            'teamId': team.id,
-            'teamName': team.name,
-          },
+          'metadata': {'teamId': team.id, 'teamName': team.name},
         });
       }
 
       if (context.mounted) {
-        // Navigate to the chat page
         context.push('/team_chat/${team.id}');
       }
     } catch (e) {

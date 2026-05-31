@@ -141,6 +141,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Handles the AuthCheckRequested event.
+  ///
+  /// BUG FIX (2026-05-30): Desktop auth persistence was broken because
+  /// a previous commit (53f3e0a) changed this to use `.first` instead of
+  /// `emit.forEach`. On desktop, `firebase_auth_web` fires `null` first
+  /// (while IndexedDB loads asynchronously), then fires the real persisted
+  /// user as a second emission. `.first` catches only the `null` and
+  /// unsubscribes, permanently losing the real user. `emit.forEach` stays
+  /// subscribed as a long-lived listener and correctly catches the second
+  /// emission with the real user.
   Future<void> _onAuthCheckRequested(
     AuthCheckRequested event,
     Emitter<AuthState> emit,

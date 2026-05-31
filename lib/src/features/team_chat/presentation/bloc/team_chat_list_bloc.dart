@@ -111,6 +111,11 @@ class TeamChatListBloc extends Bloc<TeamChatListEvent, TeamChatListState> {
     );
   }
 
+  /// BUG FIX (2026-05-30): Deduplicate team chat conversations by ID to
+  /// prevent the same chat from appearing twice in the list. The root cause
+  /// was `_startTeamChat()` originally using a random doc ID (`doc().id`)
+  /// instead of `team.id`, creating orphaned conversation documents. Those
+  /// orphans still exist alongside the canonical `{team.id}` docs.
   void _mergeAndEmit() {
     // Deduplicate by conversation ID, preferring team chat over DM for same ID
     final Map<String, dynamic> dedup = {};

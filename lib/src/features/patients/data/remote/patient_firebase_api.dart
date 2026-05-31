@@ -269,6 +269,12 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
           }
         }
 
+        // SOFT-DELETE (2026-05-30): Changed from `doc.delete()` (hard delete)
+        // to `update({'deletedAt': ..., 'deletedBy': ...})`. This preserves
+        // the patient record for the recycle bin. The patient is excluded from
+        // all active queries via `.where((patient) => patient.deletedAt == null)`
+        // in getPatients, searchPatients, getPatientsByDate, getAllPatients,
+        // and getPatientsCount.
         await _patientsCollection.doc(id).update({
           'deletedAt': Timestamp.fromDate(DateTime.now().toUtc()),
           'deletedBy': user.uid,
@@ -594,6 +600,7 @@ class PatientFirebaseApi extends AbstractPatientsRepository {
       return Left(ServerFailure('User not authenticated', 401));
     }
     try {
+      // RESTORE (2026-05-30): Also clear `deletedBy` alongside `deletedAt`.
       await _patientsCollection.doc(id).update({
         'deletedAt': null,
         'deletedBy': null,

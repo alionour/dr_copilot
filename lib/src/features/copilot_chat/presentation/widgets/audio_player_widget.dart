@@ -71,12 +71,18 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     return '$minutes:$seconds';
   }
 
+  /// BUG FIX (2026-05-30): Fixed layout constraint contradiction. The outer
+  /// `Row` contained both `MainAxisSize.min` (from bubble) AND `Expanded`
+  /// (for the slider), which is mutually exclusive. Removed the outer Row's
+  /// `MainAxisSize.min` constraint so the slider's `Expanded` can size
+  /// correctly. Also replaced static `Colors.grey[200]` with a theme-aware
+  /// surface color.
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

@@ -1,0 +1,7 @@
+{
+  "name": "billing-cap",
+  "version": "1.0.0",
+  "dependencies": {
+    "@google-cloud/billing": "^3.0.0"
+  }
+}

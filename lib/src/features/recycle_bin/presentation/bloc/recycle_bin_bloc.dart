@@ -89,7 +89,9 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
       (data) => calendarEvents = data,
     );
 
-    // Check if all failed
+    // FAILURE TRACKING (2026-05-30): Track partial failures across 4 sources.
+    // If ALL 4 fail → emit error. If only some fail → emit partial success
+    // with a warning message so the user sees what they can.
     if (failureCount == 4) {
       emit(RecycleBinError(errorMessage ?? 'failedToLoadDeletedItems'.tr()));
       return;
@@ -107,6 +109,9 @@ class RecycleBinBloc extends Bloc<RecycleBinEvent, RecycleBinState> {
     );
   }
 
+  /// BUG FIX (2026-05-30): Added permission check and localized error
+  /// strings (`permissionDenied`, `failedToLoadDeletedItems`,
+  /// `someItemsCouldNotBeLoaded`) instead of hardcoded English strings.
   Future<void> _onRestoreItem(
     RestoreItem event,
     Emitter<RecycleBinState> emit,

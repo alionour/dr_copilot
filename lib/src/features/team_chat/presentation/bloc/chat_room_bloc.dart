@@ -79,6 +79,10 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     on<MessagesUpdated>(_onMessagesUpdated);
   }
 
+  /// BUG FIX (2026-05-30): Error visibility — previously the `onError`
+  /// handler silently printed without emitting any state change, leaving the
+  /// UI stuck on `ChatRoomLoading` forever. Now it emits `ChatRoomError` so
+  /// the user sees a visible error state.
   void _onLoadMessages(LoadMessages event, Emitter<ChatRoomState> emit) {
     emit(ChatRoomLoading());
     _messagesSubscription?.cancel();

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:dr_copilot/src/core/widgets/shimmer_loading.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,6 +76,7 @@ class TeamChatListPage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final conversation = state.conversations[index];
                   return _ConversationTile(
+                    key: ValueKey(conversation.id),
                     conversation: conversation,
                     currentUserId: currentUser.uid,
                   );
@@ -89,42 +91,103 @@ class TeamChatListPage extends StatelessWidget {
   }
 }
 
-class _ConversationTile extends StatelessWidget {
+class _ConversationTile extends StatefulWidget {
   final dynamic
       conversation; // Can be TeamConversationModel or DirectConversationModel
   final String currentUserId;
 
   const _ConversationTile({
+    super.key,
     required this.conversation,
     required this.currentUserId,
   });
 
   @override
+  State<_ConversationTile> createState() => _ConversationTileState();
+}
+
+class _ConversationTileState extends State<_ConversationTile> {
+  static final Map<String, String> _nameCache = {};
+  String? _resolvedName;
+  bool _loadingName = true;
+  String _otherUserId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveName();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ConversationTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-resolve if the conversation changed (different ID or different list position)
+    if (oldWidget.conversation.id != widget.conversation.id) {
+      _loadingName = true;
+      _resolvedName = null;
+      _otherUserId = '';
+      _resolveName();
+    }
+  }
+
+  Future<void> _resolveName() async {
+    final isDirectMessage = widget.conversation is! TeamConversationModel;
+    if (!isDirectMessage) {
+      if (mounted) setState(() => _loadingName = false);
+      return;
+    }
+
+    final participantIds = widget.conversation.participantIds as List<String>;
+    _otherUserId = participantIds.firstWhere(
+      (id) => id != widget.currentUserId,
+      orElse: () => "Unknown",
+    );
+
+    // Check cache first
+    if (_nameCache.containsKey(_otherUserId)) {
+      _resolvedName = _nameCache[_otherUserId];
+      if (mounted) setState(() => _loadingName = false);
+      return;
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_otherUserId)
+          .get();
+      if (doc.exists && doc.data() != null) {
+        _resolvedName = doc.data()!['displayName'] ??
+            doc.data()!['email'] ??
+            'User ($_otherUserId)';
+      } else {
+        _resolvedName = 'User ($_otherUserId)';
+      }
+    } catch (_) {
+      _resolvedName = 'User ($_otherUserId)';
+    }
+    _nameCache[_otherUserId] = _resolvedName!;
+    if (mounted) setState(() => _loadingName = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Extract common fields from either type
     final String conversationId;
-    final List<String> participantIds;
     final String? lastMessage;
     final DateTime? lastMessageTime;
-    final bool isDirectMessage = conversation is! TeamConversationModel;
+    final bool isDirectMessage =
+        widget.conversation is! TeamConversationModel;
 
-    if (conversation is TeamConversationModel) {
-      conversationId = conversation.id;
-      participantIds = conversation.participantIds;
-      lastMessage = conversation.lastMessage;
-      lastMessageTime = conversation.lastMessageTimestamp;
+    if (widget.conversation is TeamConversationModel) {
+      conversationId = widget.conversation.id;
+      lastMessage = widget.conversation.lastMessage;
+      lastMessageTime = widget.conversation.lastMessageTimestamp;
     } else {
       // DirectConversationModel
-      conversationId = conversation.id;
-      participantIds = conversation.participantIds;
-      lastMessage = conversation.lastMessage;
-      lastMessageTime = conversation.lastMessageTimestamp;
+      conversationId = widget.conversation.id;
+      lastMessage = widget.conversation.lastMessage;
+      lastMessageTime = widget.conversation.lastMessageTimestamp;
     }
-
-    final otherUserId = participantIds.firstWhere(
-      (id) => id != currentUserId,
-      orElse: () => "Unknown",
-    );
 
     return ListTile(
       leading: CircleAvatar(
@@ -134,9 +197,10 @@ class _ConversationTile extends StatelessWidget {
       ),
       title: Text(
         isDirectMessage
-            ? otherUserId // Direct message - show other user
-            : (conversation as TeamConversationModel).metadata['teamName'] ??
-                'Team Chat',
+            ? (_loadingName ? 'Loading...' : (_resolvedName ?? _otherUserId))
+            : (widget.conversation as TeamConversationModel)
+                        .metadata['teamName'] ??
+                    'Team Chat',
       ),
       subtitle: lastMessage != null
           ? Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis)

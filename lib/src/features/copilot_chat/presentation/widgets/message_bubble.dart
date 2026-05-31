@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:dr_copilot/src/features/copilot_chat/copilot_injections.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/text_to_speech_service.dart';
 class MessageBubble extends StatefulWidget {
   final Map<String, dynamic> message;
   final Function(String) onEdit;
@@ -30,6 +31,7 @@ class MessageBubble extends StatefulWidget {
 class _MessageBubbleState extends State<MessageBubble> {
   bool _isEditing = false;
   late TextEditingController _editingController;
+  bool _isSpeaking = false;
 
   @override
   void initState() {
@@ -79,12 +81,17 @@ class _MessageBubbleState extends State<MessageBubble> {
                   child: Image.memory(base64Decode(imageData)),
                 ),
               ),
+            /// BUG FIX (2026-05-30): `AudioPlayerWidget` is now wrapped in a
+            /// `Flexible` to prevent overflow when the audio row's widget
+            /// width exceeds the message bubble's constraints.
             if (messageType == 'audio' &&
                 audioUrl != null &&
                 audioDuration != null)
-              AudioPlayerWidget(
-                audioUrl: audioUrl,
-                durationInSeconds: audioDuration,
+              Flexible(
+                child: AudioPlayerWidget(
+                  audioUrl: audioUrl,
+                  durationInSeconds: audioDuration,
+                ),
               )
             else if (messageText != null)
               isUser
@@ -137,60 +144,66 @@ class _MessageBubbleState extends State<MessageBubble> {
       onExit: (_) => isHovering.value = false,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ValueListenableBuilder<bool>(
-            valueListenable: isHovering,
-            builder: (context, hovering, _) {
-              return AnimatedOpacity(
-                opacity: hovering ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.content_copy, size: 16),
-                      onPressed: () => _copyToClipboard(context, messageText),
-                      tooltip: 'copilotCopyMessage'.tr(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    if (widget.isEditable)
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 16),
-                        onPressed: () {
-                          setState(() {
-                            _isEditing = true;
-                          });
-                        },
-                        tooltip: 'copilotEditMessage'.tr(),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 4),
           Flexible(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                ),
-                child: SelectableText(
-                  messageText,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ),
+                    child: SelectableText(
+                      messageText,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: isHovering,
+                  builder: (context, hovering, _) {
+                    return AnimatedOpacity(
+                      opacity: hovering ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.content_copy, size: 16),
+                            onPressed: () => _copyToClipboard(context, messageText),
+                            tooltip: 'copilotCopyMessage'.tr(),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                          if (widget.isEditable)
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 16),
+                              onPressed: () {
+                                setState(() {
+                                  _isEditing = true;
+                                });
+                              },
+                              tooltip: 'copilotEditMessage'.tr(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: 5),
           const SizedBox(width: 5),
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 8.0),
@@ -241,128 +254,161 @@ class _MessageBubbleState extends State<MessageBubble> {
               color: Theme.of(context).colorScheme.onSecondaryContainer,
             ),
           ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
-              child: Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                ),
-                child: MarkdownBody(
-                data: messageText,
-                selectable: true,
-                styleSheet: MarkdownStyleSheet(
-                  p: GoogleFonts.roboto(
-                    fontSize: 15,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    height: 1.6,
-                  ),
-                  pPadding: const EdgeInsets.only(bottom: 12),
-                  h1: GoogleFonts.roboto(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    height: 1.3,
-                  ),
-                  h2: GoogleFonts.roboto(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    height: 1.3,
-                  ),
-                  h3: GoogleFonts.roboto(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    height: 1.3,
-                  ),
-                  h1Padding: const EdgeInsets.only(top: 24, bottom: 10),
-                  h2Padding: const EdgeInsets.only(top: 20, bottom: 8),
-                  h3Padding: const EdgeInsets.only(top: 16, bottom: 6),
-                  listBullet: GoogleFonts.roboto(
-                    fontSize: 18,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
-                  ),
-                  listIndent: 20,
-                  blockSpacing: 16,
-                  blockquotePadding: const EdgeInsets.only(
-                    left: 16,
-                    top: 12,
-                    bottom: 12,
-                  ),
-                  blockquoteDecoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 3),
+          /// BUG FIX (2026-05-30): Added `ClipRRect` with borderRadius to the
+          /// bot message container (same fix as user message — the gradient
+          /// removed earlier was hiding the unclipped corners).
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ),
+                    child: MarkdownBody(
+                    data: messageText,
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet(
+                      p: GoogleFonts.roboto(
+                        fontSize: 15,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.6,
+                      ),
+                      pPadding: const EdgeInsets.only(bottom: 12),
+                      h1: GoogleFonts.roboto(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.3,
+                      ),
+                      h2: GoogleFonts.roboto(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.3,
+                      ),
+                      h3: GoogleFonts.roboto(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.3,
+                      ),
+                      h1Padding: const EdgeInsets.only(top: 24, bottom: 10),
+                      h2Padding: const EdgeInsets.only(top: 20, bottom: 8),
+                      h3Padding: const EdgeInsets.only(top: 16, bottom: 6),
+                      listBullet: GoogleFonts.roboto(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                      listIndent: 20,
+                      blockSpacing: 16,
+                      blockquotePadding: const EdgeInsets.only(
+                        left: 16,
+                        top: 12,
+                        bottom: 12,
+                      ),
+                      blockquoteDecoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 3),
+                        ),
+                      ),
+                      code: GoogleFonts.sourceCodePro(
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      codeblockPadding: const EdgeInsets.all(16),
+                      codeblockDecoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      strong: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+                      em: GoogleFonts.roboto(fontStyle: FontStyle.italic),
                     ),
                   ),
-                  code: GoogleFonts.sourceCodePro(
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  codeblockPadding: const EdgeInsets.all(16),
-                  codeblockDecoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  strong: GoogleFonts.roboto(fontWeight: FontWeight.bold),
-                  em: GoogleFonts.roboto(fontStyle: FontStyle.italic),
                 ),
               ),
-            ),
-          ),
-          ),
-          const SizedBox(width: 4),
-          ValueListenableBuilder<bool>(
-            valueListenable: isHovering,
-            builder: (context, hovering, _) {
-              return AnimatedOpacity(
-                opacity: hovering ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.content_copy, size: 16),
-                      onPressed: () => _copyToClipboard(context, messageText),
-                      tooltip: 'copilotCopyMessage'.tr(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh, size: 16),
-                      onPressed: () {
-                        // Regenerate functionality not yet implemented
-                      },
-                      tooltip: 'copilotRegenerateResponse'.tr(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.thumb_up_outlined, size: 16),
-                      onPressed: () {
-                        // Like functionality handled by parent widget
-                      },
-                      tooltip: 'copilotGoodResponse'.tr(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.thumb_down_outlined, size: 16),
-                      onPressed: () {
-                        // Dislike functionality handled by parent widget
-                      },
-                      tooltip: 'copilotBadResponse'.tr(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
+                ValueListenableBuilder<bool>(
+                  valueListenable: isHovering,
+                  builder: (context, hovering, _) {
+                    return AnimatedOpacity(
+                      opacity: hovering ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.content_copy, size: 16),
+                              onPressed: () => _copyToClipboard(context, messageText),
+                              tooltip: 'copilotCopyMessage'.tr(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            IconButton(
+                              icon: Icon(_isSpeaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined, size: 16),
+                              onPressed: () async {
+                                final tts = sl<TextToSpeechService>();
+                                if (_isSpeaking) {
+                                  await tts.stop();
+                                  if (mounted) setState(() => _isSpeaking = false);
+                                } else {
+                                  tts.onStateChanged = (isPlaying) {
+                                    if (mounted) {
+                                      setState(() {
+                                        _isSpeaking = isPlaying;
+                                      });
+                                    }
+                                  };
+                                  if (mounted) setState(() => _isSpeaking = true);
+                                  await tts.speak(messageText);
+                                }
+                              },
+                              tooltip: _isSpeaking ? 'copilotStopSpeaking'.tr() : 'copilotReadAloud'.tr(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.refresh, size: 16),
+                              onPressed: () {
+                                // Regenerate functionality not yet implemented
+                              },
+                              tooltip: 'copilotRegenerateResponse'.tr(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.thumb_up_outlined, size: 16),
+                              onPressed: () {
+                                // Like functionality handled by parent widget
+                              },
+                              tooltip: 'copilotGoodResponse'.tr(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.thumb_down_outlined, size: 16),
+                              onPressed: () {
+                                // Dislike functionality handled by parent widget
+                              },
+                              tooltip: 'copilotBadResponse'.tr(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ],
       ),

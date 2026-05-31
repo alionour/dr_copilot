@@ -556,7 +556,7 @@ class GeminiLiveService {
       }
       _audioQueue.addAll(deferred);
 
-      final totalLength = toMerge.fold(0, (sum, b) => sum + b.length);
+      final totalLength = toMerge.fold(0, (total, b) => total + b.length);
       final merged = Uint8List(totalLength);
       int offset = 0;
       for (final b in toMerge) {

@@ -29,14 +29,12 @@ import 'package:dr_copilot/src/core/network/network_info.dart';
 import 'package:dr_copilot/src/features/patients/patients_injections.dart';
 import 'package:dr_copilot/src/features/doctors/doctors_injections.dart';
 import 'package:dr_copilot/src/features/staff/staff_injections.dart';
-import 'package:dr_copilot/src/core/helper/api_key_helper.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/abstract_speech_recognition_service.dart';
-import 'package:dr_copilot/src/features/copilot_chat/data/services/speech_recognition_service.dart';
-
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/google_speech_recognition_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/native_speech_recognition_service.dart';
 import 'package:dr_copilot/src/features/copilot_chat/data/services/hybrid_speech_recognition_service.dart';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dr_copilot/src/core/services/biometric_auth_service.dart';
 import 'package:dr_copilot/src/features/medical_files/data/repositories/medical_file_repository.dart';
 import 'package:dr_copilot/src/features/medical_files/presentation/bloc/medical_file_bloc.dart';
@@ -131,21 +129,21 @@ Future<void> initInjections() async {
   sl.registerLazySingleton(() => SubscriptionService(quotaService: sl()));
 
   // Register Speech Recognition Services
-  // Native service for Arabic and multilingual support
+  // Google Cloud STT — primary for all languages (English + Arabic + others)
+  sl.registerLazySingleton<GoogleSpeechRecognitionService>(
+    () => GoogleSpeechRecognitionService(),
+  );
+
+  // Native OS STT — fallback when Google credentials are missing or API fails
   sl.registerLazySingleton<NativeSpeechRecognitionService>(
     () => NativeSpeechRecognitionService(),
   );
 
-  // Deepgram service for English (high quality)
-  sl.registerLazySingleton<SpeechRecognitionService>(
-    () => SpeechRecognitionService(deepgramApiKey: ApiKeyHelper.deepgramKey),
-  );
-
-  // Hybrid service that routes based on language
+  // Hybrid router: Google first → Native fallback
   sl.registerLazySingleton<AbstractSpeechRecognitionService>(
     () => HybridSpeechRecognitionService(
+      googleService: sl<GoogleSpeechRecognitionService>(),
       nativeService: sl<NativeSpeechRecognitionService>(),
-      deepgramService: sl<SpeechRecognitionService>(),
     ),
   );
 

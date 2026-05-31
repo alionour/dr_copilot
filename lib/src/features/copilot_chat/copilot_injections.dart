@@ -17,6 +17,7 @@ import 'package:dr_copilot/src/features/patients/domain/usecases/patients_usecas
 import 'package:dr_copilot/src/features/appointments/sessions/domain/usecases/sessions_usecase.dart';
 import 'package:dr_copilot/src/features/appointments/evaluations/domain/usecases/evaluations_usecase.dart';
 import 'package:dr_copilot/src/features/auth/domain/services/permission_service.dart';
+import 'package:dr_copilot/src/features/copilot_chat/data/services/text_to_speech_service.dart';
 
 final sl = GetIt.instance;
 
@@ -92,4 +93,6 @@ void initCopilotInjections() {
       ),
     ),
   );
+
+  sl.registerLazySingleton(() => TextToSpeechService());
 }

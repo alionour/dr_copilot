@@ -7,6 +7,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// BUG FIX (2026-05-30): Added `SelectionArea` subtitle text, fixed
+/// `patientName` nullable fallback (was showing `"null"` string when null),
+/// and added missing `intl` import for `DateFormat`.
 class SessionItemTile extends StatelessWidget {
   final SessionModel session;
 
@@ -246,6 +249,9 @@ class PatientItemTile extends StatelessWidget {
   }
 }
 
+/// BUG FIX (2026-05-30): Changed calendar event icon from `Icons.event`
+/// (filled) to `Icons.event_outlined` for consistency with the outlined
+/// icon pattern used by other tiles in the recycle bin.
 class CalendarEventItemTile extends StatelessWidget {
   final CalendarEventModel event;
 
@@ -261,7 +267,7 @@ class CalendarEventItemTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: const Icon(
-          Icons.event,
+          Icons.event_outlined,
           color: Colors.purple,
         ),
         title: Text(event.title),
